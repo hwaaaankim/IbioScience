@@ -28,6 +28,7 @@ import lombok.Data;
 @Entity
 @Table(name = "tb_product")
 public class Product {
+	
 	// 제품 ID, PK
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -66,15 +67,18 @@ public class Product {
 	// 제조사
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Manufacturer manufacturer;
+	
 	// 공급사
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Supplier supplier;
+	
 	// 브랜드
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Brand brand;
 
 	// 제조일자
 	private LocalDate manufacturedAt;
+	
 	// 유통기한
 	private LocalDate expiredAt;
 
