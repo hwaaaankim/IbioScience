@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dev.IbioScience.dto.ProductQuestionApiDto;
 import com.dev.IbioScience.dto.ProductQuestionDto;
 import com.dev.IbioScience.model.product.ProductQuestion;
 import com.dev.IbioScience.service.product.ProductQuestionService;
@@ -48,5 +49,10 @@ public class ProductQuestionController {
     public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
         productQuestionService.deleteQuestion(id);
         return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/list-common")
+    public List<ProductQuestionApiDto> getCommonQuestionList() {
+        return productQuestionService.getAllQuestions();
     }
 }

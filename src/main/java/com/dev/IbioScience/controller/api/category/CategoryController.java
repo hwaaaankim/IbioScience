@@ -11,10 +11,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dev.IbioScience.dto.CategoryLargeApiDto;
 import com.dev.IbioScience.dto.CategoryLargeDto;
+import com.dev.IbioScience.dto.CategoryMediumApiDto;
 import com.dev.IbioScience.dto.CategoryMediumDto;
+import com.dev.IbioScience.dto.CategorySmallApiDto;
 import com.dev.IbioScience.dto.CategorySmallDto;
 import com.dev.IbioScience.dto.MappingRequest;
 import com.dev.IbioScience.dto.MediumSmallMappingDto;
@@ -130,4 +134,23 @@ public class CategoryController {
 	    return Map.of("result", "ok");
 	}
 
+	
+	/* 상품 등록 페이지 카테고리 조회 api */
+	@GetMapping("/list-large")
+    public List<CategoryLargeApiDto> getCategoryLargeList() {
+        return categoryService.getLargeCategories();
+    }
+
+    // 중분류 목록 조회
+    @GetMapping("/list-medium")
+    public List<CategoryMediumApiDto> getCategoryMediumList(@RequestParam Long largeId) {
+        return categoryService.getMediumCategories(largeId);
+    }
+
+    // 소분류 목록 조회
+    @GetMapping("/list-small")
+    public List<CategorySmallApiDto> getCategorySmallList(@RequestParam Long mediumId) {
+        return categoryService.getSmallCategories(mediumId);
+    }
+	
 }

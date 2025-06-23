@@ -173,10 +173,12 @@ public class CategoryService {
         return largeRepo.findAllByOrderByNameAsc()
             .stream().map(CategoryLargeApiDto::from).collect(Collectors.toList());
     }
+	
     public List<CategoryMediumApiDto> getMediumCategories(Long largeId) {
         return mediumRepo.findByLargeIdOrderByNameAsc(largeId)
             .stream().map(CategoryMediumApiDto::from).collect(Collectors.toList());
     }
+    
     public List<CategorySmallApiDto> getSmallCategories(Long mediumId) {
         return mappingRepo.findSmallByMediumId(mediumId)
             .stream().map(CategorySmallApiDto::from).collect(Collectors.toList());
