@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.dev.IbioScience.model.product.status.QuestionType;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -45,6 +46,7 @@ public class ProductQuestion {
 
 	// 선택지 옵션 리스트(SELECT 등)
 	@OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference
 	private List<ProductQuestionOption> options = new ArrayList<>();
 
 	// 답변 리스트

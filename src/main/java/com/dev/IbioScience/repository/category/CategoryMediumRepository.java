@@ -16,5 +16,6 @@ public interface CategoryMediumRepository extends JpaRepository<CategoryMedium, 
     List<CategoryMedium> findByLarge(CategoryLarge large);
     List<CategoryMedium> findByLargeId(Long largeId);
     Optional<CategoryMedium> findByIdAndLargeId(Long id, Long largeId);
+    List<CategoryMedium> findByLargeIdOrderByNameAsc(Long largeId);
 }
 

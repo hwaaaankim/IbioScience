@@ -2,10 +2,14 @@ package com.dev.IbioScience.service.category;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dev.IbioScience.dto.CategoryLargeApiDto;
+import com.dev.IbioScience.dto.CategoryMediumApiDto;
+import com.dev.IbioScience.dto.CategorySmallApiDto;
 import com.dev.IbioScience.model.product.category.CategoryLarge;
 import com.dev.IbioScience.model.product.category.CategoryMedium;
 import com.dev.IbioScience.model.product.category.CategorySmall;
@@ -26,6 +30,11 @@ public class CategoryService {
 	private final CategorySmallRepository smallRepo;
 	private final MediumSmallCategoryRepository mappingRepo;
 
+	@Transactional(readOnly = true)
+    public List<MediumSmallCategory> getAllMappings() {
+        return mappingRepo.findAll();
+    }
+	
 	// ------------------ 대분류 ------------------ //
 	@Transactional(readOnly = true)
 	public List<CategoryLarge> getAllLarge() {
@@ -133,16 +142,24 @@ public class CategoryService {
 
 	@Transactional
 	public void createMappings(Long smallId, List<Long> mediumIds) {
-		CategorySmall small = smallRepo.findById(smallId).orElseThrow(() -> new NoSuchElementException("소분류 없음"));
-		List<CategoryMedium> mediums = mediumRepo.findAllById(mediumIds);
-		for (CategoryMedium medium : mediums) {
-			if (mappingRepo.existsByMediumAndSmall(medium, small))
-				continue; // 이미 매핑된건 건너뜀
-			MediumSmallCategory mapping = new MediumSmallCategory();
-			mapping.setSmall(small);
-			mapping.setMedium(medium);
-			mappingRepo.save(mapping);
-		}
+	    CategorySmall small = smallRepo.findById(smallId)
+	            .orElseThrow(() -> new NoSuchElementException("소분류 없음"));
+	    List<CategoryMedium> mediums = mediumRepo.findAllById(mediumIds);
+
+	    // 중복 매핑 체크
+	    for (CategoryMedium medium : mediums) {
+	        if (mappingRepo.existsByMediumAndSmall(medium, small)) {
+	            // 중복 발견시 바로 예외
+	            throw new IllegalArgumentException("이미 연결되어 있습니다.");
+	        }
+	    }
+	    // 중복 없는 것만 등록
+	    for (CategoryMedium medium : mediums) {
+	        MediumSmallCategory mapping = new MediumSmallCategory();
+	        mapping.setSmall(small);
+	        mapping.setMedium(medium);
+	        mappingRepo.save(mapping);
+	    }
 	}
 
 	@Transactional
@@ -151,4 +168,17 @@ public class CategoryService {
 				.orElseThrow(() -> new NoSuchElementException("매핑 없음"));
 		mappingRepo.delete(mapping);
 	}
+	
+	public List<CategoryLargeApiDto> getLargeCategories() {
+        return largeRepo.findAllByOrderByNameAsc()
+            .stream().map(CategoryLargeApiDto::from).collect(Collectors.toList());
+    }
+    public List<CategoryMediumApiDto> getMediumCategories(Long largeId) {
+        return mediumRepo.findByLargeIdOrderByNameAsc(largeId)
+            .stream().map(CategoryMediumApiDto::from).collect(Collectors.toList());
+    }
+    public List<CategorySmallApiDto> getSmallCategories(Long mediumId) {
+        return mappingRepo.findSmallByMediumId(mediumId)
+            .stream().map(CategorySmallApiDto::from).collect(Collectors.toList());
+    }
 }

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('카테고리 관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">상품공통표시항목 관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript: void(0);">상품관리</a></li>
+										<li class="breadcrumb-item active">상품공통표시항목 관리</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- 신규 항목 추가 영역 -->
+					<div class="d-flex align-items-center gap-2 mb-3">
+						<select id="typeSelect" class="form-select w-auto">
+							<option value="INPUT">일반 입력란</option>
+							<option value="TEXTAREA">여러줄 입력란</option>
+							<option value="SELECT">선택(드롭다운)</option>
+							<option value="FILE">파일 업로드</option>
+							<option value="CKEDITOR">에디터(HTML)</option>
+						</select>
+						<button type="button" class="btn btn-primary" id="addRowBtn">추가</button>
+						<button type="button" class="btn btn-success ms-2" id="saveBtn" disabled>상태저장</button>
+					</div>
+
+					<form id="questionForm" autocomplete="off">
+						<table class="table table-bordered align-middle">
+							<thead class="table-light">
+								<tr>
+									<th style="width:40px">순서</th>
+									<th style="width:100px">표시설정</th>
+									<th style="width:200px">항목명</th>
+									<th style="width:200px">항목명 표시텍스트</th>
+									<th style="width:150px">질문타입</th>
+									<th style="width:160px">옵션(선택지)</th>
+									<th style="width:80px">삭제</th>
+								</tr>
+							</thead>
+							<tbody id="questionTbody"></tbody>
+						</table>
+					</form>
+				</div>
+			</div>
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="/administration/assets/display/displayManager.js"></script>
+</body>
+
+</html>

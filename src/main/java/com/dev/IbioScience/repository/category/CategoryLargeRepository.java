@@ -1,5 +1,6 @@
 package com.dev.IbioScience.repository.category;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,7 @@ import com.dev.IbioScience.model.product.category.CategoryLarge;
 @Repository
 public interface CategoryLargeRepository extends JpaRepository<CategoryLarge, Long> {
     Optional<CategoryLarge> findByName(String name);
+    List<CategoryLarge> findAllByOrderByNameAsc();
     boolean existsByName(String name);
     boolean existsById(Long id);
 }

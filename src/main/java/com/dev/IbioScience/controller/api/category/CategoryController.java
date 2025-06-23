@@ -13,14 +13,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.IbioScience.model.product.category.CategoryLarge;
-import com.dev.IbioScience.model.product.category.CategoryMedium;
-import com.dev.IbioScience.model.product.category.CategorySmall;
-import com.dev.IbioScience.model.product.relation.MediumSmallCategory;
+import com.dev.IbioScience.dto.CategoryLargeDto;
+import com.dev.IbioScience.dto.CategoryMediumDto;
+import com.dev.IbioScience.dto.CategorySmallDto;
+import com.dev.IbioScience.dto.MappingRequest;
+import com.dev.IbioScience.dto.MediumSmallMappingDto;
 import com.dev.IbioScience.service.category.CategoryService;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,6 +29,13 @@ public class CategoryController {
 
 	private final CategoryService categoryService;
 
+	@GetMapping("/mapping/all")
+	public List<MediumSmallMappingDto> getAllMappings() {
+	    return categoryService.getAllMappings().stream()
+	            .map(MediumSmallMappingDto::from)
+	            .collect(Collectors.toList());
+	}
+	
 	// ----------- 대분류 -----------
 	@GetMapping("/large")
 	public List<CategoryLargeDto> getAllLarge() {
@@ -124,57 +130,4 @@ public class CategoryController {
 	    return Map.of("result", "ok");
 	}
 
-
-	// ------ DTO 선언부 -------
-	@Data
-	@AllArgsConstructor
-	static class CategoryLargeDto {
-		private Long id;
-		private String name;
-
-		public static CategoryLargeDto from(CategoryLarge l) {
-			return new CategoryLargeDto(l.getId(), l.getName());
-		}
-	}
-
-	@Data
-	@AllArgsConstructor
-	static class CategoryMediumDto {
-		private Long id;
-		private String name;
-		private Long largeId;
-
-		public static CategoryMediumDto from(CategoryMedium m) {
-			return new CategoryMediumDto(m.getId(), m.getName(), m.getLarge().getId());
-		}
-	}
-
-	@Data
-	@AllArgsConstructor
-	static class CategorySmallDto {
-		private Long id;
-		private String name;
-
-		public static CategorySmallDto from(CategorySmall s) {
-			return new CategorySmallDto(s.getId(), s.getName());
-		}
-	}
-
-	@Data
-	@AllArgsConstructor
-	static class MediumSmallMappingDto {
-		private Long id;
-		private Long mediumId;
-		private Long smallId;
-
-		public static MediumSmallMappingDto from(MediumSmallCategory m) {
-			return new MediumSmallMappingDto(m.getId(), m.getMedium().getId(), m.getSmall().getId());
-		}
-	}
-
-	@Data
-	static class MappingRequest {
-		private Long smallId;
-		private List<Long> mediumIds;
-	}
 }

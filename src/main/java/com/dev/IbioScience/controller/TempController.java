@@ -12,4 +12,15 @@ public class TempController {
 		return "administration/category/categoryManager";
 	}
 	
+	@GetMapping("/displayManager")
+	public String displayManager() {
+		
+		return "administration/product/displayManager";
+	}
+	
+	@GetMapping("/productManager")
+	public String productManager() {
+		
+		return "administration/product/productManager";
+	}
 }

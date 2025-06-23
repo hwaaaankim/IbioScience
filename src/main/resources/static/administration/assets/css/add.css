@@ -1,0 +1,157 @@
+/* CategoryManager */
+.category-manager-card {
+	height: 540px;
+	/* 카드 높이: 필요시 500~600px로 조절 */
+	min-height: 500px;
+	max-height: 600px;
+	display: flex;
+	flex-direction: column;
+}
+
+.category-manager-card .category-manager-card-body {
+	flex: 1 1 0;
+	display: flex;
+	flex-direction: column;
+	/* 카드 내용이 너무 넘치면 스크롤 */
+	overflow: hidden;
+}
+
+.category-manager-list {
+	flex: 0 0 auto;
+	max-height: 300px;
+	/* 줄 수에 따라 조정(5~6줄) */
+	min-height: 80px;
+	overflow-y: auto;
+	margin-bottom: 0;
+}
+
+/* DisplayManager */
+.display-manager-option-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 4px;
+}
+
+.display-manager-option-chip {
+	display: inline-flex;
+	align-items: center;
+	background: #f1f3f7;
+	border-radius: 15px;
+	padding: 2px 10px 2px 9px;
+	margin: 2px 4px 2px 0;
+	font-size: 13px;
+	border: 1px solid #e4e6eb;
+	position: relative;
+}
+
+.display-manager-option-label {
+	margin-right: 5px;
+	word-break: break-all;
+}
+
+.display-manager-del-option {
+	background: none;
+	border: none;
+	color: #b92d2b;
+	cursor: pointer !important;
+	font-size: 16px;
+	margin-left: 0;
+	padding: 0 2px;
+	user-select: none;
+	transition: color 0.15s;
+	line-height: 1;
+}
+
+.display-manager-del-option:hover,
+.display-manager-del-option:focus {
+	color: #ff2828;
+	text-shadow: 0 0 2px #ffbdbd;
+}
+
+.display-manager-add-option-btn {
+	min-width: 45px;
+}
+
+.display-manager-option-row {
+	gap: 8px;
+}
+
+/* ProductManager */
+.product-manager-section {
+	margin-bottom: 2rem;
+}
+
+.product-manager-section-title {
+	font-weight: bold;
+	font-size: 1.1rem;
+	margin-bottom: 0.7rem;
+}
+
+.product-manager-required {
+	color: #dc3545;
+	font-weight: bold;
+}
+
+.product-manager-category-tree {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background: #f9f9fa;
+	min-height: 130px;
+}
+
+.product-manager-category-col {
+	max-height: 150px;
+	overflow-y: auto;
+}
+
+.product-manager-category-item {
+	cursor: pointer;
+	padding: 5px 8px;
+	border-radius: 3px;
+}
+
+.product-manager-category-item.active,
+.product-manager-category-item:hover {
+	background: #0d6efd;
+	color: #fff;
+}
+
+.product-manager-category-selected-list {
+	margin-top: 10px;
+}
+
+.product-manager-category-selected-item {
+	background: #eef3ff;
+	border-radius: 3px;
+	padding: 4px 10px;
+	margin-right: 5px;
+	display: inline-block;
+}
+
+.product-manager-image-preview {
+	max-width: 90px;
+	max-height: 90px;
+	border: 1px solid #e5e5e5;
+	border-radius: 5px;
+	margin: 0 6px 6px 0;
+	position: relative;
+}
+
+.product-manager-image-remove {
+	position: absolute;
+	right: 2px;
+	top: 2px;
+	background: rgba(0, 0, 0, 0.6);
+	color: #fff;
+	border: none;
+	border-radius: 10px;
+	width: 20px;
+	height: 20px;
+	font-size: 1rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.product-manager-sortable {
+	min-height: 96px;
+}
