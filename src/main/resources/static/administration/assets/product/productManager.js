@@ -1,37 +1,417 @@
 document.addEventListener("DOMContentLoaded", function() {
-	// === 1. 카테고리 선택 트리 ===
+	// === 기존 변수/상태 선언 ===
 	const largeList = document.getElementById('category-large-list');
 	const mediumList = document.getElementById('category-medium-list');
 	const smallList = document.getElementById('category-small-list');
 	const selectedList = document.getElementById('selected-category-list');
-	const applyCategoryBtn = document.getElementById('apply-category-btn');
 	let selectedCategories = [];
 
+	let largeCategoryMap = {};
+	let mediumCategoryMap = {};
+
+	let keywords = [];
+	const keywordInput = document.getElementById('product-keyword-input');
+	const addKeywordBtn = document.getElementById('add-keyword-btn');
+	const keywordList = document.getElementById('product-keyword-list');
+
+	const relatedModal = document.getElementById('relatedProductModal');
+	const relatedOpenBtn = document.getElementById('open-related-modal-btn');
+	const relatedCloseBtns = relatedModal.querySelectorAll('.related-modal-close, .related-modal-cancel, .related-modal-overlay');
+	const relatedLargeSelect = document.getElementById('related-large-select');
+	const relatedMediumSelect = document.getElementById('related-medium-select');
+	const relatedSmallSelect = document.getElementById('related-small-select');
+	const relatedKeywordInput = document.getElementById('related-product-keyword');
+	const relatedModalProductList = document.getElementById('related-modal-product-list');
+	const addRelatedProductBtn = document.getElementById('add-related-product-btn');
+	const relatedTypeSelect = document.getElementById('related-modal-type');
+	let relatedProductList = [], relatedSelectedProductIds = new Set();
+
+	const bundleModal = document.getElementById('bundleProductModal');
+	const bundleOpenBtn = document.getElementById('open-bundle-modal-btn');
+	const bundleCloseBtns = bundleModal.querySelectorAll('.bundle-modal-close, .bundle-modal-cancel, .bundle-modal-overlay');
+	const bundleLargeSelect = document.getElementById('bundle-large-select');
+	const bundleMediumSelect = document.getElementById('bundle-medium-select');
+	const bundleSmallSelect = document.getElementById('bundle-small-select');
+	const bundleKeywordInput = document.getElementById('bundle-product-keyword');
+	const bundleModalProductList = document.getElementById('bundle-modal-product-list');
+	const addBundleProductBtn = document.getElementById('add-bundle-product-btn');
+	let bundleProductList = [], bundleSelectedProductIds = new Set();
+
+	let relatedProducts = [];
+	let bundleProducts = [];
+
+	// ----------- 모달 관련 (active 클래스 시 display block 보장)
+	// (CSS에 아래 예시 추가 필요)
+	// .related-modal-root.active, .bundle-modal-root.active { display: block !important; }
+	// .related-modal-root, .bundle-modal-root { display: none; }
+	// -----------
+
+	// --- 모달 대분류 옵션 그리기 (중분류 수 표시)
+	function fetchAndRenderLargeOptions(selectEl, callback) {
+		fetch('/api/category/list-large')
+			.then(res => res.json())
+			.then(list => {
+				selectEl.innerHTML = `<option value="">대분류</option>`;
+				list.forEach(cat => {
+					selectEl.innerHTML += `<option value="${cat.id}">${cat.name} (${cat.mediumCount ?? 0})</option>`;
+				});
+				if (callback) callback(list);
+			});
+	}
+
+	// --- 모달 중분류 옵션 그리기 (소분류 수 표시)
+	function fetchAndRenderMediumOptions(selectEl, largeId, resetSmallSelect) {
+		selectEl.innerHTML = `<option value="">중분류</option>`;
+		if (!largeId) {
+			if (resetSmallSelect) resetSmallSelect.innerHTML = `<option value="">소분류</option>`;
+			return;
+		}
+		fetch(`/api/category/list-medium?largeId=${largeId}`)
+			.then(res => res.json())
+			.then(list => {
+				list.forEach(m => {
+					selectEl.innerHTML += `<option value="${m.id}">${m.name} (${m.smallCount ?? 0})</option>`;
+				});
+				if (resetSmallSelect) resetSmallSelect.innerHTML = `<option value="">소분류</option>`;
+			});
+	}
+
+	function fetchAndRenderSmallOptions(selectEl, mediumId) {
+		selectEl.innerHTML = `<option value="">소분류</option>`;
+		if (!mediumId) return;
+		// 변경: 기존 list-small → list-small-with-product-count
+		fetch(`/api/category/list-small-with-product-count?mediumId=${mediumId}`)
+			.then(res => res.json())
+			.then(list => {
+				list.forEach(s => {
+					// 제품수가 없는 경우 0, 제품수는 productCount
+					selectEl.innerHTML += `<option value="${s.id}">${s.name} (${s.productCount ?? 0})</option>`;
+				});
+			});
+	}
+
+	function fetchProductListBySmall(smallId, callback) {
+		if (!smallId) {
+			callback([]);
+			return;
+		}
+		fetch(`/api/product/list-simple?smallId=${smallId}`)
+			.then(res => res.json())
+			.then(list => callback(list));
+	}
+
+	// ---- 관련상품 모달 컨트롤러 ----
+	relatedOpenBtn.onclick = function() {
+		relatedModal.classList.add('active');
+		fetchAndRenderLargeOptions(relatedLargeSelect, () => {
+			relatedMediumSelect.innerHTML = `<option value="">중분류</option>`;
+			relatedSmallSelect.innerHTML = `<option value="">소분류</option>`;
+			relatedKeywordInput.value = '';
+			relatedProductList = [];
+			relatedSelectedProductIds = new Set();
+			renderRelatedModalProductList();
+		});
+	};
+	relatedLargeSelect.onchange = function() {
+		fetchAndRenderMediumOptions(relatedMediumSelect, this.value, relatedSmallSelect);
+		relatedProductList = [];
+		renderRelatedModalProductList();
+	};
+	relatedMediumSelect.onchange = function() {
+		fetchAndRenderSmallOptions(relatedSmallSelect, this.value);
+		relatedProductList = [];
+		renderRelatedModalProductList();
+	};
+	relatedSmallSelect.onchange = function() {
+		const smallId = relatedSmallSelect.value;
+		// API 호출 및 select 옵션 렌더
+		fetchProductListBySmall(smallId, function(list) {
+			relatedProductList = list || [];
+			renderRelatedModalProductList();
+		});
+	};
+	// 제품리스트를 select로 표시
+	function renderRelatedModalProductList() {
+		relatedModalProductList.innerHTML = '';
+		if (!relatedProductList || relatedProductList.length === 0) {
+			relatedModalProductList.innerHTML = '<div class="text-muted text-center">제품이 없습니다.</div>';
+			return;
+		}
+		// 리스트(ul)로 표시 + 삭제(x)
+		const ul = document.createElement('ul');
+		ul.className = 'list-group mb-2';
+		relatedProductList.forEach(product => {
+			const li = document.createElement('li');
+			li.className = 'list-group-item d-flex justify-content-between align-items-center';
+			// 체크박스 (다중 선택 가능)
+			const checkbox = document.createElement('input');
+			checkbox.type = 'checkbox';
+			checkbox.className = 'form-check-input me-2';
+			checkbox.value = product.id;
+			checkbox.checked = relatedSelectedProductIds.has(Number(product.id));
+			checkbox.onchange = function() {
+				if (this.checked) relatedSelectedProductIds.add(Number(this.value));
+				else relatedSelectedProductIds.delete(Number(this.value));
+			};
+
+			// 제품명 및 코드
+			const label = document.createElement('span');
+			label.textContent = `[${product.code}] ${product.name}`;
+
+			// x(삭제)
+			const delBtn = document.createElement('button');
+			delBtn.className = 'btn btn-outline-danger btn-sm ms-2';
+			delBtn.type = 'button';
+			delBtn.innerHTML = '&times;';
+			delBtn.onclick = function() {
+				// 제품 리스트에서 제거
+				relatedProductList = relatedProductList.filter(p => p.id !== product.id);
+				// 선택에서도 제거
+				relatedSelectedProductIds.delete(product.id);
+				renderRelatedModalProductList();
+			};
+
+			li.appendChild(checkbox);
+			li.appendChild(label);
+			li.appendChild(delBtn);
+			ul.appendChild(li);
+		});
+		relatedModalProductList.appendChild(ul);
+	}
+
+	// 제품 추가 버튼 클릭
+	addRelatedProductBtn.onclick = function() {
+		// 선택된 항목만 바깥 리스트에 추가
+		const type = relatedTypeSelect.value;
+		const selectedIds = Array.from(relatedSelectedProductIds);
+
+		selectedIds.forEach(productId => {
+			const product = relatedProductList.find(p => p.id === productId);
+			if (product && !relatedProducts.some(rp => rp.id === productId)) {
+				relatedProducts.push({ id: product.id, name: product.name, type });
+			}
+		});
+		renderRelatedProducts();
+		relatedModal.classList.remove('active');
+		// 선택 초기화
+		relatedSelectedProductIds.clear();
+	};
+
+	relatedCloseBtns.forEach(btn => btn.onclick = () => relatedModal.classList.remove('active'));
+
+	function renderRelatedProducts() {
+		const list = document.getElementById('related-products-list');
+		list.innerHTML = '';
+		relatedProducts.forEach((p, idx) => {
+			const badge = document.createElement('div');
+			badge.className = 'badge bg-warning text-dark px-2 py-2 d-flex align-items-center';
+			badge.innerHTML = `${p.name} (${p.type === 'RECIPROCAL' ? '상호' : '일방'})<span class="ms-2" style="cursor:pointer;" title="삭제">&times;</span>`;
+			badge.querySelector('span').onclick = () => {
+				relatedProducts.splice(idx, 1);
+				renderRelatedProducts();
+			};
+			list.appendChild(badge);
+		});
+	}
+
+	// ---- 추가구성상품 모달 컨트롤러 ----
+	bundleOpenBtn.onclick = function() {
+		bundleModal.classList.add('active');
+		fetchAndRenderLargeOptions(bundleLargeSelect, () => {
+			bundleMediumSelect.innerHTML = `<option value="">중분류</option>`;
+			bundleSmallSelect.innerHTML = `<option value="">소분류</option>`;
+			bundleKeywordInput.value = '';
+			bundleProductList = [];
+			bundleSelectedProductIds = new Set();
+			renderBundleModalProductList();
+		});
+	};
+	bundleLargeSelect.onchange = function() {
+		fetchAndRenderMediumOptions(bundleMediumSelect, this.value, bundleSmallSelect);
+		bundleProductList = [];
+		renderBundleModalProductList();
+	};
+	bundleMediumSelect.onchange = function() {
+		fetchAndRenderSmallOptions(bundleSmallSelect, this.value);
+		bundleProductList = [];
+		renderBundleModalProductList();
+	};
+	bundleSmallSelect.onchange = function() {
+		const smallId = bundleSmallSelect.value;
+		fetchProductListBySmall(smallId, function(list) {
+			bundleProductList = list || [];
+			renderBundleModalProductList();
+		});
+	};
+
+	function renderBundleModalProductList() {
+		bundleModalProductList.innerHTML = '';
+		if (!bundleProductList || bundleProductList.length === 0) {
+			bundleModalProductList.innerHTML = '<div class="text-muted text-center">제품이 없습니다.</div>';
+			return;
+		}
+		// 체크박스 + x 버튼 리스트 렌더
+		const ul = document.createElement('ul');
+		ul.className = 'list-group mb-2';
+		bundleProductList.forEach(product => {
+			const li = document.createElement('li');
+			li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+			const checkbox = document.createElement('input');
+			checkbox.type = 'checkbox';
+			checkbox.className = 'form-check-input me-2';
+			checkbox.value = product.id;
+			checkbox.checked = bundleSelectedProductIds.has(Number(product.id));
+			checkbox.onchange = function() {
+				if (this.checked) bundleSelectedProductIds.add(Number(this.value));
+				else bundleSelectedProductIds.delete(Number(this.value));
+			};
+
+			const label = document.createElement('span');
+			label.textContent = `[${product.code}] ${product.name}`;
+
+			const delBtn = document.createElement('button');
+			delBtn.className = 'btn btn-outline-danger btn-sm ms-2';
+			delBtn.type = 'button';
+			delBtn.innerHTML = '&times;';
+			delBtn.onclick = function() {
+				bundleProductList = bundleProductList.filter(p => p.id !== product.id);
+				bundleSelectedProductIds.delete(product.id);
+				renderBundleModalProductList();
+			};
+
+			li.appendChild(checkbox);
+			li.appendChild(label);
+			li.appendChild(delBtn);
+			ul.appendChild(li);
+		});
+		bundleModalProductList.appendChild(ul);
+	}
+
+	addBundleProductBtn.onclick = function() {
+		const selectedIds = Array.from(bundleSelectedProductIds);
+		selectedIds.forEach(productId => {
+			const product = bundleProductList.find(p => p.id === productId);
+			if (product && !bundleProducts.some(bp => bp.id === productId)) {
+				bundleProducts.push({ id: product.id, name: product.name });
+			}
+		});
+		renderBundleProducts();
+		bundleModal.classList.remove('active');
+		bundleSelectedProductIds.clear();
+	};
+	
+	bundleCloseBtns.forEach(btn => btn.onclick = () => bundleModal.classList.remove('active'));
+
+	function renderBundleProducts() {
+		const list = document.getElementById('bundle-products-list');
+		list.innerHTML = '';
+		bundleProducts.forEach((p, idx) => {
+			const badge = document.createElement('div');
+			badge.className = 'badge bg-success text-white px-2 py-2 d-flex align-items-center';
+			badge.innerHTML = `${p.name}<span class="ms-2" style="cursor:pointer;" title="삭제">&times;</span>`;
+			badge.querySelector('span').onclick = () => {
+				bundleProducts.splice(idx, 1);
+				renderBundleProducts();
+			};
+			list.appendChild(badge);
+		});
+	}
+	document.getElementById('bundle-add-product-btn').onclick = function() {
+		const input = document.getElementById('bundle-add-product-name');
+		const name = input.value.trim();
+		if (!name) {
+			alert('제품명을 입력하세요.');
+			return;
+		}
+		// 중복 방지
+		if (bundleProductList.some(p => p.name === name)) {
+			alert('이미 등록된 제품입니다.');
+			return;
+		}
+		let newId = bundleProductList.reduce((max, cur) => Math.max(max, Number(cur.id)), 0) + 1;
+		let newCode = 'TMP' + newId;
+
+		bundleProductList.push({
+			id: newId,
+			code: newCode,
+			name: name
+		});
+		bundleSelectedProductIds.add(newId); // **자동 선택 반영**
+
+		input.value = '';
+		renderBundleModalProductList();
+	};
+
+
+	document.getElementById('related-add-product-btn').onclick = function() {
+		const input = document.getElementById('related-add-product-name');
+		const name = input.value.trim();
+		if (!name) {
+			alert('제품명을 입력하세요.');
+			return;
+		}
+		// 중복 방지: 이름 중복 등록 안 함
+		if (relatedProductList.some(p => p.name === name)) {
+			alert('이미 등록된 제품입니다.');
+			return;
+		}
+		// 임의 id/code 생성 (중복방지)
+		let newId = relatedProductList.reduce((max, cur) => Math.max(max, Number(cur.id)), 0) + 1;
+		let newCode = 'TMP' + newId;
+		// 데이터에 추가
+		relatedProductList.push({
+			id: newId,
+			code: newCode,
+			name: name
+		});
+		// **추가: 새로 등록한 제품을 바로 선택상태로**
+		relatedSelectedProductIds.add(newId);
+
+		// 렌더링
+		renderRelatedModalProductList();
+		input.value = '';
+	};
+
+	// 스크롤 스타일 적용(최대 5개) - CSS로도 적용 가능하지만 JS로 보장
+	[largeList, mediumList, smallList].forEach(listEl => {
+		listEl.style.maxHeight = '240px';
+		listEl.style.overflowY = 'auto';
+	});
+
+	// 대분류 로딩 및 중분류 개수 badge 표시
 	fetch('/api/category/list-large')
 		.then(res => res.json())
 		.then(list => {
 			largeList.innerHTML = '';
 			list.forEach(large => {
 				let li = document.createElement('li');
-				li.textContent = large.name;
-				li.className = 'list-group-item list-group-item-action category-large-item';
+				li.className = 'list-group-item list-group-item-action category-large-item d-flex justify-content-between align-items-center';
 				li.dataset.id = large.id;
+				// mediumCount 바로 사용!
+				li.innerHTML = `<span>${large.name}</span>
+                <span class="badge bg-light text-dark ms-2" data-large-badge="${large.id}">${large.mediumCount ?? 0}</span>`;
+				largeCategoryMap[large.id] = large.name;
 				largeList.appendChild(li);
 			});
 		});
 
 	largeList.addEventListener('click', function(e) {
-		if (e.target.classList.contains('category-large-item')) {
-			const largeId = e.target.dataset.id;
+		const li = e.target.closest('.category-large-item');
+		if (li) {
+			const largeId = li.dataset.id;
 			fetch(`/api/category/list-medium?largeId=${largeId}`)
 				.then(res => res.json())
 				.then(list => {
 					mediumList.innerHTML = '';
 					list.forEach(m => {
 						let li = document.createElement('li');
-						li.textContent = m.name;
-						li.className = 'list-group-item list-group-item-action category-medium-item';
+						li.className = 'list-group-item list-group-item-action category-medium-item d-flex justify-content-between align-items-center';
 						li.dataset.id = m.id;
+						// smallCount 바로 사용!
+						li.innerHTML = `<span>${m.name}</span>
+                        <span class="badge bg-light text-dark ms-2" data-medium-badge="${m.id}">${m.smallCount ?? 0}</span>`;
+						mediumCategoryMap[m.id] = { name: m.name, largeId: largeId };
 						mediumList.appendChild(li);
 					});
 					smallList.innerHTML = '';
@@ -40,8 +420,9 @@ document.addEventListener("DOMContentLoaded", function() {
 	});
 
 	mediumList.addEventListener('click', function(e) {
-		if (e.target.classList.contains('category-medium-item')) {
-			const mediumId = e.target.dataset.id;
+		const li = e.target.closest('.category-medium-item');
+		if (li) {
+			const mediumId = li.dataset.id;
 			fetch(`/api/category/list-small?mediumId=${mediumId}`)
 				.then(res => res.json())
 				.then(list => {
@@ -51,6 +432,7 @@ document.addEventListener("DOMContentLoaded", function() {
 						li.textContent = s.name;
 						li.className = 'list-group-item list-group-item-action category-small-item';
 						li.dataset.id = s.id;
+						li.dataset.mediumId = mediumId;
 						smallList.appendChild(li);
 					});
 				});
@@ -60,9 +442,21 @@ document.addEventListener("DOMContentLoaded", function() {
 	smallList.addEventListener('click', function(e) {
 		if (e.target.classList.contains('category-small-item')) {
 			const smallId = e.target.dataset.id;
-			const text = e.target.textContent;
+			const mediumId = e.target.dataset.mediumId;
+			const mediumInfo = mediumCategoryMap[mediumId] || {};
+			const largeId = mediumInfo.largeId;
+			const largeName = largeCategoryMap[largeId] || '';
+			const mediumName = mediumInfo.name || '';
+			const smallName = e.target.textContent;
 			if (!selectedCategories.some(sc => sc.id == smallId)) {
-				selectedCategories.push({ id: smallId, text: text });
+				selectedCategories.push({
+					id: smallId,
+					largeId,
+					largeName,
+					mediumId,
+					mediumName,
+					smallName
+				});
 				renderSelectedCategories();
 			}
 		}
@@ -73,20 +467,16 @@ document.addEventListener("DOMContentLoaded", function() {
 		selectedCategories.forEach((c, idx) => {
 			let div = document.createElement('div');
 			div.className = 'badge bg-primary text-white px-2 py-2 me-2 d-flex align-items-center';
-			div.textContent = c.text;
-			let x = document.createElement('span');
-			x.textContent = '×';
-			x.style.cursor = 'pointer';
-			x.style.marginLeft = '10px';
-			x.onclick = () => { selectedCategories.splice(idx, 1); renderSelectedCategories(); }
-			div.appendChild(x);
+			div.innerHTML =
+				`${c.largeName} &gt; ${c.mediumName} &gt; <b>${c.smallName}</b>
+				<span class="ms-2" style="cursor:pointer;" title="삭제">[삭제]</span>`;
+			div.querySelector('span').onclick = () => {
+				selectedCategories.splice(idx, 1);
+				renderSelectedCategories();
+			}
 			selectedList.appendChild(div);
 		});
 	}
-
-	applyCategoryBtn.addEventListener('click', function() {
-		alert('분류 적용: ' + selectedCategories.map(c => c.text).join(', '));
-	});
 
 	// ===== 2. 공통 표시옵션(질문) 동적 랜더링 및 CKEditor mount =====
 	let ckeInstances = {};
@@ -140,13 +530,15 @@ document.addEventListener("DOMContentLoaded", function() {
 			const container = document.getElementById('product-manager-display-options');
 			container.innerHTML = '';
 			list.forEach(option => {
+				let colClass = 'col-6 mb-2';
+				if (option.type === 'TEXTAREA' || option.type === 'CKEDITOR') {
+					colClass = 'col-12 mb-2';
+				}
 				const div = document.createElement('div');
-				div.className = 'row mb-2 align-items-end';
+				div.className = colClass + ' d-flex flex-column justify-content-end';
 				div.innerHTML = `
-                    <div class="col-md-3">
-                        <label class="form-label mb-1">${option.label ?? option.name}${option.required ? ' <span class="text-danger">*</span>' : ''}</label>
-                        ${makeQuestionInput(option)}
-                    </div>
+                    <label class="form-label mb-1">${option.label ?? option.name}${option.required ? ' <span class="text-danger">*</span>' : ''}</label>
+                    ${makeQuestionInput(option)}
                 `;
 				container.appendChild(div);
 			});
@@ -327,6 +719,81 @@ document.addEventListener("DOMContentLoaded", function() {
 	});
 	// 최초 1개 표시
 	renderOptionGroups();
+	// 키워드 등록
+	function renderKeywordList() {
+		keywordList.innerHTML = '';
+		keywords.forEach((kw, idx) => {
+			const badge = document.createElement('div');
+			badge.className = 'badge bg-info text-dark px-2 py-2 d-flex align-items-center mt-2';
+			badge.style.fontSize = '14px';
+			badge.innerHTML = `
+            <span>${kw}</span>
+            <span class="ms-2" style="cursor:pointer;" title="삭제">&times;</span>
+        `;
+			badge.querySelector('span:last-child').onclick = () => {
+				keywords.splice(idx, 1);
+				renderKeywordList();
+			};
+			keywordList.appendChild(badge);
+		});
+	}
+	addKeywordBtn.onclick = addKeyword;
+	keywordInput.onkeydown = function(e) {
+		if (e.key === 'Enter') {
+			addKeyword();
+			e.preventDefault();
+		}
+	};
+	function addKeyword() {
+		const kw = keywordInput.value.trim();
+		if (!kw) return;
+		if (keywords.includes(kw)) return; // 중복제거
+		keywords.push(kw);
+		keywordInput.value = '';
+		renderKeywordList();
+	}
+
+	// === 사용함/사용안함 이벤트 ===
+	document.querySelectorAll('input[name="useRelatedProducts"]').forEach(radio => {
+		radio.onchange = function() {
+			document.getElementById('open-related-modal-btn').disabled = (this.value === "false");
+		}
+	});
+	document.querySelectorAll('input[name="useBundleItems"]').forEach(radio => {
+		radio.onchange = function() {
+			document.getElementById('open-bundle-modal-btn').disabled = (this.value === "false");
+		}
+	});
+
+	function renderRelatedProducts() {
+		const list = document.getElementById('related-products-list');
+		list.innerHTML = '';
+		relatedProducts.forEach((p, idx) => {
+			const badge = document.createElement('div');
+			badge.className = 'badge bg-warning text-dark px-2 py-2 d-flex align-items-center';
+			badge.innerHTML = `${p.name} (${p.type === 'RECIPROCAL' ? '상호' : '일방'})<span class="ms-2" style="cursor:pointer;" title="삭제">&times;</span>`;
+			badge.querySelector('span').onclick = () => {
+				relatedProducts.splice(idx, 1);
+				renderRelatedProducts();
+			}
+			list.appendChild(badge);
+		});
+	}
+
+	function renderBundleProducts() {
+		const list = document.getElementById('bundle-products-list');
+		list.innerHTML = '';
+		bundleProducts.forEach((p, idx) => {
+			const badge = document.createElement('div');
+			badge.className = 'badge bg-success text-white px-2 py-2 d-flex align-items-center';
+			badge.innerHTML = `${p.name}<span class="ms-2" style="cursor:pointer;" title="삭제">&times;</span>`;
+			badge.querySelector('span').onclick = () => {
+				bundleProducts.splice(idx, 1);
+				renderBundleProducts();
+			}
+			list.appendChild(badge);
+		});
+	}
 
 	// ===== 7. 제품 등록 버튼 - FormData로 수집 및 제출 =====
 	document.getElementById('submitProductBtn').addEventListener('click', function(e) {
@@ -405,7 +872,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('- 선택된 소분류 없음');
 		} else {
 			selectedCategories.forEach((c, i) => {
-				console.log(`- ${i + 1}: id=${c.id}, name=${c.text}`);
+				console.log(`- ${i + 1}: id=${c.id}, ${c.largeName} > ${c.mediumName} > ${c.smallName}`);
 			});
 		}
 
@@ -487,6 +954,7 @@ document.addEventListener("DOMContentLoaded", function() {
 				}
 			});
 		}
+
 
 		// 실제 전송은 아래처럼 주석 처리해둡니다
 		/*

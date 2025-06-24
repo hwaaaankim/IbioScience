@@ -131,13 +131,13 @@
       }),
       (e = (e =
         "/" == location.pathname
-          ? "index.html"
+          ? "/index"
           : location.pathname.substring(1)).substring(
         e.lastIndexOf("/") + 1
       )) &&
         (t = document
           .getElementById("navbar-nav")
-          .querySelector('[href="' + e + '"]')) &&
+          .querySelector('[href="/' + e + '"]')) &&
         (e = t.closest(".collapse.menu-dropdown")) &&
         (e.classList.add("show"),
         e.parentElement.children[0].classList.add("active"),
@@ -166,7 +166,7 @@
       ).forEach(function (a) {
         var n = (n =
           "/" == location.pathname
-            ? "index.html"
+            ? "/index"
             : location.pathname.substring(1)).substring(n.lastIndexOf("/") + 1);
         a.addEventListener("click", function (e) {
           var t;
@@ -474,11 +474,9 @@
     feather.replace();
     var e,
       t,
-      a =
-        "/" == location.pathname
-          ? "index.html"
-          : location.pathname.substring(1);
-    (a = a.substring(a.lastIndexOf("/") + 1)) &&
+       a =
+        "/" == location.pathname  ? "/index" : location.pathname.substring(0);
+    (a = location.pathname === "/" ? "/index" : location.pathname) &&
       ("twocolumn-panel" == document.body.className &&
         document
           .getElementById("two-column-menu")

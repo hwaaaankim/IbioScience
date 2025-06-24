@@ -8,11 +8,13 @@ import lombok.Data;
 public class CategoryLargeApiDto {
 	private Long id;
 	private String name;
-
-	public static CategoryLargeApiDto from(CategoryLarge e) {
-		CategoryLargeApiDto d = new CategoryLargeApiDto();
-		d.setId(e.getId());
-		d.setName(e.getName());
-		return d;
-	}
+	private int mediumCount;  // 추가
+	
+	public static CategoryLargeApiDto from(CategoryLarge e, int mediumCount) {
+        CategoryLargeApiDto d = new CategoryLargeApiDto();
+        d.setId(e.getId());
+        d.setName(e.getName());
+        d.setMediumCount(mediumCount);
+        return d;
+    }
 }

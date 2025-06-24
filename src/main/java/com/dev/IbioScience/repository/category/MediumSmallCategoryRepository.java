@@ -23,4 +23,10 @@ public interface MediumSmallCategoryRepository extends JpaRepository<MediumSmall
    
     @Query("SELECT m.small FROM MediumSmallCategory m WHERE m.medium.id = :mediumId ORDER BY m.sortOrder ASC, m.small.name ASC")
     List<CategorySmall> findSmallByMediumId(@Param("mediumId") Long mediumId);
+    
+    @Query("SELECT COUNT(msc) FROM MediumSmallCategory msc WHERE msc.medium.id = :mediumId")
+    int countByMediumId(@Param("mediumId") Long mediumId);
+    
+    @Query("SELECT m.medium.id, COUNT(m) FROM MediumSmallCategory m WHERE m.medium.id IN :mediumIds GROUP BY m.medium.id")
+    List<Object[]> countByMediumIds(@Param("mediumIds") List<Long> mediumIds);
 }

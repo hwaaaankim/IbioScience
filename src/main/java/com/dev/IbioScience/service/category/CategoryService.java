@@ -1,6 +1,8 @@
 package com.dev.IbioScience.service.category;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.dev.IbioScience.dto.CategoryLargeApiDto;
 import com.dev.IbioScience.dto.CategoryMediumApiDto;
 import com.dev.IbioScience.dto.CategorySmallApiDto;
+import com.dev.IbioScience.dto.CategorySmallWithProductCountDto;
 import com.dev.IbioScience.model.product.category.CategoryLarge;
 import com.dev.IbioScience.model.product.category.CategoryMedium;
 import com.dev.IbioScience.model.product.category.CategorySmall;
@@ -30,6 +33,10 @@ public class CategoryService {
 	private final CategorySmallRepository smallRepo;
 	private final MediumSmallCategoryRepository mappingRepo;
 
+    public List<CategorySmallWithProductCountDto> getSmallWithProductCount(Long mediumId) {
+        return smallRepo.findWithProductCountByMediumId(mediumId);
+    }
+	
 	@Transactional(readOnly = true)
     public List<MediumSmallCategory> getAllMappings() {
         return mappingRepo.findAll();
@@ -170,13 +177,37 @@ public class CategoryService {
 	}
 	
 	public List<CategoryLargeApiDto> getLargeCategories() {
-        return largeRepo.findAllByOrderByNameAsc()
-            .stream().map(CategoryLargeApiDto::from).collect(Collectors.toList());
+        List<CategoryLarge> largeList = largeRepo.findAllByOrderByNameAsc();
+        List<Long> largeIds = largeList.stream().map(CategoryLarge::getId).collect(Collectors.toList());
+        List<Object[]> result = mediumRepo.countByLargeIds(largeIds);
+
+        Map<Long, Integer> mediumCountMap = new HashMap<>();
+        for (Object[] row : result) {
+            Long largeId = (Long) row[0];
+            Long count = (Long) row[1]; // count는 Long
+            mediumCountMap.put(largeId, count.intValue());
+        }
+
+        return largeList.stream()
+            .map(e -> CategoryLargeApiDto.from(e, mediumCountMap.getOrDefault(e.getId(), 0)))
+            .collect(Collectors.toList());
     }
-	
-    public List<CategoryMediumApiDto> getMediumCategories(Long largeId) {
-        return mediumRepo.findByLargeIdOrderByNameAsc(largeId)
-            .stream().map(CategoryMediumApiDto::from).collect(Collectors.toList());
+
+	public List<CategoryMediumApiDto> getMediumCategories(Long largeId) {
+        List<CategoryMedium> mediums = mediumRepo.findByLargeIdOrderByNameAsc(largeId);
+        List<Long> mediumIds = mediums.stream().map(CategoryMedium::getId).collect(Collectors.toList());
+        List<Object[]> result = mappingRepo.countByMediumIds(mediumIds);
+
+        Map<Long, Integer> smallCountMap = new HashMap<>();
+        for (Object[] row : result) {
+            Long mediumId = (Long) row[0];
+            Long count = (Long) row[1];
+            smallCountMap.put(mediumId, count.intValue());
+        }
+
+        return mediums.stream()
+            .map(e -> CategoryMediumApiDto.from(e, smallCountMap.getOrDefault(e.getId(), 0)))
+            .collect(Collectors.toList());
     }
     
     public List<CategorySmallApiDto> getSmallCategories(Long mediumId) {

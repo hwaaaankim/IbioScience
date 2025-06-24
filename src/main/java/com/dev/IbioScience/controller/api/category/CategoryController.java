@@ -20,6 +20,7 @@ import com.dev.IbioScience.dto.CategoryMediumApiDto;
 import com.dev.IbioScience.dto.CategoryMediumDto;
 import com.dev.IbioScience.dto.CategorySmallApiDto;
 import com.dev.IbioScience.dto.CategorySmallDto;
+import com.dev.IbioScience.dto.CategorySmallWithProductCountDto;
 import com.dev.IbioScience.dto.MappingRequest;
 import com.dev.IbioScience.dto.MediumSmallMappingDto;
 import com.dev.IbioScience.service.category.CategoryService;
@@ -151,6 +152,11 @@ public class CategoryController {
     @GetMapping("/list-small")
     public List<CategorySmallApiDto> getCategorySmallList(@RequestParam Long mediumId) {
         return categoryService.getSmallCategories(mediumId);
+    }
+    
+    @GetMapping("/list-small-with-product-count")
+    public List<CategorySmallWithProductCountDto> listSmallWithProductCount(@RequestParam Long mediumId) {
+        return categoryService.getSmallWithProductCount(mediumId);
     }
 	
 }

@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.dev.IbioScience.model.product.status.DisplayStatus;
 import com.dev.IbioScience.model.product.status.ProductState;
+import com.dev.IbioScience.model.product.status.RelatedRegisterType;
 import com.dev.IbioScience.model.product.status.SaleStatus;
 
 import jakarta.persistence.CascadeType;
@@ -52,11 +53,13 @@ public class Product {
 
 	// 판매수
 	private Integer salesCount;
+	
 	// 조회수
 	private Integer viewCount;
 
 	// 등록일시
 	private LocalDateTime createdAt;
+	
 	// 수정일시
 	private LocalDateTime updatedAt;
 
@@ -86,6 +89,19 @@ public class Product {
 	@Column(columnDefinition = "TEXT")
 	private String detailHtml;
 
+	// 추가구성상품 사용여부
+	@Column(nullable = false)
+	private Boolean useBundleItems = false;
+
+	// 관련상품 사용여부
+	@Column(nullable = false)
+	private Boolean useRelatedProducts = false;
+
+	// 관련상품 등록방식
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private RelatedRegisterType relatedRegisterType = RelatedRegisterType.PRODUCT;
+	
 	// 대표/추가 이미지 리스트
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ProductImage> images = new ArrayList<>();
