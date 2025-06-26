@@ -300,7 +300,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		bundleModal.classList.remove('active');
 		bundleSelectedProductIds.clear();
 	};
-	
+
 	bundleCloseBtns.forEach(btn => btn.onclick = () => bundleModal.classList.remove('active'));
 
 	function renderBundleProducts() {
@@ -795,181 +795,202 @@ document.addEventListener("DOMContentLoaded", function() {
 		});
 	}
 
-	// ===== 7. 제품 등록 버튼 - FormData로 수집 및 제출 =====
 	document.getElementById('submitProductBtn').addEventListener('click', function(e) {
 		e.preventDefault();
+
 		const formData = new FormData();
 
-		// 1) 분류(소분류)  
-		selectedCategories.forEach(cat => formData.append('categorySmallIds', cat.id));
+		// =================== [1. 소분류(카테고리)] ===================
+		console.log('========== [1. 소분류(카테고리) 선택] ==========');
+		if (!selectedCategories || selectedCategories.length === 0) {
+			console.log('선택된 소분류 없음');
+		} else {
+			console.log(`총 ${selectedCategories.length}개 선택`);
+		}
+		selectedCategories.forEach(cat => {
+			formData.append('categorySmallIds', cat.id);
+			console.log(`- id=${cat.id} (${cat.largeName} > ${cat.mediumName} > ${cat.smallName})`);
+		});
 
-		// 2) 공통표시항목
+		// =================== [2. 공통표시항목(질문/옵션)] ===================
+		console.log('\n========== [2. 공통표시항목(질문/옵션)] ==========');
+		let questionCnt = 0;
 		document.querySelectorAll('#product-manager-display-options [name]').forEach(el => {
 			if (el.type === 'file') {
-				if (el.files[0]) formData.append(el.name, el.files[0]);
+				if (el.files && el.files.length > 0) {
+					Array.from(el.files).forEach((file, fidx) => {
+						formData.append(el.name, file);
+						console.log(`- ${el.name}[${fidx}] 파일: ${file.name}, ${file.size}byte`);
+						questionCnt++;
+					});
+				} else {
+					console.log(`- ${el.name}: 파일 없음`);
+				}
 			} else if (el.type === 'textarea' && el.classList.contains('ck-editor__editable')) {
 				// CKEditor는 별도 처리
 			} else {
 				formData.append(el.name, el.value);
+				console.log(`- ${el.name}: "${el.value}"`);
+				questionCnt++;
 			}
 		});
 		Object.entries(ckeInstances).forEach(([tid, editor]) => {
-			formData.append(tid, editor.getData());
+			const val = editor.getData();
+			formData.append(tid, val);
+			console.log(`- CKEditor(${tid}): [${val && val.trim().length > 0 ? '입력됨' : '미입력'}]`);
+			questionCnt++;
 		});
+		if (questionCnt === 0) console.log('질문/공통표시항목 없음');
 
-		// 3) 대표이미지
-		if (mainInput.files[0]) {
-			formData.append('mainImage', mainInput.files[0]);
-		}
+		// =================== [3. 제품 기본정보] ===================
+		console.log('\n========== [3. 제품 기본정보] ==========');
+		const pName = document.getElementById('productName').value;
+		const pCode = document.getElementById('productCode').value;
+		const displayStatus = document.querySelector('input[name="displayStatus"]:checked')?.value;
+		const saleStatus = document.querySelector('input[name="saleStatus"]:checked')?.value;
+		formData.append('productName', pName);
+		formData.append('productCode', pCode);
+		formData.append('displayStatus', displayStatus ?? '');
+		formData.append('saleStatus', saleStatus ?? '');
+		console.log('- 제품명:', pName ? `"${pName}"` : '(미입력)');
+		console.log('- 제품코드:', pCode ? `"${pCode}"` : '(미입력)');
+		console.log('- 진열상태:', displayStatus ?? '(미선택)');
+		console.log('- 판매상태:', saleStatus ?? '(미선택)');
 
-		// 4) 추가이미지
-		subFiles.forEach((f, idx) => formData.append('subImages', f));
-
-		// 5) 제품 기본정보
-		formData.append('productName', document.getElementById('productName').value);
-		formData.append('productCode', document.getElementById('productCode').value);
-		formData.append('displayStatus', document.querySelector('input[name="displayStatus"]:checked').value);
-		formData.append('saleStatus', document.querySelector('input[name="saleStatus"]:checked').value);
-
-		// 6) 상세설명 에디터
-		if (detailEditor) {
-			formData.append('detailHtml', detailEditor.getData());
-		}
-
-		// 7) 추가입력필드
-		extraFields = [];
-		extraFieldList.querySelectorAll('.input-group').forEach((row, idx) => {
-			const label = row.querySelector(`[name="extraFields[${idx}].label"]`).value;
-			const value = row.querySelector(`[name="extraFields[${idx}].value"]`).value;
-			extraFields.push({ label, value });
-			formData.append(`extraFields[${idx}].label`, label);
-			formData.append(`extraFields[${idx}].value`, value);
-		});
-
-		// 8) 옵션그룹/옵션
-		optionGroups = [];
-		optionGroupList.querySelectorAll('.card').forEach((groupDiv, groupIdx) => {
-			const groupName = groupDiv.querySelector(`[name="optionGroups[${groupIdx}].name"]`).value;
-			const options = [];
-			const optionRows = groupDiv.querySelectorAll('.input-group.mb-1');
-			optionRows.forEach((row, optIdx) => {
-				options.push({
-					name: row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].name"]`).value,
-					value: row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].value"]`).value,
-					extraPrice: row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].extraPrice"]`).value,
-					sign: row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].sign"]`).value,
-					sortOrder: row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].sortOrder"]`).value
-				});
-			});
-			optionGroups.push({ name: groupName, options });
-		});
-
-		// ===== 여기서부터 콘솔로 모든 데이터 상세 출력 =====
-
-		// 1) 분류(소분류)
-		console.log('[카테고리-소분류 선택]');
-		if (selectedCategories.length === 0) {
-			console.log('- 선택된 소분류 없음');
-		} else {
-			selectedCategories.forEach((c, i) => {
-				console.log(`- ${i + 1}: id=${c.id}, ${c.largeName} > ${c.mediumName} > ${c.smallName}`);
-			});
-		}
-
-		// 2) 공통표시항목 (질문)
-		console.log('[공통표시항목(질문)]');
-		document.querySelectorAll('#product-manager-display-options [name]').forEach(el => {
-			if (el.type === 'file') {
-				if (el.files.length > 0) {
-					Array.from(el.files).forEach((file, idx) => {
-						console.log(`- ${el.name} (파일): ${file.name}, size=${file.size}`);
-					});
-				} else {
-					console.log(`- ${el.name} (파일): 없음`);
-				}
-			} else if (el.type === 'textarea' && el.classList.contains('ck-editor__editable')) {
-				// CKEditor는 별도 처리
-			} else {
-				console.log(`- ${el.name}: ${el.value}`);
-			}
-		});
-		Object.entries(ckeInstances).forEach(([tid, editor]) => {
-			console.log(`- CKEditor ${tid}:`, editor.getData());
-		});
-
-		// 3) 대표이미지
-		console.log('[대표이미지]');
-		if (mainInput.files.length > 0) {
+		// =================== [4. 대표이미지] ===================
+		console.log('\n========== [4. 대표이미지] ==========');
+		if (mainInput.files && mainInput.files.length > 0) {
 			const file = mainInput.files[0];
-			console.log(`- 파일명: ${file.name}, 크기: ${file.size}byte`);
+			formData.append('mainImage', file);
+			console.log(`대표이미지: ${file.name} (${file.size}byte)`);
 		} else {
-			console.log('- 대표이미지 없음');
+			console.log('대표이미지 없음');
 		}
 
-		// 4) 추가이미지
-		console.log('[추가이미지]');
-		if (subFiles.length === 0) {
-			console.log('- 추가이미지 없음');
+		// =================== [5. 추가이미지] ===================
+		console.log('\n========== [5. 추가이미지] ==========');
+		if (!subFiles || subFiles.length === 0) {
+			console.log('추가이미지 없음');
 		} else {
+			console.log(`총 ${subFiles.length}개`);
 			subFiles.forEach((file, idx) => {
-				console.log(`- [${idx}] 파일명: ${file.name}, 크기: ${file.size}byte`);
+				formData.append('subImages', file); // 서버는 MultipartFile[] 등으로 받기
+				console.log(`- [${idx + 1}] ${file.name} (${file.size}byte)`);
 			});
 		}
 
-		// 5) 제품 기본정보
-		console.log('[제품 기본정보]');
-		console.log('- 상품명:', document.getElementById('productName').value);
-		console.log('- 상품코드:', document.getElementById('productCode').value);
-		console.log('- 전시여부:', document.querySelector('input[name="displayStatus"]:checked').value);
-		console.log('- 판매여부:', document.querySelector('input[name="saleStatus"]:checked').value);
-
-		// 6) 상세설명 에디터
+		// =================== [6. 상세설명(HTML)] ===================
+		console.log('\n========== [6. 상세설명(HTML)] ==========');
 		if (detailEditor) {
-			console.log('[상세설명(HTML)]', detailEditor.getData());
+			const html = detailEditor.getData();
+			formData.append('detailHtml', html);
+			console.log(html && html.trim().length > 0 ? `입력됨 (HTML 길이: ${html.length})` : '미입력');
+		} else {
+			console.log('CKEditor 인스턴스 없음');
 		}
 
-		// 7) 추가입력필드
-		console.log('[추가입력필드]');
-		if (extraFields.length === 0) {
-			console.log('- 추가입력필드 없음');
+		// =================== [7. 추가입력필드] ===================
+		console.log('\n========== [7. 추가입력필드] ==========');
+		const extraFieldRows = extraFieldList.querySelectorAll('.input-group');
+		if (!extraFieldRows || extraFieldRows.length === 0) {
+			console.log('추가입력필드 없음');
 		} else {
-			extraFields.forEach((f, idx) => {
-				console.log(`- [${idx}] 질문명: ${f.label} / 답변값: ${f.value}`);
+			console.log(`총 ${extraFieldRows.length}개`);
+			extraFieldRows.forEach((row, idx) => {
+				const label = row.querySelector(`[name="extraFields[${idx}].label"]`)?.value ?? '';
+				const value = row.querySelector(`[name="extraFields[${idx}].value"]`)?.value ?? '';
+				formData.append(`extraFields[${idx}].label`, label);
+				formData.append(`extraFields[${idx}].value`, value);
+				console.log(`- [${idx + 1}] 질문명: "${label}" / 답변값: "${value}"`);
 			});
 		}
 
-		// 8) 옵션그룹/옵션
-		console.log('[옵션그룹/옵션]');
-		if (optionGroups.length === 0) {
-			console.log('- 옵션그룹 없음');
+		// =================== [8. 옵션그룹/옵션] ===================
+		console.log('\n========== [8. 옵션그룹/옵션] ==========');
+		const groupCards = optionGroupList.querySelectorAll('.card');
+		if (!groupCards || groupCards.length === 0) {
+			console.log('옵션그룹 없음');
 		} else {
-			optionGroups.forEach((g, idx) => {
-				console.log(`- 옵션그룹[${idx}] 그룹명: ${g.name}`);
-				if (!g.options || g.options.length === 0) {
-					console.log(`  - 옵션 없음`);
+			console.log(`총 ${groupCards.length}개 그룹`);
+			groupCards.forEach((groupDiv, groupIdx) => {
+				const groupName = groupDiv.querySelector(`[name="optionGroups[${groupIdx}].name"]`)?.value || '';
+				formData.append(`optionGroups[${groupIdx}].name`, groupName);
+				console.log(`- 그룹[${groupIdx + 1}] 그룹명: "${groupName}"`);
+				const optionRows = groupDiv.querySelectorAll('.input-group.mb-1');
+				if (!optionRows || optionRows.length === 0) {
+					console.log('  옵션 없음');
 				} else {
-					g.options.forEach((opt, i) => {
-						console.log(`  - [옵션${i}] 옵션명: ${opt.name} / 값: ${opt.value} / 추가금액: ${opt.extraPrice} / 부호: ${opt.sign} / 정렬: ${opt.sortOrder}`);
+					console.log(`  옵션 ${optionRows.length}개`);
+					optionRows.forEach((row, optIdx) => {
+						const name = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].name"]`)?.value || '';
+						const value = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].value"]`)?.value || '';
+						const extraPrice = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].extraPrice"]`)?.value || '';
+						const sign = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].sign"]`)?.value || '';
+						const sortOrder = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].sortOrder"]`)?.value || '';
+						formData.append(`optionGroups[${groupIdx}].options[${optIdx}].name`, name);
+						formData.append(`optionGroups[${groupIdx}].options[${optIdx}].value`, value);
+						formData.append(`optionGroups[${groupIdx}].options[${optIdx}].extraPrice`, extraPrice);
+						formData.append(`optionGroups[${groupIdx}].options[${optIdx}].sign`, sign);
+						formData.append(`optionGroups[${groupIdx}].options[${optIdx}].sortOrder`, sortOrder);
+						console.log(`    - 옵션[${optIdx + 1}] 옵션명: "${name}" / 값: "${value}" / 추가금액: "${extraPrice}" / 부호: "${sign}" / 정렬: "${sortOrder}"`);
 					});
 				}
 			});
 		}
 
+		// =================== [9. 키워드] ===================
+		console.log('\n========== [9. 키워드] ==========');
+		if (!keywords || keywords.length === 0) {
+			console.log('키워드 없음');
+		} else {
+			console.log(`총 ${keywords.length}개`);
+			keywords.forEach((kw, idx) => {
+				formData.append('keywords', kw);
+				console.log(`- [${idx + 1}] "${kw}"`);
+			});
+		}
 
-		// 실제 전송은 아래처럼 주석 처리해둡니다
+		// =================== [10. 관련상품] ===================
+		console.log('\n========== [10. 관련상품] ==========');
+		if (!relatedProducts || relatedProducts.length === 0) {
+			console.log('관련상품 없음');
+		} else {
+			console.log(`총 ${relatedProducts.length}개`);
+			relatedProducts.forEach((p, idx) => {
+				formData.append(`relatedProducts[${idx}].id`, p.id);
+				formData.append(`relatedProducts[${idx}].type`, p.type);
+				console.log(`- [${idx + 1}] id=${p.id} / name="${p.name}" / type=${p.type}`);
+			});
+		}
+
+		// =================== [11. 추가구성상품] ===================
+		console.log('\n========== [11. 추가구성상품] ==========');
+		if (!bundleProducts || bundleProducts.length === 0) {
+			console.log('추가구성상품 없음');
+		} else {
+			console.log(`총 ${bundleProducts.length}개`);
+			bundleProducts.forEach((p, idx) => {
+				formData.append(`bundleProducts[${idx}].id`, p.id);
+				console.log(`- [${idx + 1}] id=${p.id} / name="${p.name}"`);
+			});
+		}
+
+		console.log('\n[= 전체 데이터 수집/콘솔 출력 완료 =]');
+
+		// === 실제 전송 ===
 		/*
 		fetch('/api/product', {
 			method: 'POST',
 			body: formData
 		})
-			.then(res => {
-				if (res.ok) return res.json();
-				throw new Error('등록실패');
-			})
-			.then(json => {
-				alert('제품 등록 성공');
-			})
-			.catch(err => alert('등록 실패: ' + err.message));
+		.then(res => {
+			if (res.ok) return res.json();
+			throw new Error('등록실패');
+		})
+		.then(json => {
+			alert('제품 등록 성공');
+		})
+		.catch(err => alert('등록 실패: ' + err.message));
 		*/
 	});
 
