@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/display-questions")
 @RequiredArgsConstructor
-public class ProductQuestionController {
+public class ProductQuestionAPIController {
 
     private final ProductQuestionService productQuestionService;
 

@@ -40,13 +40,137 @@ document.addEventListener("DOMContentLoaded", function() {
 	let relatedProducts = [];
 	let bundleProducts = [];
 
-	// ----------- 모달 관련 (active 클래스 시 display block 보장)
-	// (CSS에 아래 예시 추가 필요)
-	// .related-modal-root.active, .bundle-modal-root.active { display: block !important; }
-	// .related-modal-root, .bundle-modal-root { display: none; }
-	// -----------
+	/* 할인혜택 모달 시작 */
+	const discountModal = document.getElementById('discountModal');
+	const discountOpenBtn = document.getElementById('open-discount-modal-btn');
+	const discountCloseBtns = discountModal.querySelectorAll('.discount-modal-close, .discount-modal-overlay');
+	const discountListEl = document.getElementById('discount-modal-list');
+	const addDiscountBtn = document.getElementById('add-discount-btn');
+	let discountDataList = [];   // 실제 조회된 혜택 리스트 (실제검색 구현시 fetch로 채울것)
+	let discountSelectedIds = new Set();
+	let selectedDiscounts = [];
 
-	// --- 모달 대분류 옵션 그리기 (중분류 수 표시)
+	// ---- 예시 데이터 (실제 검색결과 대체, id는 Long 타입)
+	discountDataList = [
+		{
+			id: 1, name: "여름특가10%", type: "DISCOUNT", term: "PERIOD", target: "ALL", couponPolicy: "ALL", startDate: "2024-07-01", endDate: "2024-07-10", active: true
+		},
+		{
+			id: 2, name: "딜러한정 사은품", type: "GIFT", term: "ALWAYS", target: "DEALER", couponPolicy: "SPECIFIC", startDate: null, endDate: null, active: true
+		},
+		{
+			id: 3, name: "상시 회원 할인 3%", type: "DISCOUNT", term: "ALWAYS", target: "NORMAL", couponPolicy: "NONE", startDate: null, endDate: null, active: false
+		}
+	];
+
+	// --- 오픈 버튼
+	discountOpenBtn.onclick = function() {
+		discountModal.classList.add('active');
+		discountSelectedIds = new Set(selectedDiscounts.map(d => d.id));
+		renderDiscountModalList();
+	};
+	// --- 닫기
+	discountCloseBtns.forEach(btn => btn.onclick = () => discountModal.classList.remove('active'));
+
+	// --- 모달 내 혜택 리스트 랜더링
+	function renderDiscountModalList() {
+		discountListEl.innerHTML = '';
+		if (!discountDataList || discountDataList.length === 0) {
+			discountListEl.innerHTML = '<div class="text-muted text-center">혜택이 없습니다.</div>';
+			return;
+		}
+		const table = document.createElement('table');
+		table.className = 'table table-sm align-middle mb-0';
+		const thead = document.createElement('thead');
+		thead.innerHTML = `<tr>
+        <th style="width:32px"></th>
+        <th>이름</th>
+        <th>타입</th>
+        <th>기간</th>
+        <th>대상</th>
+        <th>쿠폰정책</th>
+        <th>시작일</th>
+        <th>종료일</th>
+        <th>활성</th>
+    </tr>`;
+		table.appendChild(thead);
+
+		const tbody = document.createElement('tbody');
+		discountDataList.forEach(d => {
+			const tr = document.createElement('tr');
+			// 체크박스
+			const tdCheck = document.createElement('td');
+			const checkbox = document.createElement('input');
+			checkbox.type = 'checkbox';
+			checkbox.className = 'form-check-input';
+			checkbox.value = d.id;
+			checkbox.checked = discountSelectedIds.has(d.id);
+			checkbox.onchange = function() {
+				const val = Number(this.value);
+				if (this.checked) discountSelectedIds.add(val);
+				else discountSelectedIds.delete(val);
+			};
+			tdCheck.appendChild(checkbox);
+			tr.appendChild(tdCheck);
+
+			// 각 칼럼 직접 추가
+			function td(val) {
+				const td = document.createElement('td');
+				td.innerHTML = val;
+				return td;
+			}
+			tr.appendChild(td(d.name));
+			tr.appendChild(td(d.type === "DISCOUNT" ? "할인" : "증정"));
+			tr.appendChild(td(d.term === "PERIOD" ? "기간한정" : "상시"));
+			tr.appendChild(td(d.target === "ALL" ? "전체" : d.target === "NORMAL" ? "일반" : "딜러"));
+			tr.appendChild(td(d.couponPolicy === "ALL" ? "전체" : d.couponPolicy === "SPECIFIC" ? "특정조건" : "없음"));
+			tr.appendChild(td(d.startDate ? d.startDate : "-"));
+			tr.appendChild(td(d.endDate ? d.endDate : "-"));
+			tr.appendChild(td(`<span class="badge ${d.active ? 'bg-primary' : 'bg-secondary'}">${d.active ? "ON" : "OFF"}</span>`));
+
+			tbody.appendChild(tr);
+		});
+		table.appendChild(tbody);
+		discountListEl.appendChild(table);
+	}
+
+
+	// --- 등록(선택된 혜택을 제품에 추가)
+	addDiscountBtn.onclick = function() {
+		const arr = Array.from(discountSelectedIds).map(Number);
+		console.log('[addDiscountBtn] discountSelectedIds Set:', discountSelectedIds);
+		console.log('[addDiscountBtn] arr after map(Number):', arr);
+		console.log('[addDiscountBtn] discountDataList:', discountDataList);
+		selectedDiscounts = discountDataList.filter(d => arr.includes(Number(d.id)));
+		console.log('[addDiscountBtn] selectedDiscounts 결과:', selectedDiscounts);
+		renderSelectedDiscounts();
+		discountModal.classList.remove('active');
+	};
+
+
+	// --- 할인혜택 뱃지 렌더 (제품폼 메인화면)
+	function renderSelectedDiscounts() {
+		const selectedDiscountList = document.getElementById('selected-discount-list');
+		console.log('[renderSelectedDiscounts] 호출됨. selectedDiscounts:', selectedDiscounts);
+		selectedDiscountList.innerHTML = '';
+		if (!selectedDiscounts || selectedDiscounts.length === 0) return;
+		selectedDiscounts.forEach((d, idx) => {
+			const badge = document.createElement('div');
+			badge.className = 'badge bg-danger text-white px-2 py-2 d-flex align-items-center';
+			badge.innerHTML = `
+            <span>${d.name} (${d.type === "DISCOUNT" ? "할인" : "증정"})</span>
+            <span class="ms-2" style="cursor:pointer;" title="삭제">&times;</span>
+        `;
+			badge.querySelector('span:last-child').onclick = () => {
+				selectedDiscounts.splice(idx, 1);
+				renderSelectedDiscounts();
+			};
+			selectedDiscountList.appendChild(badge);
+		});
+	}
+
+	/* 할인혜택 모달 끝 */
+
 	function fetchAndRenderLargeOptions(selectEl, callback) {
 		fetch('/api/category/list-large')
 			.then(res => res.json())
@@ -993,5 +1117,10 @@ document.addEventListener("DOMContentLoaded", function() {
 		.catch(err => alert('등록 실패: ' + err.message));
 		*/
 	});
+	// ===== 할인혜택 모달/리스트 관리 =====
+
+
+	// (페이지 리로드 시 선택혜택 초기화)
+	renderSelectedDiscounts();
 
 });

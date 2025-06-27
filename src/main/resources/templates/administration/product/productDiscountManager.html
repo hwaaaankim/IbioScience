@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+    data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
+
+<body>
+    <div id="layout-wrapper">
+        <header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+        <div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+        <div class="vertical-overlay"></div>
+
+        <div class="main-content">
+            <div class="page-content">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                                <h4 class="mb-sm-0">할인혜택관리</h4>
+                                <div class="page-title-right">
+                                    <ol class="breadcrumb m-0">
+                                        <li class="breadcrumb-item"><a href="javascript: void(0);">관리</a></li>
+                                        <li class="breadcrumb-item active">할인혜택 등록</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <!-- 카드 내부 시작 -->
+                            <form id="product-discount-form" class="discount-manager-form" autocomplete="off"
+                                enctype="multipart/form-data">
+                                <!-- 기본 설정 -->
+                                <div class="mb-2 pb-2 border-bottom">
+                                    <div class="fw-bold mb-2" style="font-size:1.1rem;">기본 설정 <span
+                                            class="text-danger">*</span></div>
+                                    <div class="row g-3 align-items-center mb-2">
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label mb-0">진행여부</label>
+                                            <div class="btn-group" role="group">
+                                                <input type="radio" class="btn-check discount-manager-radio"
+                                                    name="active" id="activeTrue" value="true" checked>
+                                                <label class="btn btn-outline-primary btn-sm discount-manager-btn"
+                                                    for="activeTrue">진행중</label>
+                                                <input type="radio" class="btn-check discount-manager-radio"
+                                                    name="active" id="activeFalse" value="false">
+                                                <label class="btn btn-outline-secondary btn-sm discount-manager-btn"
+                                                    for="activeFalse">진행안함</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label mb-0">구분</label>
+                                            <select class="form-select form-select-sm discount-manager-select"
+                                                name="type">
+                                                <option value="" disabled selected>선택</option>
+                                                <th:block th:each="type : ${discountTypes}">
+                                                    <option th:value="${type.name()}" th:text="${type.label}"></option>
+                                                </th:block>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3 align-items-center mb-2">
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label mb-0">혜택 유형</label>
+                                            <select class="form-select form-select-sm discount-manager-select"
+                                                name="term" id="discountTermSelect">
+                                                <option value="" disabled selected>선택</option>
+                                                <th:block th:each="term : ${discountTerms}">
+                                                    <option th:value="${term.name()}" th:text="${term.label}"></option>
+                                                </th:block>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label mb-0">혜택명</label>
+                                            <input type="text"
+                                                class="form-control form-control-sm discount-manager-input w-100"
+                                                name="name" placeholder="예: 신규회원할인">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 조건 설정 -->
+                                <div class="mb-2 pb-2 border-bottom">
+                                    <div class="fw-bold mb-2" style="font-size:1.1rem;">조건 설정</div>
+                                    <div class="row g-3 align-items-center mb-2">
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label mb-0">기간 설정</label>
+                                            <div class="btn-group" role="group">
+                                                <input type="radio" class="btn-check discount-manager-radio"
+                                                    name="periodEnabled" id="periodOn" value="true" checked>
+                                                <label class="btn btn-outline-primary btn-sm discount-manager-btn"
+                                                    for="periodOn">사용함</label>
+                                                <input type="radio" class="btn-check discount-manager-radio"
+                                                    name="periodEnabled" id="periodOff" value="false">
+                                                <label class="btn btn-outline-secondary btn-sm discount-manager-btn"
+                                                    for="periodOff">사용안함</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <div class="fw-bold">기간입력</div>
+                                            <input type="date"
+                                                class="form-control form-control-sm discount-manager-date d-inline w-auto"
+                                                name="startDate" style="min-width:140px;">
+                                            <span class="mx-1">~</span>
+                                            <input type="date"
+                                                class="form-control form-control-sm discount-manager-date d-inline w-auto"
+                                                name="endDate" style="min-width:140px;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 적용대상: Enum 반복 안전 처리 -->
+                                <div class="mb-2 pb-2 border-bottom">
+                                    <div class="fw-bold mb-2" style="font-size:1.1rem;">적용대상</div>
+                                    <div class="row g-3 align-items-center">
+                                        <th:block th:each="target : ${discountTargets}">
+                                            <div class="col-lg-6 col-md-6">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input"
+                                                           th:id="${'applyTo' + target.name()}"
+                                                           th:name="${'applyTo' + (target.name().substring(0,1) + target.name().substring(1).toLowerCase())}"
+                                                           value="true">
+                                                    <label class="form-check-label"
+                                                           th:for="${'applyTo' + target.name()}"
+                                                           th:text="${target.label}">대상라벨</label>
+                                                </div>
+                                            </div>
+                                        </th:block>
+                                    </div>
+                                </div>
+
+                                <!-- 혜택 설정 -->
+                                <div class="mb-2 pb-2 border-bottom">
+                                    <div class="fw-bold mb-2" style="font-size:1.1rem;">혜택 설정</div>
+                                    <div class="row g-3 align-items-center mb-2">
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label mb-0">할인율 입력</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" min="0" max="100" step="1"
+                                                    class="form-control discount-manager-input" name="discountPercent"
+                                                    placeholder="0">
+                                                <span class="input-group-text">%</span>
+                                                <select class="form-select discount-manager-select"
+                                                    style="max-width:90px;" disabled>
+                                                    <option>할인</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label mb-0">쿠폰 사용범위 설정</label>
+                                            <select class="form-select form-select-sm discount-manager-select"
+                                                name="couponPolicy">
+                                                <option value="" disabled selected>선택</option>
+                                                <th:block th:each="policy : ${couponPolicies}">
+                                                    <option th:value="${policy.name()}" th:text="${policy.label}">
+                                                    </option>
+                                                </th:block>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 아이콘 설정 -->
+                                <div class="mb-2">
+                                    <div class="fw-bold mb-2" style="font-size:1.1rem;">아이콘 업로드</div>
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-lg-6 col-md-6">
+                                            <input type="file"
+                                                class="form-control form-control-sm discount-manager-file"
+                                                name="iconFile" id="iconFile" accept="image/gif,image/png,image/jpeg">
+                                            <div class="form-text mt-1">권장: 100x20px, 10KB 이하 (GIF, PNG)</div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <div class="border bg-light text-center py-2" style="min-height: 60px;">
+                                                <img id="iconPreview" src="#" alt="아이콘 미리보기"
+                                                    style="max-width:100px;max-height:20px;display:none;">
+                                                <button type="button" id="removeIcon" class="btn btn-danger btn-sm"
+                                                    style="display:none;">x</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 저장 버튼 -->
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary px-4 discount-manager-btn"
+                                        id="submitDiscountBtn">저장</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+        </div>
+    </div>
+    <th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+    <th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+    <script src="/administration/assets/product/productDiscountManager.js"></script>
+</body>
+</html>

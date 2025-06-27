@@ -114,6 +114,13 @@
 
 								</div>
 							</div>
+							<!-- ==== 할인혜택 Section ==== -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">할인혜택</div>
+								<button type="button" class="btn btn-outline-danger btn-sm mb-2"
+									id="open-discount-modal-btn">+ 추가할인혜택 등록</button>
+								<div id="selected-discount-list" class="d-flex flex-wrap gap-2"></div>
+							</div>
 
 							<!-- 추가 입력필드 -->
 							<div class="product-manager-section">
@@ -330,7 +337,72 @@
 				</div>
 			</div>
 		</div>
-
+	</div>
+	<div class="discount-modal-root" id="discountModal" tabindex="-1" aria-labelledby="discountModalLabel"
+		style="display:none;">
+		<div class="discount-modal-overlay"></div>
+		<div class="discount-modal-dialog">
+			<div class="discount-modal-content">
+				<div class="discount-modal-header">
+					<h5 class="discount-modal-title" id="discountModalLabel">할인혜택 등록</h5>
+					<button type="button" class="discount-modal-close" aria-label="Close">&times;</button>
+				</div>
+				<div class="discount-modal-body">
+					<form class="row g-2 mb-2" id="discount-search-form" autocomplete="off">
+						<div class="col-auto">
+							<select class="form-select form-select-sm" id="discountType">
+								<option value="">타입</option>
+								<option value="DISCOUNT">할인</option>
+								<option value="GIFT">증정</option>
+							</select>
+						</div>
+						<div class="col-auto">
+							<select class="form-select form-select-sm" id="discountTerm">
+								<option value="">기간</option>
+								<option value="PERIOD">기간한정</option>
+								<option value="ALWAYS">상시</option>
+							</select>
+						</div>
+						<div class="col-auto">
+							<select class="form-select form-select-sm" id="discountTarget">
+								<option value="">대상</option>
+								<option value="ALL">전체</option>
+								<option value="NORMAL">일반</option>
+								<option value="DEALER">딜러</option>
+							</select>
+						</div>
+						<div class="col-auto">
+							<select class="form-select form-select-sm" id="couponPolicy">
+								<option value="">쿠폰정책</option>
+								<option value="ALL">전체</option>
+								<option value="SPECIFIC">특정조건</option>
+								<option value="NONE">없음</option>
+							</select>
+						</div>
+						<div class="col-auto">
+							<input type="text" class="form-control form-control-sm" id="discountName" placeholder="혜택명">
+						</div>
+						<div class="col-auto">
+							<input type="date" class="form-control form-control-sm" id="discountStart">
+						</div>
+						<div class="col-auto">
+							<input type="date" class="form-control form-control-sm" id="discountEnd">
+						</div>
+						<div class="col-auto">
+							<button type="button" class="btn btn-outline-secondary btn-sm"
+								id="search-discount-btn">검색</button>
+						</div>
+					</form>
+					<div id="discount-modal-list" style="max-height: 240px; overflow-y:auto;"
+						class="border rounded p-2"></div>
+				</div>
+				<div class="discount-modal-footer d-flex justify-content-between align-items-center">
+					<div></div>
+					<button type="button" class="btn btn-primary btn-sm" id="add-discount-btn">등록</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
 </body>
 

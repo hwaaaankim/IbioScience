@@ -176,8 +176,9 @@
 	justify-content: center;
 }
 
-.related-modal-root.active, .bundle-modal-root.active { 
-	display: block !important; 
+.related-modal-root.active,
+.bundle-modal-root.active {
+	display: block !important;
 }
 
 .related-modal-overlay,
@@ -253,3 +254,63 @@
 	background: #fffef4;
 	text-align: right;
 }
+
+.discount-modal-root.active {
+	display: block !important;
+}
+
+.discount-modal-root {
+	display: none;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 1050;
+}
+
+.discount-modal-overlay {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(0, 0, 0, 0.3);
+}
+
+.discount-modal-dialog {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	min-width: 720px;
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 2px 16px rgba(0, 0, 0, .1);
+	z-index: 1060;
+}
+
+.discount-modal-content {
+	padding: 24px;
+}
+
+.discount-modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 8px;
+}
+
+.discount-modal-title {
+	font-weight: 700;
+	font-size: 1.1rem;
+}
+
+.discount-modal-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+/* ProductDiscountManager */

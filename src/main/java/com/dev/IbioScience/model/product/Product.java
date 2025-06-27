@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dev.IbioScience.model.product.relation.ProductDiscountMapping;
 import com.dev.IbioScience.model.product.status.DisplayStatus;
 import com.dev.IbioScience.model.product.status.ProductState;
 import com.dev.IbioScience.model.product.status.RelatedRegisterType;
@@ -125,4 +126,12 @@ public class Product {
 	// 연관상품 리스트
 	@OneToMany(mappedBy = "baseProduct", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<RelatedProduct> relatedProducts = new ArrayList<>();
+	
+	 // === 할인정책 N:N 매핑 리스트 ===
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductDiscountMapping> discountMappings = new ArrayList<>();
+
+    // === 등급별 혜택 ===
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductGradeBenefit> gradeBenefits = new ArrayList<>();
 }
