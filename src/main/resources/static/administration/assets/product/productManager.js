@@ -1268,7 +1268,28 @@ document.addEventListener("DOMContentLoaded", function() {
 			});
 		}
 
-		// =================== [11. 추가구성상품] ===================
+		// =================== [11. 할인혜택] ===================
+		console.log('\n========== [11. 할인혜택] ==========');
+		if (!selectedDiscounts || selectedDiscounts.length === 0) {
+			console.log('할인혜택 없음');
+		} else {
+			console.log(`총 ${selectedDiscounts.length}개`);
+			selectedDiscounts.forEach((d, idx) => {
+				formData.append(`discounts[${idx}].id`, d.id);
+				formData.append(`discounts[${idx}].name`, d.name);
+				formData.append(`discounts[${idx}].type`, d.type);
+				formData.append(`discounts[${idx}].term`, d.term);
+				formData.append(`discounts[${idx}].target`, d.target);
+				formData.append(`discounts[${idx}].couponPolicy`, d.couponPolicy);
+				formData.append(`discounts[${idx}].startDate`, d.startDate);
+				formData.append(`discounts[${idx}].endDate`, d.endDate);
+				formData.append(`discounts[${idx}].active`, d.active);
+		
+				console.log(`- [${idx + 1}] id=${d.id} / name="${d.name}" / type=${d.type} / term=${d.term} / target=${d.target} / couponPolicy=${d.couponPolicy} / start=${d.startDate} / end=${d.endDate} / active=${d.active}`);
+			});
+		}
+
+		// =================== [12. 추가구성상품] ===================
 		console.log('\n========== [11. 추가구성상품] ==========');
 		if (!bundleProducts || bundleProducts.length === 0) {
 			console.log('추가구성상품 없음');
