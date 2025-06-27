@@ -671,9 +671,45 @@ document.addEventListener("DOMContentLoaded", function() {
 					const tId = `editor-question-${option.id}`;
 					const textarea = document.getElementById(tId);
 					if (textarea && !ckeInstances[tId] && window.ClassicEditor) {
-						window.ClassicEditor.create(textarea)
-							.then(editor => { ckeInstances[tId] = editor; })
+						window.ClassicEditor.create(textarea, {
+							toolbar: {
+								items: [
+									'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', 'highlight', 'fontColor', 'fontBackgroundColor',
+									'|', 'link', 'bulletedList', 'numberedList', 'blockQuote',
+									'|', 'insertTable', 'imageUpload', 'mediaEmbed',
+									'|', 'undo', 'redo', 'alignment', 'outdent', 'indent'
+								]
+							},
+							image: {
+								toolbar: [
+									'imageTextAlternative', 'imageStyle:full', 'imageStyle:side', 'linkImage'
+								],
+								styles: ['full', 'side'],
+								resizeUnit: 'px'
+							},
+							table: {
+								contentToolbar: [
+									'tableColumn', 'tableRow', 'mergeTableCells', 'tableCellProperties', 'tableProperties'
+								]
+							},
+							mediaEmbed: {
+								previewsInData: true
+							},
+							fontFamily: {
+								options: [
+									'default', 'Arial, Helvetica, sans-serif', 'Courier New, Courier, monospace', 'Georgia, serif',
+									'Lucida Sans Unicode, Lucida Grande, sans-serif', 'Tahoma, Geneva, sans-serif', 'Times New Roman, Times, serif',
+									'Trebuchet MS, Helvetica, sans-serif', 'Verdana, Geneva, sans-serif'
+								]
+							},
+							fontSize: {
+								options: ['tiny', 'small', 'default', 'big', 'huge']
+							},
+							language: 'ko',
+							extraPlugins: [CustomUploadAdapterPlugin]
+						}).then(editor => { ckeInstances[tId] = editor; })
 							.catch(err => console.error('CKEditor5 생성 오류:', err));
+
 					}
 				});
 			}, 100);
@@ -684,7 +720,43 @@ document.addEventListener("DOMContentLoaded", function() {
 	(function() {
 		const desc = document.getElementById('editor-desc');
 		if (desc && window.ClassicEditor) {
-			window.ClassicEditor.create(desc)
+			window.ClassicEditor.create(desc, {
+				toolbar: {
+					items: [
+						'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', 'highlight', 'fontColor', 'fontBackgroundColor',
+						'|', 'link', 'bulletedList', 'numberedList', 'blockQuote',
+						'|', 'insertTable', 'imageUpload', 'mediaEmbed',
+						'|', 'undo', 'redo', 'alignment', 'outdent', 'indent'
+					]
+				},
+				image: {
+					toolbar: [
+						'imageTextAlternative', 'imageStyle:full', 'imageStyle:side', 'linkImage'
+					],
+					styles: ['full', 'side'],
+					resizeUnit: 'px'
+				},
+				table: {
+					contentToolbar: [
+						'tableColumn', 'tableRow', 'mergeTableCells', 'tableCellProperties', 'tableProperties'
+					]
+				},
+				mediaEmbed: {
+					previewsInData: true
+				},
+				fontFamily: {
+					options: [
+						'default', 'Arial, Helvetica, sans-serif', 'Courier New, Courier, monospace', 'Georgia, serif',
+						'Lucida Sans Unicode, Lucida Grande, sans-serif', 'Tahoma, Geneva, sans-serif', 'Times New Roman, Times, serif',
+						'Trebuchet MS, Helvetica, sans-serif', 'Verdana, Geneva, sans-serif'
+					]
+				},
+				fontSize: {
+					options: ['tiny', 'small', 'default', 'big', 'huge']
+				},
+				language: 'ko',
+				extraPlugins: [CustomUploadAdapterPlugin]
+			})
 				.then(editor => { detailEditor = editor; })
 				.catch(err => console.error('CKEditor5 생성 오류:', err));
 		}
@@ -918,8 +990,85 @@ document.addEventListener("DOMContentLoaded", function() {
 			list.appendChild(badge);
 		});
 	}
+	/* CKEditor Util */
+	class CustomUploadAdapter {
+		constructor(loader) {
+			this.loader = loader;
+		}
+		upload() {
+			return this.loader.file.then(file => {
+				return new Promise((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onload = () => {
+						// Base64 또는 서버 업로드 구현
+						resolve({ default: reader.result });
+					};
+					reader.onerror = error => reject(error);
+					reader.readAsDataURL(file);
+				});
+			});
+		}
+		abort() { }
+	}
 
-	document.getElementById('submitProductBtn').addEventListener('click', function(e) {
+	// 2. 플러그인 함수
+	function CustomUploadAdapterPlugin(editor) {
+		editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+			return new CustomUploadAdapter(loader);
+		};
+	}
+
+	function extractBase64ImagesFromHtml(html) {
+		const imgRegex = /<img[^>]+src="([^">]+)"/g;
+		const base64List = [];
+		let match;
+		while ((match = imgRegex.exec(html)) !== null) {
+			const src = match[1];
+			if (src && src.startsWith('data:image')) {
+				base64List.push(src);
+			}
+		}
+		return base64List;
+	}
+
+	function base64ToBlob(base64) {
+		const arr = base64.split(',');
+		const mime = arr[0].match(/:(.*?);/)[1];
+		const bstr = atob(arr[1]);
+		let n = bstr.length;
+		const u8arr = new Uint8Array(n);
+		while (n--) {
+			u8arr[n] = bstr.charCodeAt(n);
+		}
+		return new Blob([u8arr], { type: mime });
+	}
+
+	async function uploadEditorImages(base64List) {
+		const formData = new FormData();
+		base64List.forEach((base64, idx) => {
+			formData.append('files', base64ToBlob(base64), `editorImg${idx}.png`);
+		});
+		const res = await fetch('/api/upload/editor-images', {
+			method: 'POST',
+			body: formData
+		});
+		if (!res.ok) throw new Error('이미지 업로드 실패');
+		const data = await res.json();
+		// data.imageUrls = [ ... ] 형식이어야 함
+		return data.imageUrls;
+	}
+
+	function replaceBase64WithUrls(html, base64List, urlList) {
+		let newHtml = html;
+		base64List.forEach((base64, idx) => {
+			newHtml = newHtml.replace(base64, urlList[idx]);
+		});
+		return newHtml;
+	}
+
+	/* CKEditor Util */
+
+	document.getElementById('submitProductBtn').addEventListener('click', async function(e) {
 		e.preventDefault();
 
 		const formData = new FormData();
@@ -938,8 +1087,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
 		// =================== [2. 공통표시항목(질문/옵션)] ===================
 		console.log('\n========== [2. 공통표시항목(질문/옵션)] ==========');
+
 		let questionCnt = 0;
+		// CKEditor 제외 input/select/textarea/file 모두 수집
 		document.querySelectorAll('#product-manager-display-options [name]').forEach(el => {
+			// CKEditor textarea는 아래 ckeInstances에서 처리하므로 여기서는 패스
 			if (el.type === 'file') {
 				if (el.files && el.files.length > 0) {
 					Array.from(el.files).forEach((file, fidx) => {
@@ -950,21 +1102,39 @@ document.addEventListener("DOMContentLoaded", function() {
 				} else {
 					console.log(`- ${el.name}: 파일 없음`);
 				}
-			} else if (el.type === 'textarea' && el.classList.contains('ck-editor__editable')) {
-				// CKEditor는 별도 처리
+			} else if (el.tagName === 'TEXTAREA' && el.id.startsWith('editor-question-')) {
+				// CKEditor textarea는 ckeInstances에서 따로 처리 (여기서는 패스만 함)
 			} else {
 				formData.append(el.name, el.value);
 				console.log(`- ${el.name}: "${el.value}"`);
 				questionCnt++;
 			}
 		});
-		Object.entries(ckeInstances).forEach(([tid, editor]) => {
-			const val = editor.getData();
-			formData.append(tid, val);
-			console.log(`- CKEditor(${tid}): [${val && val.trim().length > 0 ? '입력됨' : '미입력'}]`);
-			questionCnt++;
-		});
-		if (questionCnt === 0) console.log('질문/공통표시항목 없음');
+
+		// CKEditor: 각 인스턴스별로 데이터 직접 추출
+		let ckeCnt = 0;
+		for (const [tid, editor] of Object.entries(ckeInstances)) {
+			let html = editor.getData();
+			const base64List = extractBase64ImagesFromHtml(html);
+			if (base64List.length > 0) {
+				try {
+					// const urlList = await uploadEditorImages(base64List);
+					// html = replaceBase64WithUrls(html, base64List, urlList);
+					console.log(`- CKEditor(${tid}): 이미지 ${base64List.length}개 업로드 및 src 교체`);
+				} catch (err) {
+					alert(`[공통표시항목 CKEditor] 이미지 업로드 실패: ${err.message}`);
+					return;
+				}
+			}
+			formData.append(tid, html);
+			if (html && html.trim().length > 0) {
+				console.log(`- CKEditor(${tid}): 입력됨 (HTML 길이: ${html.length})`);
+			} else {
+				console.log(`- CKEditor(${tid}): 미입력`);
+			}
+			ckeCnt++;
+		}
+		if (questionCnt === 0 && ckeCnt === 0) console.log('질문/공통표시항목 없음');
 
 		// =================== [3. 제품 기본정보] ===================
 		console.log('\n========== [3. 제품 기본정보] ==========');
@@ -1006,7 +1176,18 @@ document.addEventListener("DOMContentLoaded", function() {
 		// =================== [6. 상세설명(HTML)] ===================
 		console.log('\n========== [6. 상세설명(HTML)] ==========');
 		if (detailEditor) {
-			const html = detailEditor.getData();
+			let html = detailEditor.getData();
+			const base64List = extractBase64ImagesFromHtml(html);
+			if (base64List.length > 0) {
+				try {
+					// const urlList = await uploadEditorImages(base64List);
+					// html = replaceBase64WithUrls(html, base64List, urlList);
+					console.log(`상세설명: 이미지 ${base64List.length}개 업로드 및 src 교체`);
+				} catch (err) {
+					alert('[상세설명 CKEditor] 이미지 업로드 실패: ' + err.message);
+					return;
+				}
+			}
 			formData.append('detailHtml', html);
 			console.log(html && html.trim().length > 0 ? `입력됨 (HTML 길이: ${html.length})` : '미입력');
 		} else {
@@ -1117,6 +1298,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		.catch(err => alert('등록 실패: ' + err.message));
 		*/
 	});
+
 	// ===== 할인혜택 모달/리스트 관리 =====
 
 
