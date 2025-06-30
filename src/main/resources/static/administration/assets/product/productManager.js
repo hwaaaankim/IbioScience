@@ -171,6 +171,53 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	/* 할인혜택 모달 끝 */
 
+	const dealerGrades = ['A', 'B', 'C', 'D'];
+	const dealerDiscounts = {}; // { A: 할인율, ... }
+
+	const dealerDiscountButtons = document.getElementById('dealer-discount-buttons');
+	const dealerDiscountList = document.getElementById('dealer-discount-list');
+
+	// 버튼 클릭 이벤트
+	dealerDiscountButtons.querySelectorAll('button').forEach(btn => {
+		btn.onclick = function() {
+			const grade = btn.dataset.grade;
+			if (dealerDiscounts[grade]) return; // 이미 추가된 경우 중복방지
+
+			dealerDiscounts[grade] = '';
+			renderDealerDiscountList();
+			btn.disabled = true;
+		};
+	});
+
+	function renderDealerDiscountList() {
+		dealerDiscountList.innerHTML = '';
+		Object.keys(dealerDiscounts).forEach(grade => {
+			// col-6, 입력칸 넓게
+			const col = document.createElement('div');
+			col.className = 'col-6';
+			col.innerHTML = `
+            <div class="input-group input-group-sm align-items-center">
+                <span class="input-group-text" style="min-width:120px;">${grade} 등급 딜러 추가할인</span>
+                <input type="number" min="0" max="100" class="form-control" style="max-width:120px;" 
+                    placeholder="0" value="${dealerDiscounts[grade]}" data-grade="${grade}"/>
+                <span class="input-group-text">%</span>
+                <button type="button" class="btn btn-outline-danger btn-sm" data-grade="${grade}" title="삭제">×</button>
+            </div>
+        `;
+			// 할인율 입력 이벤트
+			col.querySelector('input').oninput = function() {
+				dealerDiscounts[grade] = this.value;
+			};
+			// 삭제 이벤트
+			col.querySelector('button').onclick = function() {
+				delete dealerDiscounts[grade];
+				dealerDiscountButtons.querySelector(`button[data-grade="${grade}"]`).disabled = false;
+				renderDealerDiscountList();
+			};
+			dealerDiscountList.appendChild(col);
+		});
+	}
+
 	function fetchAndRenderLargeOptions(selectEl, callback) {
 		fetch('/api/category/list-large')
 			.then(res => res.json())
@@ -1284,7 +1331,7 @@ document.addEventListener("DOMContentLoaded", function() {
 				formData.append(`discounts[${idx}].startDate`, d.startDate);
 				formData.append(`discounts[${idx}].endDate`, d.endDate);
 				formData.append(`discounts[${idx}].active`, d.active);
-		
+
 				console.log(`- [${idx + 1}] id=${d.id} / name="${d.name}" / type=${d.type} / term=${d.term} / target=${d.target} / couponPolicy=${d.couponPolicy} / start=${d.startDate} / end=${d.endDate} / active=${d.active}`);
 			});
 		}
@@ -1298,6 +1345,19 @@ document.addEventListener("DOMContentLoaded", function() {
 			bundleProducts.forEach((p, idx) => {
 				formData.append(`bundleProducts[${idx}].id`, p.id);
 				console.log(`- [${idx + 1}] id=${p.id} / name="${p.name}"`);
+			});
+		}
+
+		// =================== [등급별 딜러 추가할인] ===================
+		console.log('\n========== [등급별 딜러 추가할인] ==========');
+		const dealerKeys = Object.keys(dealerDiscounts);
+		if (dealerKeys.length === 0) {
+			console.log('딜러 등급별 추가할인 없음');
+		} else {
+			dealerKeys.forEach(grade => {
+				const value = dealerDiscounts[grade];
+				formData.append(`dealerDiscounts[${grade}]`, value);
+				console.log(`- ${grade} 등급: ${value}%`);
 			});
 		}
 
