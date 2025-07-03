@@ -1161,29 +1161,26 @@ document.addEventListener("DOMContentLoaded", function() {
 		// CKEditor: 각 인스턴스별로 데이터 직접 추출
 		let ckeCnt = 0;
 		for (const [tid, editor] of Object.entries(ckeInstances)) {
-		    let html = editor.getData();
-		    const base64List = extractBase64ImagesFromHtml(html);
-		    if (base64List.length > 0) {
-		        try {
-		            // const urlList = await uploadEditorImages(base64List);
-		            // html = replaceBase64WithUrls(html, base64List, urlList);
-		            console.log(`- CKEditor(${tid}): 이미지 ${base64List.length}개 업로드 및 src 교체`);
-		        } catch (err) {
-		            alert(`[공통표시항목 CKEditor] 이미지 업로드 실패: ${err.message}`);
-		            return;
-		        }
-		    }
-		    // ★ 수정 부분 (name을 question_7로 맞추기)
-		    const qName = tid.startsWith('editor-') ? tid.replace('editor-', '') : tid;
-		    formData.append(qName, html);
-		    if (html && html.trim().length > 0) {
-		        console.log(`- CKEditor(${tid}): 입력됨 (HTML 길이: ${html.length})`);
-		    } else {
-		        console.log(`- CKEditor(${tid}): 미입력`);
-		    }
-		    ckeCnt++;
+			let html = editor.getData();
+			const base64List = extractBase64ImagesFromHtml(html);
+			if (base64List.length > 0) {
+				try {
+					// const urlList = await uploadEditorImages(base64List);
+					// html = replaceBase64WithUrls(html, base64List, urlList);
+					console.log(`- CKEditor(${tid}): 이미지 ${base64List.length}개 업로드 및 src 교체`);
+				} catch (err) {
+					alert(`[공통표시항목 CKEditor] 이미지 업로드 실패: ${err.message}`);
+					return;
+				}
+			}
+			formData.append(tid, html);
+			if (html && html.trim().length > 0) {
+				console.log(`- CKEditor(${tid}): 입력됨 (HTML 길이: ${html.length})`);
+			} else {
+				console.log(`- CKEditor(${tid}): 미입력`);
+			}
+			ckeCnt++;
 		}
-
 		if (questionCnt === 0 && ckeCnt === 0) console.log('질문/공통표시항목 없음');
 
 		// =================== [3. 제품 기본정보] ===================
