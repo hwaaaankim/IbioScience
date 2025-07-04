@@ -668,21 +668,34 @@ document.addEventListener("DOMContentLoaded", function() {
 					+ (Array.isArray(option.options) && option.options.length > 0
 						? option.options.map(opt => {
 							if (typeof opt === 'object' && opt !== null) {
-								if (opt.value !== undefined && opt.label !== undefined) {
+								// 1. value/label 쌍이 있는 경우
+								if ('value' in opt && 'label' in opt) {
 									return `<option value="${opt.value}">${opt.label}</option>`;
-								} else if (Object.keys(opt).length === 1) {
-									let key = Object.keys(opt)[0];
-									return `<option value="${key}">${opt[key]}</option>`;
-								} else {
-									return `<option disabled>선택지 오류</option>`;
 								}
+								// 2. 키가 하나뿐인 객체 ({red:'빨강'})
+								const keys = Object.keys(opt);
+								if (keys.length === 1) {
+									return `<option value="${keys[0]}">${opt[keys[0]]}</option>`;
+								}
+								// 3. value만 있으면 그 값을 표시
+								if ('value' in opt) {
+									return `<option value="${opt.value}">${opt.value}</option>`;
+								}
+								// 4. label만 있으면 그 값을 표시
+								if ('label' in opt) {
+									return `<option value="${opt.label}">${opt.label}</option>`;
+								}
+								// 5. 빈 객체거나 형태가 맞지 않는 경우
+								return `<option disabled>선택지 오류</option>`;
 							} else {
+								// 문자열(숫자) 등
 								return `<option value="${opt}">${opt}</option>`;
 							}
 						}).join('')
 						: '<option disabled>선택지 없음</option>')
 					+ `</select>`;
 				break;
+
 			case 'FILE':
 				inputHtml = `<input type="file" class="form-control form-control-sm" name="question_${option.id}" ${requiredAttr}>`;
 				break;
@@ -878,26 +891,65 @@ document.addEventListener("DOMContentLoaded", function() {
 	const extraFieldList = document.getElementById('product-manager-extra-field-list');
 	const addExtraFieldBtn = document.getElementById('product-manager-add-extra-field');
 	let extraFields = [];
+	function syncExtraFieldsFromDOM() {
+		const rows = extraFieldList.querySelectorAll('.input-group');
+		extraFields = [];
+		rows.forEach((row) => {
+			const label = row.querySelector('input[name$=".label"]')?.value || '';
+			const value = row.querySelector('input[name$=".value"]')?.value || '';
+			extraFields.push({ label, value });
+		});
+	}
 	function renderExtraFields() {
 		extraFieldList.innerHTML = '';
 		extraFields.forEach((field, idx) => {
 			let row = document.createElement('div');
 			row.className = 'input-group mb-2';
 			row.innerHTML = `
-                <input type="text" class="form-control form-control-sm" name="extraFields[${idx}].label" placeholder="질문명" value="${field.label || ''}" required>
-                <input type="text" class="form-control form-control-sm" name="extraFields[${idx}].value" placeholder="답변값" value="${field.value || ''}" required>
-                <button type="button" class="btn btn-outline-danger btn-sm" title="삭제">×</button>
-            `;
-			row.querySelector('button').onclick = () => { extraFields.splice(idx, 1); renderExtraFields(); }
+	            <input type="text" class="form-control form-control-sm" name="extraFields[${idx}].label" placeholder="질문명" value="${field.label || ''}" required>
+	            <input type="text" class="form-control form-control-sm" name="extraFields[${idx}].value" placeholder="답변값" value="${field.value || ''}" required>
+	            <button type="button" class="btn btn-outline-danger btn-sm" title="삭제">×</button>
+	        `;
+			// 입력시 배열 동기화
+			row.querySelectorAll('input').forEach(input => {
+				input.addEventListener('input', syncExtraFieldsFromDOM);
+			});
+			// 삭제
+			row.querySelector('button').onclick = () => {
+				syncExtraFieldsFromDOM();
+				extraFields.splice(idx, 1);
+				renderExtraFields();
+			}
 			extraFieldList.appendChild(row);
 		});
 	}
 	addExtraFieldBtn.addEventListener('click', function() {
+		syncExtraFieldsFromDOM();
 		extraFields.push({ label: '', value: '' });
 		renderExtraFields();
 	});
 	// 최초 1개 표시
 	renderExtraFields();
+
+	function syncOptionGroupsFromDOM() {
+		const groupCards = optionGroupList.querySelectorAll('.card');
+		optionGroups.forEach((group, groupIdx) => {
+			const groupCard = groupCards[groupIdx];
+			if (!groupCard) return;
+			group.name = groupCard.querySelector(`[name="optionGroups[${groupIdx}].name"]`)?.value || '';
+			const optionRows = groupCard.querySelectorAll('.input-group.mb-1');
+			group.options.forEach((opt, optIdx) => {
+				const row = optionRows[optIdx];
+				if (!row) return;
+				opt.name = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].name"]`)?.value || '';
+				opt.value = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].value"]`)?.value || '';
+				opt.extraPrice = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].extraPrice"]`)?.value || '';
+				opt.sign = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].sign"]`)?.value || 'PLUS';
+				opt.sortOrder = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].sortOrder"]`)?.value || (optIdx + 1);
+			});
+		});
+	}
+
 
 	// ===== 6. 옵션그룹/옵션 동적 추가/삭제 =====
 	const optionGroupList = document.getElementById('product-manager-option-group-list');
@@ -909,51 +961,75 @@ document.addEventListener("DOMContentLoaded", function() {
 			let groupDiv = document.createElement('div');
 			groupDiv.className = 'card mb-2';
 			groupDiv.innerHTML = `
-                <div class="card-body p-2">
-                    <div class="input-group mb-2">
-                        <input type="text" class="form-control form-control-sm" name="optionGroups[${groupIdx}].name" placeholder="옵션 그룹명" value="${group.name || ''}" required>
-                        <button type="button" class="btn btn-outline-danger btn-sm" title="옵션그룹 삭제">×</button>
-                    </div>
-                    <div id="option-group-options-${groupIdx}"></div>
-                    <button type="button" class="btn btn-outline-primary btn-sm mt-1" data-group-idx="${groupIdx}">+ 옵션 추가</button>
-                </div>
-            `;
+			<div class="card-body p-2">
+				<div class="input-group mb-2">
+					<input type="text" class="form-control form-control-sm" name="optionGroups[${groupIdx}].name" placeholder="옵션 그룹명" value="${group.name || ''}" required>
+					<button type="button" class="btn btn-outline-danger btn-sm" title="옵션그룹 삭제">×</button>
+				</div>
+				<div id="option-group-options-${groupIdx}"></div>
+				<button type="button" class="btn btn-outline-primary btn-sm mt-1" data-group-idx="${groupIdx}">+ 옵션 추가</button>
+			</div>
+		`;
 			// 옵션그룹 삭제
-			groupDiv.querySelector('.btn-outline-danger').onclick = () => { optionGroups.splice(groupIdx, 1); renderOptionGroups(); }
+			groupDiv.querySelector('.btn-outline-danger').onclick = () => {
+				syncOptionGroupsFromDOM();
+				optionGroups.splice(groupIdx, 1);
+				renderOptionGroups();
+			};
 			// 옵션 추가
 			groupDiv.querySelector('.btn-outline-primary').onclick = (e) => {
+				syncOptionGroupsFromDOM();
 				group.options.push({
 					name: '', value: '', extraPrice: '', sign: 'PLUS', sortOrder: group.options.length + 1
 				});
 				renderOptionGroups();
-			}
+			};
+			// 그룹명 input 값이 변경될 때 동기화
+			groupDiv.querySelector(`[name="optionGroups[${groupIdx}].name"]`)
+				.addEventListener('input', syncOptionGroupsFromDOM);
+
 			// 옵션 리스트
 			const optionsContainer = groupDiv.querySelector(`#option-group-options-${groupIdx}`);
 			group.options.forEach((opt, optIdx) => {
 				let optRow = document.createElement('div');
 				optRow.className = 'input-group mb-1';
 				optRow.innerHTML = `
-                    <input type="text" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].name" placeholder="옵션명" value="${opt.name || ''}" required>
-                    <input type="text" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].value" placeholder="값" value="${opt.value || ''}">
-                    <input type="number" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].extraPrice" placeholder="추가금액" value="${opt.extraPrice || ''}">
-                    <select class="form-select form-select-sm" name="optionGroups[${groupIdx}].options[${optIdx}].sign">
-                        <option value="PLUS" ${opt.sign === 'PLUS' ? 'selected' : ''}>+</option>
-                        <option value="MINUS" ${opt.sign === 'MINUS' ? 'selected' : ''}>-</option>
-                    </select>
-                    <input type="number" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].sortOrder" placeholder="정렬" value="${opt.sortOrder || optIdx + 1}">
-                    <button type="button" class="btn btn-outline-danger btn-sm" title="옵션 삭제">×</button>
-                `;
+				<input type="text" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].name" placeholder="옵션명" value="${opt.name || ''}" required>
+				<input type="text" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].value" placeholder="값" value="${opt.value || ''}">
+				<input type="number" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].extraPrice" placeholder="추가금액" value="${opt.extraPrice || ''}">
+				<select class="form-select form-select-sm" name="optionGroups[${groupIdx}].options[${optIdx}].sign">
+					<option value="PLUS" ${opt.sign === 'PLUS' ? 'selected' : ''}>+</option>
+					<option value="MINUS" ${opt.sign === 'MINUS' ? 'selected' : ''}>-</option>
+				</select>
+				<input type="number" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].sortOrder" placeholder="정렬" value="${opt.sortOrder || optIdx + 1}">
+				<button type="button" class="btn btn-outline-danger btn-sm" title="옵션 삭제">×</button>
+			`;
 				// 옵션 삭제
 				optRow.querySelector('.btn-outline-danger').onclick = () => {
+					syncOptionGroupsFromDOM();
 					group.options.splice(optIdx, 1);
 					renderOptionGroups();
 				};
+				// 각 입력란 값 변경시 동기화 이벤트 바인딩
+				optRow.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].name"]`)
+					.addEventListener('input', syncOptionGroupsFromDOM);
+				optRow.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].value"]`)
+					.addEventListener('input', syncOptionGroupsFromDOM);
+				optRow.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].extraPrice"]`)
+					.addEventListener('input', syncOptionGroupsFromDOM);
+				optRow.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].sign"]`)
+					.addEventListener('change', syncOptionGroupsFromDOM);
+				optRow.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].sortOrder"]`)
+					.addEventListener('input', syncOptionGroupsFromDOM);
+
 				optionsContainer.appendChild(optRow);
 			});
 			optionGroupList.appendChild(groupDiv);
 		});
 	}
+
 	addOptionGroupBtn.addEventListener('click', function() {
+		syncOptionGroupsFromDOM();
 		optionGroups.push({
 			name: '',
 			options: []
@@ -1095,7 +1171,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		base64List.forEach((base64, idx) => {
 			formData.append('files', base64ToBlob(base64), `editorImg${idx}.png`);
 		});
-		const res = await fetch('/api/upload/editor-images', {
+		const res = await fetch('/api/product/editor-images', {
 			method: 'POST',
 			body: formData
 		});
@@ -1113,10 +1189,131 @@ document.addEventListener("DOMContentLoaded", function() {
 		return newHtml;
 	}
 
-	/* CKEditor Util */
+	// === 검증 함수 추가 ===
+	async function validateProductForm() {
+		// 1. 소분류
+		if (!selectedCategories || selectedCategories.length === 0) {
+			alert('카테고리를 1개 이상 선택하세요.');
+			return false;
+		}
 
+		// 2. 기본정보
+		const pName = document.getElementById('productName').value.trim();
+		const pCode = document.getElementById('productCode').value.trim();
+		const displayStatus = document.querySelector('input[name="displayStatus"]:checked')?.value;
+		const saleStatus = document.querySelector('input[name="saleStatus"]:checked')?.value;
+		if (!pName) {
+			alert('제품명을 입력하세요.');
+			return false;
+		}
+		if (!pCode) {
+			alert('제품코드를 입력하세요.');
+			return false;
+		}
+		if (!displayStatus) {
+			alert('진열상태를 선택하세요.');
+			return false;
+		}
+		if (!saleStatus) {
+			alert('판매상태를 선택하세요.');
+			return false;
+		}
+
+		// 3. 공통표시항목(질문) + CKEditor (editor-question-*)
+		let hasQuestionError = false;
+		document.querySelectorAll('#product-manager-display-options [name]').forEach(el => {
+			const required = el.hasAttribute('required');
+			if (el.tagName === 'TEXTAREA' && el.id && el.id.startsWith('editor-question-')) {
+				if (required) {
+					const editor = ckeInstances[el.id];
+					if (!editor || !editor.getData().trim()) {
+						hasQuestionError = true;
+					}
+				}
+			} else {
+				if (required && !el.value) {
+					hasQuestionError = true;
+				}
+			}
+		});
+		if (hasQuestionError) {
+			alert('필수 공통표시항목(질문/옵션)을 모두 입력하세요.');
+			return false;
+		}
+
+		// 4. 상세설명(에디터) 필수여부 체크 (editor-desc)
+		const descEl = document.getElementById('editor-desc');
+		if (descEl && descEl.hasAttribute('required')) {
+			let isEmpty = true;
+			if (window.ClassicEditor && typeof detailEditor?.getData === 'function') {
+				if (detailEditor.getData().trim()) isEmpty = false;
+			}
+			if (isEmpty) {
+				alert('상세설명을 입력하세요.');
+				return false;
+			}
+		}
+
+		// 5. 옵션그룹
+		let hasOptionGroupError = false;
+		optionGroups.forEach((group, groupIdx) => {
+			// 그룹명 콘솔
+			console.log(`[옵션그룹${groupIdx + 1}] 그룹명: "${group.name}"`);
+			if (!group.name || group.name.trim() === '') {
+				console.warn(`[옵션그룹${groupIdx + 1}] 그룹명이 비어 있습니다.`);
+				hasOptionGroupError = true;
+			}
+			group.options.forEach((opt, optIdx) => {
+				// 옵션명 콘솔
+				console.log(`  [옵션${optIdx + 1}] 옵션명: "${opt.name}"`);
+				if (!opt.name || opt.name.trim() === '') {
+					console.warn(`[옵션그룹${groupIdx + 1}] 옵션${optIdx + 1}의 옵션명이 비어 있습니다.`);
+					hasOptionGroupError = true;
+				}
+			});
+		});
+
+		if (hasOptionGroupError) {
+			alert('옵션그룹/옵션명을 모두 입력하세요.');
+			return false;
+		}
+
+		// 6. 추가입력필드
+		let hasExtraFieldError = false;
+		extraFields.forEach(f => {
+			if (!f.label || !f.value) {
+				hasExtraFieldError = true;
+			}
+		});
+		if (hasExtraFieldError) {
+			alert('추가입력필드의 질문명/답변값을 모두 입력하세요.');
+			return false;
+		}
+
+		return true;
+	}
+
+	function extractTempImageUrls(html) {
+		const imgRegex = /<img[^>]+src="([^">]+\/upload\/temp\/[^">]+)"/g;
+		const urls = [];
+		let match;
+		while ((match = imgRegex.exec(html)) !== null) {
+			urls.push(match[1]);
+		}
+		return urls;
+	}
+
+	// === 저장버튼 이벤트(검증+확인) ===
 	document.getElementById('submitProductBtn').addEventListener('click', async function(e) {
 		e.preventDefault();
+		if (!(await validateProductForm())) {
+			console.log('[중단] validateProductForm 실패');
+			return;
+		}
+		if (!confirm('등록하시겠습니까?')) {
+			console.log('[중단] 등록 확인 취소');
+			return;
+		}
 
 		const formData = new FormData();
 
@@ -1126,19 +1323,17 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('선택된 소분류 없음');
 		} else {
 			console.log(`총 ${selectedCategories.length}개 선택`);
+			selectedCategories.forEach(cat => {
+				formData.append('categorySmallIds[]', cat.id);
+				console.log(`- id=${cat.id} (${cat.largeName} > ${cat.mediumName} > ${cat.smallName})`);
+			});
 		}
-		selectedCategories.forEach(cat => {
-			formData.append('categorySmallIds', cat.id);
-			console.log(`- id=${cat.id} (${cat.largeName} > ${cat.mediumName} > ${cat.smallName})`);
-		});
 
 		// =================== [2. 공통표시항목(질문/옵션)] ===================
 		console.log('\n========== [2. 공통표시항목(질문/옵션)] ==========');
 
 		let questionCnt = 0;
-		// CKEditor 제외 input/select/textarea/file 모두 수집
 		document.querySelectorAll('#product-manager-display-options [name]').forEach(el => {
-			// CKEditor textarea는 아래 ckeInstances에서 처리하므로 여기서는 패스
 			if (el.type === 'file') {
 				if (el.files && el.files.length > 0) {
 					Array.from(el.files).forEach((file, fidx) => {
@@ -1150,7 +1345,7 @@ document.addEventListener("DOMContentLoaded", function() {
 					console.log(`- ${el.name}: 파일 없음`);
 				}
 			} else if (el.tagName === 'TEXTAREA' && el.id.startsWith('editor-question-')) {
-				// CKEditor textarea는 ckeInstances에서 따로 처리 (여기서는 패스만 함)
+				// CKEditor textarea는 아래 ckeInstances에서 처리 (패스)
 			} else {
 				formData.append(el.name, el.value);
 				console.log(`- ${el.name}: "${el.value}"`);
@@ -1160,50 +1355,51 @@ document.addEventListener("DOMContentLoaded", function() {
 
 		// CKEditor: 각 인스턴스별로 데이터 직접 추출
 		let ckeCnt = 0;
+		const editorHtmlMap = {};
 		for (const [tid, editor] of Object.entries(ckeInstances)) {
-		    let html = editor.getData();
-		    const base64List = extractBase64ImagesFromHtml(html);
-		    if (base64List.length > 0) {
-		        try {
-		            // const urlList = await uploadEditorImages(base64List);
-		            // html = replaceBase64WithUrls(html, base64List, urlList);
-		            console.log(`- CKEditor(${tid}): 이미지 ${base64List.length}개 업로드 및 src 교체`);
-		        } catch (err) {
-		            alert(`[공통표시항목 CKEditor] 이미지 업로드 실패: ${err.message}`);
-		            return;
-		        }
-		    }
-		    // ★ 수정 부분 (name을 question_7로 맞추기)
-		    const qName = tid.startsWith('editor-') ? tid.replace('editor-', '') : tid;
-		    formData.append(qName, html);
-		    if (html && html.trim().length > 0) {
-		        console.log(`- CKEditor(${tid}): 입력됨 (HTML 길이: ${html.length})`);
-		    } else {
-		        console.log(`- CKEditor(${tid}): 미입력`);
-		    }
-		    ckeCnt++;
+			let html = editor.getData();
+			const base64List = extractBase64ImagesFromHtml(html);
+			if (base64List.length > 0) {
+				try {
+					const urlList = await uploadEditorImages(base64List);
+					html = replaceBase64WithUrls(html, base64List, urlList);
+					console.log(`- CKEditor(${tid}): 이미지 ${base64List.length}개 업로드 및 src 교체`);
+				} catch (err) {
+					alert(`[공통표시항목 CKEditor] 이미지 업로드 실패: ${err.message}`);
+					console.error(err);
+					return;
+				}
+			}
+			const qName = tid.startsWith('editor-') ? tid.replace('editor-', '') : tid;
+			formData.append(qName, html);
+			editorHtmlMap[qName] = html;
+			if (html && html.trim().length > 0) {
+				console.log(`- CKEditor(${tid}): 입력됨 (HTML 길이: ${html.length})`);
+			} else {
+				console.log(`- CKEditor(${tid}): 미입력`);
+			}
+			ckeCnt++;
 		}
-
 		if (questionCnt === 0 && ckeCnt === 0) console.log('질문/공통표시항목 없음');
 
 		// =================== [3. 제품 기본정보] ===================
 		console.log('\n========== [3. 제품 기본정보] ==========');
-		const pName = document.getElementById('productName').value;
-		const pCode = document.getElementById('productCode').value;
-		const displayStatus = document.querySelector('input[name="displayStatus"]:checked')?.value;
-		const saleStatus = document.querySelector('input[name="saleStatus"]:checked')?.value;
+		const pName = document.getElementById('productName')?.value ?? '';
+		const pCode = document.getElementById('productCode')?.value ?? '';
+		const displayStatus = document.querySelector('input[name="displayStatus"]:checked')?.value ?? '';
+		const saleStatus = document.querySelector('input[name="saleStatus"]:checked')?.value ?? '';
 		formData.append('productName', pName);
 		formData.append('productCode', pCode);
-		formData.append('displayStatus', displayStatus ?? '');
-		formData.append('saleStatus', saleStatus ?? '');
+		formData.append('displayStatus', displayStatus);
+		formData.append('saleStatus', saleStatus);
 		console.log('- 제품명:', pName ? `"${pName}"` : '(미입력)');
 		console.log('- 제품코드:', pCode ? `"${pCode}"` : '(미입력)');
-		console.log('- 진열상태:', displayStatus ?? '(미선택)');
-		console.log('- 판매상태:', saleStatus ?? '(미선택)');
+		console.log('- 진열상태:', displayStatus || '(미선택)');
+		console.log('- 판매상태:', saleStatus || '(미선택)');
 
 		// =================== [4. 대표이미지] ===================
 		console.log('\n========== [4. 대표이미지] ==========');
-		if (mainInput.files && mainInput.files.length > 0) {
+		if (mainInput && mainInput.files && mainInput.files.length > 0) {
 			const file = mainInput.files[0];
 			formData.append('mainImage', file);
 			console.log(`대표이미지: ${file.name} (${file.size}byte)`);
@@ -1213,14 +1409,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
 		// =================== [5. 추가이미지] ===================
 		console.log('\n========== [5. 추가이미지] ==========');
-		if (!subFiles || subFiles.length === 0) {
-			console.log('추가이미지 없음');
-		} else {
+		if (subFiles && subFiles.length > 0) {
 			console.log(`총 ${subFiles.length}개`);
 			subFiles.forEach((file, idx) => {
-				formData.append('subImages', file); // 서버는 MultipartFile[] 등으로 받기
+				formData.append('subImages[]', file);
 				console.log(`- [${idx + 1}] ${file.name} (${file.size}byte)`);
 			});
+		} else {
+			console.log('추가이미지 없음');
 		}
 
 		// =================== [6. 상세설명(HTML)] ===================
@@ -1230,15 +1426,17 @@ document.addEventListener("DOMContentLoaded", function() {
 			const base64List = extractBase64ImagesFromHtml(html);
 			if (base64List.length > 0) {
 				try {
-					// const urlList = await uploadEditorImages(base64List);
-					// html = replaceBase64WithUrls(html, base64List, urlList);
+					const urlList = await uploadEditorImages(base64List);
+					html = replaceBase64WithUrls(html, base64List, urlList);
 					console.log(`상세설명: 이미지 ${base64List.length}개 업로드 및 src 교체`);
 				} catch (err) {
 					alert('[상세설명 CKEditor] 이미지 업로드 실패: ' + err.message);
+					console.error(err);
 					return;
 				}
 			}
 			formData.append('detailHtml', html);
+			editorHtmlMap['detailHtml'] = html;
 			console.log(html && html.trim().length > 0 ? `입력됨 (HTML 길이: ${html.length})` : '미입력');
 		} else {
 			console.log('CKEditor 인스턴스 없음');
@@ -1246,10 +1444,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
 		// =================== [7. 추가입력필드] ===================
 		console.log('\n========== [7. 추가입력필드] ==========');
-		const extraFieldRows = extraFieldList.querySelectorAll('.input-group');
-		if (!extraFieldRows || extraFieldRows.length === 0) {
-			console.log('추가입력필드 없음');
-		} else {
+		const extraFieldRows = extraFieldList?.querySelectorAll('.input-group');
+		if (extraFieldRows && extraFieldRows.length > 0) {
 			console.log(`총 ${extraFieldRows.length}개`);
 			extraFieldRows.forEach((row, idx) => {
 				const label = row.querySelector(`[name="extraFields[${idx}].label"]`)?.value ?? '';
@@ -1258,23 +1454,21 @@ document.addEventListener("DOMContentLoaded", function() {
 				formData.append(`extraFields[${idx}].value`, value);
 				console.log(`- [${idx + 1}] 질문명: "${label}" / 답변값: "${value}"`);
 			});
+		} else {
+			console.log('추가입력필드 없음');
 		}
 
 		// =================== [8. 옵션그룹/옵션] ===================
 		console.log('\n========== [8. 옵션그룹/옵션] ==========');
-		const groupCards = optionGroupList.querySelectorAll('.card');
-		if (!groupCards || groupCards.length === 0) {
-			console.log('옵션그룹 없음');
-		} else {
+		const groupCards = optionGroupList?.querySelectorAll('.card');
+		if (groupCards && groupCards.length > 0) {
 			console.log(`총 ${groupCards.length}개 그룹`);
 			groupCards.forEach((groupDiv, groupIdx) => {
 				const groupName = groupDiv.querySelector(`[name="optionGroups[${groupIdx}].name"]`)?.value || '';
 				formData.append(`optionGroups[${groupIdx}].name`, groupName);
 				console.log(`- 그룹[${groupIdx + 1}] 그룹명: "${groupName}"`);
 				const optionRows = groupDiv.querySelectorAll('.input-group.mb-1');
-				if (!optionRows || optionRows.length === 0) {
-					console.log('  옵션 없음');
-				} else {
+				if (optionRows && optionRows.length > 0) {
 					console.log(`  옵션 ${optionRows.length}개`);
 					optionRows.forEach((row, optIdx) => {
 						const name = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].name"]`)?.value || '';
@@ -1289,40 +1483,42 @@ document.addEventListener("DOMContentLoaded", function() {
 						formData.append(`optionGroups[${groupIdx}].options[${optIdx}].sortOrder`, sortOrder);
 						console.log(`    - 옵션[${optIdx + 1}] 옵션명: "${name}" / 값: "${value}" / 추가금액: "${extraPrice}" / 부호: "${sign}" / 정렬: "${sortOrder}"`);
 					});
+				} else {
+					console.log('  옵션 없음');
 				}
 			});
+		} else {
+			console.log('옵션그룹 없음');
 		}
 
 		// =================== [9. 키워드] ===================
 		console.log('\n========== [9. 키워드] ==========');
-		if (!keywords || keywords.length === 0) {
-			console.log('키워드 없음');
-		} else {
+		if (keywords && keywords.length > 0) {
 			console.log(`총 ${keywords.length}개`);
 			keywords.forEach((kw, idx) => {
-				formData.append('keywords', kw);
+				formData.append('keywords[]', kw);
 				console.log(`- [${idx + 1}] "${kw}"`);
 			});
+		} else {
+			console.log('키워드 없음');
 		}
 
 		// =================== [10. 관련상품] ===================
 		console.log('\n========== [10. 관련상품] ==========');
-		if (!relatedProducts || relatedProducts.length === 0) {
-			console.log('관련상품 없음');
-		} else {
+		if (relatedProducts && relatedProducts.length > 0) {
 			console.log(`총 ${relatedProducts.length}개`);
 			relatedProducts.forEach((p, idx) => {
 				formData.append(`relatedProducts[${idx}].id`, p.id);
 				formData.append(`relatedProducts[${idx}].type`, p.type);
 				console.log(`- [${idx + 1}] id=${p.id} / name="${p.name}" / type=${p.type}`);
 			});
+		} else {
+			console.log('관련상품 없음');
 		}
 
 		// =================== [11. 할인혜택] ===================
 		console.log('\n========== [11. 할인혜택] ==========');
-		if (!selectedDiscounts || selectedDiscounts.length === 0) {
-			console.log('할인혜택 없음');
-		} else {
+		if (selectedDiscounts && selectedDiscounts.length > 0) {
 			console.log(`총 ${selectedDiscounts.length}개`);
 			selectedDiscounts.forEach((d, idx) => {
 				formData.append(`discounts[${idx}].id`, d.id);
@@ -1334,58 +1530,96 @@ document.addEventListener("DOMContentLoaded", function() {
 				formData.append(`discounts[${idx}].startDate`, d.startDate);
 				formData.append(`discounts[${idx}].endDate`, d.endDate);
 				formData.append(`discounts[${idx}].active`, d.active);
-
 				console.log(`- [${idx + 1}] id=${d.id} / name="${d.name}" / type=${d.type} / term=${d.term} / target=${d.target} / couponPolicy=${d.couponPolicy} / start=${d.startDate} / end=${d.endDate} / active=${d.active}`);
 			});
+		} else {
+			console.log('할인혜택 없음');
 		}
 
 		// =================== [12. 추가구성상품] ===================
-		console.log('\n========== [11. 추가구성상품] ==========');
-		if (!bundleProducts || bundleProducts.length === 0) {
-			console.log('추가구성상품 없음');
-		} else {
+		console.log('\n========== [12. 추가구성상품] ==========');
+		if (bundleProducts && bundleProducts.length > 0) {
 			console.log(`총 ${bundleProducts.length}개`);
 			bundleProducts.forEach((p, idx) => {
-				formData.append(`bundleProducts[${idx}].id`, p.id);
+				formData.append('bundleProductIds[]', p.id);
 				console.log(`- [${idx + 1}] id=${p.id} / name="${p.name}"`);
 			});
+		} else {
+			console.log('추가구성상품 없음');
 		}
 
-		// =================== [등급별 딜러 추가할인] ===================
-		console.log('\n========== [등급별 딜러 추가할인] ==========');
-		const dealerKeys = Object.keys(dealerDiscounts);
-		if (dealerKeys.length === 0) {
-			console.log('딜러 등급별 추가할인 없음');
-		} else {
+		// =================== [13. 등급별 딜러 추가할인] ===================
+		console.log('\n========== [13. 등급별 딜러 추가할인] ==========');
+		const dealerKeys = dealerDiscounts ? Object.keys(dealerDiscounts) : [];
+		if (dealerKeys.length > 0) {
 			dealerKeys.forEach(grade => {
 				const value = dealerDiscounts[grade];
 				formData.append(`dealerDiscounts[${grade}]`, value);
 				console.log(`- ${grade} 등급: ${value}%`);
 			});
+		} else {
+			console.log('딜러 등급별 추가할인 없음');
 		}
 
 		console.log('\n[= 전체 데이터 수집/콘솔 출력 완료 =]');
 
-		// === 실제 전송 ===
-		/*
-		fetch('/api/product', {
-			method: 'POST',
-			body: formData
-		})
-		.then(res => {
-			if (res.ok) return res.json();
-			throw new Error('등록실패');
-		})
-		.then(json => {
+		// =================== [1차 상품등록] ===================
+		try {
+			const res = await fetch('/api/product/insert', {
+				method: 'POST',
+				body: formData
+			});
+			if (!res.ok) throw new Error('등록실패');
+			const json = await res.json();
+			if (!json.success) throw new Error(json.message || '등록 실패');
 			alert('제품 등록 성공');
-		})
-		.catch(err => alert('등록 실패: ' + err.message));
-		*/
+			console.log(json);
+
+			const productId = json.productId;
+			if (!productId) {
+				alert('상품ID 반환값 없음(서버 응답 확인 필요)');
+				console.error('상품ID 반환값 없음(서버 응답 확인 필요)');
+				return;
+			}
+
+			// =================== [2차 - 에디터 임시이미지 상품폴더로 이동/치환] ===================
+			const tempImageMap = {};
+			Object.entries(editorHtmlMap).forEach(([key, html]) => {
+				const tempImgList = extractTempImageUrls(html);
+				if (tempImgList.length > 0) {
+					tempImageMap[key] = { html, tempImgList };
+				}
+			});
+
+			const moveImagePromises = Object.entries(tempImageMap).map(async ([key, val]) => {
+				const res2 = await fetch(`/api/product/${productId}/move-editor-images`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						type: key,
+						html: val.html,
+						tempImgList: val.tempImgList
+					})
+				});
+				if (!res2.ok) throw new Error(`[${key}] 에디터 이미지 최종저장 실패`);
+				const data2 = await res2.json();
+				if (data2.newHtml) {
+					console.log(`[최종 ${key} HTML]`, data2.newHtml);
+				}
+				return data2;
+			});
+			if (moveImagePromises.length > 0) {
+				await Promise.all(moveImagePromises);
+				console.log('[2차] 에디터 이미지 모두 상품 폴더로 이동 및 HTML src 치환 완료');
+			}
+
+			// location.href = '/admin/product/list'; // 필요 시 이동
+
+		} catch (err) {
+			alert('등록 실패: ' + err.message);
+			console.error(err);
+		}
 	});
-
-	// ===== 할인혜택 모달/리스트 관리 =====
-
-
 	// (페이지 리로드 시 선택혜택 초기화)
 	renderSelectedDiscounts();
 

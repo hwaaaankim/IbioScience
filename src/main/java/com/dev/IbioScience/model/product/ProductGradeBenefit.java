@@ -2,8 +2,9 @@ package com.dev.IbioScience.model.product;
 
 import java.math.BigDecimal;
 
-import com.dev.IbioScience.model.product.status.MemberGrade;
+import com.dev.IbioScience.model.product.status.DealerGrade;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -20,22 +21,23 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "tb_product_grade_benefit", 
-	uniqueConstraints = @UniqueConstraint(columnNames = { "product_id", "grade" }))
+    uniqueConstraints = @UniqueConstraint(columnNames = { "product_id", "dealer_grade" }))
 public class ProductGradeBenefit {
-	
-	// 혜택 ID, PK
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
 
-	// 소속 제품
-	@ManyToOne(fetch = FetchType.LAZY)
-	private Product product;
+    // 혜택 ID, PK
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	// 등급(ALL/NORMAL/DEALER)
-	@Enumerated(EnumType.STRING)
-	private MemberGrade grade;
+    // 소속 제품
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Product product;
 
-	// 할인율
-	private BigDecimal discountRate;
+    // 딜러등급 (A/B/C/D 등)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "dealer_grade")
+    private DealerGrade dealerGrade;
+
+    // 할인율
+    private BigDecimal discountRate;
 }
