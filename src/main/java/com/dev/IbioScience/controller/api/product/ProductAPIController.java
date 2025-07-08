@@ -55,13 +55,16 @@ public class ProductAPIController {
     @PostMapping("/{productId}/move-editor-images")
     public ResponseEntity<?> moveEditorImages(
             @PathVariable Long productId,
-            @RequestBody MoveEditorImageRequestDTO request // DTO 별도 정의
+            @RequestBody MoveEditorImageRequestDTO request
     ) {
-        String newHtml = productRegisterService.moveEditorImages(productId, request.getType(), request.getHtml(), request.getTempImgList());
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("newHtml", newHtml);
-        return ResponseEntity.ok(result);
+        String newHtml = productRegisterService.moveEditorImages(
+            productId,
+            request.getType(),
+            request.getKey(),
+            request.getHtml(),
+            request.getTempImgList()
+        );
+        return ResponseEntity.ok(Map.of("success", true, "newHtml", newHtml));
     }
     
     @PostMapping(value = "/insert", consumes = {"multipart/form-data"})

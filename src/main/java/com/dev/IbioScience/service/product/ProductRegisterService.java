@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,9 +64,7 @@ import com.dev.IbioScience.repository.product.register.RelatedProductRepository;
 import com.dev.IbioScience.utils.FileStorageUtil;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductRegisterService {
@@ -326,61 +325,73 @@ public class ProductRegisterService {
     }
 
     /**
-     * 임시 에디터 이미지 실제 폴더로 이동 및 DB 저장/HTML 치환
+     * 임시 에디터 이미지 실제 폴더로 이동 및 DB 저장/HTML src 치환 (폴더구조 완전 반영)
      * @param productId 상품ID
-     * @param type "detailHtml" 또는 "question_1" 등
+     * @param type "detailHtml" 또는 "question"
+     * @param key "detailHtml" 또는 "question_[답변ID]"
      * @param html 원본 HTML
      * @param tempImgList 임시 이미지 웹 경로 리스트
      * @return 실제 저장 후 HTML(이미지 src 변환)
      */
     @Transactional
-    public String moveEditorImages(Long productId, String type, String html, List<String> tempImgList) {
+    public String moveEditorImages(Long productId, String type, String key, String html, List<String> tempImgList) {
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new IllegalArgumentException("상품 없음: " + productId));
 
-        // 실제 경로
-        String targetDir = uploadBasePath + "/product/" + productId + "/editor";
+        String targetDir;
+        List<String> newUrls = new ArrayList<>();
+
+        if ("detailHtml".equals(type) && "detailHtml".equals(key)) {
+            targetDir = uploadBasePath + "/product/" + productId + "/detail";
+        } else if ("question".equals(type) && key != null && key.startsWith("question_")) {
+            String answerIdStr = key.replace("question_", "");
+            targetDir = uploadBasePath + "/product/" + productId + "/common/editor/" + answerIdStr;
+        } else {
+            throw new IllegalArgumentException("지원하지 않는 type/key: " + type + ", " + key);
+        }
+
         File dir = new File(targetDir);
         if (!dir.exists()) dir.mkdirs();
 
-        List<String> newUrls = new ArrayList<>();
         for (String tempImgUrl : tempImgList) {
-            // tempImgUrl 예시: /upload/temp/20250704/detailHtml/xxx.png
-            String relativePath = tempImgUrl.replaceFirst("/upload/", ""); // temp/20250704/detailHtml/xxx.png
+            String relativePath = tempImgUrl.replaceFirst("/upload/", "");
             File tempFile = new File(uploadBasePath, relativePath);
 
             String fileName = tempImgUrl.substring(tempImgUrl.lastIndexOf('/') + 1);
-            File targetFile = new File(targetDir, fileName);
+            File targetFile = new File(dir, fileName);
 
             try {
                 Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } catch (Exception e) {
-                log.error("임시파일 이동 실패: " + tempFile, e);
-                continue;
+                throw new RuntimeException("임시파일 이동 실패: " + tempFile, e);
             }
 
-            String webPath = "/upload/product/" + productId + "/editor/" + fileName;
-            newUrls.add(webPath);
-
-            // DB 저장
+            String webPath;
             if ("detailHtml".equals(type)) {
+                webPath = "/upload/product/" + productId + "/detail/" + fileName;
+                // 상세 이미지 DB 저장
                 ProductDetailImage di = new ProductDetailImage();
                 di.setProduct(product);
                 di.setUrl(webPath);
                 di.setPath(targetFile.getAbsolutePath());
                 di.setFileName(fileName);
+                di.setUploadedAt(LocalDateTime.now());
                 productDetailImageRepository.save(di);
-            } else if (type.startsWith("question_")) {
-                String qId = type.replace("question_", "");
-                ProductAnswer answer = productAnswerRepository.findByProductAndQuestionId(product, Long.valueOf(qId))
-                    .orElseThrow(() -> new IllegalArgumentException("답변없음"));
+            } else {
+                // 반드시 답변ID로 연결
+                String answerIdStr = key.replace("question_", "");
+                webPath = "/upload/product/" + productId + "/common/editor/" + answerIdStr + "/" + fileName;
+                ProductAnswer answer = productAnswerRepository.findById(Long.valueOf(answerIdStr))
+                    .orElseThrow(() -> new IllegalArgumentException("답변 없음: " + answerIdStr));
                 ProductAnswerDetailImage ai = new ProductAnswerDetailImage();
                 ai.setAnswer(answer);
                 ai.setUrl(webPath);
                 ai.setPath(targetFile.getAbsolutePath());
                 ai.setFileName(fileName);
+                ai.setUploadedAt(LocalDateTime.now());
                 productAnswerDetailImageRepository.save(ai);
             }
+            newUrls.add(webPath);
         }
 
         // HTML 내 src 치환
@@ -389,18 +400,17 @@ public class ProductRegisterService {
             newHtml = newHtml.replace(tempImgList.get(i), newUrls.get(i));
         }
 
-        // 컬럼 업데이트
+        // DB 컬럼 업데이트
         if ("detailHtml".equals(type)) {
             product.setDetailHtml(newHtml);
             productRepository.save(product);
-        } else if (type.startsWith("question_")) {
-            String qId = type.replace("question_", "");
-            ProductAnswer answer = productAnswerRepository.findByProductAndQuestionId(product, Long.valueOf(qId))
-                .orElseThrow(() -> new IllegalArgumentException("답변없음"));
+        } else {
+            String answerIdStr = key.replace("question_", "");
+            ProductAnswer answer = productAnswerRepository.findById(Long.valueOf(answerIdStr))
+                .orElseThrow(() -> new IllegalArgumentException("답변 없음: " + answerIdStr));
             answer.setValue(newHtml);
             productAnswerRepository.save(answer);
         }
-
         return newHtml;
     }
     

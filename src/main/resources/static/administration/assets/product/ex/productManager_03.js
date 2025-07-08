@@ -1113,7 +1113,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			list.appendChild(badge);
 		});
 	}
-
+	
 
 	// === 검증 함수 추가 ===
 	async function validateProductForm() {
@@ -1219,23 +1219,34 @@ document.addEventListener("DOMContentLoaded", function() {
 		return true;
 	}
 
-	// ========== [CKEditor 임시 이미지 업로드 & 추출 유틸 전부 여기서 관리] ==========
-
-	// [임시 이미지 src 추출] - /upload/temp/ 경로만 추출
-	function extractTempImageUrls(html) {
-		const imgRegex = /<img[^>]+src="([^">]+)"/g;
-		const urls = [];
-		let match;
-		while ((match = imgRegex.exec(html)) !== null) {
-			const src = match[1];
-			if (src && src.startsWith('/upload/temp/')) {
-				urls.push(src);
-			}
+	/* CKEditor Util */
+	class CustomUploadAdapter {
+		constructor(loader) {
+			this.loader = loader;
 		}
-		return urls;
+		upload() {
+			return this.loader.file.then(file => {
+				return new Promise((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onload = () => {
+						// Base64 또는 서버 업로드 구현
+						resolve({ default: reader.result });
+					};
+					reader.onerror = error => reject(error);
+					reader.readAsDataURL(file);
+				});
+			});
+		}
+		abort() { }
 	}
 
-	// [base64 이미지 src 추출] - data:image로 시작하는 src만 추출
+	// 2. 플러그인 함수
+	function CustomUploadAdapterPlugin(editor) {
+		editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+			return new CustomUploadAdapter(loader);
+		};
+	}
+
 	function extractBase64ImagesFromHtml(html) {
 		const imgRegex = /<img[^>]+src="([^">]+)"/g;
 		const base64List = [];
@@ -1249,36 +1260,18 @@ document.addEventListener("DOMContentLoaded", function() {
 		return base64List;
 	}
 
-	// base64 → Blob 변환 (fetch 업로드 용)
 	function base64ToBlob(base64) {
 		const arr = base64.split(',');
 		const mime = arr[0].match(/:(.*?);/)[1];
 		const bstr = atob(arr[1]);
 		let n = bstr.length;
 		const u8arr = new Uint8Array(n);
-		while (n--) u8arr[n] = bstr.charCodeAt(n);
+		while (n--) {
+			u8arr[n] = bstr.charCodeAt(n);
+		}
 		return new Blob([u8arr], { type: mime });
 	}
 
-	// (에디터 최초 등록용) base64 이미지를 임시 폴더로 업로드 후, src 치환
-	async function uploadEditorImages(base64List, type, key) {
-		const formData = new FormData();
-		base64List.forEach((base64, idx) => {
-			formData.append('files', base64ToBlob(base64), `${type}_${key}_editorImg${idx}.png`);
-		});
-		formData.append('type', type);
-		formData.append('key', key);
-		const res = await fetch('/api/product/editor-images', {
-			method: 'POST',
-			body: formData
-		});
-		if (!res.ok) throw new Error('이미지 업로드 실패');
-		const data = await res.json();
-		if (!data.success || !data.imageUrls) throw new Error('이미지 업로드 실패(서버응답)');
-		return data.imageUrls;
-	}
-
-	// base64 → 실제 업로드 url로 변환
 	function replaceBase64WithUrls(html, base64List, urlList) {
 		let newHtml = html;
 		base64List.forEach((base64, idx) => {
@@ -1287,49 +1280,19 @@ document.addEventListener("DOMContentLoaded", function() {
 		return newHtml;
 	}
 
-	// ========== [CKEditor Custom Upload Adapter: 서버 직행, 현재 에디터 type/key에 따라 폴더구분] ==========
-	class CustomUploadAdapter {
-		constructor(loader) {
-			this.loader = loader;
-		}
-		upload() {
-			return this.loader.file.then(file => {
-				return new Promise(async (resolve, reject) => {
-					const formData = new FormData();
-					formData.append('files', file);
-					formData.append('type', window.currentEditorType); // "detailHtml" 또는 "question"
-					formData.append('key', window.currentEditorKey);   // "detailHtml" 또는 "question_1"
-					try {
-						const res = await fetch('/api/product/editor-images', {
-							method: 'POST',
-							body: formData
-						});
-						if (!res.ok) return reject(new Error('이미지 업로드 실패'));
-						const data = await res.json();
-						if (!data.success || !data.imageUrls || data.imageUrls.length === 0)
-							return reject(new Error('이미지 업로드 실패(서버응답)'));
-						resolve({ default: data.imageUrls[0] }); // 1개 파일만 등록하므로
-					} catch (e) {
-						reject(e);
-					}
-				});
-			});
-		}
-		abort() { }
+	async function uploadEditorImagesDirect(productId, type, answerId, base64List) {
+		const formData = new FormData();
+		base64List.forEach((base64, idx) => {
+			formData.append('files', base64ToBlob(base64), `${type}_${answerId || 'detail'}_${idx}.png`);
+		});
+		let url = `/api/product/${productId}/editor-images?type=${type}`;
+		if (answerId) url += `&answerId=${answerId}`;
+		const res = await fetch(url, { method: 'POST', body: formData });
+		const data = await res.json();
+		if (!data.success) throw new Error(data.message || '이미지 업로드 실패');
+		return data.imageUrls; // 서버에서 업로드된 이미지 url 배열 반환
 	}
-
-	// [CKEditor 플러그인 등록: 반드시 인스턴스마다 type/key 셋팅]
-	function CustomUploadAdapterPlugin(editor) {
-	    editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-	        // editor.sourceElement는 항상 CKEditor가 붙은 원본 DOM 엘리먼트
-	        window.currentEditorType = editor.sourceElement.getAttribute('data-type');
-	        window.currentEditorKey = editor.sourceElement.getAttribute('data-key');
-	        return new CustomUploadAdapter(loader);
-	    };
-	}
-
-
-	// ========== [저장버튼 이벤트 핸들러: 기존 콘솔 및 변수, 기능 그대로] ==========
+	// === 저장버튼 이벤트(검증+확인) ===
 	document.getElementById('submitProductBtn').addEventListener('click', async function(e) {
 		e.preventDefault();
 		if (!(await validateProductForm())) {
@@ -1343,7 +1306,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 		const formData = new FormData();
 
-		// ========== [1. 소분류(카테고리)] ==========
+		// 1. 카테고리
 		console.log('========== [1. 소분류(카테고리) 선택] ==========');
 		if (!selectedCategories || selectedCategories.length === 0) {
 			console.log('선택된 소분류 없음');
@@ -1355,9 +1318,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			});
 		}
 
-		// ========== [2. 공통표시항목(질문/옵션)] ==========
+		// 2. 공통표시항목(질문/옵션)
 		console.log('\n========== [2. 공통표시항목(질문/옵션)] ==========');
-
 		let questionCnt = 0;
 		document.querySelectorAll('#product-manager-display-options [name]').forEach(el => {
 			if (el.type === 'file') {
@@ -1379,26 +1341,11 @@ document.addEventListener("DOMContentLoaded", function() {
 			}
 		});
 
-		// ========== [3. CKEditor 인스턴스별 HTML/이미지 변환 처리] ==========
+		// 3. CKEditor 인스턴스 데이터 추출 (여기선 HTML만 저장, 이미지 업로드X)
 		let ckeCnt = 0;
 		const editorHtmlMap = {};
 		for (const [tid, editor] of Object.entries(ckeInstances)) {
 			let html = editor.getData();
-			const base64List = extractBase64ImagesFromHtml(html);
-			if (base64List.length > 0) {
-				try {
-					let questionId = tid.replace(/^editor-question-/, '');
-					const type = tid.startsWith('editor-question-') ? 'question' : 'detailHtml';
-					const key = tid.startsWith('editor-question-') ? ('question_' + questionId) : 'detailHtml';
-					const urlList = await uploadEditorImages(base64List, type, key);
-					html = replaceBase64WithUrls(html, base64List, urlList);
-					console.log(`- CKEditor(${tid}): 이미지 ${base64List.length}개 업로드 및 src 교체`);
-				} catch (err) {
-					alert(`[CKEditor] 이미지 업로드 실패: ${err.message}`);
-					console.error(err);
-					return;
-				}
-			}
 			const qName = tid.startsWith('editor-') ? tid.replace('editor-', '') : tid;
 			formData.append(qName, html);
 			editorHtmlMap[qName] = html;
@@ -1411,7 +1358,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		}
 		if (questionCnt === 0 && ckeCnt === 0) console.log('질문/공통표시항목 없음');
 
-		// ========== [3. 제품 기본정보] ==========
+		// 4. 제품 기본정보
 		console.log('\n========== [3. 제품 기본정보] ==========');
 		const pName = document.getElementById('productName')?.value ?? '';
 		const pCode = document.getElementById('productCode')?.value ?? '';
@@ -1426,7 +1373,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		console.log('- 진열상태:', displayStatus || '(미선택)');
 		console.log('- 판매상태:', saleStatus || '(미선택)');
 
-		// ========== [4. 대표이미지] ==========
+		// 5. 대표이미지
 		console.log('\n========== [4. 대표이미지] ==========');
 		if (mainInput && mainInput.files && mainInput.files.length > 0) {
 			const file = mainInput.files[0];
@@ -1436,7 +1383,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('대표이미지 없음');
 		}
 
-		// ========== [5. 추가이미지] ==========
+		// 6. 추가이미지
 		console.log('\n========== [5. 추가이미지] ==========');
 		if (subFiles && subFiles.length > 0) {
 			console.log(`총 ${subFiles.length}개`);
@@ -1448,7 +1395,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('추가이미지 없음');
 		}
 
-		// ========== [6. 상세설명(HTML)] ==========
+		// 7. 상세설명(HTML) (여기선 HTML만 저장, 이미지 업로드X)
 		console.log('\n========== [6. 상세설명(HTML)] ==========');
 		if (detailEditor) {
 			let html = detailEditor.getData();
@@ -1459,9 +1406,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('CKEditor 인스턴스 없음');
 		}
 
-		// ========== [7~13. 기타 입력필드: 생략 없이 기존 코드 유지] ==========
-		// (코드 생략 없이 기존 질문 내용 전체 참고)
-
+		// 8. 추가입력필드
+		console.log('\n========== [7. 추가입력필드] ==========');
 		const extraFieldRows = extraFieldList?.querySelectorAll('.input-group');
 		if (extraFieldRows && extraFieldRows.length > 0) {
 			console.log(`총 ${extraFieldRows.length}개`);
@@ -1476,6 +1422,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('추가입력필드 없음');
 		}
 
+		// 9. 옵션그룹/옵션
+		console.log('\n========== [8. 옵션그룹/옵션] ==========');
 		const groupCards = optionGroupList?.querySelectorAll('.card');
 		if (groupCards && groupCards.length > 0) {
 			console.log(`총 ${groupCards.length}개 그룹`);
@@ -1507,6 +1455,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('옵션그룹 없음');
 		}
 
+		// 10. 키워드
+		console.log('\n========== [9. 키워드] ==========');
 		if (keywords && keywords.length > 0) {
 			console.log(`총 ${keywords.length}개`);
 			keywords.forEach((kw, idx) => {
@@ -1517,6 +1467,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('키워드 없음');
 		}
 
+		// 11. 관련상품
+		console.log('\n========== [10. 관련상품] ==========');
 		if (relatedProducts && relatedProducts.length > 0) {
 			console.log(`총 ${relatedProducts.length}개`);
 			relatedProducts.forEach((p, idx) => {
@@ -1528,6 +1480,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('관련상품 없음');
 		}
 
+		// 12. 할인혜택
+		console.log('\n========== [11. 할인혜택] ==========');
 		if (selectedDiscounts && selectedDiscounts.length > 0) {
 			console.log(`총 ${selectedDiscounts.length}개`);
 			selectedDiscounts.forEach((d, idx) => {
@@ -1546,6 +1500,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('할인혜택 없음');
 		}
 
+		// 13. 추가구성상품
+		console.log('\n========== [12. 추가구성상품] ==========');
 		if (bundleProducts && bundleProducts.length > 0) {
 			console.log(`총 ${bundleProducts.length}개`);
 			bundleProducts.forEach((p, idx) => {
@@ -1556,6 +1512,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			console.log('추가구성상품 없음');
 		}
 
+		// 14. 등급별 딜러 추가할인
+		console.log('\n========== [13. 등급별 딜러 추가할인] ==========');
 		const dealerKeys = dealerDiscounts ? Object.keys(dealerDiscounts) : [];
 		if (dealerKeys.length > 0) {
 			dealerKeys.forEach(grade => {
@@ -1569,7 +1527,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
 		console.log('\n[= 전체 데이터 수집/콘솔 출력 완료 =]');
 
-		// ========== [1차 상품등록] ==========
+		// --------------------- [1차 상품등록] ---------------------
+		let productId, answerMap;
 		try {
 			const res = await fetch('/api/product/insert', {
 				method: 'POST',
@@ -1581,65 +1540,75 @@ document.addEventListener("DOMContentLoaded", function() {
 			alert('제품 등록 성공');
 			console.log(json);
 
-			const productId = json.productId;
+			productId = json.productId;
+			answerMap = json.answerMap || {};
 			if (!productId) {
 				alert('상품ID 반환값 없음(서버 응답 확인 필요)');
 				console.error('상품ID 반환값 없음(서버 응답 확인 필요)');
 				return;
 			}
-
-			// ========== [2차 - 에디터 임시이미지 상품폴더로 이동/치환] ==========
-			const tempImageMap = {};
-			Object.entries(editorHtmlMap).forEach(([key, html]) => {
-				const tempImgList = extractTempImageUrls(html);
-				if (tempImgList.length > 0) {
-					tempImageMap[key] = { html, tempImgList };
-				}
-			});
-
-			const moveImagePromises = Object.entries(tempImageMap).map(async ([key, val]) => {
-			    let type, reqKey;
-			    if (key === "detailHtml") {
-				    type = "detailHtml";
-				    reqKey = "detailHtml";
-				} else if (key.startsWith("question_") || key.startsWith("question-")) {
-				    type = "question";
-				    reqKey = key.replace("question-", "question_");
-				} else {
-				    throw new Error(`지원하지 않는 key: ${key}`);
-				}
-
-			
-			    const res2 = await fetch(`/api/product/${productId}/move-editor-images`, {
-			        method: 'POST',
-			        headers: { 'Content-Type': 'application/json' },
-			        body: JSON.stringify({
-			            type: type,
-			            key: reqKey,
-			            html: val.html,
-			            tempImgList: val.tempImgList
-			        })
-			    });
-			    if (!res2.ok) throw new Error(`[${key}] 에디터 이미지 최종저장 실패`);
-			    const data2 = await res2.json();
-			    if (data2.newHtml) {
-			        console.log(`[최종 ${key} HTML]`, data2.newHtml);
-			    }
-			    return data2;
-			});
-
-			if (moveImagePromises.length > 0) {
-				await Promise.all(moveImagePromises);
-				console.log('[2차] 에디터 이미지 모두 상품 폴더로 이동 및 HTML src 치환 완료');
-			}
-
-			// location.href = '/admin/product/list'; // 필요 시 이동
 		} catch (err) {
 			alert('등록 실패: ' + err.message);
 			console.error(err);
+			return;
 		}
-	});
 
+		// =========== [2차 - 에디터 base64 이미지 업로드/치환/HTML갱신] =============
+
+		// 상세설명
+		if (detailEditor) {
+			let html = editorHtmlMap['detailHtml'];
+			const base64List = extractBase64ImagesFromHtml(html);
+			if (base64List.length > 0) {
+				try {
+					const imageUrls = await uploadEditorImagesDirect(productId, 'detail', null, base64List);
+					html = replaceBase64WithUrls(html, base64List, imageUrls);
+					await fetch(`/api/product/${productId}/update-detail-html`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ detailHtml: html })
+					});
+					console.log('[상세설명] 에디터 이미지 업로드+HTML 교체+갱신 완료');
+				} catch (err) {
+					alert('[상세설명] 에디터 이미지 업로드 실패: ' + err.message);
+					console.error(err);
+					return;
+				}
+			}
+		}
+
+		// 공통표시항목(여러 개일 수 있음)
+		for (const [qName, html0] of Object.entries(editorHtmlMap)) {
+			if (qName === 'detailHtml') continue;
+			let html = html0;
+			const base64List = extractBase64ImagesFromHtml(html);
+			if (base64List.length > 0) {
+				try {
+					// answerId는 반드시 answerMap에서 가져와야 합니다!
+					const answerId = answerMap[qName];
+					if (!answerId) {
+						console.warn(`[공통표시항목] answerMap에 ${qName}에 대한 answerId 없음. 건너뜀`);
+						continue;
+					}
+					const imageUrls = await uploadEditorImagesDirect(productId, 'common-editor', answerId, base64List);
+					html = replaceBase64WithUrls(html, base64List, imageUrls);
+					await fetch(`/api/product/${productId}/update-common-editor-html/${answerId}`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ html })
+					});
+					console.log(`[공통표시항목:${qName}] 에디터 이미지 업로드+HTML 교체+갱신 완료`);
+				} catch (err) {
+					alert(`[공통표시항목:${qName}] 에디터 이미지 업로드 실패: ${err.message}`);
+					console.error(err);
+					return;
+				}
+			}
+		}
+
+		// 필요시 이동
+		// location.href = '/admin/product/list';
+	});
 	// (페이지 리로드 시 선택혜택 초기화)
 	renderSelectedDiscounts();
 

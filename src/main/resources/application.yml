@@ -53,8 +53,8 @@ spring:
     database-platform: org.hibernate.dialect.MariaDBDialect
   servlet:
     multipart:
-      maxFileSize: 5000MB
-      maxRequestSize: -1
+      max-file-size: 5000MB
+      max-request-size: -1
   upload:
     path: D:/IbioScience/
     env: local
@@ -84,8 +84,8 @@ spring:
     database-platform: org.hibernate.dialect.MariaDBDialect
   servlet:
     multipart:
-      maxFileSize: 5000MB
-      maxRequestSize: -1
+      max-file-size: 5000MB
+      max-request-size: -1
   upload:
     path: /home/ubuntu/IbioScience/files/
     env: prod
