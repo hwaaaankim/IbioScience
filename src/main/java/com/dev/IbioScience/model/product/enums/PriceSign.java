@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.status;
+package com.dev.IbioScience.model.product.enums;
 
 //옵션 추가금액 부호 - 추가/차감
 public enum PriceSign {

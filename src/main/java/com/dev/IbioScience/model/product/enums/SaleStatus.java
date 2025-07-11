@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.status;
+package com.dev.IbioScience.model.product.enums;
 
 //판매상태 - ON/OFF
 public enum SaleStatus {

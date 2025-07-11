@@ -2,7 +2,7 @@ package com.dev.IbioScience.dto;
 
 import java.util.List;
 
-import com.dev.IbioScience.model.product.status.QuestionType;
+import com.dev.IbioScience.model.product.enums.QuestionType;
 
 import lombok.Data;
 

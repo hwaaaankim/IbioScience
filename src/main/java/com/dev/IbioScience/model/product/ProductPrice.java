@@ -2,7 +2,7 @@ package com.dev.IbioScience.model.product;
 
 import java.math.BigDecimal;
 
-import com.dev.IbioScience.model.product.status.PriceExposure;
+import com.dev.IbioScience.model.product.enums.PriceExposure;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

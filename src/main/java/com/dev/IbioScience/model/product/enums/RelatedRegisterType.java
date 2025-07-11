@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.status;
+package com.dev.IbioScience.model.product.enums;
 
 public enum RelatedRegisterType {
     PRODUCT("상호등록"),

@@ -13,7 +13,7 @@ import com.dev.IbioScience.dto.ProductQuestionApiDto;
 import com.dev.IbioScience.dto.ProductQuestionDto;
 import com.dev.IbioScience.model.product.ProductQuestion;
 import com.dev.IbioScience.model.product.ProductQuestionOption;
-import com.dev.IbioScience.model.product.status.QuestionType;
+import com.dev.IbioScience.model.product.enums.QuestionType;
 import com.dev.IbioScience.repository.product.ProductQuestionOptionRepository;
 import com.dev.IbioScience.repository.product.ProductQuestionRepository;
 

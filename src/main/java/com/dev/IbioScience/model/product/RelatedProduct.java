@@ -1,6 +1,6 @@
 package com.dev.IbioScience.model.product;
 
-import com.dev.IbioScience.model.product.status.RelatedType;
+import com.dev.IbioScience.model.product.enums.RelatedType;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

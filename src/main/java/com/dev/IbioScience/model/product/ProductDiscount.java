@@ -3,10 +3,10 @@ package com.dev.IbioScience.model.product;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.dev.IbioScience.model.product.status.CouponPolicy;
-import com.dev.IbioScience.model.product.status.DiscountTarget;
-import com.dev.IbioScience.model.product.status.DiscountTerm;
-import com.dev.IbioScience.model.product.status.DiscountType;
+import com.dev.IbioScience.model.product.enums.CouponPolicy;
+import com.dev.IbioScience.model.product.enums.DiscountTarget;
+import com.dev.IbioScience.model.product.enums.PromotionTerm;
+import com.dev.IbioScience.model.product.enums.PromotionType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,7 +23,8 @@ import lombok.Data;
 @Entity
 @Table(name = "tb_product_discount")
 public class ProductDiscount {
-    @Id
+    
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -32,11 +33,11 @@ public class ProductDiscount {
 
     // 타입(DISCOUNT, GIFT)
     @Enumerated(EnumType.STRING)
-    private DiscountType type;
+    private PromotionType type;
 
     // 기간(한정/상시)
     @Enumerated(EnumType.STRING)
-    private DiscountTerm term;
+    private PromotionTerm term;
 
     // 이름(설명)
     private String name;

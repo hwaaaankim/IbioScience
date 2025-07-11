@@ -12,10 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.dev.IbioScience.dto.ProductDiscountSaveRequest;
 import com.dev.IbioScience.model.product.ProductDiscount;
-import com.dev.IbioScience.model.product.status.CouponPolicy;
-import com.dev.IbioScience.model.product.status.DiscountTarget;
-import com.dev.IbioScience.model.product.status.DiscountTerm;
-import com.dev.IbioScience.model.product.status.DiscountType;
+import com.dev.IbioScience.model.product.enums.CouponPolicy;
+import com.dev.IbioScience.model.product.enums.DiscountTarget;
+import com.dev.IbioScience.model.product.enums.PromotionTerm;
+import com.dev.IbioScience.model.product.enums.PromotionType;
 import com.dev.IbioScience.repository.product.ProductDiscountRepository;
 
 import jakarta.transaction.Transactional;
@@ -35,8 +35,8 @@ public class ProductDiscountService {
         ProductDiscount discount = new ProductDiscount();
 
         discount.setActive(Boolean.TRUE.equals(req.getActive()));
-        discount.setType(DiscountType.valueOf(req.getType()));
-        discount.setTerm(DiscountTerm.valueOf(req.getTerm()));
+        discount.setType(PromotionType.valueOf(req.getType()));
+        discount.setTerm(PromotionTerm.valueOf(req.getTerm()));
         discount.setName(req.getName());
 
         discount.setConditionEnabled(Boolean.TRUE.equals(req.getPeriodEnabled()));

@@ -5,11 +5,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dev.IbioScience.model.product.enums.DisplayStatus;
+import com.dev.IbioScience.model.product.enums.ProductState;
+import com.dev.IbioScience.model.product.enums.RelatedRegisterType;
+import com.dev.IbioScience.model.product.enums.SaleStatus;
 import com.dev.IbioScience.model.product.relation.ProductDiscountMapping;
-import com.dev.IbioScience.model.product.status.DisplayStatus;
-import com.dev.IbioScience.model.product.status.ProductState;
-import com.dev.IbioScience.model.product.status.RelatedRegisterType;
-import com.dev.IbioScience.model.product.status.SaleStatus;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.status;
+package com.dev.IbioScience.model.product.enums;
 
 //할인대상 - 누구에게 적용할지
 public enum DiscountTarget {

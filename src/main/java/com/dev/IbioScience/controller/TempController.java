@@ -4,10 +4,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import com.dev.IbioScience.model.product.status.CouponPolicy;
-import com.dev.IbioScience.model.product.status.DiscountTarget;
-import com.dev.IbioScience.model.product.status.DiscountTerm;
-import com.dev.IbioScience.model.product.status.DiscountType;
+import com.dev.IbioScience.model.product.enums.CouponPolicy;
+import com.dev.IbioScience.model.product.enums.DiscountTarget;
+import com.dev.IbioScience.model.product.enums.PromotionTerm;
+import com.dev.IbioScience.model.product.enums.PromotionType;
 
 
 @Controller
@@ -33,8 +33,8 @@ public class TempController {
 	
 	@GetMapping("/productDiscountManager")
     public String productDiscountManager(Model model) {
-        model.addAttribute("discountTypes", DiscountType.values());
-        model.addAttribute("discountTerms", DiscountTerm.values());
+        model.addAttribute("discountTypes", PromotionType.values());
+        model.addAttribute("discountTerms", PromotionTerm.values());
         model.addAttribute("discountTargets", DiscountTarget.values());
         model.addAttribute("couponPolicies", CouponPolicy.values());
         return "administration/product/productDiscountManager";

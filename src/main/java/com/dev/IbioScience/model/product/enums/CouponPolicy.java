@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.status;
+package com.dev.IbioScience.model.product.enums;
 
 //쿠폰정책 - 어떤 정책을 쓸지
 public enum CouponPolicy {
