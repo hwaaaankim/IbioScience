@@ -1,4 +1,5 @@
 package com.dev.IbioScience.model.product.enums;
+
 public enum PromotionTarget {
     
 	NORMAL("일반회원");

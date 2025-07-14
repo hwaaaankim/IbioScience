@@ -9,7 +9,7 @@ import com.dev.IbioScience.model.product.enums.DisplayStatus;
 import com.dev.IbioScience.model.product.enums.ProductState;
 import com.dev.IbioScience.model.product.enums.RelatedRegisterType;
 import com.dev.IbioScience.model.product.enums.SaleStatus;
-import com.dev.IbioScience.model.product.relation.ProductDiscountMapping;
+import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -129,7 +129,7 @@ public class Product {
 	
 	 // === 할인정책 N:N 매핑 리스트 ===
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductDiscountMapping> discountMappings = new ArrayList<>();
+    private List<ProductPromotionMapping> discountMappings = new ArrayList<>();
 
     // === 등급별 혜택 ===
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)

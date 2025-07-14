@@ -11,68 +11,56 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.dev.IbioScience.dto.ProductDiscountSaveRequest;
-import com.dev.IbioScience.model.product.ProductDiscount;
-import com.dev.IbioScience.model.product.enums.CouponPolicy;
-import com.dev.IbioScience.model.product.enums.DiscountTarget;
+import com.dev.IbioScience.model.product.Promotion;
+import com.dev.IbioScience.model.product.enums.PromotionTarget;
 import com.dev.IbioScience.model.product.enums.PromotionTerm;
 import com.dev.IbioScience.model.product.enums.PromotionType;
-import com.dev.IbioScience.repository.product.ProductDiscountRepository;
+import com.dev.IbioScience.repository.product.ProductPromotionRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
-public class ProductDiscountService {
+public class ProductPromotionService {
 
-    private final ProductDiscountRepository productDiscountRepository;
+    private final ProductPromotionRepository productPromotionRepository;
 
     @Value("${spring.upload.path}")
     private String uploadPath; // ex) /home/ubuntu/IbioScience/files/
 
     @Transactional
     public void saveDiscount(ProductDiscountSaveRequest req) throws RuntimeException {
-        ProductDiscount discount = new ProductDiscount();
+        Promotion promotion = new Promotion();
 
-        discount.setActive(Boolean.TRUE.equals(req.getActive()));
-        discount.setType(PromotionType.valueOf(req.getType()));
-        discount.setTerm(PromotionTerm.valueOf(req.getTerm()));
-        discount.setName(req.getName());
+        promotion.setActive(Boolean.TRUE.equals(req.getActive()));
+        promotion.setType(PromotionType.valueOf(req.getType()));
+        promotion.setTerm(PromotionTerm.valueOf(req.getTerm()));
+        promotion.setName(req.getName());
 
-        discount.setConditionEnabled(Boolean.TRUE.equals(req.getPeriodEnabled()));
-        if (discount.getConditionEnabled()) {
+        promotion.setConditionEnabled(Boolean.TRUE.equals(req.getPeriodEnabled()));
+        if (promotion.getConditionEnabled()) {
             if (req.getStartDate() != null && !req.getStartDate().isEmpty()) {
-                discount.setStartDate(LocalDate.parse(req.getStartDate()));
+            	promotion.setStartDate(LocalDate.parse(req.getStartDate()));
             }
             if (req.getEndDate() != null && !req.getEndDate().isEmpty()) {
-                discount.setEndDate(LocalDate.parse(req.getEndDate()));
+            	promotion.setEndDate(LocalDate.parse(req.getEndDate()));
             }
         } else {
-            discount.setStartDate(null);
-            discount.setEndDate(null);
+        	promotion.setStartDate(null);
+        	promotion.setEndDate(null);
         }
 
-        // 적용대상(정확하게 Enum 정상 세팅)
-        if (Boolean.TRUE.equals(req.getApplyToAll())) {
-            discount.setTarget(DiscountTarget.ALL);
-        } else if (Boolean.TRUE.equals(req.getApplyToDealer())) {
-            discount.setTarget(DiscountTarget.DEALER);
-        } else if (Boolean.TRUE.equals(req.getApplyToRegular())) {
-            discount.setTarget(DiscountTarget.NORMAL);
-        } else {
-            discount.setTarget(DiscountTarget.ALL);
-        }
+    	promotion.setTarget(PromotionTarget.NORMAL);
 
         if (req.getDiscountPercent() != null && !req.getDiscountPercent().isEmpty()) {
-            discount.setDiscountPercent(new BigDecimal(req.getDiscountPercent()));
+        	promotion.setDiscountPercent(new BigDecimal(req.getDiscountPercent()));
         } else {
-            discount.setDiscountPercent(BigDecimal.ZERO);
+        	promotion.setDiscountPercent(BigDecimal.ZERO);
         }
 
-        discount.setCouponPolicy(CouponPolicy.valueOf(req.getCouponPolicy()));
-
         // 1차 저장(아이콘 파일경로를 위해 id 필요)
-        discount = productDiscountRepository.save(discount);
+        promotion = productPromotionRepository.save(promotion);
 
         // 아이콘 파일 저장
         MultipartFile iconFile = req.getIconFile();
@@ -84,7 +72,7 @@ public class ProductDiscountService {
                 ext = originalName.substring(originalName.lastIndexOf("."));
             }
             String fileName = UUID.randomUUID() + ext;
-            String dirPath = uploadPath + "/product/discount/icon/" + discount.getId() + "/" + today;
+            String dirPath = uploadPath + "/product/discount/icon/" + promotion.getId() + "/" + today;
             File dir = new File(dirPath);
             if (!dir.exists()) dir.mkdirs();
 
@@ -94,12 +82,12 @@ public class ProductDiscountService {
             } catch (Exception ex) {
                 throw new RuntimeException("아이콘 파일 저장 실패: " + ex.getMessage());
             }
-            String url = "/upload/product/discount/icon/" + discount.getId() + "/" + today + "/" + fileName;
-            discount.setIconPath(savePath);
-            discount.setIconUrl(url);
+            String url = "/upload/product/discount/icon/" + promotion.getId() + "/" + today + "/" + fileName;
+            promotion.setIconPath(savePath);
+            promotion.setIconUrl(url);
 
             // 2차 저장(파일 경로 반영)
-            productDiscountRepository.save(discount);
+            productPromotionRepository.save(promotion);
         }
     }
 }

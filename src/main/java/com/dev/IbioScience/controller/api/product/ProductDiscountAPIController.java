@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.IbioScience.dto.ProductDiscountSaveRequest;
-import com.dev.IbioScience.service.product.ProductDiscountService;
+import com.dev.IbioScience.service.product.ProductPromotionService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/product-discount")
 public class ProductDiscountAPIController {
 
-	private final ProductDiscountService productDiscountService;
+	private final ProductPromotionService productDiscountService;
 
     @PostMapping
     public ResponseEntity<?> saveDiscount(@ModelAttribute ProductDiscountSaveRequest req) {
