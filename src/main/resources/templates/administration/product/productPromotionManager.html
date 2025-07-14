@@ -43,47 +43,21 @@
 													name="name" maxlength="100" required>
 											</div>
 											<div class="col-md-6">
-												<label class="product-promotion-form-label form-label">진행여부</label>
-												<div class="product-promotion-btn-group" role="group">
-													<input type="radio" class="btn-check" name="active" id="activeTrue"
-														value="true" checked>
-													<label class="btn btn-outline-primary btn-sm product-promotion-btn"
-														for="activeTrue">진행중</label>
-													<input type="radio" class="btn-check" name="active" id="activeFalse"
-														value="false">
-													<label
-														class="btn btn-outline-secondary btn-sm product-promotion-btn"
-														for="activeFalse">진행안함</label>
-												</div>
+												<label class="product-promotion-form-label form-label mb-0">진행여부</label>
+												<select class="product-promotion-form-select form-select" name="status"
+													required>
+													<option value="ACTIVE">진행중</option>
+													<option value="INACTIVE">진행안함</option>
+												</select>
 											</div>
 										</div>
 										<div class="row g-3 align-items-center mb-2">
-											<div class="col-md-4">
+											<div class="col-md-6">
 												<label class="product-promotion-form-label form-label mb-0">혜택
 													기간정책</label>
 												<select class="product-promotion-form-select form-select" name="term">
 													<option value="PERIOD">기간한정</option>
 													<option value="ALWAYS">상시</option>
-												</select>
-											</div>
-											<div class="col-md-4">
-												<label class="product-promotion-form-label form-label mb-0">시작일</label>
-												<input type="date" class="product-promotion-form-control form-control"
-													name="startDate" required>
-											</div>
-											<div class="col-md-4">
-												<label class="product-promotion-form-label form-label mb-0">종료일</label>
-												<input type="date" class="product-promotion-form-control form-control"
-													name="endDate" required>
-											</div>
-										</div>
-										<div class="row g-3 align-items-center mb-2">
-											<div class="col-md-6">
-												<label class="product-promotion-form-label form-label mb-0">상태</label>
-												<select class="product-promotion-form-select form-select" name="status"
-													required>
-													<option value="ACTIVE">진행중</option>
-													<option value="INACTIVE">진행안함</option>
 												</select>
 											</div>
 											<div class="col-md-6">
@@ -93,6 +67,20 @@
 													name="iconFile" accept="image/gif,image/png,image/jpeg">
 											</div>
 										</div>
+										<div class="row g-3 align-items-center mb-2">
+											
+											<div class="col-md-6">
+												<label class="product-promotion-form-label form-label mb-0">시작일</label>
+												<input type="date" class="product-promotion-form-control form-control"
+													name="startDate" required>
+											</div>
+											<div class="col-md-6">
+												<label class="product-promotion-form-label form-label mb-0">종료일</label>
+												<input type="date" class="product-promotion-form-control form-control"
+													name="endDate" required>
+											</div>
+										</div>
+										
 									</div>
 									<!-- 타입 선택(라디오) -->
 									<div class="mb-3">
