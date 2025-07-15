@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class CategorySmallWithProductCountDto {
+public class CategorySmallWithProductCountDTO {
     private Long id;
     private String name;
     private long productCount;

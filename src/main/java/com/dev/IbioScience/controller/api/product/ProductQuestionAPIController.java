@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.IbioScience.dto.ProductQuestionApiDto;
-import com.dev.IbioScience.dto.ProductQuestionDto;
+import com.dev.IbioScience.dto.ProductQuestionApiDTO;
+import com.dev.IbioScience.dto.ProductQuestionDTO;
 import com.dev.IbioScience.model.product.ProductQuestion;
 import com.dev.IbioScience.service.product.ProductQuestionService;
 
@@ -39,7 +39,7 @@ public class ProductQuestionAPIController {
 
     // 3. 전체 저장/수정(리스트 통째로)
     @PostMapping
-    public ResponseEntity<Void> saveQuestions(@RequestBody List<ProductQuestionDto> questionDtos) {
+    public ResponseEntity<Void> saveQuestions(@RequestBody List<ProductQuestionDTO> questionDtos) {
         productQuestionService.saveAllQuestions(questionDtos);
         return ResponseEntity.ok().build();
     }
@@ -52,7 +52,7 @@ public class ProductQuestionAPIController {
     }
     
     @GetMapping("/list-common")
-    public List<ProductQuestionApiDto> getCommonQuestionList() {
+    public List<ProductQuestionApiDTO> getCommonQuestionList() {
         return productQuestionService.getAllQuestions();
     }
 }

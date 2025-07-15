@@ -7,12 +7,12 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MediumSmallMappingDto {
+public class MediumSmallMappingDTO {
 	private Long id;
 	private Long mediumId;
 	private Long smallId;
 
-	public static MediumSmallMappingDto from(MediumSmallCategory m) {
-		return new MediumSmallMappingDto(m.getId(), m.getMedium().getId(), m.getSmall().getId());
+	public static MediumSmallMappingDTO from(MediumSmallCategory m) {
+		return new MediumSmallMappingDTO(m.getId(), m.getMedium().getId(), m.getSmall().getId());
 	}
 }

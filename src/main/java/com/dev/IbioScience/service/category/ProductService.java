@@ -21,6 +21,14 @@ public class ProductService {
 	}
 
 	// DTO 정의
-	public record ProductSimpleDto(Long id, String code, String name) {
-	}
+	public record ProductSimpleDto(Long id, String code, String name) {}
+	
+	public record ProductWithCategoryDto(
+		    Long productId,
+		    String productCode,
+		    String productName,
+		    String largeCategoryName,
+		    String mediumCategoryName,
+		    String smallCategoryName
+		) {}
 }

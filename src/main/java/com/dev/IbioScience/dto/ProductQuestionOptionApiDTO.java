@@ -5,13 +5,13 @@ import com.dev.IbioScience.model.product.ProductQuestionOption;
 import lombok.Data;
 
 @Data
-public class ProductQuestionOptionApiDto {
+public class ProductQuestionOptionApiDTO {
 	private Long id;
 	private String value;
 	private Integer sortOrder;
 
-	public static ProductQuestionOptionApiDto from(ProductQuestionOption o) {
-		ProductQuestionOptionApiDto d = new ProductQuestionOptionApiDto();
+	public static ProductQuestionOptionApiDTO from(ProductQuestionOption o) {
+		ProductQuestionOptionApiDTO d = new ProductQuestionOptionApiDTO();
 		d.setId(o.getId());
 		d.setValue(o.getValue());
 		d.setSortOrder(o.getSortOrder());

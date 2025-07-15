@@ -14,15 +14,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.IbioScience.dto.CategoryLargeApiDto;
-import com.dev.IbioScience.dto.CategoryLargeDto;
-import com.dev.IbioScience.dto.CategoryMediumApiDto;
-import com.dev.IbioScience.dto.CategoryMediumDto;
-import com.dev.IbioScience.dto.CategorySmallApiDto;
-import com.dev.IbioScience.dto.CategorySmallDto;
-import com.dev.IbioScience.dto.CategorySmallWithProductCountDto;
+import com.dev.IbioScience.dto.CategoryLargeApiDTO;
+import com.dev.IbioScience.dto.CategoryLargeDTO;
+import com.dev.IbioScience.dto.CategoryMediumApiDTO;
+import com.dev.IbioScience.dto.CategoryMediumDTO;
+import com.dev.IbioScience.dto.CategorySmallApiDTO;
+import com.dev.IbioScience.dto.CategorySmallDTO;
+import com.dev.IbioScience.dto.CategorySmallWithProductCountDTO;
 import com.dev.IbioScience.dto.MappingRequest;
-import com.dev.IbioScience.dto.MediumSmallMappingDto;
+import com.dev.IbioScience.dto.MediumSmallMappingDTO;
 import com.dev.IbioScience.service.category.CategoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -35,26 +35,26 @@ public class CategoryController {
 	private final CategoryService categoryService;
 
 	@GetMapping("/mapping/all")
-	public List<MediumSmallMappingDto> getAllMappings() {
+	public List<MediumSmallMappingDTO> getAllMappings() {
 	    return categoryService.getAllMappings().stream()
-	            .map(MediumSmallMappingDto::from)
+	            .map(MediumSmallMappingDTO::from)
 	            .collect(Collectors.toList());
 	}
 	
 	// ----------- 대분류 -----------
 	@GetMapping("/large")
-	public List<CategoryLargeDto> getAllLarge() {
-		return categoryService.getAllLarge().stream().map(CategoryLargeDto::from).collect(Collectors.toList());
+	public List<CategoryLargeDTO> getAllLarge() {
+		return categoryService.getAllLarge().stream().map(CategoryLargeDTO::from).collect(Collectors.toList());
 	}
 
 	@PostMapping("/large")
-	public CategoryLargeDto createLarge(@RequestBody Map<String, String> body) {
-		return CategoryLargeDto.from(categoryService.createLarge(body.get("name")));
+	public CategoryLargeDTO createLarge(@RequestBody Map<String, String> body) {
+		return CategoryLargeDTO.from(categoryService.createLarge(body.get("name")));
 	}
 
 	@PutMapping("/large/{id}")
-	public CategoryLargeDto updateLarge(@PathVariable Long id, @RequestBody Map<String, String> body) {
-		return CategoryLargeDto.from(categoryService.updateLarge(id, body.get("name")));
+	public CategoryLargeDTO updateLarge(@PathVariable Long id, @RequestBody Map<String, String> body) {
+		return CategoryLargeDTO.from(categoryService.updateLarge(id, body.get("name")));
 	}
 
 	@DeleteMapping("/large/{id}")
@@ -64,12 +64,12 @@ public class CategoryController {
 
 	// ----------- 중분류 -----------
 	@GetMapping("/medium")
-	public List<CategoryMediumDto> getAllMedium() {
-		return categoryService.getAllMedium().stream().map(CategoryMediumDto::from).collect(Collectors.toList());
+	public List<CategoryMediumDTO> getAllMedium() {
+		return categoryService.getAllMedium().stream().map(CategoryMediumDTO::from).collect(Collectors.toList());
 	}
 
 	@PostMapping("/medium")
-	public CategoryMediumDto createMedium(@RequestBody Map<String, Object> body) {
+	public CategoryMediumDTO createMedium(@RequestBody Map<String, Object> body) {
 	    String name = (String) body.get("name");
 	    Object largeIdObj = body.get("largeId");
 	    Long largeId;
@@ -81,13 +81,13 @@ public class CategoryController {
 	    } else {
 	        throw new IllegalArgumentException("largeId 값이 올바르지 않습니다.");
 	    }
-	    return CategoryMediumDto.from(categoryService.createMedium(largeId, name));
+	    return CategoryMediumDTO.from(categoryService.createMedium(largeId, name));
 	}
 
 
 	@PutMapping("/medium/{id}")
-	public CategoryMediumDto updateMedium(@PathVariable Long id, @RequestBody Map<String, String> body) {
-		return CategoryMediumDto.from(categoryService.updateMedium(id, body.get("name")));
+	public CategoryMediumDTO updateMedium(@PathVariable Long id, @RequestBody Map<String, String> body) {
+		return CategoryMediumDTO.from(categoryService.updateMedium(id, body.get("name")));
 	}
 
 	@DeleteMapping("/medium/{id}")
@@ -97,18 +97,18 @@ public class CategoryController {
 
 	// ----------- 소분류 -----------
 	@GetMapping("/small")
-	public List<CategorySmallDto> getAllSmall() {
-		return categoryService.getAllSmall().stream().map(CategorySmallDto::from).collect(Collectors.toList());
+	public List<CategorySmallDTO> getAllSmall() {
+		return categoryService.getAllSmall().stream().map(CategorySmallDTO::from).collect(Collectors.toList());
 	}
 
 	@PostMapping("/small")
-	public CategorySmallDto createSmall(@RequestBody Map<String, String> body) {
-		return CategorySmallDto.from(categoryService.createSmall(body.get("name")));
+	public CategorySmallDTO createSmall(@RequestBody Map<String, String> body) {
+		return CategorySmallDTO.from(categoryService.createSmall(body.get("name")));
 	}
 
 	@PutMapping("/small/{id}")
-	public CategorySmallDto updateSmall(@PathVariable Long id, @RequestBody Map<String, String> body) {
-		return CategorySmallDto.from(categoryService.updateSmall(id, body.get("name")));
+	public CategorySmallDTO updateSmall(@PathVariable Long id, @RequestBody Map<String, String> body) {
+		return CategorySmallDTO.from(categoryService.updateSmall(id, body.get("name")));
 	}
 
 	@DeleteMapping("/small/{id}")
@@ -118,8 +118,8 @@ public class CategoryController {
 
 	// ----------- 중분류-소분류 매핑 -----------
 	@GetMapping("/mapping/small/{smallId}")
-	public List<MediumSmallMappingDto> getMappingBySmall(@PathVariable Long smallId) {
-		return categoryService.getMappingsBySmall(smallId).stream().map(MediumSmallMappingDto::from)
+	public List<MediumSmallMappingDTO> getMappingBySmall(@PathVariable Long smallId) {
+		return categoryService.getMappingsBySmall(smallId).stream().map(MediumSmallMappingDTO::from)
 				.collect(Collectors.toList());
 	}
 
@@ -138,24 +138,24 @@ public class CategoryController {
 	
 	/* 상품 등록 페이지 카테고리 조회 api */
 	@GetMapping("/list-large")
-    public List<CategoryLargeApiDto> getCategoryLargeList() {
+    public List<CategoryLargeApiDTO> getCategoryLargeList() {
         return categoryService.getLargeCategories();
     }
 
     // 중분류 목록 조회
     @GetMapping("/list-medium")
-    public List<CategoryMediumApiDto> getCategoryMediumList(@RequestParam Long largeId) {
+    public List<CategoryMediumApiDTO> getCategoryMediumList(@RequestParam Long largeId) {
         return categoryService.getMediumCategories(largeId);
     }
 
     // 소분류 목록 조회
     @GetMapping("/list-small")
-    public List<CategorySmallApiDto> getCategorySmallList(@RequestParam Long mediumId) {
+    public List<CategorySmallApiDTO> getCategorySmallList(@RequestParam Long mediumId) {
         return categoryService.getSmallCategories(mediumId);
     }
     
     @GetMapping("/list-small-with-product-count")
-    public List<CategorySmallWithProductCountDto> listSmallWithProductCount(@RequestParam Long mediumId) {
+    public List<CategorySmallWithProductCountDTO> listSmallWithProductCount(@RequestParam Long mediumId) {
         return categoryService.getSmallWithProductCount(mediumId);
     }
 	

@@ -1,16 +1,14 @@
 package com.dev.IbioScience.controller.api.product;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.dev.IbioScience.dto.CouponRegisterRequestDTO;
+import com.dev.IbioScience.model.product.Coupon;
 import com.dev.IbioScience.service.product.CouponService;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -20,23 +18,17 @@ public class CouponRegisterController {
 	private final CouponService couponService;
 	
 	@PostMapping("/couponRegister")
-    public String couponRegister(
-            @ModelAttribute @Valid CouponRegisterRequestDTO dto,
-            BindingResult bindingResult,
-            RedirectAttributes redirectAttributes,
-            Model model
-    ) {
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("error", "입력값을 확인하세요.");
-            return "administration/product/couponManager";
-        }
+    public String registerCoupon(
+    		@ModelAttribute CouponRegisterRequestDTO dto, 
+    		RedirectAttributes redirectAttributes) {
         try {
-            couponService.registerCoupon(dto);
-            redirectAttributes.addFlashAttribute("success", true);
-            return "redirect:/administration/product/couponManager";
+            Coupon coupon = couponService.registerCoupon(dto);
+            redirectAttributes.addFlashAttribute("success", "쿠폰이 정상적으로 등록되었습니다. ID: " + coupon.getId());
+            return "redirect:/couponManager";
         } catch (Exception e) {
-            model.addAttribute("error", "쿠폰 등록 중 오류: " + e.getMessage());
-            return "administration/product/couponManager";
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/couponManager";
         }
     }
+
 }

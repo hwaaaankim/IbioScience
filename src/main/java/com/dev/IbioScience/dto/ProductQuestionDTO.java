@@ -7,7 +7,7 @@ import com.dev.IbioScience.model.product.enums.QuestionType;
 import lombok.Data;
 
 @Data
-public class ProductQuestionDto {
+public class ProductQuestionDTO {
     private Long id; // 기존 항목 수정시 포함, 신규시 null
     private String label;
     private String placeholder;

@@ -1,13 +1,16 @@
 package com.dev.IbioScience.service.product;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dev.IbioScience.dto.CouponDTO;
 import com.dev.IbioScience.dto.CouponRegisterRequestDTO;
 import com.dev.IbioScience.model.product.Coupon;
-import com.dev.IbioScience.model.product.enums.CouponPolicy;
 import com.dev.IbioScience.model.product.enums.CouponStatus;
 import com.dev.IbioScience.repository.product.CouponRepository;
 
@@ -17,30 +20,53 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CouponService {
 
-    private final CouponRepository couponRepository;
+	private final CouponRepository couponRepository;
 
-    // 쿠폰 등록
-    @Transactional
-    public Coupon registerCoupon(CouponRegisterRequestDTO dto) {
-        Coupon coupon = new Coupon();
+	@Transactional
+	public Coupon registerCoupon(CouponRegisterRequestDTO dto) {
+	    String couponCode;
+	    do {
+	        couponCode = "CPN-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+	    } while (couponRepository.existsByCouponCode(couponCode));
 
-        // 고유 쿠폰코드 생성(랜덤 UUID, 20자 이내 자르기)
-        String generatedCode = UUID.randomUUID().toString().replace("-", "").substring(0, 20);
-        coupon.setCouponCode(generatedCode);
+	    Coupon coupon = new Coupon();
+	    coupon.setCouponCode(couponCode);
+	    coupon.setCouponName(dto.getCouponName());
+	    coupon.setMinPurchaseAmount(dto.getMinPurchaseAmount());
+	    coupon.setCouponAmount(dto.getCouponAmount());
+	    coupon.setStartDate(dto.getStartDate());
+	    coupon.setEndDate(dto.getEndDate());
+	    coupon.setCouponPolicy(dto.getCouponPolicy());
+	    // status가 null로 들어올 경우 무조건 ISSUED로 대입
+	    coupon.setStatus(dto.getStatus() == null ? CouponStatus.ISSUED : dto.getStatus());
 
-        coupon.setCouponName(dto.getCouponName());
-        coupon.setMinPurchaseAmount(dto.getMinPurchaseAmount());
-        coupon.setCouponAmount(dto.getCouponAmount());
-        coupon.setStartDate(dto.getStartDate());
-        coupon.setEndDate(dto.getEndDate());
-
-        // enum 문자열 -> Enum 변환
-        if (dto.getCouponPolicy() != null) {
-            coupon.setCouponPolicy(CouponPolicy.valueOf(dto.getCouponPolicy()));
+	    return couponRepository.save(coupon);
+	}
+	
+	@Transactional(readOnly = true)
+    public List<CouponDTO> searchCoupons(String status, String name, String startDate, String endDate) {
+        CouponStatus couponStatus = null;
+        if (status != null && !status.isEmpty()) {
+            couponStatus = CouponStatus.valueOf(status);
         }
+        LocalDate sDate = (startDate != null && !startDate.isEmpty()) ? LocalDate.parse(startDate) : null;
+        LocalDate eDate = (endDate != null && !endDate.isEmpty()) ? LocalDate.parse(endDate) : null;
 
-        coupon.setStatus(CouponStatus.ISSUED); // 기본값 발급됨
+        List<Coupon> list = couponRepository.searchCoupons(
+                couponStatus,
+                (name != null && !name.isEmpty()) ? name : null,
+                sDate,
+                eDate
+        );
 
-        return couponRepository.save(coupon);
+        return list.stream().map(c -> {
+            CouponDTO dto = new CouponDTO();
+            dto.setId(c.getId());
+            dto.setCouponName(c.getCouponName());
+            dto.setStartDate(c.getStartDate().toString());
+            dto.setEndDate(c.getEndDate().toString());
+            dto.setStatus(c.getStatus().name());
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

@@ -170,8 +170,6 @@ document.addEventListener("DOMContentLoaded", function() {
 	}
 
 	/* 할인혜택 모달 끝 */
-
-	const dealerGrades = ['A', 'B', 'C', 'D'];
 	const dealerDiscounts = {}; // { A: 할인율, ... }
 
 	const dealerDiscountButtons = document.getElementById('dealer-discount-buttons');
@@ -397,16 +395,19 @@ document.addEventListener("DOMContentLoaded", function() {
 			renderBundleModalProductList();
 		});
 	};
+	
 	bundleLargeSelect.onchange = function() {
 		fetchAndRenderMediumOptions(bundleMediumSelect, this.value, bundleSmallSelect);
 		bundleProductList = [];
 		renderBundleModalProductList();
 	};
+	
 	bundleMediumSelect.onchange = function() {
 		fetchAndRenderSmallOptions(bundleSmallSelect, this.value);
 		bundleProductList = [];
 		renderBundleModalProductList();
 	};
+	
 	bundleSmallSelect.onchange = function() {
 		const smallId = bundleSmallSelect.value;
 		fetchProductListBySmall(smallId, function(list) {

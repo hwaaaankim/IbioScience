@@ -7,11 +7,11 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class CategorySmallDto {
+public class CategorySmallDTO {
 	private Long id;
 	private String name;
 
-	public static CategorySmallDto from(CategorySmall s) {
-		return new CategorySmallDto(s.getId(), s.getName());
+	public static CategorySmallDTO from(CategorySmall s) {
+		return new CategorySmallDTO(s.getId(), s.getName());
 	}
 }

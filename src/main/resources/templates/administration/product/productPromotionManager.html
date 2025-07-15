@@ -68,7 +68,7 @@
 											</div>
 										</div>
 										<div class="row g-3 align-items-center mb-2">
-											
+
 											<div class="col-md-6">
 												<label class="product-promotion-form-label form-label mb-0">시작일</label>
 												<input type="date" class="product-promotion-form-control form-control"
@@ -80,7 +80,7 @@
 													name="endDate" required>
 											</div>
 										</div>
-										
+
 									</div>
 									<!-- 타입 선택(라디오) -->
 									<div class="mb-3">
@@ -94,15 +94,15 @@
 												for="type-discount">할인</label>
 											<input type="radio" class="btn-check" name="type" id="type-gift"
 												value="GIFT">
-											<label class="btn btn-outline-success product-promotion-btn"
+											<label class="btn btn-outline-primary product-promotion-btn"
 												for="type-gift">증정</label>
 											<input type="radio" class="btn-check" name="type" id="type-oneplusone"
 												value="ONE_PLUS_ONE">
-											<label class="btn btn-outline-warning product-promotion-btn"
+											<label class="btn btn-outline-primary product-promotion-btn"
 												for="type-oneplusone">1+1</label>
 											<input type="radio" class="btn-check" name="type" id="type-coupon"
 												value="COUPON">
-											<label class="btn btn-outline-info product-promotion-btn"
+											<label class="btn btn-outline-primary product-promotion-btn"
 												for="type-coupon">쿠폰</label>
 										</div>
 									</div>
@@ -123,54 +123,34 @@
 
 											</div>
 										</div>
-										<!-- 증정 타입 -->
+										<!-- 증정 타입 (GIFT) -->
 										<div class="product-promotion-type-panel" data-type="GIFT"
 											style="display:none;">
 											<div class="product-promotion-section-title">증정 상품 등록</div>
-											<!-- 분류 및 검색 -->
-											<div class="product-promotion-search-area mb-2">
-												<div class="row mb-2">
-													<div class="col-md-3">
-														<label class="product-promotion-form-label mb-1">대분류</label>
-														<select class="form-select product-promotion-form-select"
-															id="giftCategoryLarge">
-															<option value="">대분류</option>
-														</select>
-													</div>
-													<div class="col-md-3">
-														<label class="product-promotion-form-label mb-1">중분류</label>
-														<select class="form-select product-promotion-form-select"
-															id="giftCategoryMedium">
-															<option value="">중분류</option>
-														</select>
-													</div>
-													<div class="col-md-3">
-														<label class="product-promotion-form-label mb-1">소분류</label>
-														<select class="form-select product-promotion-form-select"
-															id="giftCategorySmall">
-															<option value="">소분류</option>
-														</select>
-													</div>
-													<div class="col-md-3">
-														<label class="product-promotion-form-label mb-1">제품명 검색</label>
-														<input type="text"
-															class="product-promotion-form-control form-control"
-															id="giftProductKeyword" placeholder="상품명">
-													</div>
+											<div class="row mb-2">
+												<div class="col-md-4">
+													<label class="form-label">대분류</label>
+													<select id="giftCategoryLarge" class="form-select"></select>
 												</div>
-												<div class="text-end mb-2">
-													<button type="button"
-														class="btn btn-outline-primary btn-sm product-promotion-search-btn"
-														id="giftProductSearchBtn">검색</button>
+												<div class="col-md-4">
+													<label class="form-label">중분류</label>
+													<select id="giftCategoryMedium" class="form-select"></select>
 												</div>
-												<label class="product-promotion-form-label mb-1">검색결과</label>
-												<div class="product-promotion-list-group" id="giftProductList"></div>
+												<div class="col-md-4">
+													<label class="form-label">소분류</label>
+													<select id="giftCategorySmall" class="form-select"></select>
+												</div>
+											</div>
+											<div class="mb-2">
+												<label class="form-label">제품 목록</label>
+												<div id="giftProductList"></div>
 											</div>
 											<div>
-												<label class="product-promotion-form-label mb-1">등록된 증정 상품</label>
+												<label class="form-label">선택된 증정 상품</label>
 												<div id="selectedGiftProductList" class="d-flex flex-wrap gap-2"></div>
 											</div>
 										</div>
+
 										<!-- 1+1 타입 -->
 										<div class="product-promotion-type-panel" data-type="ONE_PLUS_ONE"
 											style="display:none;">
@@ -185,19 +165,29 @@
 											<div class="product-promotion-section-title">쿠폰 검색 및 선택</div>
 											<div class="product-promotion-search-area mb-2">
 												<div class="row mb-2">
-													<div class="col-md-4">
+													<div class="col-md-3">
+														<label class="product-promotion-form-label mb-1">쿠폰상태</label>
+														<select class="product-promotion-form-select form-select"
+															id="couponStatus">
+															<option value="">전체</option>
+															<option value="ISSUED">발급됨</option>
+															<option value="USED">사용됨</option>
+															<option value="EXPIRED">만료됨</option>
+														</select>
+													</div>
+													<div class="col-md-3">
 														<label class="product-promotion-form-label mb-1">쿠폰명</label>
 														<input type="text"
 															class="product-promotion-form-control form-control"
 															id="couponKeyword" placeholder="쿠폰명">
 													</div>
-													<div class="col-md-4">
+													<div class="col-md-3">
 														<label class="product-promotion-form-label mb-1">발행 시작일</label>
 														<input type="date"
 															class="product-promotion-form-control form-control"
 															id="couponStartDate">
 													</div>
-													<div class="col-md-4">
+													<div class="col-md-3">
 														<label class="product-promotion-form-label mb-1">발행 종료일</label>
 														<input type="date"
 															class="product-promotion-form-control form-control"
@@ -239,14 +229,6 @@
 	<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
 	<script src="/administration/assets/product/productPromotionManager.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-	<!-- 실제 검색 등 JS로 ajax/연동 필요, 여기선 UI/HTML/CSS에 집중 -->
-	<script>
-		// 예시: 탭 이동시 폼 초기화/값 리셋 등 처리 가능
-		document.getElementById('promotionTab').addEventListener('shown.bs.tab', function (event) {
-			// TODO: 탭 변경 시 UI 리셋/폼 초기화 등 추가 가능
-		});
-    // 증정상품/쿠폰 등 검색 ajax 연동 필요시 직접 구현
-	</script>
 </body>
 
 </html>

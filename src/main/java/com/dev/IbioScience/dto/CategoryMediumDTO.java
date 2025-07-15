@@ -7,12 +7,12 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class CategoryMediumDto {
+public class CategoryMediumDTO {
 	private Long id;
 	private String name;
 	private Long largeId;
 
-	public static CategoryMediumDto from(CategoryMedium m) {
-		return new CategoryMediumDto(m.getId(), m.getName(), m.getLarge().getId());
+	public static CategoryMediumDTO from(CategoryMedium m) {
+		return new CategoryMediumDTO(m.getId(), m.getName(), m.getLarge().getId());
 	}
 }
