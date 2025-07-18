@@ -171,7 +171,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	/* 할인혜택 모달 끝 */
 	const dealerDiscounts = {}; // { A: 할인율, ... }
-
 	const dealerDiscountButtons = document.getElementById('dealer-discount-buttons');
 	const dealerDiscountList = document.getElementById('dealer-discount-list');
 
@@ -248,12 +247,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	function fetchAndRenderSmallOptions(selectEl, mediumId) {
 		selectEl.innerHTML = `<option value="">소분류</option>`;
 		if (!mediumId) return;
-		// 변경: 기존 list-small → list-small-with-product-count
 		fetch(`/api/category/list-small-with-product-count?mediumId=${mediumId}`)
 			.then(res => res.json())
 			.then(list => {
 				list.forEach(s => {
-					// 제품수가 없는 경우 0, 제품수는 productCount
 					selectEl.innerHTML += `<option value="${s.id}">${s.name} (${s.productCount ?? 0})</option>`;
 				});
 			});
@@ -1115,7 +1112,6 @@ document.addEventListener("DOMContentLoaded", function() {
 		});
 	}
 
-
 	// === 검증 함수 추가 ===
 	async function validateProductForm() {
 		// 1. 소분류
@@ -1199,12 +1195,10 @@ document.addEventListener("DOMContentLoaded", function() {
 				}
 			});
 		});
-
 		if (hasOptionGroupError) {
 			alert('옵션그룹/옵션명을 모두 입력하세요.');
 			return false;
 		}
-
 		// 6. 추가입력필드
 		let hasExtraFieldError = false;
 		extraFields.forEach(f => {
@@ -1216,11 +1210,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			alert('추가입력필드의 질문명/답변값을 모두 입력하세요.');
 			return false;
 		}
-
 		return true;
 	}
-
-	// ========== [CKEditor 임시 이미지 업로드 & 추출 유틸 전부 여기서 관리] ==========
 
 	// [임시 이미지 src 추출] - /upload/temp/ 경로만 추출
 	function extractTempImageUrls(html) {
@@ -1634,14 +1625,11 @@ document.addEventListener("DOMContentLoaded", function() {
 				console.log('[2차] 에디터 이미지 모두 상품 폴더로 이동 및 HTML src 치환 완료');
 			}
 
-			// location.href = '/admin/product/list'; // 필요 시 이동
 		} catch (err) {
 			alert('등록 실패: ' + err.message);
 			console.error(err);
 		}
 	});
 
-	// (페이지 리로드 시 선택혜택 초기화)
 	renderSelectedDiscounts();
-
 });
