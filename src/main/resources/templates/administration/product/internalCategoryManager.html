@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+					<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+						<h4 class="mb-sm-0">내부분류관리</h4>
+						<div class="page-title-right">
+							<ol class="breadcrumb m-0">
+								<li class="breadcrumb-item"><a href="#">관리</a></li>
+								<li class="breadcrumb-item active">내부분류관리</li>
+							</ol>
+						</div>
+					</div>
+					<div class="card">
+						<div class="card-body">
+							<div class="row g-4">
+								<!-- 대분류 관리 -->
+								<div class="col-md-4 internal-category-section">
+									<div class="internal-category-section-title">대분류 관리</div>
+									<div class="internal-category-form-row d-flex">
+										<input type="text" id="internal-category-large-name" class="form-control"
+											placeholder="대분류명 입력">
+										<button class="btn btn-primary ms-2"
+											id="internal-category-large-add-btn">등록</button>
+									</div>
+									<div class="internal-category-list internal-category-scroll-thin"
+										id="internal-category-large-list">
+										<!-- 대분류 리스트 동적 생성 -->
+									</div>
+								</div>
+								<!-- 중분류 관리 -->
+								<div class="col-md-4 internal-category-section">
+									<div class="internal-category-section-title">중분류 관리</div>
+									<div class="internal-category-form-row d-flex">
+										<select class="form-select internal-category-select"
+											id="internal-category-medium-large-select">
+											<option value="">대분류 선택</option>
+										</select>
+										<input type="text" id="internal-category-medium-name" class="form-control"
+											placeholder="중분류명 입력">
+										<button class="btn btn-primary ms-2"
+											id="internal-category-medium-add-btn">등록</button>
+									</div>
+									<div class="internal-category-list internal-category-scroll-thin"
+										id="internal-category-medium-list">
+										<!-- 중분류 리스트 동적 생성 -->
+									</div>
+								</div>
+								<!-- 소분류 관리 -->
+								<div class="col-md-4 internal-category-section">
+									<div class="internal-category-section-title">소분류 관리</div>
+									<div class="internal-category-form-row d-flex">
+										<select class="form-select internal-category-select"
+											id="internal-category-small-large-select">
+											<option value="">대분류 선택</option>
+										</select>
+										<select class="form-select internal-category-select ms-2"
+											id="internal-category-small-medium-select">
+											<option value="">중분류 선택</option>
+										</select>
+										<input type="text" id="internal-category-small-name" class="form-control"
+											placeholder="소분류명 입력">
+										<button class="btn btn-primary ms-2"
+											id="internal-category-small-add-btn">등록</button>
+									</div>
+									<div class="internal-category-list internal-category-scroll-thin"
+										id="internal-category-small-list">
+										<!-- 소분류 리스트 동적 생성 -->
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/product/internalCategoryManager.js"></script>
+</body>
+
+</html>

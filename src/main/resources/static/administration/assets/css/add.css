@@ -355,8 +355,8 @@
 }
 
 .product-promotion-btn {
-	margin-top:0px !important;
-	margin-bottom:0px !important;
+	margin-top: 0px !important;
+	margin-bottom: 0px !important;
 	background: #a7b1be;
 	border-radius: 3px !important;
 	font-weight: bold;
@@ -438,9 +438,11 @@
 	font-weight: bold;
 	font-size: 1.12em;
 }
-.product-promotion-btn-group{
-	display:flex;
+
+.product-promotion-btn-group {
+	display: flex;
 }
+
 /* CouponManager */
 .coupon-manager-form-card {
 	max-width: 100%;
@@ -498,3 +500,46 @@
 	text-align: center;
 	padding: .75rem 0;
 }
+
+/* Internal Category Manager Start */
+.internal-category-list {
+	max-height: 360px;
+	overflow-y: auto;
+	border: 1px solid #eee;
+	border-radius: 0.4rem;
+	padding: 0.5rem 0.25rem 0.5rem 0.25rem;
+	margin-bottom: 1rem;
+	background: #fafbfc;
+}
+
+.internal-category-action-btn {
+	min-width: 52px;
+}
+
+.internal-category-section-title {
+	font-weight: bold;
+	font-size: 1.1rem;
+	margin-bottom: 0.7rem;
+}
+
+.internal-category-select {
+	width: 100%;
+	min-width: 100px;
+	margin-right: 8px;
+}
+
+.internal-category-form-row {
+	margin-bottom: 0.5rem;
+}
+
+.internal-category-scroll-thin::-webkit-scrollbar {
+	width: 7px;
+	background: #fafbfc;
+}
+
+.internal-category-scroll-thin::-webkit-scrollbar-thumb {
+	background: #e6e6e6;
+	border-radius: 5px;
+}
+
+/* Internal Category Manager End */

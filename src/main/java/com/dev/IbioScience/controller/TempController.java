@@ -43,6 +43,17 @@ public class TempController {
 		return "administration/product/couponManager";
 	}
 	
+	@GetMapping("/brandManager")
+	public String brandManager() {
+		
+		return "administration/product/brandManager";
+	}
+	
+	@GetMapping("/internalCategoryManager")
+	public String internalCategoryManager() {
+		
+		return "administration/product/internalCategoryManager";
+	}
 	
 }
 
