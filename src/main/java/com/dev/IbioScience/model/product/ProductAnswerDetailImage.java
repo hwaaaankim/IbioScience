@@ -2,6 +2,8 @@ package com.dev.IbioScience.model.product;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -22,6 +24,7 @@ public class ProductAnswerDetailImage {
 
 	// 어떤 답변의 이미지인지
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
 	private ProductAnswer answer;
 
 	private String url;

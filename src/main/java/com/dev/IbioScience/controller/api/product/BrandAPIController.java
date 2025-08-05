@@ -1,6 +1,8 @@
 package com.dev.IbioScience.controller.api.product;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -16,7 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.dev.IbioScience.dto.BrandSearchDTO;
 import com.dev.IbioScience.model.product.Brand;
+import com.dev.IbioScience.repository.product.BrandRepository;
 import com.dev.IbioScience.service.product.BrandService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,7 @@ public class BrandAPIController {
 
 
     private final BrandService brandService;
+    private final BrandRepository brandRepository;
 
     @Value("${spring.upload.path}")
     private String uploadPath;
@@ -69,4 +74,12 @@ public class BrandAPIController {
         brandService.deleteBrandImage(id);
         return ResponseEntity.ok().build();
     }
+    
+    @GetMapping("/api/brand/search")
+    public ResponseEntity<List<BrandSearchDTO>> searchBrand(@RequestParam String keyword) {
+        List<Brand> brands = brandRepository.findByNameContainingIgnoreCase(keyword);
+        List<BrandSearchDTO> result = brands.stream().map(BrandSearchDTO::fromEntity).collect(Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
+    
 }

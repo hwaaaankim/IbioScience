@@ -1,10 +1,17 @@
 package com.dev.IbioScience.model.product;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -30,5 +37,10 @@ public class Brand {
     // 브랜드 이미지 URL(로드, 외부 접근 URL)
     @Column(length = 500)
     private String imageRoad;
+    
+    // 브랜드 소속 제품
+    @OneToMany(mappedBy = "brand", fetch = FetchType.LAZY)
+    @JsonManagedReference("product-brand")
+    private List<Product> products = new ArrayList<>();
 }
 

@@ -3,6 +3,9 @@ package com.dev.IbioScience.model.product;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,10 +31,12 @@ public class ProductAnswer {
 
 	// 소속 제품
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
 	private Product product;
 
 	// 소속 질문
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonBackReference("question-answer")
 	private ProductQuestion question;
 
 	// 답변 값(텍스트/HTML)

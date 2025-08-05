@@ -1,3 +1,6 @@
+/* Common Start*/
+/* Common End */
+
 /* CategoryManager */
 .category-manager-card {
 	height: 540px;
@@ -163,19 +166,6 @@
 	overflow-y: auto;
 }
 
-.related-modal-root,
-.bundle-modal-root {
-	position: fixed;
-	z-index: 1100;
-	left: 0;
-	top: 0;
-	width: 100vw;
-	height: 100vh;
-	display: none;
-	align-items: center;
-	justify-content: center;
-}
-
 .related-modal-root.active,
 .bundle-modal-root.active {
 	display: block !important;
@@ -192,18 +182,36 @@
 	z-index: 0;
 }
 
+.related-modal-root,
+.bundle-modal-root,
+.discount-modal-root {
+	position: fixed;
+	z-index: 1200;
+	inset: 0;
+	/* top:0; right:0; bottom:0; left:0 */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* 아래는 기존 스타일 유지 */
+}
+
 .related-modal-dialog,
-.bundle-modal-dialog {
-	position: relative;
+.bundle-modal-dialog,
+.discount-modal-dialog {
+	position: absolute;
 	z-index: 10;
+	top:50%;
+	left:50%;
+	transform : translate(-50%, -50%);
 	width: 700px;
 	max-width: 96vw;
-	margin: auto;
+	margin: 0 auto;
 	border-radius: 12px;
 	box-shadow: 0 8px 36px rgba(0, 0, 0, 0.25);
 	background: #fff;
-	animation: modalPopIn .18s cubic-bezier(.34, 1.56, .64, 1) both;
+	/* 불필요한 transform, top, left 제거! */
 }
+
 
 @keyframes modalPopIn {
 	0% {
@@ -312,6 +320,54 @@
 	gap: 8px;
 	margin-top: 16px;
 }
+
+.brand-search-result-list {
+	border: 1px solid #e0e0e0;
+	border-radius: 0.4rem;
+	background: #fff;
+	max-height: 250px;
+	/* 리스트가 5개 이상일 때 스크롤 */
+	overflow-y: auto;
+	box-shadow: 0 1px 5px rgba(0, 0, 0, 0.04);
+	margin-bottom: 8px;
+}
+
+.brand-search-item {
+	display: flex;
+	align-items: center;
+	padding: 7px 12px;
+	border-bottom: 1px solid #f0f0f0;
+	transition: background 0.2s;
+}
+
+.brand-search-item:last-child {
+	border-bottom: none;
+}
+
+.brand-search-item img {
+	width: 38px;
+	height: 38px;
+	object-fit: cover;
+	border-radius: 5px;
+	background: #f9f9f9;
+}
+
+.brand-search-item span {
+	flex: 1 1 auto;
+	margin-left: 10px;
+	font-size: 15px;
+	color: #333;
+}
+
+.brand-search-item button {
+	margin-left: auto;
+}
+
+.brand-search-item:hover {
+	background: #f6f6fa;
+}
+
+
 
 /* ProductPromotionManager */
 .product-promotion-card {

@@ -33,18 +33,18 @@
                             <form id="brand-manager-register-form" enctype="multipart/form-data"
                                 th:action="@{/api/brand}" method="post">
                                 <div class="row g-3 align-items-center">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label for="brand-manager-name" class="form-label">브랜드명</label>
                                         <input type="text" name="name" id="brand-manager-name" class="form-control"
                                             required>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label for="brand-manager-image" class="form-label">브랜드 이미지</label>
                                         <input type="file" name="image" id="brand-manager-image" class="form-control"
                                             accept="image/*" required>
                                         
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-1">
                                         <label class="form-label invisible">등록</label>
                                         <button type="submit" class="btn btn-primary w-100">브랜드 등록</button>
                                     </div>
@@ -57,11 +57,11 @@
                         <div class="card-body">
                             <h2 class="mb-4 text-center">브랜드 관리</h2>
                             <div class="mb-3 row">
-                                <div class="col-md-6">
+                                <div class="col-md-3">
                                     <input type="text" id="brand-manager-search" class="form-control"
                                         placeholder="브랜드명을 입력하세요...">
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <button class="btn btn-outline-secondary w-100"
                                         onclick="brandManagerSearch()">검색</button>
                                 </div>

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -145,6 +146,17 @@ public class ProductPromotionService {
         return new FileSaveResult(url, path);
     }
 
+    @Transactional(readOnly = true)
+    public List<Promotion> searchPromotions(
+            String name,
+            PromotionType type,
+            LocalDate startDate,
+            LocalDate endDate,
+            Boolean active
+    ) {
+        return productPromotionRepository.findBySearchConditions(name, type, startDate, endDate, active);
+    }
+    
     @Getter
     @AllArgsConstructor
     private static class FileSaveResult {

@@ -3,6 +3,8 @@ package com.dev.IbioScience.model.product;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -38,5 +40,6 @@ public class InternalCategorySmall {
 
     // 소분류-제품 리스트 (1:N)
     @OneToMany(mappedBy = "internalCategorySmall")
+    @JsonManagedReference("product-internal-category")
     private List<Product> products = new ArrayList<>();
 }

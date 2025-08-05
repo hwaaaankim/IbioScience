@@ -12,6 +12,7 @@ import com.dev.IbioScience.model.product.enums.ProductState;
 import com.dev.IbioScience.model.product.enums.RelatedRegisterType;
 import com.dev.IbioScience.model.product.enums.SaleStatus;
 import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -79,9 +80,11 @@ public class Product {
     @Column(length = 255)
     private String supplierText; // 공급사명(텍스트)
 
-    // 브랜드명(텍스트, FK아님)
-    @Column(length = 255)
-    private String brandText; // 브랜드명(텍스트)
+    // 브랜드 (FK 유지)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    @JsonBackReference("product-brand")
+    private Brand brand;
 
     // 제조일자
     private LocalDate manufacturedAt;
@@ -109,6 +112,7 @@ public class Product {
     // 내부 전용 자체 소분류 FK
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "internal_category_small_id")
+    @JsonBackReference("product-internal-category")
     private InternalCategorySmall internalCategorySmall; // 내부 전용 소분류
 
     // 상품 신상상태(신상품/재고상품/전시상품) - 기본:신상품

@@ -46,10 +46,11 @@ public class ProductQuestion {
 
 	// 선택지 옵션 리스트(SELECT 등)
 	@OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
-	@JsonManagedReference
+	@JsonManagedReference("question-option")
 	private List<ProductQuestionOption> options = new ArrayList<>();
 
 	// 답변 리스트
 	@OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference("question-answer")
 	private List<ProductAnswer> answers = new ArrayList<>();
 }

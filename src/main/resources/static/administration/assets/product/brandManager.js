@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         brandList.forEach(brand => {
             const card = document.createElement('div');
-            card.className = 'col-lg-2 col-md-4 col-6 brand-manager-card-item';
+            card.className = 'col-lg-3 col-md-4 col-6 brand-manager-card-item';
 
             // 기본 이미지 처리
             const brandImg = brand.imageRoad ? brand.imageRoad : '/assets/img/no-image.png';
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         <img src="${brandImg}" alt="브랜드 이미지" style="width:80px;height:80px;object-fit:contain;" class="mb-2 border rounded brand-manager-card-img" id="brand-manager-img-${brand.id}">
                         <input type="text" class="form-control mb-2 brand-manager-edit-name" value="${brand.name}" data-id="${brand.id}">
                         <input type="file" accept="image/*" class="form-control mb-2 brand-manager-edit-image" data-id="${brand.id}">
-                        <div class="d-flex gap-2 mt-2">
+                        <div class="d-flex gap-2 mt-2 w-100">
                             <button type="button" class="btn btn-outline-primary btn-sm brand-manager-save-btn" data-id="${brand.id}" disabled>수정</button>
                             <button type="button" class="btn btn-outline-warning btn-sm brand-manager-image-delete-btn" data-id="${brand.id}">이미지만 삭제</button>
                             <button type="button" class="btn btn-outline-danger btn-sm brand-manager-delete-btn" data-id="${brand.id}">브랜드 삭제</button>

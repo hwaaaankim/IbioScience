@@ -23,7 +23,7 @@ public class ProductQuestionOption {
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JsonBackReference
+	@JsonBackReference("question-option")
 	private ProductQuestion question;
 
 	// 옵션값

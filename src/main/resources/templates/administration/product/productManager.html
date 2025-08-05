@@ -106,6 +106,122 @@
 									</div>
 								</div>
 							</div>
+							<!-- === [제품 상세정보 추가 항목] === -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">추가 상세정보</div>
+								<div class="row">
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">제조사명</label>
+										<input type="text" class="form-control form-control-sm" id="manufacturerText"
+											placeholder="제조사명 입력">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">공급사명</label>
+										<input type="text" class="form-control form-control-sm" id="supplierText"
+											placeholder="공급사명 입력">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">자체 상품코드</label>
+										<input type="text" class="form-control form-control-sm" id="internalProductCode"
+											placeholder="내부상품코드">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">제조일자</label>
+										<input type="date" class="form-control form-control-sm" id="manufacturedAt">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">유통기한</label>
+										<input type="date" class="form-control form-control-sm" id="expiredAt">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">신상상태</label>
+										<select class="form-select form-select-sm" id="newState">
+											<option value="NEW">신상품</option>
+											<option value="STOCK">재고상품</option>
+											<option value="DISPLAY">전시상품</option>
+										</select>
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">소비자가격</label>
+										<input type="number" class="form-control form-control-sm" id="consumerPrice"
+											min="0" placeholder="원">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">판매가격</label>
+										<input type="number" class="form-control form-control-sm" id="salePrice" min="0"
+											placeholder="원">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">적립금(%)</label>
+										<input type="number" class="form-control form-control-sm" id="rewardRate"
+											min="0" max="100" step="0.01" placeholder="예: 2.5">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">유효기간 (시작~종료)</label>
+										<div class="input-group">
+											<input type="date" class="form-control form-control-sm" id="validFrom">
+											<span class="input-group-text">~</span>
+											<input type="date" class="form-control form-control-sm" id="validTo">
+										</div>
+									</div>
+									<div class="col-md-12 mb-2">
+										<label class="form-label mb-1">상품 요약설명</label>
+										<input type="text" class="form-control form-control-sm" id="summaryDescription"
+											maxlength="255">
+									</div>
+									<div class="col-md-12 mb-2">
+										<label class="form-label mb-1">상품 간략설명</label>
+										<textarea class="form-control form-control-sm" id="shortDescription" rows="2"
+											maxlength="1000"></textarea>
+									</div>
+								</div>
+							</div>
+
+							<!-- === [가격 노출/대체문구] === -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">가격 정책</div>
+								<div class="row">
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">판매가 노출 대상</label>
+										<div>
+											<input type="radio" id="priceExposeMember" name="priceExposeTarget"
+												value="MEMBER" checked>
+											<label for="priceExposeMember" class="me-2">회원만</label>
+											<input type="radio" id="priceExposeGuest" name="priceExposeTarget"
+												value="GUEST">
+											<label for="priceExposeGuest">비회원 포함</label>
+										</div>
+									</div>
+									<div class="col-md-6 mb-2">
+										<label for="usePriceReplacementText" class="form-label mb-1">가격대체문구 사용</label>
+										<div>
+											<input type="checkbox" id="usePriceReplacementText">
+										</div>
+										<div id="priceReplacementArea" style="display:none;">
+											<input type="text" class="form-control form-control-sm mt-2"
+												id="priceReplacementText" placeholder="예: 전화문의">
+											<div class="form-text text-danger mt-1">※ 가격대체문구가 체크된 경우 가격 대신 해당 문구가 우선
+												적용됩니다.</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">브랜드</div>
+								<div class="row">
+									<div class="col-md-8 mb-2">
+										<input type="text" id="brand-search-input" class="form-control form-control-sm"
+											placeholder="브랜드명 입력">
+									</div>
+									<div class="col-md-4 mb-2">
+										<button type="button" class="btn btn-outline-secondary btn-sm"
+											id="brand-search-btn">검색</button>
+									</div>
+									<div class="col-12 mb-2" id="brand-search-result"
+										style="max-height:220px;overflow-y:auto;"></div>
+									<div class="col-12" id="brand-selected-area"></div>
+								</div>
+							</div>
 
 							<!-- 공통 표시항목 -->
 							<div class="product-manager-section">
@@ -114,17 +230,21 @@
 
 								</div>
 							</div>
-							
+
 							<!-- ==== 등급별 딜러 추가할인 Section ==== -->
 							<div class="product-manager-section" id="dealer-discount-section">
-							    <div class="product-manager-section-title">등급별 딜러 추가할인</div>
-							    <div class="mb-2" id="dealer-discount-buttons">
-							        <button type="button" class="btn btn-outline-primary btn-sm me-2" data-grade="A">A</button>
-							        <button type="button" class="btn btn-outline-primary btn-sm me-2" data-grade="B">B</button>
-							        <button type="button" class="btn btn-outline-primary btn-sm me-2" data-grade="C">C</button>
-							        <button type="button" class="btn btn-outline-primary btn-sm me-2" data-grade="D">D</button>
-							    </div>
-							    <div id="dealer-discount-list" class="row g-2"></div>
+								<div class="product-manager-section-title">등급별 딜러 추가할인</div>
+								<div class="mb-2" id="dealer-discount-buttons">
+									<button type="button" class="btn btn-outline-primary btn-sm me-2"
+										data-grade="A">A</button>
+									<button type="button" class="btn btn-outline-primary btn-sm me-2"
+										data-grade="B">B</button>
+									<button type="button" class="btn btn-outline-primary btn-sm me-2"
+										data-grade="C">C</button>
+									<button type="button" class="btn btn-outline-primary btn-sm me-2"
+										data-grade="D">D</button>
+								</div>
+								<div id="dealer-discount-list" class="row g-2"></div>
 							</div>
 
 							<!-- ==== 할인혜택 Section ==== -->
@@ -264,6 +384,7 @@
 	<script src="/administration/assets/product/productManager.js"></script>
 
 	<!-- 관련상품 등록 모달 -->
+	<!-- 관련상품 등록 모달 (변경/추가) -->
 	<div class="related-modal-root" id="relatedProductModal" tabindex="-1" aria-labelledby="relatedProductModalLabel"
 		style="display:none;">
 		<div class="related-modal-overlay"></div>
@@ -284,33 +405,30 @@
 						<div class="col">
 							<select id="related-small-select" class="form-select form-select-sm"></select>
 						</div>
-
-						<!-- 제품 select 옵션은 JS가 #related-modal-product-list 영역에 select로 그려줌 -->
-						<div class="col" id="related-modal-product-list"></div>
 						<div class="col">
-							<input type="text" class="form-control form-control-sm" id="related-add-product-name"
-								placeholder="테스트용 제품명 입력">
-							<button type="button" class="btn btn-outline-secondary btn-sm w-100"
-								id="related-add-product-btn">등록</button>
+							<input type="text" class="form-control form-control-sm" id="related-product-keyword"
+								placeholder="제품명">
 						</div>
 						<div class="col-auto">
-							<select id="related-modal-type" class="form-select form-select-sm">
-								<option value="ONEWAY">일방등록</option>
-								<option value="RECIPROCAL">상호등록</option>
-							</select>
+							<button type="button" class="btn btn-outline-secondary btn-sm"
+								id="related-product-search-btn">검색</button>
 						</div>
 					</div>
 					<div id="related-modal-product-list" class="border rounded p-2"
 						style="max-height:240px;overflow:auto;"></div>
+					<!-- ★ 임시 선택된 관련상품 리스트 (아래에) -->
+					<div id="related-modal-selected-list" class="mt-2"></div>
 				</div>
 				<div class="related-modal-footer">
 					<button type="button" class="btn btn-secondary btn-sm related-modal-cancel">취소</button>
-					<button type="button" class="btn btn-primary btn-sm" id="add-related-product-btn">등록</button>
+					<button type="button" class="btn btn-primary btn-sm" id="related-register-btn">등록</button>
 				</div>
 			</div>
 		</div>
 	</div>
+
 	<!-- 추가구성상품 등록 모달 -->
+	<!-- 추가구성상품 등록 모달 (변경/추가) -->
 	<div class="bundle-modal-root" id="bundleProductModal" tabindex="-1" aria-labelledby="bundleProductModalLabel"
 		style="display:none;">
 		<div class="bundle-modal-overlay"></div>
@@ -331,26 +449,27 @@
 						<div class="col">
 							<select id="bundle-small-select" class="form-select form-select-sm"></select>
 						</div>
-						<div class="col" id="bundle-modal-product-list"></div>
 						<div class="col">
-
-							<input type="text" class="form-control form-control-sm" id="bundle-add-product-name"
-								placeholder="테스트용 제품명 입력">
-							<button type="button" class="btn btn-outline-secondary btn-sm w-100"
-								id="bundle-add-product-btn">등록</button>
+							<!-- ★ 제품명 검색 인풋 추가 (기존엔 누락) -->
+							<input type="text" class="form-control form-control-sm" id="bundle-product-keyword"
+								placeholder="제품명">
 						</div>
-
+						<div class="col-auto">
+							<button type="button" class="btn btn-outline-secondary btn-sm"
+								id="bundle-product-search-btn">검색</button>
+						</div>
 					</div>
 					<div id="bundle-modal-product-list" class="border rounded p-2"
 						style="max-height:240px;overflow:auto;"></div>
-					<div class="bundle-modal-footer">
-						<button type="button" class="btn btn-secondary btn-sm bundle-modal-cancel">취소</button>
-						<button type="button" class="btn btn-primary btn-sm" id="add-bundle-product-btn">등록</button>
-					</div>
+				</div>
+				<div class="bundle-modal-footer">
+					<button type="button" class="btn btn-secondary btn-sm bundle-modal-cancel">취소</button>
+					<button type="button" class="btn btn-primary btn-sm" id="bundle-register-btn">등록</button>
 				</div>
 			</div>
 		</div>
 	</div>
+
 	<div class="discount-modal-root" id="discountModal" tabindex="-1" aria-labelledby="discountModalLabel"
 		style="display:none;">
 		<div class="discount-modal-overlay"></div>
@@ -363,59 +482,43 @@
 				<div class="discount-modal-body">
 					<form class="row g-2 mb-2" id="discount-search-form" autocomplete="off">
 						<div class="col-auto">
-							<select class="form-select form-select-sm" id="discountType">
+							<input type="text" class="form-control form-control-sm" id="promotionName"
+								placeholder="프로모션명">
+						</div>
+						<div class="col-auto">
+							<select class="form-select form-select-sm" id="promotionType">
 								<option value="">타입</option>
 								<option value="DISCOUNT">할인</option>
 								<option value="GIFT">증정</option>
+								<option value="ONE_PLUS_ONE">1+1</option>
+								<option value="COUPON">쿠폰발행</option>
 							</select>
 						</div>
 						<div class="col-auto">
-							<select class="form-select form-select-sm" id="discountTerm">
-								<option value="">기간</option>
-								<option value="PERIOD">기간한정</option>
-								<option value="ALWAYS">상시</option>
+							<input type="date" class="form-control form-control-sm" id="promotionStart">
+						</div>
+						<div class="col-auto">
+							<input type="date" class="form-control form-control-sm" id="promotionEnd">
+						</div>
+						<div class="col-auto">
+							<select class="form-select form-select-sm" id="promotionActive">
+								<option value="">진행여부</option>
+								<option value="true">진행중</option>
+								<option value="false">종료</option>
 							</select>
-						</div>
-						<div class="col-auto">
-							<select class="form-select form-select-sm" id="discountTarget">
-								<option value="">대상</option>
-								<option value="ALL">전체</option>
-								<option value="NORMAL">일반</option>
-								<option value="DEALER">딜러</option>
-							</select>
-						</div>
-						<div class="col-auto">
-							<select class="form-select form-select-sm" id="couponPolicy">
-								<option value="">쿠폰정책</option>
-								<option value="ALL">전체</option>
-								<option value="SPECIFIC">특정조건</option>
-								<option value="NONE">없음</option>
-							</select>
-						</div>
-						<div class="col-auto">
-							<input type="text" class="form-control form-control-sm" id="discountName" placeholder="혜택명">
-						</div>
-						<div class="col-auto">
-							<input type="date" class="form-control form-control-sm" id="discountStart">
-						</div>
-						<div class="col-auto">
-							<input type="date" class="form-control form-control-sm" id="discountEnd">
 						</div>
 						<div class="col-auto">
 							<button type="button" class="btn btn-outline-secondary btn-sm"
-								id="search-discount-btn">검색</button>
+								id="search-promotion-btn">검색</button>
 						</div>
 					</form>
-					<div id="discount-modal-list" style="max-height: 240px; overflow-y:auto;"
+					<div id="promotion-modal-list" style="max-height: 240px; overflow-y:auto;"
 						class="border rounded p-2"></div>
-				</div>
-				<div class="discount-modal-footer d-flex justify-content-between align-items-center">
-					<div></div>
-					<button type="button" class="btn btn-primary btn-sm" id="add-discount-btn">등록</button>
 				</div>
 			</div>
 		</div>
 	</div>
+
 
 </body>
 

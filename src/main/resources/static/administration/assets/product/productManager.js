@@ -14,162 +14,143 @@ document.addEventListener("DOMContentLoaded", function() {
 	const addKeywordBtn = document.getElementById('add-keyword-btn');
 	const keywordList = document.getElementById('product-keyword-list');
 
-	const relatedModal = document.getElementById('relatedProductModal');
-	const relatedOpenBtn = document.getElementById('open-related-modal-btn');
-	const relatedCloseBtns = relatedModal.querySelectorAll('.related-modal-close, .related-modal-cancel, .related-modal-overlay');
-	const relatedLargeSelect = document.getElementById('related-large-select');
-	const relatedMediumSelect = document.getElementById('related-medium-select');
-	const relatedSmallSelect = document.getElementById('related-small-select');
-	const relatedKeywordInput = document.getElementById('related-product-keyword');
-	const relatedModalProductList = document.getElementById('related-modal-product-list');
-	const addRelatedProductBtn = document.getElementById('add-related-product-btn');
-	const relatedTypeSelect = document.getElementById('related-modal-type');
-	let relatedProductList = [], relatedSelectedProductIds = new Set();
+	/* 할인 혜택 */
+	const promotionModal = document.getElementById('discountModal');
+	const searchPromotionBtn = document.getElementById('search-promotion-btn');
+	const promotionModalList = document.getElementById('promotion-modal-list');
+	let selectedPromotion = null;
 
-	const bundleModal = document.getElementById('bundleProductModal');
-	const bundleOpenBtn = document.getElementById('open-bundle-modal-btn');
-	const bundleCloseBtns = bundleModal.querySelectorAll('.bundle-modal-close, .bundle-modal-cancel, .bundle-modal-overlay');
-	const bundleLargeSelect = document.getElementById('bundle-large-select');
-	const bundleMediumSelect = document.getElementById('bundle-medium-select');
-	const bundleSmallSelect = document.getElementById('bundle-small-select');
-	const bundleKeywordInput = document.getElementById('bundle-product-keyword');
-	const bundleModalProductList = document.getElementById('bundle-modal-product-list');
-	const addBundleProductBtn = document.getElementById('add-bundle-product-btn');
-	let bundleProductList = [], bundleSelectedProductIds = new Set();
-
-	let relatedProducts = [];
-	let bundleProducts = [];
-
-	/* 할인혜택 모달 시작 */
-	const discountModal = document.getElementById('discountModal');
-	const discountOpenBtn = document.getElementById('open-discount-modal-btn');
-	const discountCloseBtns = discountModal.querySelectorAll('.discount-modal-close, .discount-modal-overlay');
-	const discountListEl = document.getElementById('discount-modal-list');
-	const addDiscountBtn = document.getElementById('add-discount-btn');
-	let discountDataList = [];   // 실제 조회된 혜택 리스트 (실제검색 구현시 fetch로 채울것)
-	let discountSelectedIds = new Set();
-	let selectedDiscounts = [];
-
-	// ---- 예시 데이터 (실제 검색결과 대체, id는 Long 타입)
-	discountDataList = [
-		{
-			id: 1, name: "여름특가10%", type: "DISCOUNT", term: "PERIOD", target: "ALL", couponPolicy: "ALL", startDate: "2024-07-01", endDate: "2024-07-10", active: true
-		},
-		{
-			id: 2, name: "딜러한정 사은품", type: "GIFT", term: "ALWAYS", target: "DEALER", couponPolicy: "SPECIFIC", startDate: null, endDate: null, active: true
-		},
-		{
-			id: 3, name: "상시 회원 할인 3%", type: "DISCOUNT", term: "ALWAYS", target: "NORMAL", couponPolicy: "NONE", startDate: null, endDate: null, active: false
-		}
-	];
-
-	// --- 오픈 버튼
-	discountOpenBtn.onclick = function() {
-		discountModal.classList.add('active');
-		discountSelectedIds = new Set(selectedDiscounts.map(d => d.id));
-		renderDiscountModalList();
+	document.getElementById('open-discount-modal-btn').onclick = function() {
+		const promotionModal = document.getElementById('discountModal');
+		promotionModal.style.display = 'block';
+		promotionModal.classList.add('active');
+		renderPromotionList([]);
 	};
-	// --- 닫기
-	discountCloseBtns.forEach(btn => btn.onclick = () => discountModal.classList.remove('active'));
+	document.querySelectorAll('.discount-modal-close, .discount-modal-overlay').forEach(btn => btn.onclick = () => {
+		const promotionModal = document.getElementById('discountModal');
+		promotionModal.style.display = 'none';
+		promotionModal.classList.remove('active');
+	});
 
-	// --- 모달 내 혜택 리스트 랜더링
-	function renderDiscountModalList() {
-		discountListEl.innerHTML = '';
-		if (!discountDataList || discountDataList.length === 0) {
-			discountListEl.innerHTML = '<div class="text-muted text-center">혜택이 없습니다.</div>';
+
+	// 검색 버튼 클릭 시
+	searchPromotionBtn.onclick = function() {
+		const name = document.getElementById('promotionName').value.trim();
+		const type = document.getElementById('promotionType').value;
+		const start = document.getElementById('promotionStart').value;
+		const end = document.getElementById('promotionEnd').value;
+		const active = document.getElementById('promotionActive').value;
+		let url = `/api/promotion/search?`;
+		url += name ? `name=${encodeURIComponent(name)}&` : '';
+		url += type ? `type=${encodeURIComponent(type)}&` : '';
+		url += start ? `startDate=${start}&` : '';
+		url += end ? `endDate=${end}&` : '';
+		url += (active ? `active=${active}&` : '');
+		fetch(url)
+			.then(res => res.json())
+			.then(list => renderPromotionList(list));
+	};
+
+	function renderPromotionList(list) {
+		promotionModalList.innerHTML = '';
+		if (!list || list.length === 0) {
+			promotionModalList.innerHTML = '<div class="text-muted text-center">프로모션이 없습니다.</div>';
 			return;
 		}
-		const table = document.createElement('table');
-		table.className = 'table table-sm align-middle mb-0';
-		const thead = document.createElement('thead');
-		thead.innerHTML = `<tr>
-        <th style="width:32px"></th>
-        <th>이름</th>
-        <th>타입</th>
-        <th>기간</th>
-        <th>대상</th>
-        <th>쿠폰정책</th>
-        <th>시작일</th>
-        <th>종료일</th>
-        <th>활성</th>
-    </tr>`;
-		table.appendChild(thead);
-
-		const tbody = document.createElement('tbody');
-		discountDataList.forEach(d => {
-			const tr = document.createElement('tr');
-			// 체크박스
-			const tdCheck = document.createElement('td');
-			const checkbox = document.createElement('input');
-			checkbox.type = 'checkbox';
-			checkbox.className = 'form-check-input';
-			checkbox.value = d.id;
-			checkbox.checked = discountSelectedIds.has(d.id);
-			checkbox.onchange = function() {
-				const val = Number(this.value);
-				if (this.checked) discountSelectedIds.add(val);
-				else discountSelectedIds.delete(val);
+		list.forEach(d => {
+			const div = document.createElement('div');
+			div.className = 'd-flex align-items-center border-bottom py-1';
+			div.innerHTML = `
+      <span class="me-2">${d.name}</span>
+      <span class="badge bg-info text-dark me-2">${d.typeLabel || d.type}</span>
+      <span class="badge bg-secondary me-2">${d.termLabel || d.term}</span>
+      <span class="badge ${d.active ? 'bg-primary' : 'bg-secondary'}">${d.active ? "ON" : "OFF"}</span>
+      <button type="button" class="btn btn-outline-primary btn-sm ms-auto" data-id="${d.id}">등록</button>
+    `;
+			div.querySelector('button').onclick = function() {
+				selectedPromotion = d;
+				renderSelectedPromotion();
+				promotionModal.style.display = 'none';
 			};
-			tdCheck.appendChild(checkbox);
-			tr.appendChild(tdCheck);
-
-			// 각 칼럼 직접 추가
-			function td(val) {
-				const td = document.createElement('td');
-				td.innerHTML = val;
-				return td;
-			}
-			tr.appendChild(td(d.name));
-			tr.appendChild(td(d.type === "DISCOUNT" ? "할인" : "증정"));
-			tr.appendChild(td(d.term === "PERIOD" ? "기간한정" : "상시"));
-			tr.appendChild(td(d.target === "ALL" ? "전체" : d.target === "NORMAL" ? "일반" : "딜러"));
-			tr.appendChild(td(d.couponPolicy === "ALL" ? "전체" : d.couponPolicy === "SPECIFIC" ? "특정조건" : "없음"));
-			tr.appendChild(td(d.startDate ? d.startDate : "-"));
-			tr.appendChild(td(d.endDate ? d.endDate : "-"));
-			tr.appendChild(td(`<span class="badge ${d.active ? 'bg-primary' : 'bg-secondary'}">${d.active ? "ON" : "OFF"}</span>`));
-
-			tbody.appendChild(tr);
+			promotionModalList.appendChild(div);
 		});
-		table.appendChild(tbody);
-		discountListEl.appendChild(table);
 	}
 
+	function renderSelectedPromotion() {
+		const area = document.getElementById('selected-discount-list');
+		area.innerHTML = '';
+		if (!selectedPromotion) return;
+		const badge = document.createElement('div');
+		badge.className = 'badge bg-danger text-white px-2 py-2 d-flex align-items-center';
+		badge.innerHTML = `
+    <span>${selectedPromotion.name} (${selectedPromotion.typeLabel || selectedPromotion.type})</span>
+    <span class="ms-2" style="cursor:pointer;" title="삭제">&times;</span>
+  `;
+		badge.querySelector('span:last-child').onclick = function() {
+			selectedPromotion = null;
+			renderSelectedPromotion();
+		};
+		area.appendChild(badge);
+	}
+	/* 할인혜택 */
 
-	// --- 등록(선택된 혜택을 제품에 추가)
-	addDiscountBtn.onclick = function() {
-		const arr = Array.from(discountSelectedIds).map(Number);
-		console.log('[addDiscountBtn] discountSelectedIds Set:', discountSelectedIds);
-		console.log('[addDiscountBtn] arr after map(Number):', arr);
-		console.log('[addDiscountBtn] discountDataList:', discountDataList);
-		selectedDiscounts = discountDataList.filter(d => arr.includes(Number(d.id)));
-		console.log('[addDiscountBtn] selectedDiscounts 결과:', selectedDiscounts);
-		renderSelectedDiscounts();
-		discountModal.classList.remove('active');
+	/* 브랜드 등록 */
+	const brandSearchInput = document.getElementById('brand-search-input');
+	const brandSearchBtn = document.getElementById('brand-search-btn');
+	const brandSearchResult = document.getElementById('brand-search-result');
+	const brandSelectedArea = document.getElementById('brand-selected-area');
+	let selectedBrand = null;
+
+	brandSearchBtn.onclick = function() {
+		const kw = brandSearchInput.value.trim();
+		if (!kw) return;
+
+		// 모든 검색결과 가져오기 (제한 없음)
+		fetch(`/api/brand/search?keyword=${encodeURIComponent(kw)}`)
+			.then(res => res.json())
+			.then(list => {
+				brandSearchResult.innerHTML = '';
+				if (!list || list.length === 0) {
+					brandSearchResult.innerHTML = '<div class="text-center text-muted py-2">검색결과가 없습니다.</div>';
+					return;
+				}
+				list.forEach((b, idx) => {
+					const div = document.createElement('div');
+					div.className = 'brand-search-item';
+					div.innerHTML = `
+          <img src="${b.imageRoad || '/assets/brand-default.png'}" alt="브랜드">
+          <span>${b.name}</span>
+          <button type="button" class="btn btn-outline-primary btn-sm" data-id="${b.id}">선택</button>
+        `;
+					div.querySelector('button').onclick = function() {
+						selectedBrand = b;
+						renderSelectedBrand();
+					};
+					brandSearchResult.appendChild(div);
+				});
+				// 결과가 5개 이하여도 스크롤 영역이 항상 유지됨 (max-height 고정)
+			});
 	};
 
 
-	// --- 할인혜택 뱃지 렌더 (제품폼 메인화면)
-	function renderSelectedDiscounts() {
-		const selectedDiscountList = document.getElementById('selected-discount-list');
-		console.log('[renderSelectedDiscounts] 호출됨. selectedDiscounts:', selectedDiscounts);
-		selectedDiscountList.innerHTML = '';
-		if (!selectedDiscounts || selectedDiscounts.length === 0) return;
-		selectedDiscounts.forEach((d, idx) => {
-			const badge = document.createElement('div');
-			badge.className = 'badge bg-danger text-white px-2 py-2 d-flex align-items-center';
-			badge.innerHTML = `
-            <span>${d.name} (${d.type === "DISCOUNT" ? "할인" : "증정"})</span>
-            <span class="ms-2" style="cursor:pointer;" title="삭제">&times;</span>
-        `;
-			badge.querySelector('span:last-child').onclick = () => {
-				selectedDiscounts.splice(idx, 1);
-				renderSelectedDiscounts();
-			};
-			selectedDiscountList.appendChild(badge);
-		});
+	function renderSelectedBrand() {
+		brandSelectedArea.innerHTML = '';
+		if (!selectedBrand) return;
+		brandSelectedArea.innerHTML = `
+    <div class="d-flex align-items-center bg-light p-2 rounded">
+      <img src="${selectedBrand.imageRoad || '/assets/brand-default.png'}" style="width:40px;height:40px;">
+      <span class="ms-2">${selectedBrand.name}</span>
+      <button type="button" class="btn btn-outline-danger btn-sm ms-2" id="remove-brand-btn">삭제</button>
+    </div>
+  `;
+		document.getElementById('remove-brand-btn').onclick = function() {
+			selectedBrand = null;
+			renderSelectedBrand();
+		};
 	}
+	/* 브랜드 등록 */
 
-	/* 할인혜택 모달 끝 */
+	/* 딜러별 할인율 */
 	const dealerDiscounts = {}; // { A: 할인율, ... }
 	const dealerDiscountButtons = document.getElementById('dealer-discount-buttons');
 	const dealerDiscountList = document.getElementById('dealer-discount-list');
@@ -191,10 +172,10 @@ document.addEventListener("DOMContentLoaded", function() {
 		Object.keys(dealerDiscounts).forEach(grade => {
 			// col-6, 입력칸 넓게
 			const col = document.createElement('div');
-			col.className = 'col-6';
+			col.className = 'col-12';
 			col.innerHTML = `
             <div class="input-group input-group-sm align-items-center">
-                <span class="input-group-text" style="min-width:120px;">${grade} 등급 딜러 추가할인</span>
+                <span class="input-group-text" style="min-width:120px;">${grade} 등급 딜러에 대한 추가 할인율 입력</span>
                 <input type="number" min="0" max="100" class="form-control" style="max-width:120px;" 
                     placeholder="0" value="${dealerDiscounts[grade]}" data-grade="${grade}"/>
                 <span class="input-group-text">%</span>
@@ -214,7 +195,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			dealerDiscountList.appendChild(col);
 		});
 	}
-
+	/* 딜러별 할인율 */
 	function fetchAndRenderLargeOptions(selectEl, callback) {
 		fetch('/api/category/list-large')
 			.then(res => res.json())
@@ -266,121 +247,26 @@ document.addEventListener("DOMContentLoaded", function() {
 			.then(list => callback(list));
 	}
 
-	// ---- 관련상품 모달 컨트롤러 ----
-	relatedOpenBtn.onclick = function() {
-		relatedModal.classList.add('active');
-		fetchAndRenderLargeOptions(relatedLargeSelect, () => {
-			relatedMediumSelect.innerHTML = `<option value="">중분류</option>`;
-			relatedSmallSelect.innerHTML = `<option value="">소분류</option>`;
-			relatedKeywordInput.value = '';
-			relatedProductList = [];
-			relatedSelectedProductIds = new Set();
-			renderRelatedModalProductList();
-		});
-	};
-	relatedLargeSelect.onchange = function() {
-		fetchAndRenderMediumOptions(relatedMediumSelect, this.value, relatedSmallSelect);
-		relatedProductList = [];
-		renderRelatedModalProductList();
-	};
-	relatedMediumSelect.onchange = function() {
-		fetchAndRenderSmallOptions(relatedSmallSelect, this.value);
-		relatedProductList = [];
-		renderRelatedModalProductList();
-	};
-	relatedSmallSelect.onchange = function() {
-		const smallId = relatedSmallSelect.value;
-		// API 호출 및 select 옵션 렌더
-		fetchProductListBySmall(smallId, function(list) {
-			relatedProductList = list || [];
-			renderRelatedModalProductList();
-		});
-	};
-	// 제품리스트를 select로 표시
-	function renderRelatedModalProductList() {
-		relatedModalProductList.innerHTML = '';
-		if (!relatedProductList || relatedProductList.length === 0) {
-			relatedModalProductList.innerHTML = '<div class="text-muted text-center">제품이 없습니다.</div>';
-			return;
-		}
-		// 리스트(ul)로 표시 + 삭제(x)
-		const ul = document.createElement('ul');
-		ul.className = 'list-group mb-2';
-		relatedProductList.forEach(product => {
-			const li = document.createElement('li');
-			li.className = 'list-group-item d-flex justify-content-between align-items-center';
-			// 체크박스 (다중 선택 가능)
-			const checkbox = document.createElement('input');
-			checkbox.type = 'checkbox';
-			checkbox.className = 'form-check-input me-2';
-			checkbox.value = product.id;
-			checkbox.checked = relatedSelectedProductIds.has(Number(product.id));
-			checkbox.onchange = function() {
-				if (this.checked) relatedSelectedProductIds.add(Number(this.value));
-				else relatedSelectedProductIds.delete(Number(this.value));
-			};
 
-			// 제품명 및 코드
-			const label = document.createElement('span');
-			label.textContent = `[${product.code}] ${product.name}`;
+	/* 추가구성상품모달 */
+	// 추가구성상품 모달 변수 (필수 포함)
+	const bundleModal = document.getElementById('bundleProductModal');
+	const bundleOpenBtn = document.getElementById('open-bundle-modal-btn');
+	const bundleCloseBtns = bundleModal.querySelectorAll('.bundle-modal-close, .bundle-modal-cancel, .bundle-modal-overlay');
+	const bundleLargeSelect = document.getElementById('bundle-large-select');
+	const bundleMediumSelect = document.getElementById('bundle-medium-select');
+	const bundleSmallSelect = document.getElementById('bundle-small-select');
+	const bundleKeywordInput = document.getElementById('bundle-product-keyword');
+	const bundleProductSearchBtn = document.getElementById('bundle-product-search-btn');
+	const bundleModalProductList = document.getElementById('bundle-modal-product-list');
+	const bundleRegisterBtn = document.getElementById('bundle-register-btn');
 
-			// x(삭제)
-			const delBtn = document.createElement('button');
-			delBtn.className = 'btn btn-outline-danger btn-sm ms-2';
-			delBtn.type = 'button';
-			delBtn.innerHTML = '&times;';
-			delBtn.onclick = function() {
-				// 제품 리스트에서 제거
-				relatedProductList = relatedProductList.filter(p => p.id !== product.id);
-				// 선택에서도 제거
-				relatedSelectedProductIds.delete(product.id);
-				renderRelatedModalProductList();
-			};
+	// 모달 내부 상태
+	let bundleProductList = []; // 현재 검색결과
+	let bundleSelectedProductIds = new Set(); // 체크된 id만
+	let bundleProducts = []; // 실제 등록될 최종 제품리스트
 
-			li.appendChild(checkbox);
-			li.appendChild(label);
-			li.appendChild(delBtn);
-			ul.appendChild(li);
-		});
-		relatedModalProductList.appendChild(ul);
-	}
-
-	// 제품 추가 버튼 클릭
-	addRelatedProductBtn.onclick = function() {
-		// 선택된 항목만 바깥 리스트에 추가
-		const type = relatedTypeSelect.value;
-		const selectedIds = Array.from(relatedSelectedProductIds);
-
-		selectedIds.forEach(productId => {
-			const product = relatedProductList.find(p => p.id === productId);
-			if (product && !relatedProducts.some(rp => rp.id === productId)) {
-				relatedProducts.push({ id: product.id, name: product.name, type });
-			}
-		});
-		renderRelatedProducts();
-		relatedModal.classList.remove('active');
-		// 선택 초기화
-		relatedSelectedProductIds.clear();
-	};
-
-	relatedCloseBtns.forEach(btn => btn.onclick = () => relatedModal.classList.remove('active'));
-
-	function renderRelatedProducts() {
-		const list = document.getElementById('related-products-list');
-		list.innerHTML = '';
-		relatedProducts.forEach((p, idx) => {
-			const badge = document.createElement('div');
-			badge.className = 'badge bg-warning text-dark px-2 py-2 d-flex align-items-center';
-			badge.innerHTML = `${p.name} (${p.type === 'RECIPROCAL' ? '상호' : '일방'})<span class="ms-2" style="cursor:pointer;" title="삭제">&times;</span>`;
-			badge.querySelector('span').onclick = () => {
-				relatedProducts.splice(idx, 1);
-				renderRelatedProducts();
-			};
-			list.appendChild(badge);
-		});
-	}
-
-	// ---- 추가구성상품 모달 컨트롤러 ----
+	// 모달 오픈시 필터 select/input 초기화
 	bundleOpenBtn.onclick = function() {
 		bundleModal.classList.add('active');
 		fetchAndRenderLargeOptions(bundleLargeSelect, () => {
@@ -388,44 +274,58 @@ document.addEventListener("DOMContentLoaded", function() {
 			bundleSmallSelect.innerHTML = `<option value="">소분류</option>`;
 			bundleKeywordInput.value = '';
 			bundleProductList = [];
-			bundleSelectedProductIds = new Set();
+			bundleSelectedProductIds.clear();
 			renderBundleModalProductList();
 		});
 	};
-	
+
+	// 셀렉트 change시 하위 필터링
 	bundleLargeSelect.onchange = function() {
 		fetchAndRenderMediumOptions(bundleMediumSelect, this.value, bundleSmallSelect);
 		bundleProductList = [];
 		renderBundleModalProductList();
 	};
-	
 	bundleMediumSelect.onchange = function() {
 		fetchAndRenderSmallOptions(bundleSmallSelect, this.value);
 		bundleProductList = [];
 		renderBundleModalProductList();
 	};
-	
-	bundleSmallSelect.onchange = function() {
+
+	// 검색버튼 클릭시 실제 제품 조회
+	bundleProductSearchBtn.onclick = function() {
+		const largeId = bundleLargeSelect.value;
+		const mediumId = bundleMediumSelect.value;
 		const smallId = bundleSmallSelect.value;
-		fetchProductListBySmall(smallId, function(list) {
-			bundleProductList = list || [];
-			renderBundleModalProductList();
-		});
+		const keyword = bundleKeywordInput.value.trim();
+
+		// 필터 쿼리
+		let url = `/api/product/list-simple?`;
+		if (largeId) url += `largeId=${largeId}&`;
+		if (mediumId) url += `mediumId=${mediumId}&`;
+		if (smallId) url += `smallId=${smallId}&`;
+		if (keyword) url += `keyword=${encodeURIComponent(keyword)}&`;
+
+		fetch(url)
+			.then(res => res.json())
+			.then(list => {
+				bundleProductList = list || [];
+				renderBundleModalProductList();
+			});
 	};
 
+	// 실제 리스트 렌더 (검색된 제품들)
 	function renderBundleModalProductList() {
 		bundleModalProductList.innerHTML = '';
 		if (!bundleProductList || bundleProductList.length === 0) {
 			bundleModalProductList.innerHTML = '<div class="text-muted text-center">제품이 없습니다.</div>';
 			return;
 		}
-		// 체크박스 + x 버튼 리스트 렌더
 		const ul = document.createElement('ul');
 		ul.className = 'list-group mb-2';
 		bundleProductList.forEach(product => {
 			const li = document.createElement('li');
 			li.className = 'list-group-item d-flex justify-content-between align-items-center';
-
+			// 체크박스
 			const checkbox = document.createElement('input');
 			checkbox.type = 'checkbox';
 			checkbox.className = 'form-check-input me-2';
@@ -439,26 +339,17 @@ document.addEventListener("DOMContentLoaded", function() {
 			const label = document.createElement('span');
 			label.textContent = `[${product.code}] ${product.name}`;
 
-			const delBtn = document.createElement('button');
-			delBtn.className = 'btn btn-outline-danger btn-sm ms-2';
-			delBtn.type = 'button';
-			delBtn.innerHTML = '&times;';
-			delBtn.onclick = function() {
-				bundleProductList = bundleProductList.filter(p => p.id !== product.id);
-				bundleSelectedProductIds.delete(product.id);
-				renderBundleModalProductList();
-			};
-
 			li.appendChild(checkbox);
 			li.appendChild(label);
-			li.appendChild(delBtn);
 			ul.appendChild(li);
 		});
 		bundleModalProductList.appendChild(ul);
 	}
 
-	addBundleProductBtn.onclick = function() {
+	// 등록버튼 클릭시 체크된 제품만 추가구성상품에 반영
+	bundleRegisterBtn.onclick = function() {
 		const selectedIds = Array.from(bundleSelectedProductIds);
+		// 기존에 이미 등록된 건 중복 제외
 		selectedIds.forEach(productId => {
 			const product = bundleProductList.find(p => p.id === productId);
 			if (product && !bundleProducts.some(bp => bp.id === productId)) {
@@ -472,6 +363,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	bundleCloseBtns.forEach(btn => btn.onclick = () => bundleModal.classList.remove('active'));
 
+	// 메인에 반영(기존 renderBundleProducts 그대로)
 	function renderBundleProducts() {
 		const list = document.getElementById('bundle-products-list');
 		list.innerHTML = '';
@@ -482,65 +374,180 @@ document.addEventListener("DOMContentLoaded", function() {
 			badge.querySelector('span').onclick = () => {
 				bundleProducts.splice(idx, 1);
 				renderBundleProducts();
-			};
+			}
 			list.appendChild(badge);
 		});
 	}
-	document.getElementById('bundle-add-product-btn').onclick = function() {
-		const input = document.getElementById('bundle-add-product-name');
-		const name = input.value.trim();
-		if (!name) {
-			alert('제품명을 입력하세요.');
-			return;
-		}
-		// 중복 방지
-		if (bundleProductList.some(p => p.name === name)) {
-			alert('이미 등록된 제품입니다.');
-			return;
-		}
-		let newId = bundleProductList.reduce((max, cur) => Math.max(max, Number(cur.id)), 0) + 1;
-		let newCode = 'TMP' + newId;
+	/* 추가구성상품 모달 */
 
-		bundleProductList.push({
-			id: newId,
-			code: newCode,
-			name: name
+	/* 관련상품 모달 */
+	const relatedModal = document.getElementById('relatedProductModal');
+	const relatedOpenBtn = document.getElementById('open-related-modal-btn');
+	const relatedCloseBtns = relatedModal.querySelectorAll('.related-modal-close, .related-modal-cancel, .related-modal-overlay');
+	const relatedLargeSelect = document.getElementById('related-large-select');
+	const relatedMediumSelect = document.getElementById('related-medium-select');
+	const relatedSmallSelect = document.getElementById('related-small-select');
+	const relatedKeywordInput = document.getElementById('related-product-keyword');
+	const relatedProductSearchBtn = document.getElementById('related-product-search-btn');
+	const relatedModalProductList = document.getElementById('related-modal-product-list');
+	const relatedRegisterBtn = document.getElementById('related-register-btn');
+	const relatedSelectedList = document.getElementById('related-modal-selected-list');
+
+	let relatedProductList = []; // 검색 결과
+	let relatedCheckedIds = new Set(); // 체크박스 선택
+	let relatedProductsTemp = []; // 모달 임시리스트 (순서O, 삭제O)
+	let relatedProducts = []; // 실제 등록될 메인리스트
+
+	relatedOpenBtn.onclick = function() {
+		relatedModal.classList.add('active');
+		fetchAndRenderLargeOptions(relatedLargeSelect, () => {
+			relatedMediumSelect.innerHTML = `<option value="">중분류</option>`;
+			relatedSmallSelect.innerHTML = `<option value="">소분류</option>`;
+			relatedKeywordInput.value = '';
+			relatedProductList = [];
+			relatedCheckedIds.clear();
+			relatedProductsTemp = [];
+			renderRelatedModalProductList();
+			renderRelatedSelectedList();
 		});
-		bundleSelectedProductIds.add(newId); // **자동 선택 반영**
-
-		input.value = '';
-		renderBundleModalProductList();
 	};
 
-
-	document.getElementById('related-add-product-btn').onclick = function() {
-		const input = document.getElementById('related-add-product-name');
-		const name = input.value.trim();
-		if (!name) {
-			alert('제품명을 입력하세요.');
-			return;
-		}
-		// 중복 방지: 이름 중복 등록 안 함
-		if (relatedProductList.some(p => p.name === name)) {
-			alert('이미 등록된 제품입니다.');
-			return;
-		}
-		// 임의 id/code 생성 (중복방지)
-		let newId = relatedProductList.reduce((max, cur) => Math.max(max, Number(cur.id)), 0) + 1;
-		let newCode = 'TMP' + newId;
-		// 데이터에 추가
-		relatedProductList.push({
-			id: newId,
-			code: newCode,
-			name: name
-		});
-		// **추가: 새로 등록한 제품을 바로 선택상태로**
-		relatedSelectedProductIds.add(newId);
-
-		// 렌더링
+	relatedLargeSelect.onchange = function() {
+		fetchAndRenderMediumOptions(relatedMediumSelect, this.value, relatedSmallSelect);
+		relatedProductList = [];
 		renderRelatedModalProductList();
-		input.value = '';
 	};
+	relatedMediumSelect.onchange = function() {
+		fetchAndRenderSmallOptions(relatedSmallSelect, this.value);
+		relatedProductList = [];
+		renderRelatedModalProductList();
+	};
+	relatedProductSearchBtn.onclick = function() {
+		const largeId = relatedLargeSelect.value;
+		const mediumId = relatedMediumSelect.value;
+		const smallId = relatedSmallSelect.value;
+		const keyword = relatedKeywordInput.value.trim();
+
+		let url = `/api/product/list-simple?`;
+		if (largeId) url += `largeId=${largeId}&`;
+		if (mediumId) url += `mediumId=${mediumId}&`;
+		if (smallId) url += `smallId=${smallId}&`;
+		if (keyword) url += `keyword=${encodeURIComponent(keyword)}&`;
+
+		fetch(url)
+			.then(res => res.json())
+			.then(list => {
+				relatedProductList = list || [];
+				renderRelatedModalProductList();
+			});
+	};
+
+	function renderRelatedModalProductList() {
+		relatedModalProductList.innerHTML = '';
+		if (!relatedProductList || relatedProductList.length === 0) {
+			relatedModalProductList.innerHTML = '<div class="text-muted text-center">제품이 없습니다.</div>';
+			return;
+		}
+		const ul = document.createElement('ul');
+		ul.className = 'list-group mb-2';
+		relatedProductList.forEach(product => {
+			const li = document.createElement('li');
+			li.className = 'list-group-item d-flex justify-content-between align-items-center';
+			// 체크박스
+			const checkbox = document.createElement('input');
+			checkbox.type = 'checkbox';
+			checkbox.className = 'form-check-input me-2';
+			checkbox.value = product.id;
+			checkbox.checked = relatedCheckedIds.has(Number(product.id));
+			checkbox.onchange = function() {
+				if (this.checked) {
+					relatedCheckedIds.add(Number(this.value));
+				} else {
+					relatedCheckedIds.delete(Number(this.value));
+				}
+			};
+			const label = document.createElement('span');
+			label.textContent = `[${product.code}] ${product.name}`;
+			li.appendChild(checkbox);
+			li.appendChild(label);
+			ul.appendChild(li);
+		});
+		relatedModalProductList.appendChild(ul);
+	}
+
+	// 등록버튼(1차) 클릭: 체크된 제품만 temp로 하단에 보여주고 순서/삭제/타입조정
+	relatedRegisterBtn.onclick = function() {
+		relatedProductsTemp = Array.from(relatedCheckedIds).map(productId => {
+			const product = relatedProductList.find(p => p.id === productId);
+			return product ? { id: product.id, name: product.name } : null;
+		}).filter(Boolean);
+		renderRelatedSelectedList();
+	};
+
+	// 하단 임시리스트에서 순서이동/삭제 지원
+	function renderRelatedSelectedList() {
+		relatedSelectedList.innerHTML = '';
+		if (!relatedProductsTemp || relatedProductsTemp.length === 0) {
+			relatedSelectedList.innerHTML = `<div class="text-muted text-center">선택된 관련상품이 없습니다.</div>`;
+			return;
+		}
+		relatedProductsTemp.forEach((p, idx) => {
+			const div = document.createElement('div');
+			div.className = 'badge bg-info text-white px-2 py-2 me-2 mb-2 d-inline-flex align-items-center';
+			div.innerHTML = `
+            <span>${p.name}</span>
+            <span class="ms-2" style="cursor:pointer;" title="위로">&#8593;</span>
+            <span class="ms-1" style="cursor:pointer;" title="아래로">&#8595;</span>
+            <span class="ms-1" style="cursor:pointer;" title="삭제">&times;</span>
+        `;
+			// 위로
+			div.children[1].onclick = function() {
+				if (idx > 0) {
+					[relatedProductsTemp[idx], relatedProductsTemp[idx - 1]] = [relatedProductsTemp[idx - 1], relatedProductsTemp[idx]];
+					renderRelatedSelectedList();
+				}
+			};
+			// 아래로
+			div.children[2].onclick = function() {
+				if (idx < relatedProductsTemp.length - 1) {
+					[relatedProductsTemp[idx], relatedProductsTemp[idx + 1]] = [relatedProductsTemp[idx + 1], relatedProductsTemp[idx]];
+					renderRelatedSelectedList();
+				}
+			};
+			// 삭제
+			div.children[3].onclick = function() {
+				relatedProductsTemp.splice(idx, 1);
+				renderRelatedSelectedList();
+			}
+			relatedSelectedList.appendChild(div);
+		});
+	}
+
+	// 최종 관련상품 저장/반영
+	document.getElementById('related-register-btn').onclick = function() {
+		relatedProducts = relatedProductsTemp.map(p => ({ id: p.id, name: p.name }));
+		renderRelatedProducts();
+		relatedModal.classList.remove('active');
+	};
+
+	relatedCloseBtns.forEach(btn => btn.onclick = () => relatedModal.classList.remove('active'));
+
+	// 메인에 반영
+	function renderRelatedProducts() {
+		const list = document.getElementById('related-products-list');
+		list.innerHTML = '';
+		relatedProducts.forEach((p, idx) => {
+			const badge = document.createElement('div');
+			badge.className = 'badge bg-info text-white px-2 py-2 d-flex align-items-center';
+			badge.innerHTML = `${p.name}<span class="ms-2" style="cursor:pointer;" title="삭제">&times;</span>`;
+			badge.querySelector('span').onclick = () => {
+				relatedProducts.splice(idx, 1);
+				renderRelatedProducts();
+			}
+			list.appendChild(badge);
+		});
+	}
+	/* 관련상품 모달 */
 
 	// 스크롤 스타일 적용(최대 5개) - CSS로도 적용 가능하지만 JS로 보장
 	[largeList, mediumList, smallList].forEach(listEl => {
@@ -1096,7 +1103,19 @@ document.addEventListener("DOMContentLoaded", function() {
 			list.appendChild(badge);
 		});
 	}
+	/* 가격 대체문구 사용 Start */
+	// 가격대체문구 사용여부 체크시 입력란 show/hide
+	const usePriceReplacementText = document.getElementById('usePriceReplacementText');
+	const priceReplacementArea = document.getElementById('priceReplacementArea');
+	usePriceReplacementText.onchange = function() {
+		priceReplacementArea.style.display = this.checked ? '' : 'none';
+		// 대체문구 입력값 클리어/disabled 처리도 필요하면 추가
+		if (!this.checked) {
+			document.getElementById('priceReplacementText').value = '';
+		}
+	};
 
+	/* 가격 대체문구 사용 End */
 	function renderBundleProducts() {
 		const list = document.getElementById('bundle-products-list');
 		list.innerHTML = '';
@@ -1312,12 +1331,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	// [CKEditor 플러그인 등록: 반드시 인스턴스마다 type/key 셋팅]
 	function CustomUploadAdapterPlugin(editor) {
-	    editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-	        // editor.sourceElement는 항상 CKEditor가 붙은 원본 DOM 엘리먼트
-	        window.currentEditorType = editor.sourceElement.getAttribute('data-type');
-	        window.currentEditorKey = editor.sourceElement.getAttribute('data-key');
-	        return new CustomUploadAdapter(loader);
-	    };
+		editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+			// editor.sourceElement는 항상 CKEditor가 붙은 원본 DOM 엘리먼트
+			window.currentEditorType = editor.sourceElement.getAttribute('data-type');
+			window.currentEditorKey = editor.sourceElement.getAttribute('data-key');
+			return new CustomUploadAdapter(loader);
+		};
 	}
 
 
@@ -1334,6 +1353,25 @@ document.addEventListener("DOMContentLoaded", function() {
 		}
 
 		const formData = new FormData();
+		// ========== [가격정책] ==============
+		// 가격정책 값 수집 및 FormData 추가
+		const priceExposeTarget = document.querySelector('input[name="priceExposeTarget"]:checked').value;
+		formData.append('priceExposeTarget', priceExposeTarget);
+
+		const usePriceReplace = usePriceReplacementText.checked;
+		formData.append('usePriceReplacementText', usePriceReplace);
+
+		const priceReplacementText = document.getElementById('priceReplacementText').value.trim();
+		if (usePriceReplace && priceReplacementText) {
+			formData.append('priceReplacementText', priceReplacementText);
+		}
+		/* 브랜드 등록 */
+		formData.append('brandId', selectedBrand ? selectedBrand.id : '');
+		/* 브랜드 등록 */
+
+		/* 할인혜택 */
+		formData.append('promotionId', selectedPromotion ? selectedPromotion.id : '');
+		/* 할인혜택 */
 
 		// ========== [1. 소분류(카테고리)] ==========
 		console.log('========== [1. 소분류(카테고리) 선택] ==========');
@@ -1590,34 +1628,34 @@ document.addEventListener("DOMContentLoaded", function() {
 			});
 
 			const moveImagePromises = Object.entries(tempImageMap).map(async ([key, val]) => {
-			    let type, reqKey;
-			    if (key === "detailHtml") {
-				    type = "detailHtml";
-				    reqKey = "detailHtml";
+				let type, reqKey;
+				if (key === "detailHtml") {
+					type = "detailHtml";
+					reqKey = "detailHtml";
 				} else if (key.startsWith("question_") || key.startsWith("question-")) {
-				    type = "question";
-				    reqKey = key.replace("question-", "question_");
+					type = "question";
+					reqKey = key.replace("question-", "question_");
 				} else {
-				    throw new Error(`지원하지 않는 key: ${key}`);
+					throw new Error(`지원하지 않는 key: ${key}`);
 				}
 
-			
-			    const res2 = await fetch(`/api/product/${productId}/move-editor-images`, {
-			        method: 'POST',
-			        headers: { 'Content-Type': 'application/json' },
-			        body: JSON.stringify({
-			            type: type,
-			            key: reqKey,
-			            html: val.html,
-			            tempImgList: val.tempImgList
-			        })
-			    });
-			    if (!res2.ok) throw new Error(`[${key}] 에디터 이미지 최종저장 실패`);
-			    const data2 = await res2.json();
-			    if (data2.newHtml) {
-			        console.log(`[최종 ${key} HTML]`, data2.newHtml);
-			    }
-			    return data2;
+
+				const res2 = await fetch(`/api/product/${productId}/move-editor-images`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						type: type,
+						key: reqKey,
+						html: val.html,
+						tempImgList: val.tempImgList
+					})
+				});
+				if (!res2.ok) throw new Error(`[${key}] 에디터 이미지 최종저장 실패`);
+				const data2 = await res2.json();
+				if (data2.newHtml) {
+					console.log(`[최종 ${key} HTML]`, data2.newHtml);
+				}
+				return data2;
 			});
 
 			if (moveImagePromises.length > 0) {
