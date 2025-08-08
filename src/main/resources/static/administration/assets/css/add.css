@@ -200,9 +200,9 @@
 .discount-modal-dialog {
 	position: absolute;
 	z-index: 10;
-	top:50%;
-	left:50%;
-	transform : translate(-50%, -50%);
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 	width: 700px;
 	max-width: 96vw;
 	margin: 0 auto;
@@ -599,3 +599,22 @@
 }
 
 /* Internal Category Manager End */
+
+/* Display Manager Start */
+.notice-inline {
+	display: inline-flex;
+	align-items: center;
+	/* 세로 중앙정렬 */
+	gap: 4px;
+	/* 아이콘과 텍스트 간격 */
+}
+
+.notice-inline i {
+	font-size: 1.2em;
+	/* 아이콘 크기 적당히 */
+	line-height: 1;
+	/* 위아래 여백 최소화 */
+	vertical-align: middle;
+	/* 혹시 폰트 렌더링 영향 방지 */
+}
+/* Display Manager End */

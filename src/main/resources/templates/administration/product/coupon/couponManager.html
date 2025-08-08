@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+      data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
+
+<body>
+<div id="layout-wrapper">
+    <header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+    <div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+    <div class="vertical-overlay"></div>
+
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">쿠폰관리</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+                                    <li class="breadcrumb-item active">쿠폰 리스트</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 카드 시작 -->
+                <div class="card">
+                    <div class="card-body">
+
+                        <!-- 필터 영역 -->
+                        <form method="get" th:action="@{/couponManager}" class="row g-3 mb-4">
+                            <div class="col-md-2">
+                                <label class="form-label">쿠폰명</label>
+                                <input type="text" class="form-control" name="name" placeholder="쿠폰명 포함 검색"
+                                       th:value="${name}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">시작일</label>
+                                <input type="date" class="form-control" name="startDate"
+                                       th:value="${startDate}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">종료일</label>
+                                <input type="date" class="form-control" name="endDate"
+                                       th:value="${endDate}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">쿠폰정책</label>
+                                <select class="form-select" name="policy">
+                                    <option value="" th:selected="${policy == null}">전체</option>
+                                    <option th:each="p : ${policyValues}"
+                                            th:value="${p}"
+                                            th:text="${p}"
+                                            th:selected="${policy == p}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">쿠폰상태</label>
+                                <select class="form-select" name="status">
+                                    <option value="" th:selected="${status == null}">전체</option>
+                                    <option th:each="s : ${statusValues}"
+                                            th:value="${s}"
+                                            th:text="${s}"
+                                            th:selected="${status == s}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end gap-2">
+                                <button type="submit" class="btn btn-primary w-100">검색</button>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end gap-2">
+                                <a class="btn btn-success w-100" th:href="@{/couponInsertForm}">쿠폰등록</a>
+                            </div>
+                        </form>
+
+                        <!-- 리스트 테이블 -->
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                <tr>
+                                    <th style="width:100px">ID</th>
+                                    <th>쿠폰명</th>
+                                    <th style="width:220px">유효기간</th>
+                                    <th style="width:140px">쿠폰정책</th>
+                                    <th style="width:140px">쿠폰상태</th>
+                                    <th style="width:160px">연결 프로모션 수</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:if="${page.content.size() == 0}">
+                                    <td colspan="6" class="text-center">검색 결과가 없습니다.</td>
+                                </tr>
+                                <tr th:each="row : ${page.content}">
+                                    <td th:text="${row.id}"></td>
+                                    <td>
+                                        <a th:href="@{|/couponDetail/${row.id}|}"
+                                           th:text="${row.couponName}">쿠폰명</a>
+                                    </td>
+                                    <td>
+                                        <span th:text="${#temporals.format(row.startDate, 'yyyy-MM-dd')}"></span>
+                                        ~
+                                        <span th:text="${#temporals.format(row.endDate, 'yyyy-MM-dd')}"></span>
+                                    </td>
+                                    <td th:text="${row.couponPolicy}"></td>
+                                    <td th:text="${row.status}"></td>
+                                    <td th:text="${row.promotionCount}"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 페이지네이션 -->
+                        <nav th:if="${page.totalPages > 1}">
+                            <ul class="pagination justify-content-center">
+
+                                <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/couponManager(
+                                           name=${name},
+                                           startDate=${startDate},
+                                           endDate=${endDate},
+                                           policy=${policy},
+                                           status=${status},
+                                           page=${page.number - 1}
+                                       )}">이전</a>
+                                </li>
+
+                                <li class="page-item"
+                                    th:each="p : ${#numbers.sequence(0, page.totalPages - 1)}"
+                                    th:classappend="${p} == ${page.number} ? 'active'">
+                                    <a class="page-link"
+                                       th:text="${p + 1}"
+                                       th:href="@{/couponManager(
+                                           name=${name},
+                                           startDate=${startDate},
+                                           endDate=${endDate},
+                                           policy=${policy},
+                                           status=${status},
+                                           page=${p}
+                                       )}">1</a>
+                                </li>
+
+                                <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/couponManager(
+                                           name=${name},
+                                           startDate=${startDate},
+                                           endDate=${endDate},
+                                           policy=${policy},
+                                           status=${status},
+                                           page=${page.number + 1}
+                                       )}">다음</a>
+                                </li>
+
+                            </ul>
+                        </nav>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

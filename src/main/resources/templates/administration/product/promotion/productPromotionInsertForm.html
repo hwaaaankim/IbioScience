@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">할인혜택관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript: void(0);">관리</a></li>
+										<li class="breadcrumb-item active">할인혜택 등록</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="card">
+						<div class="card-body">
+							<h2 class="mb-4 text-center fw-bold" style="letter-spacing:-.03em;">프로모션 등록</h2>
+							<form id="product-promotion-form" autocomplete="off">
+								<!-- 공통 설정 -->
+								<div class="mb-4">
+									<div class="product-promotion-section-title">공통 설정 <span
+											class="product-promotion-required">*</span></div>
+									<div class="row g-3 align-items-center mb-2">
+										<div class="col-md-6">
+											<label class="product-promotion-form-label form-label mb-0">프로모션명</label>
+											<input type="text" class="product-promotion-form-control form-control"
+												name="name" maxlength="100">
+										</div>
+										<div class="col-md-6">
+											<label class="product-promotion-form-label form-label mb-0">진행여부</label>
+											<select class="product-promotion-form-select form-select" name="status">
+												<option value="ACTIVE">진행중</option>
+												<option value="INACTIVE">진행안함</option>
+											</select>
+										</div>
+									</div>
+									<div class="row g-3 align-items-center mb-2">
+										<div class="col-md-6">
+											<label class="product-promotion-form-label form-label mb-0">혜택
+												기간정책</label>
+											<select class="product-promotion-form-select form-select" name="term">
+												<option value="PERIOD">기간한정</option>
+												<option value="ALWAYS">상시</option>
+											</select>
+										</div>
+										<div class="col-md-6">
+											<label class="product-promotion-form-label form-label mb-0">아이콘
+												업로드</label>
+											<input type="file" class="product-promotion-form-control form-control"
+												name="iconFile" accept="image/gif,image/png,image/jpeg">
+										</div>
+									</div>
+									<div class="row g-3 align-items-center mb-2">
+
+										<div class="col-md-6">
+											<label class="product-promotion-form-label form-label mb-0">시작일</label>
+											<input type="date" class="product-promotion-form-control form-control"
+												name="startDate">
+										</div>
+										<div class="col-md-6">
+											<label class="product-promotion-form-label form-label mb-0">종료일</label>
+											<input type="date" class="product-promotion-form-control form-control"
+												name="endDate">
+										</div>
+									</div>
+
+								</div>
+								<!-- 타입 선택(라디오) -->
+								<div class="mb-3">
+									<label class="product-promotion-form-label form-label mb-1">프로모션 타입 <span
+											class="product-promotion-required">*</span></label>
+									<div class="btn-group product-promotion-type-group" role="group"
+										aria-label="PromotionType">
+										<input type="radio" class="btn-check" name="type" id="type-discount"
+											value="DISCOUNT" checked>
+										<label class="btn btn-outline-primary product-promotion-btn"
+											for="type-discount">할인</label>
+										<input type="radio" class="btn-check" name="type" id="type-gift" value="GIFT">
+										<label class="btn btn-outline-primary product-promotion-btn"
+											for="type-gift">증정</label>
+										<input type="radio" class="btn-check" name="type" id="type-oneplusone"
+											value="ONE_PLUS_ONE">
+										<label class="btn btn-outline-primary product-promotion-btn"
+											for="type-oneplusone">1+1</label>
+										<input type="radio" class="btn-check" name="type" id="type-coupon"
+											value="COUPON">
+										<label class="btn btn-outline-primary product-promotion-btn"
+											for="type-coupon">쿠폰</label>
+									</div>
+								</div>
+								<!-- 타입별 입력 폼 영역 -->
+								<div id="product-promotion-type-area">
+									<!-- 아래 JS로 타입별 자동 show/hide -->
+									<!-- 할인 타입 -->
+									<div class="product-promotion-type-panel" data-type="DISCOUNT">
+										<div class="product-promotion-section-title">할인 설정</div>
+										<div class="row mb-3">
+											<div class="col-md-6">
+												<label class="product-promotion-form-label form-label mb-0">할인율
+													(%)</label>
+												<input type="number" min="0" max="100" step="1"
+													class="product-promotion-form-control form-control"
+													name="discountPercent" placeholder="0">
+											</div>
+
+										</div>
+									</div>
+									<!-- 증정 타입 (GIFT) -->
+									<div class="product-promotion-type-panel" data-type="GIFT" style="display:none;">
+										<div class="product-promotion-section-title">증정 상품 등록</div>
+										<div class="row mb-2">
+											<div class="col-md-4">
+												<label class="form-label">대분류</label>
+												<select id="giftCategoryLarge" class="form-select"></select>
+											</div>
+											<div class="col-md-4">
+												<label class="form-label">중분류</label>
+												<select id="giftCategoryMedium" class="form-select"></select>
+											</div>
+											<div class="col-md-4">
+												<label class="form-label">소분류</label>
+												<select id="giftCategorySmall" class="form-select"></select>
+											</div>
+										</div>
+										<div class="mb-2">
+											<label class="form-label">제품 목록</label>
+											<div id="giftProductList"></div>
+										</div>
+										<div>
+											<label class="form-label">선택된 증정 상품</label>
+											<div id="selectedGiftProductList" class="d-flex flex-wrap gap-2"></div>
+										</div>
+									</div>
+
+									<!-- 1+1 타입 -->
+									<div class="product-promotion-type-panel" data-type="ONE_PLUS_ONE"
+										style="display:none;">
+										<div class="product-promotion-section-title">1+1 프로모션</div>
+										<div class="alert alert-info small mb-0">
+											별도의 추가 입력 없이 <b>1+1 프로모션</b>으로 등록됩니다.
+										</div>
+									</div>
+									<!-- 쿠폰 타입 -->
+									<div class="product-promotion-type-panel" data-type="COUPON" style="display:none;">
+										<div class="product-promotion-section-title">쿠폰 검색 및 선택</div>
+										<div class="product-promotion-search-area mb-2">
+											<div class="row mb-2">
+												<div class="col-md-3">
+													<label class="product-promotion-form-label mb-1">쿠폰상태</label>
+													<select class="product-promotion-form-select form-select"
+														id="couponStatus" disabled>
+														<option value="ISSUED" selected>발급됨</option>
+													</select>
+												</div>
+												<div class="col-md-3">
+													<label class="product-promotion-form-label mb-1">쿠폰명</label>
+													<input type="text"
+														class="product-promotion-form-control form-control"
+														id="couponKeyword" placeholder="쿠폰명">
+												</div>
+												<div class="col-md-3">
+													<label class="product-promotion-form-label mb-1">발행 시작일</label>
+													<input type="date"
+														class="product-promotion-form-control form-control"
+														id="couponStartDate">
+												</div>
+												<div class="col-md-3">
+													<label class="product-promotion-form-label mb-1">발행 종료일</label>
+													<input type="date"
+														class="product-promotion-form-control form-control"
+														id="couponEndDate">
+												</div>
+											</div>
+											<div class="text-end mb-2">
+												<button type="button"
+													class="btn btn-outline-primary btn-sm product-promotion-search-btn"
+													id="couponSearchBtn">검색</button>
+											</div>
+											<label class="product-promotion-form-label mb-1">검색결과</label>
+											<div class="product-promotion-list-group" id="couponList"></div>
+										</div>
+										<div>
+											<label class="product-promotion-form-label mb-1">등록된 쿠폰</label>
+											<div id="selectedCouponList" class="d-flex flex-wrap gap-2"></div>
+										</div>
+									</div>
+								</div>
+								<!-- 저장 버튼 -->
+								<div class="text-end mt-4">
+									<button type="submit" class="product-promotion-btn btn px-4"
+										id="productPromotionSubmitBtn">저장</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="/administration/assets/product/productPromotionInsertForm.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

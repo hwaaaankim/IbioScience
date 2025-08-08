@@ -90,9 +90,9 @@ document.addEventListener("DOMContentLoaded", function() {
                         <input type="text" class="form-control mb-2 brand-manager-edit-name" value="${brand.name}" data-id="${brand.id}">
                         <input type="file" accept="image/*" class="form-control mb-2 brand-manager-edit-image" data-id="${brand.id}">
                         <div class="d-flex gap-2 mt-2 w-100">
-                            <button type="button" class="btn btn-outline-primary btn-sm brand-manager-save-btn" data-id="${brand.id}" disabled>수정</button>
-                            <button type="button" class="btn btn-outline-warning btn-sm brand-manager-image-delete-btn" data-id="${brand.id}">이미지만 삭제</button>
-                            <button type="button" class="btn btn-outline-danger btn-sm brand-manager-delete-btn" data-id="${brand.id}">브랜드 삭제</button>
+                            <button type="button" class="w-100 btn btn-outline-primary btn-sm brand-manager-save-btn" data-id="${brand.id}" disabled>수정</button>
+                            <button type="button" class="w-100 btn btn-outline-warning btn-sm brand-manager-image-delete-btn" data-id="${brand.id}">이미지만 삭제</button>
+                            <button type="button" class="w-100 btn btn-outline-danger btn-sm brand-manager-delete-btn" data-id="${brand.id}">브랜드 삭제</button>
                         </div>
                     </div>
                 </div>
@@ -161,21 +161,30 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // 브랜드 삭제
-        document.querySelectorAll('.brand-manager-delete-btn').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                const id = this.dataset.id;
-                if (!confirm('정말 브랜드를 삭제하시겠습니까? (이미지도 삭제됩니다)')) return;
-                const res = await fetch(`/api/brand/delete/${id}`, {
-                    method: 'DELETE'
-                });
-                if (res.ok) {
-                    alert('삭제 완료');
-                    loadBrandList();
-                } else {
-                    alert('삭제 실패');
-                }
-            });
-        });
+		document.querySelectorAll('.brand-manager-delete-btn').forEach(btn => {
+		    btn.addEventListener('click', async function() {
+		        const id = this.dataset.id;
+		        if (!confirm('정말 브랜드를 삭제하시겠습니까? (이미지도 삭제됩니다)')) return;
+		
+		        const res = await fetch(`/api/brand/delete/${id}`, { method: 'DELETE' });
+		
+		        if (res.ok) {
+		            alert('삭제 완료');
+		            loadBrandList();
+		            return;
+		        }
+		
+		        // 상태별 사용자 메시지
+		        if (res.status === 409) {
+		            const msg = await res.text();
+		            alert(msg || '해당 브랜드는 등록된 제품과 연결되어 있어 삭제할 수 없습니다.');
+		        } else if (res.status === 404) {
+		            alert('브랜드를 찾을 수 없습니다.');
+		        } else {
+		            alert('삭제 실패');
+		        }
+		    });
+		});
 
         // 이미지만 삭제
         document.querySelectorAll('.brand-manager-image-delete-btn').forEach(btn => {

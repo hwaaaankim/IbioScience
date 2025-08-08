@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			li.className = 'list-group-item d-flex justify-content-between align-items-center';
 			li.innerHTML = `
                 <span class="name">${l.name} - <span class="badge bg-info text-dark">${mediumCount}개 중분류</span></span>
-                <div>
+                <div class="d-flex">
                     <button class="btn btn-sm btn-outline-secondary me-1 edit">수정</button>
                     <button class="btn btn-sm btn-outline-danger delete">삭제</button>
                 </div>
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				li.className = 'list-group-item d-flex justify-content-between align-items-center';
 				li.innerHTML = `
                 <span class="name">${large ? large.name + " > " : ""}${m.name} - <span class="badge bg-success text-light">${smallCount}개 소분류 연결</span></span>
-                <div>
+                <div class="d-flex">
                     <button class="btn btn-sm btn-outline-secondary me-1 edit">수정</button>
                     <button class="btn btn-sm btn-outline-danger delete">삭제</button>
                 </div>
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				li.className = 'list-group-item d-flex justify-content-between align-items-center';
 				li.innerHTML = `
                     <span class="name">${s.name}</span>
-                    <div>
+                    <div class="d-flex">
                         <button class="btn btn-sm btn-outline-secondary me-1 edit">수정</button>
                         <button class="btn btn-sm btn-outline-danger delete">삭제</button>
                     </div>
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					li.className = 'list-group-item d-flex justify-content-between align-items-center';
 					li.innerHTML = `
                         <span class="name">${large ? large.name + " > " : ""}${medium ? medium.name + " > " : ""}${s.name}</span>
-                        <div>
+                        <div class="d-flex">
                             <button class="btn btn-sm btn-outline-secondary me-1 edit">수정</button>
                             <button class="btn btn-sm btn-outline-danger delete">삭제</button>
                         </div>

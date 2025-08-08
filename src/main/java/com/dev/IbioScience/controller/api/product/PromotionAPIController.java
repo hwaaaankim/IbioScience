@@ -38,17 +38,19 @@ public class PromotionAPIController {
         return ResponseEntity.ok().build();
     }
     
-    @GetMapping("/api/promotion/search")
+    /** ✅ 경로 수정: /api/promotion/search 로 노출되도록 */
+    @GetMapping("/search")
     public ResponseEntity<List<PromotionSearchDTO>> searchPromotion(
-        @RequestParam(required = false) String name,
-        @RequestParam(required = false) PromotionType type,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-        @RequestParam(required = false) Boolean active
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) PromotionType type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Boolean active
     ) {
-        // 동적 검색 조건으로 서비스에서 처리
         List<Promotion> list = productPromotionService.searchPromotions(name, type, startDate, endDate, active);
-        List<PromotionSearchDTO> result = list.stream().map(PromotionSearchDTO::fromEntity).collect(Collectors.toList());
+        List<PromotionSearchDTO> result = list.stream()
+                .map(PromotionSearchDTO::fromEntity)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(result);
     }
 }

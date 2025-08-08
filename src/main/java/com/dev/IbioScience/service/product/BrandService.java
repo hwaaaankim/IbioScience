@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.dev.IbioScience.model.product.Brand;
 import com.dev.IbioScience.repository.product.BrandRepository;
+import com.dev.IbioScience.repository.product.register.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,7 +24,8 @@ import lombok.RequiredArgsConstructor;
 public class BrandService {
 
 	private final BrandRepository brandRepository;
-
+	private final ProductRepository productRepository;
+	
     @Value("${spring.upload.path}")
     private String uploadPath;
 
@@ -97,8 +99,17 @@ public class BrandService {
 
     @Transactional
     public void deleteBrand(Long id) throws IOException {
+        // 1) 연결 제품 존재 여부 사전 검증
+        boolean existsProduct = productRepository.existsByBrand_Id(id);
+        if (existsProduct) {
+            // 프론트에서 그대로 보여줄 사용자 메시지
+            throw new IllegalStateException("해당 브랜드는 등록된 제품과 연결되어 있어 삭제할 수 없습니다.");
+        }
+
+        // 2) 실제 삭제 처리
         Brand brand = brandRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("브랜드를 찾을 수 없습니다. ID=" + id));
+
         if (StringUtils.hasText(brand.getImagePath())) {
             File oldFile = new File(brand.getImagePath());
             if (oldFile.exists()) oldFile.delete();

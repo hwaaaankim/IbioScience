@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+    data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+					<!-- 필터 -->
+					<form method="get" action="/productPromotionManager" class="card card-body mb-3"
+						id="promotion-filter-form">
+						<div class="row g-2 align-items-end">
+							<div class="col-md-2">
+								<label class="form-label">프로모션명</label>
+								<input class="form-control" type="text" name="name" th:value="${name}">
+							</div>
+							<div class="col-md-2">
+								<label class="form-label">진행여부</label>
+								<select class="form-select" name="active">
+									<option value="">전체</option>
+									<option th:value="true" th:selected="${active == true}">진행중</option>
+									<option th:value="false" th:selected="${active == false}">진행안함</option>
+								</select>
+							</div>
+							<div class="col-md-2">
+								<label class="form-label">기간정책</label>
+								<select class="form-select" name="term" id="filter-term">
+									<option value="">전체</option>
+									<option th:value="ALWAYS"
+										th:selected="${term == T(com.dev.IbioScience.model.product.enums.PromotionTerm).ALWAYS}">
+										상시</option>
+									<option th:value="PERIOD"
+										th:selected="${term == T(com.dev.IbioScience.model.product.enums.PromotionTerm).PERIOD}">
+										기간한정</option>
+								</select>
+							</div>
+							<div class="col-md-1 filter-date" style="display:none;">
+								<label class="form-label">시작일</label>
+								<input class="form-control" type="date" name="startDate" th:value="${startDate}">
+							</div>
+							<div class="col-md-1 filter-date" style="display:none;">
+								<label class="form-label">종료일</label>
+								<input class="form-control" type="date" name="endDate" th:value="${endDate}">
+							</div>
+							<div class="col-md-2">
+								<label class="form-label">프로모션 타입</label>
+								<select class="form-select" name="type">
+									<option value="">전체</option>
+									<option th:each="t: ${promotionTypes}" th:value="${t.name()}" th:text="${t.label}"
+										th:selected="${type == t}">타입</option>
+								</select>
+							</div>
+							<!-- 버튼 영역 -->
+							<div class="col-md-2 text-end">
+								<div class="btn-group gap-2" role="group">
+									<button class="btn btn-outline-secondary" type="button"
+										id="filter-reset">초기화</button>
+									<button class="btn btn-primary" type="submit">검색</button>
+									<a class="btn btn-success" href="/productPromotionInsertForm">+ 신규 등록</a>
+								</div>
+							</div>
+						</div>
+					</form>
+
+
+					<!-- 목록 테이블 -->
+					<div class="card">
+						<div class="card-body">
+							<div class="table-responsive">
+								<table class="table align-middle">
+									<thead>
+										<tr>
+											<th style="width:80px;">ID</th>
+											<th>프로모션명</th>
+											<th style="width:110px;">진행여부</th>
+											<th style="width:220px;">기간</th>
+											<th style="width:120px;">타입</th>
+											<th style="width:120px;">비고</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="p : ${page.content}">
+											<td th:text="${p.id}">1</td>
+											<td>
+												<a th:href="@{|/productPromotionDetail/${p.id}|}"
+													th:text="${p.name}">프로모션명</a>
+											</td>
+											<td>
+												<span th:text="${p.active ? '진행중' : '진행안함'}"></span>
+											</td>
+											<td>
+												<span
+													th:if="${p.term == T(com.dev.IbioScience.model.product.enums.PromotionTerm).ALWAYS}">상시</span>
+												<span
+													th:if="${p.term == T(com.dev.IbioScience.model.product.enums.PromotionTerm).PERIOD}"
+													th:text="${#temporals.format(p.startDate,'yyyy-MM-dd')} + ' ~ ' + ${#temporals.format(p.endDate,'yyyy-MM-dd')}"></span>
+											</td>
+											<td th:text="${p.type.label}">타입</td>
+											<td>
+												<form th:action="@{|/productPromotionDelete/${p.id}|}" method="post"
+													onsubmit="return confirm('삭제하시겠습니까?');">
+													<button type="submit"
+														class="btn btn-sm btn-outline-danger">삭제</button>
+												</form>
+											</td>
+										</tr>
+										<tr th:if="${page.totalElements == 0}">
+											<td colspan="6" class="text-center text-muted">검색 결과가 없습니다.</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<!-- 페이지네이션 -->
+							<nav th:if="${page.totalPages > 1}">
+								<ul class="pagination justify-content-center">
+									<li class="page-item" th:classappend="${page.first}? 'disabled'">
+										<a class="page-link"
+											th:href="@{|/productPromotionManager?page=${page.number - 1}&size=${page.size}
+                                        &name=${name}&active=${active}&term=${term}&startDate=${startDate}&endDate=${endDate}&type=${type}|}">이전</a>
+									</li>
+									<li class="page-item" th:each="i: ${#numbers.sequence(0, page.totalPages-1)}"
+										th:classappend="${page.number == i}? 'active'">
+										<a class="page-link" th:text="${i+1}"
+											th:href="@{|/productPromotionManager?page=${i}&size=${page.size}
+                                            &name=${name}&active=${active}&term=${term}&startDate=${startDate}&endDate=${endDate}&type=${type}|}"></a>
+									</li>
+									<li class="page-item" th:classappend="${page.last}? 'disabled'">
+										<a class="page-link"
+											th:href="@{|/productPromotionManager?page=${page.number + 1}&size=${page.size}
+                                        &name=${name}&active=${active}&term=${term}&startDate=${startDate}&endDate=${endDate}&type=${type}|}">다음</a>
+									</li>
+								</ul>
+							</nav>
+
+							<!-- 메시지 -->
+							<div th:if="${message}" class="alert alert-success mt-3" th:text="${message}"></div>
+							<div th:if="${error}" class="alert alert-danger mt-3" th:text="${error}"></div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+
+	<script>
+		(function () {
+			const termSel = document.getElementById('filter-term');
+			const dateBoxes = document.querySelectorAll('.filter-date');
+			function sync() {
+				const v = termSel.value;
+				dateBoxes.forEach(el => el.style.display = (v === 'PERIOD') ? '' : 'none');
+				if (v !== 'PERIOD') {
+					document.querySelector('input[name="startDate"]').value = '';
+					document.querySelector('input[name="endDate"]').value = '';
+				}
+			}
+			termSel.addEventListener('change', sync);
+			sync();
+
+			document.getElementById('filter-reset').addEventListener('click', () => {
+				document.getElementById('promotion-filter-form').reset();
+				sync();
+			});
+		})();
+	</script>
+</body>
+
+</html>

@@ -7,7 +7,6 @@ import com.dev.IbioScience.model.product.enums.PromotionTarget;
 import com.dev.IbioScience.model.product.enums.PromotionTerm;
 import com.dev.IbioScience.model.product.enums.PromotionType;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,15 +17,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
-//할인/증정 정책
 @Data
 @Entity
 @Table(name = "tb_promotion")
 public class Promotion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -71,7 +69,8 @@ public class Promotion {
     @Enumerated(EnumType.STRING)
     private PromotionTarget target;
 
-    // 쿠폰발행 프로모션의 경우
-    @OneToOne(mappedBy = "promotion", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    /** 변경 포인트: 여러 프로모션(N) : 하나의 쿠폰(1) */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coupon_id") // DDL에서 추가한 컬럼
     private Coupon coupon;
 }

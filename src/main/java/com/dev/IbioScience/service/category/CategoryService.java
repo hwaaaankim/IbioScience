@@ -134,10 +134,16 @@ public class CategoryService {
 
 	@Transactional
 	public void deleteSmall(Long id) {
-		CategorySmall small = smallRepo.findById(id).orElseThrow(() -> new NoSuchElementException("소분류 없음"));
-		if (mappingRepo.existsBySmall(small))
-			throw new IllegalStateException("매핑된 중분류가 있어 삭제할 수 없습니다.");
-		smallRepo.delete(small);
+	    CategorySmall small = smallRepo.findById(id)
+	        .orElseThrow(() -> new NoSuchElementException("소분류 없음"));
+
+	    if (mappingRepo.existsBySmall(small))
+	        throw new IllegalStateException("매핑된 중분류가 있어 삭제할 수 없습니다.");
+
+	    if (smallRepo.existsProductInSmall(small))
+	        throw new IllegalStateException("해당 소분류에 속한 제품이 있어 삭제할 수 없습니다.");
+
+	    smallRepo.delete(small);
 	}
 
 	// ------------------ 중분류-소분류 매핑 ------------------ //
@@ -171,9 +177,15 @@ public class CategoryService {
 
 	@Transactional
 	public void deleteMapping(Long mappingId) {
-		MediumSmallCategory mapping = mappingRepo.findById(mappingId)
-				.orElseThrow(() -> new NoSuchElementException("매핑 없음"));
-		mappingRepo.delete(mapping);
+	    MediumSmallCategory mapping = mappingRepo.findById(mappingId)
+	        .orElseThrow(() -> new NoSuchElementException("매핑 없음"));
+
+	    CategorySmall small = mapping.getSmall();
+
+	    if (smallRepo.existsProductInSmall(small))
+	        throw new IllegalStateException("해당 소분류에 속한 제품이 있어 매핑을 해제할 수 없습니다.");
+
+	    mappingRepo.delete(mapping);
 	}
 	
 	public List<CategoryLargeApiDTO> getLargeCategories() {

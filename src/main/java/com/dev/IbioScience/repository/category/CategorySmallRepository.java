@@ -24,4 +24,7 @@ public interface CategorySmallRepository extends JpaRepository<CategorySmall, Lo
 
 	Optional<CategorySmall> findByName(String name);
     boolean existsByName(String name);
+    
+    @Query("SELECT COUNT(spc) > 0 FROM SmallProductCategory spc WHERE spc.small = :small")
+    boolean existsProductInSmall(@Param("small") CategorySmall small);
 }

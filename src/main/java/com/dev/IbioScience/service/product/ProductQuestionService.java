@@ -16,6 +16,7 @@ import com.dev.IbioScience.model.product.ProductQuestionOption;
 import com.dev.IbioScience.model.product.enums.QuestionType;
 import com.dev.IbioScience.repository.product.ProductQuestionOptionRepository;
 import com.dev.IbioScience.repository.product.ProductQuestionRepository;
+import com.dev.IbioScience.repository.product.register.ProductAnswerRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +26,7 @@ public class ProductQuestionService {
 
     private final ProductQuestionRepository productQuestionRepository;
     private final ProductQuestionOptionRepository optionRepository;
+    private final ProductAnswerRepository productAnswerRepository; // 추가
     
     public List<ProductQuestionApiDTO> getAllQuestions() {
         List<ProductQuestion> questions = productQuestionRepository.findAllByOrderBySortOrderAsc();
@@ -52,22 +54,34 @@ public class ProductQuestionService {
     // 3. 전체 저장/수정
     @Transactional
     public void saveAllQuestions(List<ProductQuestionDTO> dtos) {
-        // 기존 전체 목록 조회
+        // 기존 전체
         List<ProductQuestion> existing = productQuestionRepository.findAll();
         Map<Long, ProductQuestion> existingMap = existing.stream()
                 .collect(Collectors.toMap(ProductQuestion::getId, q -> q));
 
+        // 프론트에서 온 ID 집합
         Set<Long> incomingIds = dtos.stream()
                 .filter(dto -> dto.getId() != null)
                 .map(ProductQuestionDTO::getId)
                 .collect(Collectors.toSet());
 
-        // 3-1. 삭제 처리 (DB에 있으나, 프론트에는 없는 ID)
-        existing.stream()
+        // === [중요] 삭제 대상 선별 & 삭제 차단 로직 ===
+        List<ProductQuestion> toDelete = existing.stream()
                 .filter(q -> !incomingIds.contains(q.getId()))
-                .forEach(productQuestionRepository::delete);
+                .collect(Collectors.toList());
 
-        // 3-2. 저장/수정 처리
+        for (ProductQuestion q : toDelete) {
+            if (productAnswerRepository.existsByQuestionId(q.getId())) {
+                long cnt = productAnswerRepository.countByQuestionId(q.getId());
+                throw new IllegalStateException(
+                    "등록된 제품이 있어 삭제가 불가능합니다. 사용하지않음 을 이용해 주세요 (질문ID: " + q.getId() + ", 참조 답변 수: " + cnt + ")"
+                );
+            }
+        }
+        // 실제 삭제
+        toDelete.forEach(productQuestionRepository::delete);
+
+        // === 저장/수정 ===
         for (int i = 0; i < dtos.size(); i++) {
             ProductQuestionDTO dto = dtos.get(i);
 
@@ -78,13 +92,11 @@ public class ProductQuestionService {
             question.setLabel(dto.getLabel());
             question.setPlaceholder(dto.getPlaceholder());
             question.setType(dto.getType());
-            question.setRequired(dto.getRequired());
+            question.setRequired(dto.getRequired());   // UI의 표시함/숨김에 매핑 (숨김=required=false)
             question.setSortOrder(i);
-            // display 필드가 실제 DB에 필요하다면 추가
 
-            // 옵션 처리 (SELECT 타입만)
+            // 옵션 처리
             if (dto.getType() == QuestionType.SELECT && dto.getOptions() != null) {
-                // 기존 옵션 모두 삭제 후, 새로 생성(더 세밀하게 할 수도 있음)
                 question.getOptions().clear();
                 for (int j = 0; j < dto.getOptions().size(); j++) {
                     ProductQuestionOption option = new ProductQuestionOption();
@@ -94,7 +106,6 @@ public class ProductQuestionService {
                     question.getOptions().add(option);
                 }
             } else {
-                // 다른 타입일 때 옵션 모두 제거
                 question.getOptions().clear();
             }
 
@@ -105,6 +116,13 @@ public class ProductQuestionService {
     // 4. 단건삭제
     @Transactional
     public void deleteQuestion(Long id) {
+        // 단건 삭제 API 사용시에도 동일한 제약
+        if (productAnswerRepository.existsByQuestionId(id)) {
+            long cnt = productAnswerRepository.countByQuestionId(id);
+            throw new IllegalStateException(
+                "등록된 제품이 있어 삭제가 불가능합니다. 사용하지않음 을 이용해 주세요 (질문ID: " + id + ", 참조 답변 수: " + cnt + ")"
+            );
+        }
         productQuestionRepository.deleteById(id);
     }
 }

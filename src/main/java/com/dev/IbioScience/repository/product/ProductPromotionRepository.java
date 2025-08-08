@@ -3,11 +3,14 @@ package com.dev.IbioScience.repository.product;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.dev.IbioScience.model.product.Promotion;
+import com.dev.IbioScience.model.product.enums.PromotionTerm;
 import com.dev.IbioScience.model.product.enums.PromotionType;
 
 public interface ProductPromotionRepository extends JpaRepository<Promotion, Long> {
@@ -26,5 +29,50 @@ public interface ProductPromotionRepository extends JpaRepository<Promotion, Lon
         @Param("startDate") LocalDate startDate,
         @Param("endDate") LocalDate endDate,
         @Param("active") Boolean active
+    );
+	
+	@Query(
+      value = """
+        SELECT p
+          FROM Promotion p
+         WHERE (:name    IS NULL OR p.name LIKE CONCAT('%', :name, '%'))
+           AND (:active  IS NULL OR p.active = :active)
+           AND (:type    IS NULL OR p.type = :type)
+           AND (:term    IS NULL OR p.term = :term)
+           AND (
+                 (:startDate IS NULL AND :endDate IS NULL)
+              OR (
+                   p.term = com.dev.IbioScience.model.product.enums.PromotionTerm.PERIOD
+               AND (:startDate IS NULL OR p.endDate   >= :startDate)
+               AND (:endDate   IS NULL OR p.startDate <= :endDate)
+                 )
+               )
+         ORDER BY p.id DESC
+      """,
+      countQuery = """
+        SELECT COUNT(p)
+          FROM Promotion p
+         WHERE (:name    IS NULL OR p.name LIKE CONCAT('%', :name, '%'))
+           AND (:active  IS NULL OR p.active = :active)
+           AND (:type    IS NULL OR p.type = :type)
+           AND (:term    IS NULL OR p.term = :term)
+           AND (
+                 (:startDate IS NULL AND :endDate IS NULL)
+              OR (
+                   p.term = com.dev.IbioScience.model.product.enums.PromotionTerm.PERIOD
+               AND (:startDate IS NULL OR p.endDate   >= :startDate)
+               AND (:endDate   IS NULL OR p.startDate <= :endDate)
+                 )
+               )
+      """
+    )
+    Page<Promotion> searchPage(
+            @Param("name") String name,
+            @Param("active") Boolean active,
+            @Param("type") PromotionType type,
+            @Param("term") PromotionTerm term,
+            @Param("startDate") java.time.LocalDate startDate,
+            @Param("endDate") java.time.LocalDate endDate,
+            Pageable pageable
     );
 }

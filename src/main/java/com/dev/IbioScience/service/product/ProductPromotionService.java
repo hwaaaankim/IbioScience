@@ -8,6 +8,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -20,6 +23,7 @@ import com.dev.IbioScience.model.product.Promotion;
 import com.dev.IbioScience.model.product.enums.PromotionTerm;
 import com.dev.IbioScience.model.product.enums.PromotionType;
 import com.dev.IbioScience.repository.product.CouponRepository;
+import com.dev.IbioScience.repository.product.ProductPromotionMappingRepository;
 import com.dev.IbioScience.repository.product.ProductPromotionRepository;
 import com.dev.IbioScience.repository.product.register.ProductRepository;
 
@@ -32,9 +36,10 @@ import lombok.RequiredArgsConstructor;
 public class ProductPromotionService {
 
     @Value("${spring.upload.path}")
-    private String uploadPath; // ex) /home/ubuntu/IbioScience/files/
+    private String uploadPath; 
     
     private final ProductPromotionRepository productPromotionRepository;
+    private final ProductPromotionMappingRepository productPromotionMappingRepository;
     private final ProductRepository productRepository;
     private final CouponRepository couponRepository;
 
@@ -44,35 +49,93 @@ public class ProductPromotionService {
      */
     @Transactional
     public void savePromotion(PromotionRegisterRequest req) {
-        // 1. 타입/필수값 검증
-        if (!StringUtils.hasText(req.getName()) || !StringUtils.hasText(req.getType())) {
-            throw new IllegalArgumentException("프로모션명, 타입 필수");
+        Promotion p = buildPromotionEntity(null, req, null, null);
+        productPromotionRepository.save(p);
+    }
+
+    @Transactional
+    public void updatePromotion(Long id, PromotionRegisterRequest req) {
+        Promotion existing = productPromotionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("프로모션이 존재하지 않습니다."));
+
+        // 기존 아이콘 경로 백업
+        String oldIconPath = existing.getIconPath();
+
+        Promotion updated = buildPromotionEntity(id, req, existing.getIconUrl(), existing.getIconPath());
+        // dirty checking
+        existing.setName(updated.getName());
+        existing.setActive(updated.getActive());
+        existing.setTerm(updated.getTerm());
+        existing.setType(updated.getType());
+        existing.setStartDate(updated.getStartDate());
+        existing.setEndDate(updated.getEndDate());
+        existing.setIconPath(updated.getIconPath());
+        existing.setIconUrl(updated.getIconUrl());
+        existing.setDiscountPercent(updated.getDiscountPercent());
+        existing.setGiftProduct(updated.getGiftProduct());
+        existing.setCoupon(updated.getCoupon());
+
+        // 아이콘 교체 시 이전 파일 삭제
+        if (oldIconPath != null && updated.getIconPath() != null && !oldIconPath.equals(updated.getIconPath())) {
+            try { new File(oldIconPath).delete(); } catch (Exception ignore) {}
+        }
+    }
+
+    /** 등록/수정 공용 엔티티 빌드 + 검증/파일저장 포함 */
+    private Promotion buildPromotionEntity(Long idOrNull, PromotionRegisterRequest req,
+                                           String prevIconUrl, String prevIconPath) {
+        // 공통 필수
+        if (!StringUtils.hasText(req.getName())) {
+            throw new IllegalArgumentException("프로모션명을 입력해주세요.");
+        }
+        if (!StringUtils.hasText(req.getType())) {
+            throw new IllegalArgumentException("프로모션 타입을 선택해주세요.");
+        }
+        if (!StringUtils.hasText(req.getTerm())) {
+            throw new IllegalArgumentException("기간 정책을 선택해주세요.");
         }
 
-        PromotionType type;
-        try {
-            type = PromotionType.valueOf(req.getType());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("잘못된 프로모션 타입입니다.");
-        }
+        // enum 파싱
+        final PromotionType type;
+        try { type = PromotionType.valueOf(req.getType()); }
+        catch (Exception e) { throw new IllegalArgumentException("잘못된 프로모션 타입입니다."); }
 
-        if (type == PromotionType.DISCOUNT) {
-            if (req.getDiscountPercent() == null 
-                    || req.getDiscountPercent().compareTo(BigDecimal.ZERO) < 0
-                    || req.getDiscountPercent().compareTo(new BigDecimal("100")) > 0) {
-                throw new IllegalArgumentException("할인율(0~100%)을 입력해주세요.");
+        final PromotionTerm term;
+        try { term = PromotionTerm.valueOf(req.getTerm()); }
+        catch (Exception e) { throw new IllegalArgumentException("잘못된 기간 정책입니다."); }
+
+        // 기간
+        LocalDate startDate = null, endDate = null;
+        if (term == PromotionTerm.PERIOD) {
+            if (!StringUtils.hasText(req.getStartDate()) || !StringUtils.hasText(req.getEndDate())) {
+                throw new IllegalArgumentException("기간한정일 때 시작일과 종료일은 필수입니다.");
+            }
+            try {
+                startDate = LocalDate.parse(req.getStartDate());
+                endDate = LocalDate.parse(req.getEndDate());
+            } catch (Exception ex) {
+                throw new IllegalArgumentException("시작일/종료일 형식이 올바르지 않습니다(yyyy-MM-dd).");
+            }
+            if (endDate.isBefore(startDate)) {
+                throw new IllegalArgumentException("종료일은 시작일 이후여야 합니다.");
             }
         }
-        if (type == PromotionType.GIFT && req.getGiftProductId() == null) {
-            throw new IllegalArgumentException("증정 상품을 선택해주세요.");
-        }
-        if (type == PromotionType.COUPON && req.getCouponId() == null) {
-            throw new IllegalArgumentException("쿠폰을 선택해주세요.");
+
+        // 타입별 필수
+        if (type == PromotionType.DISCOUNT) {
+            BigDecimal dp = req.getDiscountPercent();
+            if (dp == null || dp.compareTo(BigDecimal.ZERO) < 0 || dp.compareTo(new BigDecimal("100")) > 0) {
+                throw new IllegalArgumentException("할인율(0~100)을 입력해주세요.");
+            }
+        } else if (type == PromotionType.GIFT) {
+            if (req.getGiftProductId() == null) throw new IllegalArgumentException("증정 상품을 선택해주세요.");
+        } else if (type == PromotionType.COUPON) {
+            if (req.getCouponId() == null) throw new IllegalArgumentException("쿠폰을 선택해주세요.");
         }
 
-        // 2. 파일 저장 (아이콘)
-        String iconUrl = null;
-        String iconPath = null;
+        // 파일 저장(선택)
+        String iconUrl = prevIconUrl;
+        String iconPath = prevIconPath;
         try {
             if (req.getIconFile() != null && !req.getIconFile().isEmpty()) {
                 FileSaveResult result = saveIconFile(req.getIconFile());
@@ -83,67 +146,67 @@ public class ProductPromotionService {
             throw new RuntimeException("아이콘 파일 저장 실패: " + e.getMessage(), e);
         }
 
-        // 3. Promotion 생성 및 저장
-        Promotion promotion = new Promotion();
-        promotion.setName(req.getName());
-        promotion.setActive("ACTIVE".equals(req.getStatus()));
-        promotion.setTerm(PromotionTerm.valueOf(req.getTerm()));
-        promotion.setType(type);
+        // 엔티티 조립
+        Promotion p = new Promotion();
+        if (idOrNull != null) p.setId(idOrNull);
+        p.setName(req.getName().trim());
+        p.setActive("ACTIVE".equalsIgnoreCase(req.getStatus()));
+        p.setTerm(term);
+        p.setType(type);
+        p.setStartDate(startDate);
+        p.setEndDate(endDate);
+        p.setIconPath(iconPath);
+        p.setIconUrl(iconUrl);
 
-        promotion.setStartDate(LocalDate.parse(req.getStartDate()));
-        promotion.setEndDate(LocalDate.parse(req.getEndDate()));
-        promotion.setIconPath(iconPath);
-        promotion.setIconUrl(iconUrl);
-
-        // 타입별 설정
+        // 타입별 매핑 + 불필요 필드 정리
         if (type == PromotionType.DISCOUNT) {
-            promotion.setDiscountPercent(req.getDiscountPercent());
+            p.setDiscountPercent(req.getDiscountPercent());
+            p.setGiftProduct(null);
+            p.setCoupon(null);
         } else if (type == PromotionType.GIFT) {
             Product product = productRepository.findById(req.getGiftProductId())
                     .orElseThrow(() -> new IllegalArgumentException("증정상품이 존재하지 않습니다."));
-            promotion.setGiftProduct(product);
+            p.setGiftProduct(product);
+            p.setDiscountPercent(null);
+            p.setCoupon(null);
         } else if (type == PromotionType.COUPON) {
             Coupon coupon = couponRepository.findById(req.getCouponId())
                     .orElseThrow(() -> new IllegalArgumentException("쿠폰이 존재하지 않습니다."));
-            promotion.setCoupon(coupon);
-            coupon.setPromotion(promotion); // 양방향 연결
+            p.setCoupon(coupon);
+            p.setDiscountPercent(null);
+            p.setGiftProduct(null);
+        } else { // ONE_PLUS_ONE
+            p.setDiscountPercent(null);
+            p.setGiftProduct(null);
+            p.setCoupon(null);
         }
-        // ONE_PLUS_ONE 타입은 별도 처리 없음
 
-        try {
-            productPromotionRepository.save(promotion);
-        } catch (Exception dbEx) {
-            // DB 저장 실패시 파일 삭제
-            if (iconPath != null) {
-                try { new File(iconPath).delete(); }
-                catch (Exception delEx) { /* 로그만 */ }
-            }
-            throw dbEx;
-        }
+        return p;
     }
 
-    /**
-     * 아이콘 파일 저장 처리 및 URL 반환
-     */
+    /** 아이콘 저장 */
     private FileSaveResult saveIconFile(MultipartFile file) throws IOException {
+        String contentType = file.getContentType();
+        if (contentType == null ||
+            !(contentType.equalsIgnoreCase("image/png")
+                || contentType.equalsIgnoreCase("image/jpeg")
+                || contentType.equalsIgnoreCase("image/gif"))) {
+            throw new IllegalArgumentException("이미지 파일(png/jpg/gif)만 업로드 가능합니다.");
+        }
+
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String folder = "promotion/" + today + "/icon/";
         File dir = new File(uploadPath, folder);
-        if (!dir.exists()) dir.mkdirs();
+        if (!dir.exists() && !dir.mkdirs()) throw new IOException("업로드 디렉토리 생성 실패: " + dir.getAbsolutePath());
 
-        String origName = file.getOriginalFilename();
-        String ext = "";
-        if (origName != null && origName.contains(".")) {
-            ext = origName.substring(origName.lastIndexOf("."));
-        }
-        String fileName = System.currentTimeMillis() + "_" + (origName != null ? origName.replaceAll("[^\\w.]", "_") : "icon") + ext;
+        String orig = file.getOriginalFilename();
+        String safe = (orig != null ? orig.replaceAll("[^\\w.\\-]", "_") : "icon");
+        String fileName = System.currentTimeMillis() + "_" + safe;
 
         File dest = new File(dir, fileName);
         file.transferTo(dest);
 
-        String url = "/upload/" + folder + fileName;
-        String path = dest.getAbsolutePath();
-        return new FileSaveResult(url, path);
+        return new FileSaveResult("/upload/" + folder + fileName, dest.getAbsolutePath());
     }
 
     @Transactional(readOnly = true)
@@ -162,5 +225,33 @@ public class ProductPromotionService {
     private static class FileSaveResult {
         private final String url;
         private final String path;
+    }
+    
+    @Transactional(readOnly = true)
+    public Page<Promotion> getPromotionPage(String name,
+                                            Boolean active,
+                                            PromotionTerm term,
+                                            LocalDate startDate,
+                                            LocalDate endDate,
+                                            PromotionType type,
+                                            int page,
+                                            int size) {
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1));
+        return productPromotionRepository.searchPage(name, active, type, term, startDate, endDate, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Promotion getOne(Long id) {
+        return productPromotionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("프로모션이 존재하지 않습니다."));
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        long useCnt = productPromotionMappingRepository.countByPromotion_Id(id);
+        if (useCnt > 0) {
+            throw new IllegalStateException("해당 프로모션이 등록된 제품이 있어 삭제할 수 없습니다.");
+        }
+        productPromotionRepository.deleteById(id);
     }
 }

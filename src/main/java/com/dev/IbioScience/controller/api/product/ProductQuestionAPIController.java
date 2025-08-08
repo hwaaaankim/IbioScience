@@ -39,16 +39,24 @@ public class ProductQuestionAPIController {
 
     // 3. 전체 저장/수정(리스트 통째로)
     @PostMapping
-    public ResponseEntity<Void> saveQuestions(@RequestBody List<ProductQuestionDTO> questionDtos) {
-        productQuestionService.saveAllQuestions(questionDtos);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> saveQuestions(@RequestBody List<ProductQuestionDTO> questionDtos) {
+        try {
+            productQuestionService.saveAllQuestions(questionDtos);
+            return ResponseEntity.ok().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // 4. 단건 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
-        productQuestionService.deleteQuestion(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> deleteQuestion(@PathVariable Long id) {
+        try {
+            productQuestionService.deleteQuestion(id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
     
     @GetMapping("/list-common")

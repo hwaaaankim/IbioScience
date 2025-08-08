@@ -10,6 +10,9 @@ import com.dev.IbioScience.model.product.ProductAnswer;
 public interface ProductAnswerRepository extends JpaRepository<ProductAnswer, Long> {
 	// 답변ID 없이 product/question 기준 조회
 	Optional<ProductAnswer> findByProductAndQuestionId(Product product, Long questionId);
+	
+	boolean existsByQuestionId(Long questionId);
+    long countByQuestionId(Long questionId);
 
 }
 
