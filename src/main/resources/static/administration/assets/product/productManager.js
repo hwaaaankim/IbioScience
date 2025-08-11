@@ -8,18 +8,40 @@
 	const $large = document.getElementById('pl-large');
 	const $medium = document.getElementById('pl-medium');
 	const $small = document.getElementById('pl-small');
+	const $reset = document.getElementById('pl-reset');
+
+	const $dateFrom = $form.querySelector('input[name="dateFrom"]');
+	const $dateTo = $form.querySelector('input[name="dateTo"]');
 
 	let externalMappings = []; // /api/category/mapping/all (중-소 N:N)
 	let currentPage = 1;
 
-	// 날짜 빠른선택
+	function formatYMD(d) {
+		const y = d.getFullYear();
+		const m = String(d.getMonth() + 1).padStart(2, '0');
+		const day = String(d.getDate()).padStart(2, '0');
+		return `${y}-${m}-${day}`;
+	}
+
+	// 오늘/7일/1개월(=30일) 버튼: from/to 모두 설정, 자동 조회는 하지 않음
 	document.querySelectorAll('.product-list-date-btn').forEach(btn => {
 		btn.addEventListener('click', () => {
-			$form.dateQuick.value = btn.dataset.q;
-			if (btn.dataset.q !== 'RANGE') {
-				$form.dateFrom.value = '';
-				$form.dateTo.value = '';
+			const q = btn.dataset.q;
+			const today = new Date();
+			const to = new Date(today); // 종료일 = 오늘
+			const from = new Date(today);
+
+			if (q === 'TODAY') {
+				// from = today, to = today
+				// 그대로 유지
+			} else if (q === 'D7') {
+				from.setDate(today.getDate() - 7); // 7일 전 ~ 오늘
+			} else if (q === 'M1') {
+				from.setDate(today.getDate() - 30); // 30일 전 ~ 오늘
 			}
+
+			$dateFrom.value = formatYMD(from);
+			$dateTo.value = formatYMD(to);
 		});
 	});
 
@@ -42,6 +64,27 @@
 		fetchList();
 	});
 
+	// 초기화 버튼: 모든 검색조건 초기화
+	$reset.addEventListener('click', () => {
+		// form reset
+		$form.reset();
+
+		// 분류 드롭다운 초기화
+		$large.innerHTML = '<option value="">전체</option>';
+		$medium.innerHTML = '<option value="">전체</option>';
+		$small.innerHTML = '<option value="">전체</option>';
+
+		// 페이지 크기 기본값 유지(필요 시 강제 설정)
+		$size.value = '10';
+
+		// 테이블/요약 초기 메시지
+		$tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4">검색해 주세요.</td></tr>`;
+		$summary.textContent = '';
+
+		// 첫 로딩용 대분류 새로 로드
+		loadLarge();
+	});
+
 	// 외부분류 맵핑 미리 로딩(대/중/소 카운트 계산용)
 	async function preloadExternalMapping() {
 		try {
@@ -57,6 +100,7 @@
 
 		if ($mode.value === 'INTERNAL') {
 			const res = await fetch('/api/internal-category/list-large');
+			if (!res.ok) return;
 			const data = await res.json();
 			data.forEach(d => {
 				// d: {id,name,mediumCount}
@@ -64,10 +108,10 @@
 					`<option value="${d.id}">${d.name} (${d.mediumCount})</option>`);
 			});
 		} else if ($mode.value === 'EXTERNAL') {
-			// 외부 대분류 목록 + (중분류 수)
 			const res = await fetch('/api/category/large');
+			if (!res.ok) return;
 			const larges = await res.json();
-			const mediums = await fetch('/api/category/medium').then(r => r.json());
+			const mediums = await fetch('/api/category/medium').then(r => r.ok ? r.json() : []);
 			larges.forEach(L => {
 				const cnt = mediums.filter(m => m.largeId === L.id || (m.large && m.large.id === L.id)).length;
 				$large.insertAdjacentHTML('beforeend',
@@ -85,6 +129,7 @@
 
 		if ($mode.value === 'INTERNAL') {
 			const res = await fetch(`/api/internal-category/list-medium?largeId=${lid}`);
+			if (!res.ok) return;
 			const data = await res.json();
 			data.forEach(d => {
 				$medium.insertAdjacentHTML('beforeend',
@@ -92,6 +137,7 @@
 			});
 		} else if ($mode.value === 'EXTERNAL') {
 			const res = await fetch(`/api/category/list-medium?largeId=${lid}`);
+			if (!res.ok) return;
 			const data = await res.json();
 			// 중분류별 소분류 수는 mapping 으로 계산
 			data.forEach(m => {
@@ -109,12 +155,14 @@
 
 		if ($mode.value === 'INTERNAL') {
 			const res = await fetch(`/api/internal-category/list-small?mediumId=${mid}`);
+			if (!res.ok) return;
 			const data = await res.json();
 			data.forEach(d => {
 				$small.insertAdjacentHTML('beforeend', `<option value="${d.id}">${d.name}</option>`);
 			});
 		} else if ($mode.value === 'EXTERNAL') {
 			const res = await fetch(`/api/category/list-small?mediumId=${mid}`);
+			if (!res.ok) return;
 			const data = await res.json();
 			data.forEach(d => {
 				$small.insertAdjacentHTML('beforeend', `<option value="${d.id}">${d.name}</option>`);
@@ -128,12 +176,6 @@
 
 		const params = new URLSearchParams(new FormData($form));
 		params.set('page', currentPage);
-		// 외부분류에서 large/medium 선택만 한 경우, small까지 계산해서 전달(서버는 smallId만 신뢰)
-		if ($mode.value === 'EXTERNAL' && !params.get('smallId')) {
-			// medium 선택 시 그 중분류에 매핑된 small 중 첫번째를 auto 로 보내지 않고,
-			// 서버가 smallId만 지원하므로, 사용자가 최종 소분류까지 선택하도록 UX 유지
-			// (필요시 smallIds[] 다중 파라미터로 확장 가능)
-		}
 
 		const res = await fetch('/api/product/list?' + params.toString());
 		if (!res.ok) {
@@ -151,52 +193,48 @@
 	}
 
 	function renderTable(page) {
-	  const list = page.content || [];
-	  if (list.length === 0) {
-	    $tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4">결과가 없습니다.</td></tr>`;
-	    $summary.textContent = '0건';
-	    return;
-	  }
-	
-	  $tbody.innerHTML = list.map(r => {
-	    const img = r.imageUrl
-	      ? `<img src="${r.imageUrl}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:8px;">`
-	      : '-';
-	
-	    const dealer = r.dealerPrices
-	      ? Object.entries(r.dealerPrices).map(([g, price]) => `${g} ${fmt(price)}`).join(' / ')
-	      : '-';
-	
-	    // promotionTypes는 서버에서 Set<PromotionType>일 수 있어 배열로 보장
-	    const promoArr = Array.isArray(r.promotionTypes)
-	      ? r.promotionTypes
-	      : (r.promotionTypes ? [...r.promotionTypes] : []);
-	    const promo = (promoArr && promoArr.length) ? promoArr.join(' / ') : '-';
-	
-	    // 리스트의 분류 표시는 항상 소비자용 외부분류(요약)
-	    const categoryText = (r.externalCategorySummary ?? '-');
-	
-	    return `
-	      <tr>
-	        <td><input type="checkbox" data-id="${r.id}"></td>
-	        <td>${r.id}</td>
-	        <td>${r.internalProductCode ?? '-'}</td>
-	        <td>${categoryText}</td>
-	        <td>${img}</td>
-	        <td><a th:href="@{/productDetail/${r.id}}" href="/productDetail/${r.id}" class="text-decoration-underline">${r.name}</a></td>
-	        <td class="text-end">${fmt(r.consumerPrice)}</td>
-	        <td class="text-end">${fmt(r.salePrice)}</td>
-	        <td>${dealer}</td>
-	        <td>${promo}</td>
-	      </tr>`;
-	  }).join('');
-	
-	  const start = page.number * page.size + 1;
-	  const end = start + list.length - 1;
-	  $summary.textContent = `${fmt(page.totalElements)}건 중 ${fmt(start)}–${fmt(end)}`;
+		const list = page.content || [];
+		if (list.length === 0) {
+			$tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4">결과가 없습니다.</td></tr>`;
+			$summary.textContent = '0건';
+			return;
+		}
+
+		$tbody.innerHTML = list.map(r => {
+			const img = r.imageUrl
+				? `<img src="${r.imageUrl}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:8px;">`
+				: '-';
+
+			const dealer = r.dealerPrices
+				? Object.entries(r.dealerPrices).map(([g, price]) => `${g} ${fmt(price)}`).join(' / ')
+				: '-';
+
+			const promoArr = Array.isArray(r.promotionTypes)
+				? r.promotionTypes
+				: (r.promotionTypes ? [...r.promotionTypes] : []);
+			const promo = (promoArr && promoArr.length) ? promoArr.join(' / ') : '-';
+
+			const categoryText = (r.externalCategorySummary ?? '-');
+
+			return `
+        <tr>
+          <td><input type="checkbox" data-id="${r.id}"></td>
+          <td>${r.id}</td>
+          <td>${r.internalProductCode ?? '-'}</td>
+          <td>${categoryText}</td>
+          <td>${img}</td>
+          <td><a th:href="@{/productDetail/${r.id}}" href="/productDetail/${r.id}" class="text-decoration-underline">${r.name}</a></td>
+          <td class="text-end">${fmt(r.consumerPrice)}</td>
+          <td class="text-end">${fmt(r.salePrice)}</td>
+          <td>${dealer}</td>
+          <td>${promo}</td>
+        </tr>`;
+		}).join('');
+
+		const start = page.number * page.size + 1;
+		const end = start + list.length - 1;
+		$summary.textContent = `${fmt(page.totalElements)}건 중 ${fmt(start)}–${fmt(end)}`;
 	}
-
-
 
 	function renderPagination(page) {
 		const totalPages = page.totalPages || 1;
@@ -206,8 +244,8 @@
 		const items = [];
 		function li(p, label, disabled = false, active = false) {
 			return `<li class="page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="${p}">${label}</a>
-              </li>`;
+        <a class="page-link" href="#" data-page="${p}">${label}</a>
+      </li>`;
 		}
 		items.push(li(1, '처음', now === 1));
 		items.push(li(Math.max(1, now - 1), '이전', now === 1));
@@ -217,9 +255,7 @@
 		let to = Math.min(totalPages, from + span - 1);
 		from = Math.max(1, Math.min(from, to - span + 1));
 
-		for (let p = from; p <= to; p++) {
-			items.push(li(p, p, false, p === now));
-		}
+		for (let p = from; p <= to; p++) items.push(li(p, p, false, p === now));
 
 		items.push(li(Math.min(totalPages, now + 1), '다음', now === totalPages));
 		items.push(li(totalPages, '마지막', now === totalPages));

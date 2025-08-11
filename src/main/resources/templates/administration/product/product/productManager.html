@@ -53,11 +53,7 @@
 											<button type="button"
 												class="btn btn-outline-secondary btn-md product-list-date-btn w-100"
 												data-q="M1">1개월</button>
-											<button type="button"
-												class="btn btn-outline-secondary btn-md product-list-date-btn w-100"
-												data-q="RANGE">범위</button>
 										</div>
-										<input type="hidden" name="dateQuick" value="">
 									</div>
 									<div class="col-md-3 d-flex gap-1">
 										<div class="flex-grow-1">
@@ -70,6 +66,7 @@
 										</div>
 									</div>
 								</div>
+
 								<div class="row align-items-end mb-2">
 									<!-- 진열/판매 -->
 									<div class="col-md-3">
@@ -102,6 +99,7 @@
 										<input type="text" class="form-control" name="keyword" placeholder="검색어를 입력하세요">
 									</div>
 								</div>
+
 								<div class="row align-items-end mb-2">
 									<!-- 분류모드 -->
 									<div class="col-md-2">
@@ -138,11 +136,13 @@
 										</select>
 									</div>
 
-									<div class="col-md-2">
+									<div class="col-md-2 d-flex gap-2">
 										<button type="submit" class="btn btn-primary w-100">제품검색</button>
+										<button type="button" id="pl-reset" class="btn btn-light w-100">초기화</button>
 									</div>
 								</div>
 							</form>
+
 
 							<!-- 리스트 -->
 							<div class="table-responsive mt-3">
