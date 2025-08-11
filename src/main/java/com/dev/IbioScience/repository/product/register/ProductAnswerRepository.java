@@ -1,8 +1,11 @@
 package com.dev.IbioScience.repository.product.register;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.dev.IbioScience.model.product.Product;
 import com.dev.IbioScience.model.product.ProductAnswer;
@@ -16,6 +19,11 @@ public interface ProductAnswerRepository extends JpaRepository<ProductAnswer, Lo
     
     Optional<ProductAnswer> findTopByProductIdAndQuestionIdOrderByIdAsc(Long productId, Long questionId);
 
+    @Query("select a from ProductAnswer a " +
+           "join fetch a.question q " +
+           "where a.product.id = :pid " +
+           "order by q.sortOrder asc, q.id asc, a.id asc")
+    List<ProductAnswer> findByProductWithQuestion(@Param("pid") Long productId);
 }
 
 

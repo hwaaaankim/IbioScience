@@ -13,4 +13,6 @@ public interface ProductGradeBenefitRepository extends JpaRepository<ProductGrad
 	// 페이징 결과의 productIds 에 대해 한 번에 등급혜택 조회
     @Query("select pgb from ProductGradeBenefit pgb where pgb.product.id in :ids")
     List<ProductGradeBenefit> findByProductIds(@Param("ids") Collection<Long> ids);
+    
+    List<ProductGradeBenefit> findByProductId(Long productId);
 }

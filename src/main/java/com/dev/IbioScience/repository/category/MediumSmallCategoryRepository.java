@@ -33,4 +33,11 @@ public interface MediumSmallCategoryRepository extends JpaRepository<MediumSmall
     
     @Query("select msc from MediumSmallCategory msc where msc.small.id in :smallIds")
     List<MediumSmallCategory> findBySmallIds(@Param("smallIds") Collection<Long> smallIds);
+    
+    @Query("select msc from MediumSmallCategory msc " +
+            "join fetch msc.medium m " +
+            "join fetch m.large l " +
+            "where msc.small.id = :smallId " +
+            "order by coalesce(msc.sortOrder, 0) asc, m.id asc")
+     List<MediumSmallCategory> findPathsBySmall(@Param("smallId") Long smallId);
 }

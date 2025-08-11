@@ -19,12 +19,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.dev.IbioScience.dto.productDetail.ProductDetailReadResponseDTO;
 import com.dev.IbioScience.dto.productList.ProductListFilter;
 import com.dev.IbioScience.dto.productList.ProductListRowDTO;
 import com.dev.IbioScience.dto.productRegister.ProductRegisterMoveEditorImageRequestDTO;
 import com.dev.IbioScience.dto.productRegister.ProductRegisterRequestDTO;
+import com.dev.IbioScience.dto.productRegister.ProductSimpleDTO;
 import com.dev.IbioScience.service.category.ProductService;
-import com.dev.IbioScience.service.category.ProductService.ProductSimpleDto;
+import com.dev.IbioScience.service.product.ProductDetailQueryService;
 import com.dev.IbioScience.service.product.ProductListService;
 import com.dev.IbioScience.service.product.ProductRegisterService;
 
@@ -38,10 +40,27 @@ public class ProductAPIController {
 	private final ProductService productService;
     private final ProductRegisterService productRegisterService;
     private final ProductListService productListService;
+    private final ProductDetailQueryService productDetailQueryService;
+
+    @GetMapping("/{id}/detail")
+    public ResponseEntity<ProductDetailReadResponseDTO> getDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(productDetailQueryService.getDetail(id));
+    }
     
     @GetMapping("/list-simple")
-    public List<ProductSimpleDto> listSimple(@RequestParam Long smallId) {
-        return productService.getSimpleProductListBySmallId(smallId);
+    public List<ProductSimpleDTO> listSimple(
+            @RequestParam(required = false) Long largeId,
+            @RequestParam(required = false) Long mediumId,
+            @RequestParam(required = false) Long smallId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        // 완전 하위호환: smallId만 들어온 경우 기존 로직도 그대로 지원
+        if (largeId == null && mediumId == null && keyword == null && smallId != null && page == null && size == null) {
+            return productService.getSimpleProductListBySmallIdLegacy(smallId);
+        }
+        return productService.searchSimpleProducts(largeId, mediumId, smallId, keyword, page, size);
     }
     
     @GetMapping("/list")

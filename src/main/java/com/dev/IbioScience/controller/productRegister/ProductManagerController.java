@@ -1,6 +1,7 @@
 package com.dev.IbioScience.controller.productRegister;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -23,12 +24,9 @@ public class ProductManagerController {
 	}
 	
 	@GetMapping("/productDetail/{id}")
-	public String productDetail(
-			@PathVariable Long id
-			) {
-		
-		return "administration/product/product/productDetail";
-	}
+    public String productDetail(@PathVariable Long id, Model model) {
+        return "administration/product/product/productDetail";
+    }
 	
 	@GetMapping("/productUpdate")
 	public String productUpdate() {

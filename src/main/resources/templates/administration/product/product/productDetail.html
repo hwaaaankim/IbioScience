@@ -2,7 +2,7 @@
 <html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
 	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragments/administration/common :: ibioAdminHead('상품 관리')}"></head>
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('상품 상세/수정')}"></head>
 
 <body>
 	<div id="layout-wrapper">
@@ -13,14 +13,15 @@
 		<div class="main-content">
 			<div class="page-content">
 				<div class="container-fluid">
+
 					<div class="row">
 						<div class="col-12">
 							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
-								<h4 class="mb-sm-0">상품 관리</h4>
+								<h4 class="mb-sm-0">상품 상세/수정</h4>
 								<div class="page-title-right">
 									<ol class="breadcrumb m-0">
 										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
-										<li class="breadcrumb-item active">상품 등록</li>
+										<li class="breadcrumb-item active">상품 상세/수정</li>
 									</ol>
 								</div>
 							</div>
@@ -96,6 +97,8 @@
 											<input type="radio" class="btn-check" name="displayStatus" id="displayOn"
 												value="ON" checked>
 											<label class="btn btn-outline-primary btn-sm" for="displayOn">ON</label>
+											<input type="radio" class="btn-check" name="saleStatusX"
+												style="display:none" disabled> <!-- spacer -->
 											<input type="radio" class="btn-check" name="displayStatus" id="displayOff"
 												value="OFF">
 											<label class="btn btn-outline-secondary btn-sm" for="displayOff">OFF</label>
@@ -150,6 +153,7 @@
 										<input type="text" class="form-control form-control-sm" id="supplierText"
 											placeholder="공급사명 입력">
 									</div>
+
 									<div class="col-md-6 mb-2">
 										<label class="form-label mb-1">브랜드</label>
 										<div class="row">
@@ -166,19 +170,23 @@
 											<div class="col-12" id="brand-selected-area"></div>
 										</div>
 									</div>
+
 									<div class="col-md-6 mb-2">
 										<label class="form-label mb-1">자체 상품코드</label>
 										<input type="text" class="form-control form-control-sm" id="internalProductCode"
 											placeholder="내부상품코드">
 									</div>
+
 									<div class="col-md-6 mb-2">
 										<label class="form-label mb-1">제조일자</label>
 										<input type="date" class="form-control form-control-sm" id="manufacturedAt">
 									</div>
+
 									<div class="col-md-6 mb-2">
 										<label class="form-label mb-1">공급일자</label>
 										<input type="date" class="form-control form-control-sm" id="expiredAt">
 									</div>
+
 									<div class="col-md-6 mb-2">
 										<label class="form-label mb-1">신상상태</label>
 										<select class="form-select form-select-sm" id="newState">
@@ -187,21 +195,25 @@
 											<option value="DISPLAY">전시상품</option>
 										</select>
 									</div>
+
 									<div class="col-md-6 mb-2">
 										<label class="form-label mb-1">소비자가격</label>
 										<input type="number" class="form-control form-control-sm" id="consumerPrice"
 											min="0" placeholder="원">
 									</div>
+
 									<div class="col-md-6 mb-2">
 										<label class="form-label mb-1">판매가격</label>
 										<input type="number" class="form-control form-control-sm" id="salePrice" min="0"
 											placeholder="원">
 									</div>
+
 									<div class="col-md-6 mb-2">
 										<label class="form-label mb-1">적립금(%)</label>
 										<input type="number" class="form-control form-control-sm" id="rewardRate"
 											min="0" max="100" step="0.01" placeholder="예: 2.5">
 									</div>
+
 									<div class="col-md-6 mb-2">
 										<label class="form-label mb-1">유효기간 (시작~종료)</label>
 										<div class="input-group">
@@ -209,11 +221,13 @@
 											<input type="date" class="form-control form-control-sm" id="validTo">
 										</div>
 									</div>
+
 									<div class="col-md-6 mb-2">
 										<label class="form-label mb-1">상품 요약설명</label>
 										<input type="text" class="form-control form-control-sm" id="summaryDescription"
 											maxlength="255">
 									</div>
+
 									<div class="col-md-12 mb-2">
 										<label class="form-label mb-1">상품 간략설명</label>
 										<textarea class="form-control form-control-sm" id="shortDescription" rows="2"
@@ -336,7 +350,7 @@
 								</div>
 							</div>
 
-							<!-- 아이콘 설정 (신규) -->
+							<!-- 아이콘 설정 -->
 							<div class="product-manager-section">
 								<div class="product-manager-section-title">아이콘 설정</div>
 								<div class="row g-2">
@@ -358,7 +372,6 @@
 											accept="image/*">
 										<div class="form-text">※ 등록 시 제품 아이콘으로 노출됩니다.</div>
 									</div>
-
 								</div>
 							</div>
 
@@ -413,12 +426,13 @@
 								<div id="bundle-products-list" class="d-flex flex-wrap gap-2"></div>
 							</div>
 
-							<!-- 등록 버튼 -->
+							<!-- 등록/저장 버튼 (id 유지) -->
 							<div class="mt-4 text-end">
-								<button type="submit" class="btn btn-primary px-4" id="submitProductBtn">제품 등록</button>
+								<button type="submit" class="btn btn-primary px-4" id="submitProductBtn">저장</button>
 							</div>
 						</div>
 					</div>
+
 				</div>
 			</div>
 
@@ -428,10 +442,15 @@
 
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 	<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
-	<script src="/administration/assets/product/productInsertForm.js"></script>
+
+	<!-- ✅ 상세 전용 스크립트 -->
+	<script src="/administration/assets/product/productDetail.js"></script>
+
+	<!-- ======================= 모달들 (insert와 동일) ======================= -->
 
 	<!-- 관련상품 모달 -->
 	<div class="related-modal-root" id="relatedProductModal" style="display:none;" aria-hidden="true">
@@ -472,14 +491,13 @@
 						<div class="col-auto d-flex gap-2">
 							<button type="button" class="btn btn-outline-secondary btn-sm"
 								id="related-product-search-btn">검색</button>
-							<!-- 신규: 선택추가(체크 → 임시리스트) -->
 							<button type="button" class="btn btn-outline-primary btn-sm"
 								id="related-select-append-btn">선택추가</button>
 						</div>
 					</div>
+
 					<div id="related-modal-product-list" class="border rounded p-2"
 						style="max-height:240px;overflow:auto;"></div>
-					<!-- 임시 선택/정렬 리스트 -->
 					<div class="mt-2">
 						<div class="small text-muted mb-1">선택한 관련상품(드롭다운 화살표로 순서 조정 가능)</div>
 						<div id="related-modal-selected-list"></div>
@@ -487,7 +505,6 @@
 				</div>
 				<div class="related-modal-footer">
 					<button type="button" class="btn btn-secondary btn-sm related-modal-cancel">취소</button>
-					<!-- 기존 '등록'은 최종 반영 -->
 					<button type="button" class="btn btn-primary btn-sm" id="related-register-btn">등록</button>
 				</div>
 			</div>
@@ -590,6 +607,7 @@
 			</div>
 		</div>
 	</div>
+
 </body>
 
 </html>

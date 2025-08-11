@@ -35,4 +35,8 @@ public interface ProductPromotionMappingRepository extends JpaRepository<Product
         "where ppm.product.id in :ids"
     )
     List<Object[]> findAllPromotionTypesByProductIds(@Param("ids") Collection<Long> ids);
+    @Query("select m from ProductPromotionMapping m " +
+           "join fetch m.promotion pr " +
+           "where m.product.id = :pid")
+    List<ProductPromotionMapping> findByProductWithPromotion(@Param("pid") Long productId);
 }

@@ -20,4 +20,7 @@ public interface SmallProductCategoryRepository extends JpaRepository<SmallProdu
 	
 	@Query("select spc from SmallProductCategory spc where spc.product.id in :ids")
     List<SmallProductCategory> findByProductIds(@Param("ids") Collection<Long> productIds);
+	
+	@Query("select spc from SmallProductCategory spc join fetch spc.small s where spc.product.id = :pid")
+    List<SmallProductCategory> findByProductWithSmall(@Param("pid") Long productId);
 }
