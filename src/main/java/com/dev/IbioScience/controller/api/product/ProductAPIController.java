@@ -1,24 +1,31 @@
 package com.dev.IbioScience.controller.api.product;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.dev.IbioScience.dto.MoveEditorImageRequestDTO;
-import com.dev.IbioScience.dto.ProductRegisterRequestDTO;
+import com.dev.IbioScience.dto.productList.ProductListFilter;
+import com.dev.IbioScience.dto.productList.ProductListRowDTO;
+import com.dev.IbioScience.dto.productRegister.ProductRegisterMoveEditorImageRequestDTO;
+import com.dev.IbioScience.dto.productRegister.ProductRegisterRequestDTO;
 import com.dev.IbioScience.service.category.ProductService;
 import com.dev.IbioScience.service.category.ProductService.ProductSimpleDto;
+import com.dev.IbioScience.service.product.ProductListService;
 import com.dev.IbioScience.service.product.ProductRegisterService;
 
 import lombok.RequiredArgsConstructor;
@@ -30,216 +37,265 @@ public class ProductAPIController {
     
 	private final ProductService productService;
     private final ProductRegisterService productRegisterService;
+    private final ProductListService productListService;
     
     @GetMapping("/list-simple")
     public List<ProductSimpleDto> listSimple(@RequestParam Long smallId) {
         return productService.getSimpleProductListBySmallId(smallId);
     }
     
-    // 에디터 이미지 임시 업로드
+    @GetMapping("/list")
+    @ResponseBody
+    public Page<ProductListRowDTO> list(ProductListFilter filter) {
+        return productListService.search(filter);
+    }
+    
     @PostMapping(value = "/editor-images", consumes = "multipart/form-data")
     public ResponseEntity<?> uploadEditorImages(
             @RequestParam("files") List<MultipartFile> files,
-            @RequestParam(value = "type", required = false) String type, // "detailHtml" 또는 "question"
-            @RequestParam(value = "key", required = false) String key // "question_1" 등
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "key", required = false) String key
     ) {
-        // 만약 type, key가 필요 없다면 아래 한 줄로 유지
         List<String> urlList = productRegisterService.uploadEditorImages(files, type, key);
-
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
         result.put("imageUrls", urlList);
         return ResponseEntity.ok(result);
     }
-    
+
     @PostMapping("/{productId}/move-editor-images")
     public ResponseEntity<?> moveEditorImages(
             @PathVariable Long productId,
-            @RequestBody MoveEditorImageRequestDTO request
+            @RequestBody ProductRegisterMoveEditorImageRequestDTO request
     ) {
         String newHtml = productRegisterService.moveEditorImages(
-            productId,
-            request.getType(),
-            request.getKey(),
-            request.getHtml(),
-            request.getTempImgList()
+                productId,
+                request.getType(),
+                request.getKey(),
+                request.getHtml(),
+                request.getTempImgList()
         );
         return ResponseEntity.ok(Map.of("success", true, "newHtml", newHtml));
     }
-    
+
     @PostMapping(value = "/insert", consumes = {"multipart/form-data"})
     public ResponseEntity<?> registerProduct(
-            @RequestParam Map<String, String> params,
-            @RequestParam(required = false) Map<String, MultipartFile> files) throws IOException {
+            @RequestParam MultiValueMap<String, String> params,
+            @RequestParam(required = false) MultiValueMap<String, MultipartFile> files
+    ) throws IOException {
 
-        // DTO 파싱
         ProductRegisterRequestDTO dto = mapToRegisterRequestDTO(params, files);
-
-        // 디버깅 전체 출력
-        System.out.println("==== [ProductRegisterRequestDTO 전체 출력] ====");
-        System.out.println(dto);
-
-        // 실제 서비스 처리
         Long productId = productRegisterService.registerProduct(dto);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("productId", productId);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(Map.of("success", true, "productId", productId));
     }
 
-    // -- FormData → DTO 변환 로직
-    private ProductRegisterRequestDTO mapToRegisterRequestDTO(Map<String, String> params, Map<String, MultipartFile> files) {
+    private ProductRegisterRequestDTO mapToRegisterRequestDTO(MultiValueMap<String, String> params,
+                                                              MultiValueMap<String, MultipartFile> files) {
         ProductRegisterRequestDTO dto = new ProductRegisterRequestDTO();
 
-        // 1. 소분류(카테고리)
-        for (int i = 0; ; i++) {
-            String v = params.get("categorySmallIds[" + i + "]");
-            if (v == null) break;
-            dto.getCategorySmallIds().add(Long.valueOf(v));
-        }
-        if (params.containsKey("categorySmallIds[]")) {
-            // 배열 [] 형태도 병행 지원
-            for (String v : params.get("categorySmallIds[]").split(",")) {
-                if (v != null && !v.isEmpty()) dto.getCategorySmallIds().add(Long.valueOf(v));
+        dto.setProductName(nvl(params.getFirst("productName")));
+        dto.setProductCode(nvl(params.getFirst("productCode")));
+        dto.setDisplayStatus(nvl(params.getFirst("displayStatus")));
+        dto.setSaleStatus(nvl(params.getFirst("saleStatus")));
+        dto.setDetailHtml(nvl(params.getFirst("detailHtml")));
+
+        List<String> smalls = params.get("categorySmallIds[]");
+        if (smalls != null) {
+            for (String v : smalls) {
+                if (notEmpty(v)) dto.getCategorySmallIds().add(Long.valueOf(v));
+            }
+        } else {
+            for (int i = 0; ; i++) {
+                String v = params.getFirst("categorySmallIds[" + i + "]");
+                if (v == null) break;
+                if (notEmpty(v)) dto.getCategorySmallIds().add(Long.valueOf(v));
             }
         }
 
-        // 2. 공통표시옵션 (질문/옵션/CKEditor/파일)
-        // - name=question_{id}
-        params.forEach((k, v) -> {
-            if (k.startsWith("question_")) {
-                dto.getDisplayOptions().put(k, v);
-            }
-        });
         if (files != null) {
-            files.forEach((k, v) -> {
-                if (k.startsWith("question_")) {
-                    dto.getDisplayOptionFiles().put(k, v);
-                }
-            });
-        }
-
-        // 3. 기본정보
-        dto.setProductName(params.getOrDefault("productName", ""));
-        dto.setProductCode(params.getOrDefault("productCode", ""));
-        dto.setDisplayStatus(params.getOrDefault("displayStatus", ""));
-        dto.setSaleStatus(params.getOrDefault("saleStatus", ""));
-        dto.setDetailHtml(params.getOrDefault("detailHtml", ""));
-
-        // 4. 대표/추가이미지
-        if (files != null && files.containsKey("mainImage")) {
-            dto.setMainImage(files.get("mainImage"));
-        }
-        if (files != null) {
-            int i = 0;
-            while (true) {
-                MultipartFile f = files.get("subImages[" + i + "]");
+            MultipartFile main = getFirstFile(files, "mainImage");
+            if (main != null && !main.isEmpty()) dto.setMainImage(main);
+            List<MultipartFile> subs = files.get("subImages[]");
+            if (subs != null) dto.getSubImages().addAll(subs);
+            for (int i = 0; ; i++) {
+                MultipartFile f = getFirstFile(files, "subImages[" + i + "]");
                 if (f == null) break;
                 dto.getSubImages().add(f);
-                i++;
-            }
-            // 배열 [] 방식 지원
-            if (files.containsKey("subImages[]")) {
-                dto.getSubImages().add(files.get("subImages[]"));
             }
         }
 
-        // 5. 추가입력필드
+        dto.setManufacturerText(nvl(params.getFirst("manufacturerText")));
+        dto.setSupplierText(nvl(params.getFirst("supplierText")));
+        String brandId = params.getFirst("brandId");
+        if (notEmpty(brandId)) dto.setBrandId(Long.valueOf(brandId));
+
+        String manufacturedAt = params.getFirst("manufacturedAt");
+        if (notEmpty(manufacturedAt)) dto.setManufacturedAt(LocalDate.parse(manufacturedAt));
+        String expiredAt = params.getFirst("expiredAt");
+        if (notEmpty(expiredAt)) dto.setExpiredAt(LocalDate.parse(expiredAt));
+
+        dto.setSummaryDescription(nvl(params.getFirst("summaryDescription")));
+        dto.setShortDescription(nvl(params.getFirst("shortDescription")));
+        dto.setInternalProductCode(nvl(params.getFirst("internalProductCode")));
+
+        String consumerPrice = params.getFirst("consumerPrice");
+        if (notEmpty(consumerPrice)) dto.setConsumerPrice(Integer.valueOf(consumerPrice));
+        String salePrice = params.getFirst("salePrice");
+        if (notEmpty(salePrice)) dto.setSalePrice(Integer.valueOf(salePrice));
+
+        dto.setPriceExposeTarget(nvl(params.getFirst("priceExposeTarget")));
+        dto.setUsePriceReplacementText(toBool(params.getFirst("usePriceReplacementText")));
+        dto.setPriceReplacementText(nvl(params.getFirst("priceReplacementText")));
+
+        String rewardRate = params.getFirst("rewardRate");
+        if (notEmpty(rewardRate)) dto.setRewardRate(Float.valueOf(rewardRate));
+        String validFrom = params.getFirst("validFrom");
+        if (notEmpty(validFrom)) dto.setValidFrom(LocalDate.parse(validFrom));
+        String validTo = params.getFirst("validTo");
+        if (notEmpty(validTo)) dto.setValidTo(LocalDate.parse(validTo));
+
+        dto.setUseRelatedProducts(Boolean.valueOf(nvl(params.getFirst("useRelatedProducts"), "false")));
+        dto.setUseBundleItems(Boolean.valueOf(nvl(params.getFirst("useBundleItems"), "false")));
+
+        String internalSmallId = params.getFirst("internalCategorySmallId");
+        if (notEmpty(internalSmallId)) dto.setInternalCategorySmallId(Long.valueOf(internalSmallId));
+
+        String newState = params.getFirst("newState");
+        if (notEmpty(newState)) dto.setNewState(newState);
+
+        if (files != null) {
+            MultipartFile icon = getFirstFile(files, "iconImage");
+            if (icon != null && !icon.isEmpty()) dto.setIconImage(icon);
+        }
+        dto.setUseIconPeriod(Boolean.valueOf(nvl(params.getFirst("useIconPeriod"), "false")));
+        String iconStart = params.getFirst("iconStartDate");
+        if (notEmpty(iconStart)) dto.setIconStartDate(LocalDate.parse(iconStart));
+        else {
+            String s = params.getFirst("icon-start");
+            if (notEmpty(s)) dto.setIconStartDate(LocalDate.parse(s));
+        }
+        String iconEnd = params.getFirst("iconEndDate");
+        if (notEmpty(iconEnd)) dto.setIconEndDate(LocalDate.parse(iconEnd));
+        else {
+            String e = params.getFirst("icon-end");
+            if (notEmpty(e)) dto.setIconEndDate(LocalDate.parse(e));
+        }
+
         for (int i = 0; ; i++) {
-            String label = params.get("extraFields[" + i + "].label");
-            String value = params.get("extraFields[" + i + "].value");
+            String label = params.getFirst("extraFields[" + i + "].label");
+            String value = params.getFirst("extraFields[" + i + "].value");
             if (label == null && value == null) break;
-            if (label != null || value != null) {
-                ProductRegisterRequestDTO.ExtraFieldDTO ef = new ProductRegisterRequestDTO.ExtraFieldDTO();
-                ef.setLabel(label);
-                ef.setValue(value);
-                dto.getExtraFields().add(ef);
-            }
+            ProductRegisterRequestDTO.ExtraFieldDTO ef = new ProductRegisterRequestDTO.ExtraFieldDTO();
+            ef.setLabel(nvl(label));
+            ef.setValue(nvl(value));
+            dto.getExtraFields().add(ef);
         }
 
-        // 6. 옵션그룹/옵션
         for (int g = 0; ; g++) {
-            String gName = params.get("optionGroups[" + g + "].name");
+            String gName = params.getFirst("optionGroups[" + g + "].name");
             if (gName == null) break;
             ProductRegisterRequestDTO.OptionGroupDTO og = new ProductRegisterRequestDTO.OptionGroupDTO();
-            og.setName(gName);
+            og.setName(nvl(gName));
+            String gSort = params.getFirst("optionGroups[" + g + "].sortOrder");
+            if (notEmpty(gSort)) og.setSortOrder(Integer.valueOf(gSort));
             for (int o = 0; ; o++) {
-                String name = params.get("optionGroups[" + g + "].options[" + o + "].name");
+                String name = params.getFirst("optionGroups[" + g + "].options[" + o + "].name");
                 if (name == null) break;
                 ProductRegisterRequestDTO.OptionDTO opt = new ProductRegisterRequestDTO.OptionDTO();
-                opt.setName(name);
-                opt.setValue(params.get("optionGroups[" + g + "].options[" + o + "].value"));
-                opt.setExtraPrice(params.get("optionGroups[" + g + "].options[" + o + "].extraPrice"));
-                opt.setSign(params.get("optionGroups[" + g + "].options[" + o + "].sign"));
-                String so = params.get("optionGroups[" + g + "].options[" + o + "].sortOrder");
-                opt.setSortOrder(so != null && !so.isEmpty() ? Integer.valueOf(so) : null);
+                opt.setName(nvl(name));
+                opt.setValue(nvl(params.getFirst("optionGroups[" + g + "].options[" + o + "].value")));
+                opt.setExtraPrice(nvl(params.getFirst("optionGroups[" + g + "].options[" + o + "].extraPrice")));
+                opt.setSign(nvl(params.getFirst("optionGroups[" + g + "].options[" + o + "].sign")));
+                String so = params.getFirst("optionGroups[" + g + "].options[" + o + "].sortOrder");
+                if (notEmpty(so)) opt.setSortOrder(Integer.valueOf(so));
                 og.getOptions().add(opt);
             }
             dto.getOptionGroups().add(og);
         }
 
-        // 7. 키워드
-        // 배열 방식: keywords[]
-        if (params.containsKey("keywords[]")) {
-            for (String kw : params.get("keywords[]").split(",")) {
-                if (kw != null && !kw.isEmpty()) dto.getKeywords().add(kw);
+        List<String> kws = params.get("keywords[]");
+        if (kws != null) {
+            for (String kw : kws) if (notEmpty(kw)) dto.getKeywords().add(kw);
+        } else {
+            for (int i = 0; ; i++) {
+                String kw = params.getFirst("keywords[" + i + "]");
+                if (kw == null) break;
+                if (notEmpty(kw)) dto.getKeywords().add(kw);
             }
         }
-        for (int i = 0; ; i++) {
-            String kw = params.get("keywords[" + i + "]");
-            if (kw == null) break;
-            dto.getKeywords().add(kw);
-        }
 
-        // 8. 연관상품
         for (int i = 0; ; i++) {
-            String id = params.get("relatedProducts[" + i + "].id");
+            String id = params.getFirst("relatedProducts[" + i + "].id");
             if (id == null) break;
             ProductRegisterRequestDTO.RelatedProductDTO rp = new ProductRegisterRequestDTO.RelatedProductDTO();
             rp.setId(Long.valueOf(id));
-            rp.setType(params.get("relatedProducts[" + i + "].type"));
+            rp.setType(nvl(params.getFirst("relatedProducts[" + i + "].type")));
+            String so = params.getFirst("relatedProducts[" + i + "].sortOrder");
+            if (notEmpty(so)) rp.setSortOrder(Integer.valueOf(so));
             dto.getRelatedProducts().add(rp);
         }
 
-        // 9. 할인혜택
         for (int i = 0; ; i++) {
-            String id = params.get("discounts[" + i + "].id");
+            String id = params.getFirst("bundleProducts[" + i + "].id");
+            if (id == null) break;
+            ProductRegisterRequestDTO.BundleProductDTO bp = new ProductRegisterRequestDTO.BundleProductDTO();
+            bp.setId(Long.valueOf(id));
+            String so = params.getFirst("bundleProducts[" + i + "].sortOrder");
+            if (notEmpty(so)) bp.setSortOrder(Integer.valueOf(so));
+            dto.getBundleProducts().add(bp);
+        }
+
+        for (int i = 0; ; i++) {
+            String id = params.getFirst("discounts[" + i + "].id");
             if (id == null) break;
             ProductRegisterRequestDTO.DiscountDTO d = new ProductRegisterRequestDTO.DiscountDTO();
             d.setId(Long.valueOf(id));
-            d.setName(params.get("discounts[" + i + "].name"));
-            d.setType(params.get("discounts[" + i + "].type"));
-            d.setTerm(params.get("discounts[" + i + "].term"));
-            d.setTarget(params.get("discounts[" + i + "].target"));
-            d.setCouponPolicy(params.get("discounts[" + i + "].couponPolicy"));
-            d.setStartDate(params.get("discounts[" + i + "].startDate"));
-            d.setEndDate(params.get("discounts[" + i + "].endDate"));
-            String active = params.get("discounts[" + i + "].active");
-            d.setActive(active != null && (active.equals("true") || active.equals("on") || active.equals("1")));
+            d.setName(nvl(params.getFirst("discounts[" + i + "].name")));
+            d.setType(nvl(params.getFirst("discounts[" + i + "].type")));
+            d.setTerm(nvl(params.getFirst("discounts[" + i + "].term")));
+            d.setTarget(nvl(params.getFirst("discounts[" + i + "].target")));
+            d.setCouponPolicy(nvl(params.getFirst("discounts[" + i + "].couponPolicy")));
+            d.setStartDate(nvl(params.getFirst("discounts[" + i + "].startDate")));
+            d.setEndDate(nvl(params.getFirst("discounts[" + i + "].endDate")));
+            String active = params.getFirst("discounts[" + i + "].active");
+            d.setActive("true".equalsIgnoreCase(active) || "on".equalsIgnoreCase(active) || "1".equals(active));
             dto.getDiscounts().add(d);
         }
 
-        // 10. 추가구성상품
-        if (params.containsKey("bundleProductIds[]")) {
-            for (String v : params.get("bundleProductIds[]").split(",")) {
-                if (v != null && !v.isEmpty()) dto.getBundleProductIds().add(Long.valueOf(v));
-            }
-        }
-        for (int i = 0; ; i++) {
-            String id = params.get("bundleProductIds[" + i + "]");
-            if (id == null) break;
-            dto.getBundleProductIds().add(Long.valueOf(id));
-        }
-
-        // 11. 딜러별 등급 할인
-        params.forEach((k, v) -> {
-            if (k.startsWith("dealerDiscounts[")) {
+        params.forEach((k, vs) -> {
+            if (k != null && k.startsWith("dealerDiscounts[")) {
                 String grade = k.replaceAll("^dealerDiscounts\\[(.+)\\]$", "$1");
+                String v = nvl(params.getFirst(k));
                 dto.getDealerDiscounts().put(grade, v);
             }
         });
 
+        params.forEach((k, vs) -> {
+            if (k != null && k.startsWith("question_")) {
+                String v = nvl(params.getFirst(k));
+                dto.getDisplayOptions().put(k, v);
+            }
+        });
+        if (files != null) {
+            files.forEach((k, vs) -> {
+                if (k != null && k.startsWith("question_")) {
+                    MultipartFile f = getFirstFile(files, k);
+                    if (f != null) dto.getDisplayOptionFiles().put(k, f);
+                }
+            });
+        }
+
         return dto;
+    }
+
+    private String nvl(String s) { return s == null ? "" : s; }
+    private String nvl(String s, String def) { return s == null ? def : s; }
+    private boolean notEmpty(String s) { return s != null && !s.isBlank(); }
+    private boolean toBool(String s) { return "true".equalsIgnoreCase(s) || "on".equalsIgnoreCase(s) || "1".equals(s); }
+    private MultipartFile getFirstFile(MultiValueMap<String, MultipartFile> files, String key) {
+        if (files == null) return null;
+        List<MultipartFile> list = files.get(key);
+        if (list == null || list.isEmpty()) return null;
+        return list.get(0);
     }
 }

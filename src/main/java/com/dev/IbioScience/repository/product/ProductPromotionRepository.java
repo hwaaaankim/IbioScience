@@ -75,4 +75,6 @@ public interface ProductPromotionRepository extends JpaRepository<Promotion, Lon
             @Param("endDate") java.time.LocalDate endDate,
             Pageable pageable
     );
+	
+	
 }

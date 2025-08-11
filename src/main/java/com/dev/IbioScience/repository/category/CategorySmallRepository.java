@@ -1,5 +1,6 @@
 package com.dev.IbioScience.repository.category;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,4 +28,6 @@ public interface CategorySmallRepository extends JpaRepository<CategorySmall, Lo
     
     @Query("SELECT COUNT(spc) > 0 FROM SmallProductCategory spc WHERE spc.small = :small")
     boolean existsProductInSmall(@Param("small") CategorySmall small);
+    
+    List<CategorySmall> findByIdIn(Collection<Long> ids);
 }

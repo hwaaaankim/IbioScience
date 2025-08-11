@@ -15,7 +15,6 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 
 // 내부 대분류
-
 @Data
 @Entity
 @Table(name = "tb_internal_category_large",

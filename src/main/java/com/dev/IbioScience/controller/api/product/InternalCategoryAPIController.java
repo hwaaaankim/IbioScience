@@ -17,9 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dev.IbioScience.dto.internal.InternalLargeListDTO;
+import com.dev.IbioScience.dto.internal.InternalMediumListDTO;
+import com.dev.IbioScience.dto.internal.InternalSmallListDTO;
 import com.dev.IbioScience.model.product.InternalCategoryLarge;
 import com.dev.IbioScience.model.product.InternalCategoryMedium;
 import com.dev.IbioScience.model.product.InternalCategorySmall;
+import com.dev.IbioScience.service.product.InternalCategoryQueryService;
 import com.dev.IbioScience.service.product.InternalCategoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -30,7 +34,8 @@ import lombok.RequiredArgsConstructor;
 public class InternalCategoryAPIController {
 
     private final InternalCategoryService internalCategoryService;
-
+    private final InternalCategoryQueryService service;
+    
     // 대분류 전체 조회
     @GetMapping("/large")
     public List<Map<String, Object>> getLargeList() {
@@ -161,5 +166,21 @@ public class InternalCategoryAPIController {
     public ResponseEntity<?> deleteSmall(@PathVariable Long id) {
         internalCategoryService.deleteSmall(id);
         return ResponseEntity.ok().build();
+    }
+
+
+    @GetMapping("/list-large")
+    public ResponseEntity<List<InternalLargeListDTO>> listLarge() {
+        return ResponseEntity.ok(service.listLarge());
+    }
+
+    @GetMapping("/list-medium")
+    public ResponseEntity<List<InternalMediumListDTO>> listMedium(@RequestParam Long largeId) {
+        return ResponseEntity.ok(service.listMedium(largeId));
+    }
+
+    @GetMapping("/list-small")
+    public ResponseEntity<List<InternalSmallListDTO>> listSmall(@RequestParam Long mediumId) {
+        return ResponseEntity.ok(service.listSmall(mediumId));
     }
 }

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('상품 관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">상품 관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">상품 등록</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="card" id="product-list-root">
+						<div class="card-body">
+
+							<!-- 필터 -->
+							<form id="product-list-filter" class="gy-2 gx-2 product-list-filter">
+								<div class="row align-items-end mb-2">
+									<!-- 날짜 -->
+									<div class="col-md-3">
+										<label class="form-label">날짜기준</label>
+										<select class="form-select" name="dateField">
+											<option value="createdAt">등록일</option>
+											<option value="updatedAt">수정일</option>
+										</select>
+									</div>
+									<div class="col-md-3">
+										<label class="form-label">빠른선택</label>
+										<div class="d-flex gap-1">
+											<button type="button"
+												class="btn btn-outline-secondary btn-md product-list-date-btn w-100"
+												data-q="TODAY">오늘</button>
+											<button type="button"
+												class="btn btn-outline-secondary btn-md product-list-date-btn w-100"
+												data-q="D7">7일</button>
+											<button type="button"
+												class="btn btn-outline-secondary btn-md product-list-date-btn w-100"
+												data-q="M1">1개월</button>
+											<button type="button"
+												class="btn btn-outline-secondary btn-md product-list-date-btn w-100"
+												data-q="RANGE">범위</button>
+										</div>
+										<input type="hidden" name="dateQuick" value="">
+									</div>
+									<div class="col-md-3 d-flex gap-1">
+										<div class="flex-grow-1">
+											<label class="form-label">시작</label>
+											<input type="date" class="form-control" name="dateFrom">
+										</div>
+										<div class="flex-grow-1">
+											<label class="form-label">종료</label>
+											<input type="date" class="form-control" name="dateTo">
+										</div>
+									</div>
+								</div>
+								<div class="row align-items-end mb-2">
+									<!-- 진열/판매 -->
+									<div class="col-md-3">
+										<label class="form-label">진열상태</label>
+										<select class="form-select" name="displayStatus">
+											<option value="">전체</option>
+											<option value="ON">진열함</option>
+											<option value="OFF">진열안함</option>
+										</select>
+									</div>
+									<div class="col-md-3">
+										<label class="form-label">판매상태</label>
+										<select class="form-select" name="saleStatus">
+											<option value="">전체</option>
+											<option value="ON">판매함</option>
+											<option value="OFF">판매안함</option>
+										</select>
+									</div>
+									<div class="col-md-3">
+										<label class="form-label">검색항목</label>
+										<select class="form-select" name="searchType">
+											<option value="name">제품명</option>
+											<option value="internalProductCode">자체코드</option>
+											<option value="code">품목코드</option>
+											<option value="brand">브랜드명</option>
+										</select>
+									</div>
+									<div class="col-md-3">
+										<label class="form-label">검색어</label>
+										<input type="text" class="form-control" name="keyword" placeholder="검색어를 입력하세요">
+									</div>
+								</div>
+								<div class="row align-items-end mb-2">
+									<!-- 분류모드 -->
+									<div class="col-md-2">
+										<label class="form-label">분류모드</label>
+										<select class="form-select" name="categoryMode" id="pl-category-mode">
+											<option value="">전체</option>
+											<option value="INTERNAL">내부분류</option>
+											<option value="EXTERNAL">제품분류</option>
+										</select>
+									</div>
+
+									<!-- 대/중/소 -->
+									<div class="col-md-2">
+										<label class="form-label">대분류</label>
+										<select class="form-select" name="largeId" id="pl-large"></select>
+									</div>
+									<div class="col-md-2">
+										<label class="form-label">중분류</label>
+										<select class="form-select" name="mediumId" id="pl-medium"></select>
+									</div>
+									<div class="col-md-2">
+										<label class="form-label">소분류</label>
+										<select class="form-select" name="smallId" id="pl-small"></select>
+									</div>
+
+									<!-- 페이지 크기 -->
+									<div class="col-md-2">
+										<label class="form-label">페이지 크기</label>
+										<select class="form-select" name="size" id="pl-size">
+											<option value="10" selected>10개</option>
+											<option value="30">30개</option>
+											<option value="50">50개</option>
+											<option value="100">100개</option>
+										</select>
+									</div>
+
+									<div class="col-md-2">
+										<button type="submit" class="btn btn-primary w-100">제품검색</button>
+									</div>
+								</div>
+							</form>
+
+							<!-- 리스트 -->
+							<div class="table-responsive mt-3">
+								<table class="table table-hover align-middle">
+									<thead class="table-light">
+										<tr>
+											<th style="width:40px;"><input type="checkbox" id="pl-check-all"></th>
+											<th>ID</th>
+											<th>자체코드</th>
+											<th id="pl-col-category">제품분류</th>
+											<th>대표이미지</th>
+											<th>제품명</th>
+											<th class="text-end">소비자가</th>
+											<th class="text-end">판매가</th>
+											<th>딜러가(A/B/C/D)</th>
+											<th>프로모션</th>
+										</tr>
+									</thead>
+									<tbody id="pl-tbody">
+										<tr>
+											<td colspan="10" class="text-center py-4">검색해 주세요.</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<!-- 페이지네이션 -->
+							<div class="d-flex justify-content-between align-items-center">
+								<div id="pl-page-summary" class="small text-muted"></div>
+								<nav>
+									<ul class="pagination mb-0" id="pl-pagination"></ul>
+								</nav>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/product/productManager.js"></script>
+
+</body>
+
+</html>

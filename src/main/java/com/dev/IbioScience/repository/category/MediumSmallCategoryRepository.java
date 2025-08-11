@@ -1,5 +1,6 @@
 package com.dev.IbioScience.repository.category;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +30,7 @@ public interface MediumSmallCategoryRepository extends JpaRepository<MediumSmall
     
     @Query("SELECT m.medium.id, COUNT(m) FROM MediumSmallCategory m WHERE m.medium.id IN :mediumIds GROUP BY m.medium.id")
     List<Object[]> countByMediumIds(@Param("mediumIds") List<Long> mediumIds);
+    
+    @Query("select msc from MediumSmallCategory msc where msc.small.id in :smallIds")
+    List<MediumSmallCategory> findBySmallIds(@Param("smallIds") Collection<Long> smallIds);
 }

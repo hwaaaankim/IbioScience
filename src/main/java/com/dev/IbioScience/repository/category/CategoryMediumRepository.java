@@ -1,5 +1,6 @@
 package com.dev.IbioScience.repository.category;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +24,8 @@ public interface CategoryMediumRepository extends JpaRepository<CategoryMedium, 
     int countByLargeId(Long largeId);
     @Query("SELECT m.large.id, COUNT(m) FROM CategoryMedium m WHERE m.large.id IN :largeIds GROUP BY m.large.id")
     List<Object[]> countByLargeIds(@Param("largeIds") List<Long> largeIds);
+    
+    List<CategoryMedium> findByIdIn(Collection<Long> ids);
 
 }
 

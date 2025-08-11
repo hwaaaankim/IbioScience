@@ -79,7 +79,28 @@
 	gap: 8px;
 }
 
-/* ProductManager */
+/* ProductInsertForm */
+.product-insert-repimage-wrapper {
+	width: 200px;
+}
+
+.product-insert-repimage-thumb img {
+	width: 100%;
+	height: auto;
+	display: block;
+}
+
+.product-insert-repimage-thumb .btn-close {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 2;
+}
+
+.product-insert-repimage-thumb {
+	position: relative;
+}
+
 .product-manager-section {
 	margin-bottom: 2rem;
 }
@@ -367,6 +388,22 @@
 	background: #f6f6fa;
 }
 
+/* ProductInsertForm End */
+
+/* ProductManager Start */
+.product-list-filter .form-label {
+	font-size: .85rem;
+	color: #666;
+}
+
+#pl-pagination .page-link {
+	min-width: 38px;
+	text-align: center;
+}
+#product-list-filter label{
+	margin-bottom:0px !important;
+}
+/* ProductManager End */
 
 
 /* ProductPromotionManager */
@@ -617,4 +654,5 @@
 	vertical-align: middle;
 	/* 혹시 폰트 렌더링 영향 방지 */
 }
+
 /* Display Manager End */

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+	
 	private final SmallProductCategoryRepository spcRepo;
 
 	// 소분류 id로 연결된 제품목록(간단 정보) 반환

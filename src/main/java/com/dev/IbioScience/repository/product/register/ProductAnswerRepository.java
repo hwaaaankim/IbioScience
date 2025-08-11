@@ -13,6 +13,8 @@ public interface ProductAnswerRepository extends JpaRepository<ProductAnswer, Lo
 	
 	boolean existsByQuestionId(Long questionId);
     long countByQuestionId(Long questionId);
+    
+    Optional<ProductAnswer> findTopByProductIdAndQuestionIdOrderByIdAsc(Long productId, Long questionId);
 
 }
 

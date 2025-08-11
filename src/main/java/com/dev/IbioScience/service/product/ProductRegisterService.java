@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.dev.IbioScience.dto.ProductRegisterRequestDTO;
+import com.dev.IbioScience.dto.productRegister.ProductRegisterRequestDTO;
+import com.dev.IbioScience.model.product.Brand;
+import com.dev.IbioScience.model.product.InternalCategorySmall;
 import com.dev.IbioScience.model.product.Keyword;
 import com.dev.IbioScience.model.product.Product;
 import com.dev.IbioScience.model.product.ProductAnswer;
@@ -35,18 +38,27 @@ import com.dev.IbioScience.model.product.ProductKeyword;
 import com.dev.IbioScience.model.product.ProductOption;
 import com.dev.IbioScience.model.product.ProductOptionGroup;
 import com.dev.IbioScience.model.product.ProductQuestion;
+import com.dev.IbioScience.model.product.Promotion;
 import com.dev.IbioScience.model.product.RelatedProduct;
 import com.dev.IbioScience.model.product.category.CategorySmall;
 import com.dev.IbioScience.model.product.enums.DealerGrade;
 import com.dev.IbioScience.model.product.enums.DisplayStatus;
+import com.dev.IbioScience.model.product.enums.PriceExposeTarget;
 import com.dev.IbioScience.model.product.enums.PriceSign;
 import com.dev.IbioScience.model.product.enums.ProductImageType;
+import com.dev.IbioScience.model.product.enums.ProductNewState;
+import com.dev.IbioScience.model.product.enums.ProductState;
 import com.dev.IbioScience.model.product.enums.QuestionType;
 import com.dev.IbioScience.model.product.enums.RelatedType;
 import com.dev.IbioScience.model.product.enums.SaleStatus;
+import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
 import com.dev.IbioScience.model.product.relation.SmallProductCategory;
 import com.dev.IbioScience.repository.category.CategorySmallRepository;
 import com.dev.IbioScience.repository.category.SmallProductCategoryRepository;
+import com.dev.IbioScience.repository.product.BrandRepository;
+import com.dev.IbioScience.repository.product.InternalCategorySmallRepository;
+import com.dev.IbioScience.repository.product.ProductPromotionMappingRepository;
+import com.dev.IbioScience.repository.product.ProductPromotionRepository;
 import com.dev.IbioScience.repository.product.ProductQuestionRepository;
 import com.dev.IbioScience.repository.product.register.KeywordRepository;
 import com.dev.IbioScience.repository.product.register.ProductAnswerDetailImageRepository;
@@ -70,398 +82,482 @@ import lombok.RequiredArgsConstructor;
 public class ProductRegisterService {
 
 	private final ProductRepository productRepository;
-    private final ProductImageRepository productImageRepository;
-    private final ProductDetailImageRepository productDetailImageRepository;
-    private final ProductOptionGroupRepository productOptionGroupRepository;
-    private final ProductOptionRepository productOptionRepository;
-    private final ProductExtraFieldRepository productExtraFieldRepository;
-    private final ProductBundleItemRepository productBundleItemRepository;
-    private final RelatedProductRepository relatedProductRepository;
-//    private final ProductDiscountRepository productDiscountRepository;
-//    private final ProductDiscountMappingRepository productDiscountMappingRepository;
-    private final ProductGradeBenefitRepository productGradeBenefitRepository;
-    private final KeywordRepository keywordRepository;
-    private final ProductKeywordRepository productKeywordRepository;
-    private final CategorySmallRepository categorySmallRepository;
-    private final SmallProductCategoryRepository smallProductCategoryRepository;
-    private final ProductQuestionRepository productQuestionRepository;
-    private final ProductAnswerRepository productAnswerRepository;
-    private final ProductAnswerDetailImageRepository productAnswerDetailImageRepository;
-    private final FileStorageUtil fileStorageUtil;
+	private final BrandRepository brandRepository;
+	private final CategorySmallRepository categorySmallRepository;
+	private final SmallProductCategoryRepository smallProductCategoryRepository;
+	private final ProductImageRepository productImageRepository;
+	private final ProductDetailImageRepository productDetailImageRepository;
+	private final ProductOptionGroupRepository productOptionGroupRepository;
+	private final ProductOptionRepository productOptionRepository;
+	private final ProductExtraFieldRepository productExtraFieldRepository;
+	private final ProductBundleItemRepository productBundleItemRepository;
+	private final RelatedProductRepository relatedProductRepository;
+	private final ProductGradeBenefitRepository productGradeBenefitRepository;
+	private final KeywordRepository keywordRepository;
+	private final ProductKeywordRepository productKeywordRepository;
+	private final ProductQuestionRepository productQuestionRepository;
+	private final ProductAnswerRepository productAnswerRepository;
+	private final ProductAnswerDetailImageRepository productAnswerDetailImageRepository;
+	private final ProductPromotionRepository productPromotionRepository;
+	private final ProductPromotionMappingRepository productPromotionMappingRepository;
+	private final InternalCategorySmallRepository internalCategorySmallRepository;
+	private final FileStorageUtil fileStorageUtil;
 
-    @Value("${spring.upload.path}")
-    private String uploadBasePath;
+	@Value("${spring.upload.path}")
+	private String uploadBasePath;
 
-    @Transactional
-    public Long registerProduct(ProductRegisterRequestDTO req) throws IOException {
-        // 1. Product 저장 (Enum 변환)
-        Product product = new Product();
-        product.setName(req.getProductName());
-        product.setCode(req.getProductCode());
-        product.setDisplayStatus(DisplayStatus.valueOf(req.getDisplayStatus()));
-        product.setSaleStatus(SaleStatus.valueOf(req.getSaleStatus()));
-        product.setDetailHtml(req.getDetailHtml());
-        product = productRepository.save(product);
+	@Transactional
+	public Long registerProduct(ProductRegisterRequestDTO req) throws IOException {
+		validate(req);
 
-        // 2. 소분류-제품 N:N 매핑
-        if (req.getCategorySmallIds() != null) {
-            for (Long smallId : req.getCategorySmallIds()) {
-                CategorySmall small = categorySmallRepository.findById(smallId)
-                    .orElseThrow(() -> new IllegalArgumentException("소분류 없음: " + smallId));
-                SmallProductCategory mapping = new SmallProductCategory();
-                mapping.setSmall(small);
-                mapping.setProduct(product);
-                smallProductCategoryRepository.save(mapping);
-            }
-        }
+		Product product = new Product();
+		product.setName(req.getProductName());
+		product.setCode(req.getProductCode());
+		product.setDisplayStatus(DisplayStatus.valueOf(req.getDisplayStatus()));
+		product.setSaleStatus(SaleStatus.valueOf(req.getSaleStatus()));
+		product.setDetailHtml(req.getDetailHtml());
+		product.setManufacturerText(req.getManufacturerText());
+		product.setSupplierText(req.getSupplierText());
+		if (req.getBrandId() != null) {
+			Brand brand = brandRepository.findById(req.getBrandId())
+					.orElseThrow(() -> new IllegalArgumentException("브랜드 없음: " + req.getBrandId()));
+			product.setBrand(brand);
+		}
+		product.setManufacturedAt(req.getManufacturedAt());
+		product.setExpiredAt(req.getExpiredAt());
+		product.setSummaryDescription(req.getSummaryDescription());
+		product.setShortDescription(req.getShortDescription());
+		product.setInternalProductCode(req.getInternalProductCode());
+		if (req.getConsumerPrice() != null)
+			product.setConsumerPrice(req.getConsumerPrice());
+		if (req.getSalePrice() != null)
+			product.setSalePrice(req.getSalePrice());
+		if (StringUtils.hasText(req.getPriceExposeTarget()))
+			product.setPriceExposeTarget(PriceExposeTarget.valueOf(req.getPriceExposeTarget()));
+		product.setUsePriceReplacementText(Boolean.TRUE.equals(req.getUsePriceReplacementText()));
+		product.setPriceReplacementText(req.getPriceReplacementText());
+		if (req.getRewardRate() != null)
+			product.setRewardRate(req.getRewardRate());
+		product.setValidFrom(req.getValidFrom());
+		product.setValidTo(req.getValidTo());
+		product.setUseRelatedProducts(Boolean.TRUE.equals(req.getUseRelatedProducts()));
+		product.setUseBundleItems(Boolean.TRUE.equals(req.getUseBundleItems()));
+		if (req.getInternalCategorySmallId() != null) {
+			InternalCategorySmall ics = internalCategorySmallRepository.findById(req.getInternalCategorySmallId())
+					.orElseThrow(() -> new IllegalArgumentException("내부 소분류 없음: " + req.getInternalCategorySmallId()));
+			product.setInternalCategorySmall(ics);
+		}
+		if (StringUtils.hasText(req.getNewState()))
+			product.setNewState(ProductNewState.valueOf(req.getNewState()));
+		product.setUseIconPeriod(Boolean.TRUE.equals(req.getUseIconPeriod()));
+		product.setIconStartDate(req.getIconStartDate());
+		product.setIconEndDate(req.getIconEndDate());
+		product.setCreatedAt(LocalDateTime.now());
+		product.setUpdatedAt(LocalDateTime.now());
+		product.setState(ProductState.NORMAL);
+		product = productRepository.save(product);
 
-        // 3. 대표 이미지
-        if (req.getMainImage() != null && !req.getMainImage().isEmpty()) {
-            saveProductImage(product, req.getMainImage(), ProductImageType.MAIN, 1);
-        }
-        // 4. 추가 이미지
-        if (req.getSubImages() != null) {
-            int sortOrder = 1;
-            for (MultipartFile file : req.getSubImages()) {
-                if (file != null && !file.isEmpty()) {
-                    saveProductImage(product, file, ProductImageType.ADDITIONAL, sortOrder++);
-                }
-            }
-        }
+		if (req.getCategorySmallIds() != null) {
+			for (Long smallId : req.getCategorySmallIds()) {
+				CategorySmall small = categorySmallRepository.findById(smallId)
+						.orElseThrow(() -> new IllegalArgumentException("소분류 없음: " + smallId));
+				SmallProductCategory m = new SmallProductCategory();
+				m.setSmall(small);
+				m.setProduct(product);
+				smallProductCategoryRepository.save(m);
+			}
+		}
 
-        // 5. 추가 입력필드
-        if (req.getExtraFields() != null) {
-            for (ProductRegisterRequestDTO.ExtraFieldDTO dto : req.getExtraFields()) {
-                ProductExtraField field = new ProductExtraField();
-                field.setProduct(product);
-                field.setLabel(dto.getLabel());
-                field.setValue(dto.getValue());
-                productExtraFieldRepository.save(field);
-            }
-        }
+		if (req.getMainImage() != null && !req.getMainImage().isEmpty()) {
+			saveProductImage(product, req.getMainImage(), ProductImageType.MAIN, 1);
+		}
+		if (req.getSubImages() != null) {
+			int sort = 1;
+			for (MultipartFile f : req.getSubImages()) {
+				if (f != null && !f.isEmpty())
+					saveProductImage(product, f, ProductImageType.ADDITIONAL, sort++);
+			}
+		}
 
-        // 6. 옵션 그룹/옵션
-        if (req.getOptionGroups() != null) {
-            for (ProductRegisterRequestDTO.OptionGroupDTO groupDto : req.getOptionGroups()) {
-                ProductOptionGroup group = new ProductOptionGroup();
-                group.setProduct(product);
-                group.setName(groupDto.getName());
-                group = productOptionGroupRepository.save(group);
-                if (groupDto.getOptions() != null) {
-                    for (ProductRegisterRequestDTO.OptionDTO optionDto : groupDto.getOptions()) {
-                        ProductOption option = new ProductOption();
-                        option.setGroup(group);
-                        option.setName(optionDto.getName());
-                        option.setValue(optionDto.getValue());
-                        option.setExtraPrice(
-                            optionDto.getExtraPrice() != null && !optionDto.getExtraPrice().isEmpty()
-                                ? new BigDecimal(optionDto.getExtraPrice())
-                                : BigDecimal.ZERO
-                        );
-                        option.setSign(
-                            optionDto.getSign() != null ? PriceSign.valueOf(optionDto.getSign()) : null
-                        );
-                        option.setSortOrder(optionDto.getSortOrder());
-                        productOptionRepository.save(option);
-                    }
-                }
-            }
-        }
+		if (req.getIconImage() != null && !req.getIconImage().isEmpty()) {
+			String dir = uploadBasePath + "/product/" + product.getId() + "/icon";
+			String savedPath = fileStorageUtil.save(req.getIconImage(), dir);
+			String fileName = req.getIconImage().getOriginalFilename();
+			String url = toPublicUrl(savedPath);
+			product.setIconPath(savedPath);
+			product.setIconFileName(fileName);
+			product.setIconUrl(url);
+			productRepository.save(product);
+		}
 
-        // 7. 키워드
-        if (req.getKeywords() != null) {
-            for (String word : req.getKeywords()) {
-                Keyword keyword = keywordRepository.findByWord(word)
-                    .orElse(null);
-                if (keyword == null) {
-                    keyword = new Keyword();
-                    keyword.setWord(word);
-                    keyword = keywordRepository.save(keyword);
-                }
-                ProductKeyword pk = new ProductKeyword();
-                pk.setProduct(product);
-                pk.setKeyword(keyword);
-                productKeywordRepository.save(pk);
-            }
-        }
+		if (req.getExtraFields() != null) {
+			for (ProductRegisterRequestDTO.ExtraFieldDTO f : req.getExtraFields()) {
+				if (!StringUtils.hasText(f.getLabel()) && !StringUtils.hasText(f.getValue()))
+					continue;
+				ProductExtraField ef = new ProductExtraField();
+				ef.setProduct(product);
+				ef.setLabel(f.getLabel());
+				ef.setValue(f.getValue());
+				productExtraFieldRepository.save(ef);
+			}
+		}
 
-        // 8. 연관상품
-        if (req.getRelatedProducts() != null) {
-            int sortOrder = 1;
-            for (ProductRegisterRequestDTO.RelatedProductDTO dto : req.getRelatedProducts()) {
-                Product relatedProduct = productRepository.findById(dto.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("연관상품 없음: " + dto.getId()));
-                RelatedProduct related = new RelatedProduct();
-                related.setBaseProduct(product);
-                related.setRelatedProduct(relatedProduct);
-                related.setType(dto.getType() != null ? RelatedType.valueOf(dto.getType()) : null);
-                related.setSortOrder(sortOrder++);
-                relatedProductRepository.save(related);
-            }
-        }
+		if (req.getOptionGroups() != null) {
+			int gsort = 1;
+			for (ProductRegisterRequestDTO.OptionGroupDTO g : req.getOptionGroups()) {
+				if (!StringUtils.hasText(g.getName()))
+					continue;
+				ProductOptionGroup og = new ProductOptionGroup();
+				og.setProduct(product);
+				og.setName(g.getName());
+				og.setSortOrder(g.getSortOrder() != null ? g.getSortOrder() : gsort++);
+				og = productOptionGroupRepository.save(og);
+				int osort = 1;
+				if (g.getOptions() != null) {
+					for (ProductRegisterRequestDTO.OptionDTO o : g.getOptions()) {
+						if (!StringUtils.hasText(o.getName()))
+							continue;
+						ProductOption opt = new ProductOption();
+						opt.setGroup(og);
+						opt.setName(o.getName());
+						opt.setValue(o.getValue());
+						if (StringUtils.hasText(o.getExtraPrice()))
+							opt.setExtraPrice(new BigDecimal(o.getExtraPrice()));
+						else
+							opt.setExtraPrice(BigDecimal.ZERO);
+						if (StringUtils.hasText(o.getSign()))
+							opt.setSign(PriceSign.valueOf(o.getSign()));
+						opt.setSortOrder(o.getSortOrder() != null ? o.getSortOrder() : osort++);
+						productOptionRepository.save(opt);
+					}
+				}
+			}
+		}
 
-        // 9. 할인혜택
-//        if (req.getDiscounts() != null) {
-//            for (ProductRegisterRequestDTO.DiscountDTO dto : req.getDiscounts()) {
-//                ProductDiscount discount = productDiscountRepository.findById(dto.getId())
-//                    .orElseThrow(() -> new IllegalArgumentException("할인정책 없음: " + dto.getId()));
-//                ProductDiscountMapping mapping = new ProductDiscountMapping();
-//                mapping.setProduct(product);
-//                mapping.setDiscount(discount);
-//                productDiscountMappingRepository.save(mapping);
-//            }
-//        }
+		if (req.getKeywords() != null) {
+			for (String w : req.getKeywords()) {
+				if (!StringUtils.hasText(w))
+					continue;
+				Keyword k = keywordRepository.findByWord(w).orElse(null);
+				if (k == null) {
+					k = new Keyword();
+					k.setWord(w);
+					k = keywordRepository.save(k);
+				}
+				ProductKeyword pk = new ProductKeyword();
+				pk.setProduct(product);
+				pk.setKeyword(k);
+				productKeywordRepository.save(pk);
+			}
+		}
 
-        // 10. 추가구성상품
-        if (req.getBundleProductIds() != null) {
-            int sortOrder = 1;
-            for (Long bundleId : req.getBundleProductIds()) {
-                Product bundleProduct = productRepository.findById(bundleId)
-                    .orElseThrow(() -> new IllegalArgumentException("구성상품 없음: " + bundleId));
-                ProductBundleItem item = new ProductBundleItem();
-                item.setMainProduct(product);
-                item.setBundleProduct(bundleProduct);
-                item.setSortOrder(sortOrder++);
-                productBundleItemRepository.save(item);
-            }
-        }
+		if (Boolean.TRUE.equals(req.getUseBundleItems()) && req.getBundleProducts() != null) {
+			for (ProductRegisterRequestDTO.BundleProductDTO b : req.getBundleProducts()) {
+				Product bundle = productRepository.findById(b.getId())
+						.orElseThrow(() -> new IllegalArgumentException("구성상품 없음: " + b.getId()));
+				ProductBundleItem item = new ProductBundleItem();
+				item.setMainProduct(product);
+				item.setBundleProduct(bundle);
+				item.setSortOrder(b.getSortOrder() != null ? b.getSortOrder() : 0);
+				productBundleItemRepository.save(item);
+			}
+		}
 
-        if (req.getDealerDiscounts() != null) {
-            for (Map.Entry<String, String> entry : req.getDealerDiscounts().entrySet()) {
-                ProductGradeBenefit benefit = new ProductGradeBenefit();
-                benefit.setProduct(product);
-                benefit.setDealerGrade(DealerGrade.valueOf(entry.getKey())); // A, B, C, D
-                benefit.setDiscountRate(new BigDecimal(entry.getValue()));
-                productGradeBenefitRepository.save(benefit);
-            }
-        }
+		if (Boolean.TRUE.equals(req.getUseRelatedProducts()) && req.getRelatedProducts() != null) {
+			for (ProductRegisterRequestDTO.RelatedProductDTO r : req.getRelatedProducts()) {
+				Product rel = productRepository.findById(r.getId())
+						.orElseThrow(() -> new IllegalArgumentException("연관상품 없음: " + r.getId()));
+				RelatedType type = StringUtils.hasText(r.getType()) ? RelatedType.valueOf(r.getType())
+						: RelatedType.RECIPROCAL;
+				upsertRelated(product, rel, type, r.getSortOrder() != null ? r.getSortOrder() : 0);
+				if (type == RelatedType.RECIPROCAL)
+					upsertRelated(rel, product, type, r.getSortOrder() != null ? r.getSortOrder() : 0);
+			}
+		}
 
-        // 12. 공통표시항목(질문/에디터/파일)
-        // (1) 텍스트/셀렉트/에디터 타입
-        if (req.getDisplayOptions() != null) {
-            for (Map.Entry<String, String> entry : req.getDisplayOptions().entrySet()) {
-                String key = entry.getKey();
-                ProductQuestion question;
-                if (key.startsWith("question_")) {
-                    try {
-                        Long questionId = Long.parseLong(key.replace("question_", ""));
-                        question = productQuestionRepository.findById(questionId)
-                            .orElseThrow(() -> new IllegalArgumentException("질문 없음(id): " + questionId));
-                    } catch (NumberFormatException e) {
-                        throw new IllegalArgumentException("질문 key 포맷 오류: " + key, e);
-                    }
-                } else {
-                    question = productQuestionRepository.findByLabel(key)
-                        .orElseThrow(() -> new IllegalArgumentException("질문 없음(label): " + key));
-                }
-                ProductAnswer answer = new ProductAnswer();
-                answer.setProduct(product);
-                answer.setQuestion(question);
-                answer.setValue(entry.getValue());
-                productAnswerRepository.save(answer);
-            }
-        }
-        // (2) 파일 타입만 별도 저장
-        if (req.getDisplayOptionFiles() != null) {
-            for (Map.Entry<String, MultipartFile> entry : req.getDisplayOptionFiles().entrySet()) {
-                MultipartFile file = entry.getValue();
-                if (file != null && !file.isEmpty()) {
-                    String key = entry.getKey();
-                    ProductQuestion question;
-                    if (key.startsWith("question_")) {
-                        try {
-                            Long questionId = Long.parseLong(key.replace("question_", ""));
-                            question = productQuestionRepository.findById(questionId)
-                                .orElseThrow(() -> new IllegalArgumentException("질문 없음(id): " + questionId));
-                        } catch (NumberFormatException e) {
-                            throw new IllegalArgumentException("질문 key 포맷 오류: " + key, e);
-                        }
-                    } else {
-                        question = productQuestionRepository.findByLabel(key)
-                            .orElseThrow(() -> new IllegalArgumentException("질문 없음(label): " + key));
-                    }
-                    if (question.getType() == QuestionType.FILE) {
-                        String savedPath = saveDisplayOptionFile(product, question, file);
-                        ProductAnswer answer = new ProductAnswer();
-                        answer.setProduct(product);
-                        answer.setQuestion(question);
-                        answer.setFileUrl(savedPath);
-                        answer.setPath(savedPath);
-                        answer.setFileName(file.getOriginalFilename());
-                        productAnswerRepository.save(answer);
-                    }
-                }
-            }
-        }
+		if (req.getDiscounts() != null) {
+			for (ProductRegisterRequestDTO.DiscountDTO d : req.getDiscounts()) {
+				Promotion promo = productPromotionRepository.findById(d.getId())
+						.orElseThrow(() -> new IllegalArgumentException("프로모션 없음: " + d.getId()));
+				if (!productPromotionMappingRepository.existsByProductAndPromotion(product, promo)) {
+					ProductPromotionMapping m = new ProductPromotionMapping();
+					m.setProduct(product);
+					m.setPromotion(promo);
+					productPromotionMappingRepository.save(m);
+				}
+			}
+		}
 
-        return product.getId();
-    }
+		if (req.getDealerDiscounts() != null) {
+			for (Map.Entry<String, String> e : req.getDealerDiscounts().entrySet()) {
+				if (!StringUtils.hasText(e.getValue()))
+					continue;
+				ProductGradeBenefit b = new ProductGradeBenefit();
+				b.setProduct(product);
+				b.setDealerGrade(DealerGrade.valueOf(e.getKey()));
+				b.setDiscountRate(new BigDecimal(e.getValue()));
+				productGradeBenefitRepository.save(b);
+			}
+		}
 
-    private ProductImage saveProductImage(Product product, MultipartFile file, ProductImageType type, int sortOrder) {
-        try {
-            String filePath = fileStorageUtil.save(file, uploadBasePath + "/product/" + product.getId() + "/images");
-            ProductImage image = new ProductImage();
-            image.setProduct(product);
-            image.setType(type);
-            image.setPath(filePath);
-            image.setFileName(file.getOriginalFilename());
-            image.setSortOrder(sortOrder);
-            return productImageRepository.save(image);
-        } catch (Exception e) {
-            throw new RuntimeException("대표/추가 이미지 저장 실패", e);
-        }
-    }
+		if (req.getDisplayOptions() != null) {
+			for (Map.Entry<String, String> en : req.getDisplayOptions().entrySet()) {
+				String key = en.getKey();
+				Long qid = parseQuestionKey(key);
+				ProductQuestion question = productQuestionRepository.findById(qid)
+						.orElseThrow(() -> new IllegalArgumentException("질문 없음(id): " + qid));
+				if (question.getType() == QuestionType.FILE)
+					continue;
+				ProductAnswer a = new ProductAnswer();
+				a.setProduct(product);
+				a.setQuestion(question);
+				a.setValue(en.getValue());
+				productAnswerRepository.save(a);
+			}
+		}
+		if (req.getDisplayOptionFiles() != null) {
+			for (Map.Entry<String, MultipartFile> en : req.getDisplayOptionFiles().entrySet()) {
+				String key = en.getKey();
+				MultipartFile file = en.getValue();
+				if (file == null || file.isEmpty())
+					continue;
+				Long qid = parseQuestionKey(key);
+				ProductQuestion question = productQuestionRepository.findById(qid)
+						.orElseThrow(() -> new IllegalArgumentException("질문 없음(id): " + qid));
+				if (question.getType() != QuestionType.FILE)
+					continue;
+				String savedPath = saveDisplayOptionFile(product, question, file);
+				ProductAnswer a = new ProductAnswer();
+				a.setProduct(product);
+				a.setQuestion(question);
+				a.setFileUrl(toPublicUrl(savedPath));
+				a.setPath(savedPath);
+				a.setFileName(file.getOriginalFilename());
+				productAnswerRepository.save(a);
+			}
+		}
 
-    /**
-     * 공통질문 FILE 타입 파일 저장
-     * @throws IOException 
-     */
-    private String saveDisplayOptionFile(Product product, ProductQuestion question, MultipartFile file) throws IOException {
-        if (question.getType() != QuestionType.FILE) {
-            throw new IllegalArgumentException("FILE 타입 질문이 아님");
-        }
-        String dir = uploadBasePath + "/product/" + product.getId() + "/question_" + question.getId();
-        return fileStorageUtil.save(file, dir); // 예: 실제 파일 저장 후 경로 리턴
-    }
+		return product.getId();
+	}
 
-    /**
-     * 임시 에디터 이미지 실제 폴더로 이동 및 DB 저장/HTML src 치환 (폴더구조 완전 반영)
-     * @param productId 상품ID
-     * @param type "detailHtml" 또는 "question"
-     * @param key "detailHtml" 또는 "question_[답변ID]"
-     * @param html 원본 HTML
-     * @param tempImgList 임시 이미지 웹 경로 리스트
-     * @return 실제 저장 후 HTML(이미지 src 변환)
-     */
-    @Transactional
-    public String moveEditorImages(Long productId, String type, String key, String html, List<String> tempImgList) {
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new IllegalArgumentException("상품 없음: " + productId));
+	private void validate(ProductRegisterRequestDTO req) {
+		if (!StringUtils.hasText(req.getProductName()))
+			throw new IllegalArgumentException("제품명 필수");
+		if (!StringUtils.hasText(req.getProductCode()))
+			throw new IllegalArgumentException("제품코드 필수");
+		if (!StringUtils.hasText(req.getDisplayStatus()))
+			throw new IllegalArgumentException("진열상태 필수");
+		if (!StringUtils.hasText(req.getSaleStatus()))
+			throw new IllegalArgumentException("판매상태 필수");
+		if (req.getCategorySmallIds() == null || req.getCategorySmallIds().isEmpty())
+			throw new IllegalArgumentException("카테고리 최소 1개 선택");
+		if (Boolean.TRUE.equals(req.getUsePriceReplacementText())
+				&& !StringUtils.hasText(req.getPriceReplacementText()))
+			throw new IllegalArgumentException("가격대체문구 사용 시 문구 필수");
+		if (Boolean.TRUE.equals(req.getUseIconPeriod())) {
+			LocalDate s = req.getIconStartDate(), e = req.getIconEndDate();
+			if (s == null || e == null || e.isBefore(s))
+				throw new IllegalArgumentException("아이콘 기간 오류");
+		}
+		if (req.getOptionGroups() != null) {
+			for (ProductRegisterRequestDTO.OptionGroupDTO g : req.getOptionGroups()) {
+				if (!StringUtils.hasText(g.getName()))
+					throw new IllegalArgumentException("옵션그룹명 필수");
+				if (g.getOptions() != null) {
+					for (ProductRegisterRequestDTO.OptionDTO o : g.getOptions()) {
+						if (!StringUtils.hasText(o.getName()))
+							throw new IllegalArgumentException("옵션명 필수");
+					}
+				}
+			}
+		}
+	}
 
-        String targetDir;
-        List<String> newUrls = new ArrayList<>();
+	public List<String> uploadEditorImages(List<MultipartFile> files, String type, String key) {
+		List<String> urlList = new ArrayList<>();
+		String dateStr = LocalDate.now().toString().replace("-", "");
+		String subDir;
+		if ("detailHtml".equals(type))
+			subDir = "detailHtml";
+		else if ("question".equals(type) && key != null && key.startsWith("question_"))
+			subDir = key;
+		else
+			subDir = "etc";
+		Path tempDir = Paths.get(uploadBasePath, "temp", dateStr, subDir);
+		File dir = tempDir.toFile();
+		if (!dir.exists() && !dir.mkdirs())
+			throw new RuntimeException("임시 폴더 생성 실패");
+		for (MultipartFile file : files) {
+			if (file.isEmpty())
+				continue;
+			String orig = org.springframework.util.StringUtils
+					.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+			String newName = UUID.randomUUID().toString().replace("-", "") + "_" + orig;
+			Path savePath = tempDir.resolve(newName);
+			try {
+				file.transferTo(savePath);
+			} catch (IOException e) {
+				throw new RuntimeException("이미지 저장 실패: " + orig, e);
+			}
+			String url = "/upload/temp/" + dateStr + "/" + subDir + "/" + newName;
+			urlList.add(url);
+		}
+		return urlList;
+	}
 
-        if ("detailHtml".equals(type) && "detailHtml".equals(key)) {
-            targetDir = uploadBasePath + "/product/" + productId + "/detail";
-        } else if ("question".equals(type) && key != null && key.startsWith("question_")) {
-            String answerIdStr = key.replace("question_", "");
-            targetDir = uploadBasePath + "/product/" + productId + "/common/editor/" + answerIdStr;
-        } else {
-            throw new IllegalArgumentException("지원하지 않는 type/key: " + type + ", " + key);
-        }
+	@Transactional
+	public String moveEditorImages(Long productId, String type, String key, String html, List<String> tempImgList) {
+		Product product = productRepository.findById(productId)
+				.orElseThrow(() -> new IllegalArgumentException("상품 없음: " + productId));
+		String targetDir;
+		List<String> newUrls = new ArrayList<>();
 
-        File dir = new File(targetDir);
-        if (!dir.exists()) dir.mkdirs();
+		if ("detailHtml".equals(type) && "detailHtml".equals(key)) {
+			targetDir = uploadBasePath + "/product/" + productId + "/detail";
+		} else if ("question".equals(type) && key != null && key.startsWith("question_")) {
+			String idx = key.replace("question_", "");
+			Long idNum = parseLongSafe(idx);
+			ProductAnswer answer = findAnswerByKey(productId, idNum);
+			targetDir = uploadBasePath + "/product/" + productId + "/common/editor/" + answer.getId();
+		} else {
+			throw new IllegalArgumentException("지원하지 않는 type/key");
+		}
 
-        for (String tempImgUrl : tempImgList) {
-            String relativePath = tempImgUrl.replaceFirst("/upload/", "");
-            File tempFile = new File(uploadBasePath, relativePath);
+		File dir = new File(targetDir);
+		if (!dir.exists())
+			dir.mkdirs();
 
-            String fileName = tempImgUrl.substring(tempImgUrl.lastIndexOf('/') + 1);
-            File targetFile = new File(dir, fileName);
+		for (String tempUrl : tempImgList) {
+			String relative = tempUrl.replaceFirst("/upload/", "");
+			File tempFile = new File(uploadBasePath, relative);
+			String fileName = tempUrl.substring(tempUrl.lastIndexOf('/') + 1);
+			File targetFile = new File(dir, fileName);
+			try {
+				Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			} catch (Exception e) {
+				throw new RuntimeException("임시파일 이동 실패", e);
+			}
+			String webPath;
+			if ("detailHtml".equals(type)) {
+				webPath = "/upload/product/" + productId + "/detail/" + fileName;
+				ProductDetailImage di = new ProductDetailImage();
+				di.setProduct(product);
+				di.setUrl(webPath);
+				di.setPath(targetFile.getAbsolutePath());
+				di.setFileName(fileName);
+				di.setUploadedAt(LocalDateTime.now());
+				di.setInUse(true);
+				productDetailImageRepository.save(di);
+			} else {
+				String idx = key.replace("question_", "");
+				Long idNum = parseLongSafe(idx);
+				ProductAnswer answer = findAnswerByKey(productId, idNum);
+				webPath = "/upload/product/" + productId + "/common/editor/" + answer.getId() + "/" + fileName;
+				ProductAnswerDetailImage ai = new ProductAnswerDetailImage();
+				ai.setAnswer(answer);
+				ai.setUrl(webPath);
+				ai.setPath(targetFile.getAbsolutePath());
+				ai.setFileName(fileName);
+				ai.setUploadedAt(LocalDateTime.now());
+				ai.setInUse(true);
+				productAnswerDetailImageRepository.save(ai);
+			}
+			newUrls.add(webPath);
+		}
 
-            try {
-                Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } catch (Exception e) {
-                throw new RuntimeException("임시파일 이동 실패: " + tempFile, e);
-            }
+		String newHtml = html;
+		for (int i = 0; i < tempImgList.size(); i++)
+			newHtml = newHtml.replace(tempImgList.get(i), newUrls.get(i));
 
-            String webPath;
-            if ("detailHtml".equals(type)) {
-                webPath = "/upload/product/" + productId + "/detail/" + fileName;
-                // 상세 이미지 DB 저장
-                ProductDetailImage di = new ProductDetailImage();
-                di.setProduct(product);
-                di.setUrl(webPath);
-                di.setPath(targetFile.getAbsolutePath());
-                di.setFileName(fileName);
-                di.setUploadedAt(LocalDateTime.now());
-                productDetailImageRepository.save(di);
-            } else {
-                // 반드시 답변ID로 연결
-                String answerIdStr = key.replace("question_", "");
-                webPath = "/upload/product/" + productId + "/common/editor/" + answerIdStr + "/" + fileName;
-                ProductAnswer answer = productAnswerRepository.findById(Long.valueOf(answerIdStr))
-                    .orElseThrow(() -> new IllegalArgumentException("답변 없음: " + answerIdStr));
-                ProductAnswerDetailImage ai = new ProductAnswerDetailImage();
-                ai.setAnswer(answer);
-                ai.setUrl(webPath);
-                ai.setPath(targetFile.getAbsolutePath());
-                ai.setFileName(fileName);
-                ai.setUploadedAt(LocalDateTime.now());
-                productAnswerDetailImageRepository.save(ai);
-            }
-            newUrls.add(webPath);
-        }
+		if ("detailHtml".equals(type)) {
+			product.setDetailHtml(newHtml);
+			productRepository.save(product);
+		} else {
+			String idx = key.replace("question_", "");
+			Long idNum = parseLongSafe(idx);
+			ProductAnswer answer = findAnswerByKey(productId, idNum);
+			answer.setValue(newHtml);
+			productAnswerRepository.save(answer);
+		}
+		return newHtml;
+	}
 
-        // HTML 내 src 치환
-        String newHtml = html;
-        for (int i = 0; i < tempImgList.size(); i++) {
-            newHtml = newHtml.replace(tempImgList.get(i), newUrls.get(i));
-        }
+	private ProductImage saveProductImage(Product product, MultipartFile file, ProductImageType type, int sortOrder) {
+	    String subDir;
+	    if (type == ProductImageType.MAIN) {
+	        subDir = "/product/" + product.getId() + "/rep"; // 대표 이미지
+	    } else {
+	        subDir = "/product/" + product.getId() + "/images"; // 추가 이미지
+	    }
 
-        // DB 컬럼 업데이트
-        if ("detailHtml".equals(type)) {
-            product.setDetailHtml(newHtml);
-            productRepository.save(product);
-        } else {
-            String answerIdStr = key.replace("question_", "");
-            ProductAnswer answer = productAnswerRepository.findById(Long.valueOf(answerIdStr))
-                .orElseThrow(() -> new IllegalArgumentException("답변 없음: " + answerIdStr));
-            answer.setValue(newHtml);
-            productAnswerRepository.save(answer);
-        }
-        return newHtml;
-    }
-    
-    /**
-     * 에디터 이미지 임시 업로드 (폴더 구조: /upload/temp/yyyyMMdd/detailHtml/ 또는 /upload/temp/yyyyMMdd/question_{id}/ )
-     * @param files 이미지 파일 리스트
-     * @param type "detailHtml" 또는 "question"
-     * @param key type이 question일 때 "question_1" 등 질문별 식별자
-     * @return 업로드된 파일들의 웹 URL 리스트
-     */
-    public List<String> uploadEditorImages(List<MultipartFile> files, String type, String key) {
-        List<String> urlList = new ArrayList<>();
-        String dateStr = LocalDate.now().toString().replace("-", "");
+	    String filePath = fileStorageUtil.save(file, uploadBasePath + subDir);
+	    ProductImage image = new ProductImage();
+	    image.setProduct(product);
+	    image.setType(type);
+	    image.setPath(filePath);
+	    image.setFileName(file.getOriginalFilename());
+	    image.setUrl(toPublicUrl(filePath));
+	    image.setSortOrder(sortOrder);
+	    return productImageRepository.save(image);
+	}
 
-        // 폴더 구조 결정
-        String subDir;
-        if ("detailHtml".equals(type)) {
-            subDir = "detailHtml";
-        } else if ("question".equals(type) && key != null && key.startsWith("question_")) {
-            subDir = key; // 예: question_1
-        } else {
-            subDir = "etc";
-        }
 
-        Path tempDir = Paths.get(uploadBasePath, "temp", dateStr, subDir);
-        File dir = tempDir.toFile();
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) {
-                throw new RuntimeException("임시 이미지 폴더 생성 실패: " + tempDir);
-            }
-        }
+	private String saveDisplayOptionFile(Product product, ProductQuestion question, MultipartFile file)
+			throws IOException {
+		String dir = uploadBasePath + "/product/" + product.getId() + "/question_" + question.getId();
+		return fileStorageUtil.save(file, dir);
+	}
 
-        for (MultipartFile file : files) {
-            if (file.isEmpty()) continue;
+	private void upsertRelated(Product base, Product rel, RelatedType type, int sortOrder) {
+		boolean exists = relatedProductRepository.existsByBaseProductAndRelatedProductAndType(base, rel, type);
+		if (!exists) {
+			RelatedProduct r = new RelatedProduct();
+			r.setBaseProduct(base);
+			r.setRelatedProduct(rel);
+			r.setType(type);
+			r.setSortOrder(sortOrder);
+			relatedProductRepository.save(r);
+		}
+	}
 
-            String origName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-            String newName = UUID.randomUUID().toString().replace("-", "") + "_" + origName;
-            Path savePath = tempDir.resolve(newName);
+	private Long parseQuestionKey(String key) {
+		if (key.startsWith("question_"))
+			return Long.parseLong(key.substring("question_".length()));
+		throw new IllegalArgumentException("질문 key 포맷 오류: " + key);
+	}
 
-            try {
-                file.transferTo(savePath);
-            } catch (IOException e) {
-                throw new RuntimeException("이미지 저장 실패: " + origName, e);
-            }
+	// ProductRegisterService 내부
+	private String toPublicUrl(String absoluteSavedPath) {
+	    String base = new File(uploadBasePath).getAbsolutePath().replace("\\", "/");
+	    String abs  = new File(absoluteSavedPath).getAbsolutePath().replace("\\", "/");
 
-            // 웹 URL: /upload/temp/yyyyMMdd/detailHtml/파일명 또는 /upload/temp/yyyyMMdd/question_1/파일명
-            String url = "/upload/temp/" + dateStr + "/" + subDir + "/" + newName;
-            urlList.add(url);
-        }
-        return urlList;
-    }
+	    // uploadBasePath 이후의 상대경로 산출
+	    String rel = abs.replace(base, "");
+	    if (!rel.startsWith("/")) rel = "/" + rel;
 
+	    // ★ 정적 리소스 핸들러와 일치하도록 '/upload' 접두어를 강제
+	    return ("/upload" + rel).replaceAll("/+", "/");
+	}
+
+
+	private Long parseLongSafe(String s) {
+		try {
+			return Long.valueOf(s);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	private ProductAnswer findAnswerByKey(Long productId, Long idNum) {
+		if (idNum == null)
+			throw new IllegalArgumentException("key 식별자 없음");
+		Optional<ProductAnswer> byId = productAnswerRepository.findById(idNum);
+		if (byId.isPresent())
+			return byId.get();
+		ProductQuestion q = productQuestionRepository.findById(idNum)
+				.orElseThrow(() -> new IllegalArgumentException("질문/답변 식별 불가: " + idNum));
+		return productAnswerRepository.findTopByProductIdAndQuestionIdOrderByIdAsc(productId, q.getId())
+				.orElseThrow(() -> new IllegalArgumentException("해당 제품/질문에 대한 답변 없음"));
+	}
 
 }

@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('상품 관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">상품 관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">상품 등록</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card-body">
+
+							<!-- 분류 선택(외부 카테고리) -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">분류선택 <span
+										class="product-manager-required">*</span></div>
+								<div class="row mb-2" id="category-select-row">
+									<div class="col-12">
+										<div class="row g-3">
+											<div class="col-4">
+												<div><strong>대분류</strong></div>
+												<ul class="list-group" id="category-large-list">
+													<li th:each="large:${categoryLargeList}" th:data-id="${large.id}"
+														class="list-group-item list-group-item-action category-large-item"
+														th:text="${large.name}">화학실험기기</li>
+												</ul>
+											</div>
+											<div class="col-4">
+												<div><strong>중분류</strong></div>
+												<ul class="list-group" id="category-medium-list"></ul>
+											</div>
+											<div class="col-4">
+												<div><strong>소분류</strong></div>
+												<ul class="list-group" id="category-small-list"></ul>
+											</div>
+										</div>
+										<div class="mt-3">
+											<div>선택된 분류</div>
+											<div id="selected-category-list" class="d-flex flex-wrap gap-2"></div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- 자체 분류(내부분류) -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">자체 분류(내부)</div>
+								<div class="row g-2">
+									<div class="col">
+										<select id="internal-large-select" class="form-select form-select-sm">
+											<option value="">내부 대분류</option>
+										</select>
+									</div>
+									<div class="col">
+										<select id="internal-medium-select" class="form-select form-select-sm">
+											<option value="">내부 중분류</option>
+										</select>
+									</div>
+									<div class="col">
+										<select id="internal-small-select" class="form-select form-select-sm">
+											<option value="">내부 소분류</option>
+										</select>
+									</div>
+								</div>
+								<div class="form-text mt-1">※ 내부 분류가 필수인 경우, 저장 시 미선택 안내가 표시됩니다.</div>
+							</div>
+
+							<!-- 기본정보 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">기본정보</div>
+								<div class="row mb-2">
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">진열상태<span
+												class="product-manager-required">*</span></label>
+										<div>
+											<input type="radio" class="btn-check" name="displayStatus" id="displayOn"
+												value="ON" checked>
+											<label class="btn btn-outline-primary btn-sm" for="displayOn">ON</label>
+											<input type="radio" class="btn-check" name="displayStatus" id="displayOff"
+												value="OFF">
+											<label class="btn btn-outline-secondary btn-sm" for="displayOff">OFF</label>
+										</div>
+									</div>
+
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">판매상태<span
+												class="product-manager-required">*</span></label>
+										<div>
+											<input type="radio" class="btn-check" name="saleStatus" id="saleOn"
+												value="ON" checked>
+											<label class="btn btn-outline-primary btn-sm" for="saleOn">ON</label>
+											<input type="radio" class="btn-check" name="saleStatus" id="saleOff"
+												value="OFF">
+											<label class="btn btn-outline-secondary btn-sm" for="saleOff">OFF</label>
+										</div>
+									</div>
+
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">제품명<span
+												class="product-manager-required">*</span></label>
+										<input type="text" class="form-control form-control-sm" id="productName"
+											placeholder="제품명">
+									</div>
+
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">제품코드<span
+												class="product-manager-required">*</span></label>
+										<div class="input-group">
+											<input type="text" class="form-control form-control-sm" id="productCode"
+												placeholder="코드" required>
+											<button type="button" class="btn btn-outline-secondary btn-sm"
+												id="checkProductCodeBtn">중복확인</button>
+										</div>
+										<div id="product-code-check-hint" class="form-text"></div>
+									</div>
+								</div>
+							</div>
+
+							<!-- 추가 상세정보 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">추가 상세정보</div>
+								<div class="row">
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">제조사명</label>
+										<input type="text" class="form-control form-control-sm" id="manufacturerText"
+											placeholder="제조사명 입력">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">공급사명</label>
+										<input type="text" class="form-control form-control-sm" id="supplierText"
+											placeholder="공급사명 입력">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">브랜드</label>
+										<div class="row">
+											<div class="col-md-11 mb-2">
+												<input type="text" id="brand-search-input"
+													class="form-control form-control-sm" placeholder="브랜드명 입력">
+											</div>
+											<div class="col-md-1 mb-2">
+												<button type="button" class="btn btn-outline-secondary btn-sm"
+													id="brand-search-btn">검색</button>
+											</div>
+											<div class="col-12 mb-2" id="brand-search-result"
+												style="max-height:220px;overflow-y:auto;"></div>
+											<div class="col-12" id="brand-selected-area"></div>
+										</div>
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">자체 상품코드</label>
+										<input type="text" class="form-control form-control-sm" id="internalProductCode"
+											placeholder="내부상품코드">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">제조일자</label>
+										<input type="date" class="form-control form-control-sm" id="manufacturedAt">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">공급일자</label>
+										<input type="date" class="form-control form-control-sm" id="expiredAt">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">신상상태</label>
+										<select class="form-select form-select-sm" id="newState">
+											<option value="NEW">신상품</option>
+											<option value="STOCK">재고상품</option>
+											<option value="DISPLAY">전시상품</option>
+										</select>
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">소비자가격</label>
+										<input type="number" class="form-control form-control-sm" id="consumerPrice"
+											min="0" placeholder="원">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">판매가격</label>
+										<input type="number" class="form-control form-control-sm" id="salePrice" min="0"
+											placeholder="원">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">적립금(%)</label>
+										<input type="number" class="form-control form-control-sm" id="rewardRate"
+											min="0" max="100" step="0.01" placeholder="예: 2.5">
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">유효기간 (시작~종료)</label>
+										<div class="input-group">
+											<input type="date" class="form-control form-control-sm" id="validFrom">
+											<input type="date" class="form-control form-control-sm" id="validTo">
+										</div>
+									</div>
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">상품 요약설명</label>
+										<input type="text" class="form-control form-control-sm" id="summaryDescription"
+											maxlength="255">
+									</div>
+									<div class="col-md-12 mb-2">
+										<label class="form-label mb-1">상품 간략설명</label>
+										<textarea class="form-control form-control-sm" id="shortDescription" rows="2"
+											maxlength="1000"></textarea>
+									</div>
+								</div>
+							</div>
+
+							<!-- 가격 정책 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">가격 정책</div>
+								<div class="row">
+									<div class="col-md-6 mb-2">
+										<label class="form-label mb-1">판매가 노출 대상</label>
+										<div>
+											<input type="radio" id="priceExposeMember" name="priceExposeTarget"
+												value="MEMBER" checked>
+											<label for="priceExposeMember" class="me-2">회원만</label>
+											<input type="radio" id="priceExposeGuest" name="priceExposeTarget"
+												value="GUEST">
+											<label for="priceExposeGuest">비회원 포함</label>
+										</div>
+									</div>
+									<div class="col-md-6 mb-2">
+										<label for="usePriceReplacementText" class="form-label mb-1">가격대체문구 사용</label>
+										<div><input type="checkbox" id="usePriceReplacementText"></div>
+										<div id="priceReplacementArea" style="display:none;">
+											<input type="text" class="form-control form-control-sm mt-2"
+												id="priceReplacementText" placeholder="예: 전화문의">
+											<div class="form-text text-danger mt-1">※ 가격대체문구가 체크된 경우 가격 대신 해당 문구가 우선
+												적용됩니다.</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- 공통 표시항목 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">공통 표시항목</div>
+								<div class="row" id="product-manager-display-options"></div>
+							</div>
+
+							<!-- 딜러 추가할인 -->
+							<div class="product-manager-section" id="dealer-discount-section">
+								<div class="product-manager-section-title">등급별 딜러 추가할인</div>
+								<div class="mb-2" id="dealer-discount-buttons">
+									<button type="button" class="btn btn-outline-primary btn-sm me-2"
+										data-grade="A">A</button>
+									<button type="button" class="btn btn-outline-primary btn-sm me-2"
+										data-grade="B">B</button>
+									<button type="button" class="btn btn-outline-primary btn-sm me-2"
+										data-grade="C">C</button>
+									<button type="button" class="btn btn-outline-primary btn-sm me-2"
+										data-grade="D">D</button>
+								</div>
+								<div id="dealer-discount-list" class="row g-2"></div>
+							</div>
+
+							<!-- 할인혜택: 다중 선택 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">할인혜택</div>
+								<button type="button" class="btn btn-outline-danger btn-sm mb-2"
+									id="open-discount-modal-btn">+ 추가할인혜택 등록</button>
+								<div id="selected-discount-list" class="d-flex flex-wrap gap-2"></div>
+							</div>
+
+							<!-- 추가 입력필드 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">추가 입력필드</div>
+								<div class="row" id="product-manager-extra-field-list"></div>
+								<button type="button" class="btn btn-outline-primary btn-sm mt-2"
+									id="product-manager-add-extra-field">+ 추가입력필드</button>
+							</div>
+
+							<!-- 키워드 -->
+							<div class="product-manager-section">
+								<label class="form-label mb-1">키워드<span
+										class="product-manager-required">*</span></label>
+								<div class="input-group">
+									<input type="text" class="form-control form-control-sm" id="product-keyword-input"
+										placeholder="키워드를 입력하고 Enter 또는 등록" required>
+									<button type="button" class="btn btn-outline-secondary btn-sm"
+										id="add-keyword-btn">등록</button>
+								</div>
+								<div id="product-keyword-list" class="d-flex flex-wrap gap-2"></div>
+							</div>
+
+							<!-- 옵션/재고 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">옵션/재고 등록</div>
+								<div class="row" id="product-manager-option-group-list"></div>
+								<button type="button" class="btn btn-outline-success btn-sm mt-2"
+									id="product-manager-add-option-group">+ 옵션그룹 추가</button>
+								<div class="form-text mt-1" style="color:#dc3545;">※ 옵션 등록 및 재고는 추가 옵션까지 세분화해 주세요.</div>
+							</div>
+
+							<!-- 대표 이미지 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">대표 이미지</div>
+								<div class="row">
+									<div class="col-12 mb-2">
+										<input type="file" class="form-control form-control-sm"
+											id="product-manager-main-image" accept="image/*">
+									</div>
+									<div class="col-12 d-flex align-items-center"
+										id="product-manager-main-image-preview"></div>
+								</div>
+							</div>
+
+							<!-- 추가 이미지 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">추가 이미지</div>
+								<div class="row">
+									<div class="col-12 mb-2">
+										<input type="file" class="form-control form-control-sm"
+											id="product-manager-sub-image" accept="image/*" multiple>
+									</div>
+									<div class="col-12 d-flex sortable align-items-center"
+										id="product-manager-sub-image-preview"></div>
+								</div>
+							</div>
+
+							<!-- 아이콘 설정 (신규) -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">아이콘 설정</div>
+								<div class="row g-2">
+									<div class="col-md-6">
+										<div class="form-check mb-1">
+											<input class="form-check-input" type="checkbox" id="use-icon-period">
+											<label class="form-check-label" for="use-icon-period">아이콘 표시기간 사용</label>
+										</div>
+										<div class="input-group">
+											<input type="date" class="form-control form-control-sm" id="icon-start"
+												disabled>
+											<input type="date" class="form-control form-control-sm" id="icon-end"
+												disabled>
+										</div>
+									</div>
+									<div class="col-md-6">
+										<label class="form-label mb-1">아이콘 이미지</label>
+										<input type="file" class="form-control form-control-sm" id="product-icon-image"
+											accept="image/*">
+										<div class="form-text">※ 등록 시 제품 아이콘으로 노출됩니다.</div>
+									</div>
+
+								</div>
+							</div>
+
+							<!-- 상세 설명 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">상세 설명(이미지/HTML)</div>
+								<div class="row">
+									<div class="col-12">
+										<textarea id="editor-desc" class="form-control" rows="6"
+											placeholder="CKEditor 등으로 구현(HTML/이미지 삽입 지원)"></textarea>
+									</div>
+								</div>
+							</div>
+
+							<!-- 관련상품 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">관련상품</div>
+								<div class="mb-2 d-flex align-items-center gap-2">
+									<div class="form-check form-check-inline">
+										<input class="form-check-input" type="radio" name="useRelatedProducts"
+											id="relatedOn" value="true" checked>
+										<label class="form-check-label" for="relatedOn">사용함</label>
+									</div>
+									<div class="form-check form-check-inline">
+										<input class="form-check-input" type="radio" name="useRelatedProducts"
+											id="relatedOff" value="false">
+										<label class="form-check-label" for="relatedOff">사용안함</label>
+									</div>
+									<button type="button" class="btn btn-outline-primary btn-sm ms-2"
+										id="open-related-modal-btn">등록</button>
+								</div>
+								<div id="related-products-list" class="d-flex flex-wrap gap-2"></div>
+							</div>
+
+							<!-- 추가구성상품 -->
+							<div class="product-manager-section">
+								<div class="product-manager-section-title">추가구성상품</div>
+								<div class="mb-2 d-flex align-items-center gap-2">
+									<div class="form-check form-check-inline">
+										<input class="form-check-input" type="radio" name="useBundleItems" id="bundleOn"
+											value="true" checked>
+										<label class="form-check-label" for="bundleOn">사용함</label>
+									</div>
+									<div class="form-check form-check-inline">
+										<input class="form-check-input" type="radio" name="useBundleItems"
+											id="bundleOff" value="false">
+										<label class="form-check-label" for="bundleOff">사용안함</label>
+									</div>
+									<button type="button" class="btn btn-outline-primary btn-sm ms-2"
+										id="open-bundle-modal-btn">등록</button>
+								</div>
+								<div id="bundle-products-list" class="d-flex flex-wrap gap-2"></div>
+							</div>
+
+							<!-- 등록 버튼 -->
+							<div class="mt-4 text-end">
+								<button type="submit" class="btn btn-primary px-4" id="submitProductBtn">제품 등록</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+	<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+	<script src="/administration/assets/product/productInsertForm.js"></script>
+
+	<!-- 관련상품 모달 -->
+	<div class="related-modal-root" id="relatedProductModal" style="display:none;" aria-hidden="true">
+		<div class="related-modal-overlay"></div>
+		<div class="related-modal-dialog">
+			<div class="related-modal-content">
+				<div class="related-modal-header">
+					<h5 class="related-modal-title">관련상품 등록</h5>
+					<button type="button" class="related-modal-close" aria-label="Close">&times;</button>
+				</div>
+				<div class="related-modal-body">
+					<div class="row g-2 mb-2">
+						<div class="col-12">
+							<label class="form-label mb-1">연관 등록 방식</label>
+							<select id="related-register-type" class="form-select form-select-sm"
+								style="max-width:220px;">
+								<option value="RECIPROCAL">상호등록</option>
+								<option value="ONEWAY">일방등록</option>
+							</select>
+							<div class="form-text">※ 상호등록: 두 제품이 서로 연관 / 일방등록: 기준제품 → 연관제품만</div>
+						</div>
+					</div>
+
+					<div class="row g-2 mb-2">
+						<div class="col">
+							<select id="related-large-select" class="form-select form-select-sm"></select>
+						</div>
+						<div class="col">
+							<select id="related-medium-select" class="form-select form-select-sm"></select>
+						</div>
+						<div class="col">
+							<select id="related-small-select" class="form-select form-select-sm"></select>
+						</div>
+						<div class="col">
+							<input type="text" class="form-control form-control-sm" id="related-product-keyword"
+								placeholder="제품명">
+						</div>
+						<div class="col-auto d-flex gap-2">
+							<button type="button" class="btn btn-outline-secondary btn-sm"
+								id="related-product-search-btn">검색</button>
+							<!-- 신규: 선택추가(체크 → 임시리스트) -->
+							<button type="button" class="btn btn-outline-primary btn-sm"
+								id="related-select-append-btn">선택추가</button>
+						</div>
+					</div>
+					<div id="related-modal-product-list" class="border rounded p-2"
+						style="max-height:240px;overflow:auto;"></div>
+					<!-- 임시 선택/정렬 리스트 -->
+					<div class="mt-2">
+						<div class="small text-muted mb-1">선택한 관련상품(드롭다운 화살표로 순서 조정 가능)</div>
+						<div id="related-modal-selected-list"></div>
+					</div>
+				</div>
+				<div class="related-modal-footer">
+					<button type="button" class="btn btn-secondary btn-sm related-modal-cancel">취소</button>
+					<!-- 기존 '등록'은 최종 반영 -->
+					<button type="button" class="btn btn-primary btn-sm" id="related-register-btn">등록</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- 추가구성상품 모달 -->
+	<div class="bundle-modal-root" id="bundleProductModal" style="display:none;" aria-hidden="true">
+		<div class="bundle-modal-overlay"></div>
+		<div class="bundle-modal-dialog">
+			<div class="bundle-modal-content">
+				<div class="bundle-modal-header">
+					<h5 class="bundle-modal-title">추가구성상품 등록</h5>
+					<button type="button" class="bundle-modal-close" aria-label="Close">&times;</button>
+				</div>
+				<div class="bundle-modal-body">
+					<div class="row g-2 mb-2">
+						<div class="col">
+							<select id="bundle-large-select" class="form-select form-select-sm"></select>
+						</div>
+						<div class="col">
+							<select id="bundle-medium-select" class="form-select form-select-sm"></select>
+						</div>
+						<div class="col">
+							<select id="bundle-small-select" class="form-select form-select-sm"></select>
+						</div>
+						<div class="col">
+							<input type="text" class="form-control form-control-sm" id="bundle-product-keyword"
+								placeholder="제품명">
+						</div>
+						<div class="col-auto">
+							<button type="button" class="btn btn-outline-secondary btn-sm"
+								id="bundle-product-search-btn">검색</button>
+						</div>
+					</div>
+					<div id="bundle-modal-product-list" class="border rounded p-2"
+						style="max-height:240px;overflow:auto;"></div>
+				</div>
+				<div class="bundle-modal-footer">
+					<button type="button" class="btn btn-secondary btn-sm bundle-modal-cancel">취소</button>
+					<button type="button" class="btn btn-primary btn-sm" id="bundle-register-btn">등록</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- 할인혜택 모달(다중 선택) -->
+	<div class="discount-modal-root" id="discountModal" style="display:none;" aria-hidden="true">
+		<div class="discount-modal-overlay"></div>
+		<div class="discount-modal-dialog">
+			<div class="discount-modal-content">
+				<div class="discount-modal-header">
+					<h5 class="discount-modal-title">할인혜택 등록</h5>
+					<button type="button" class="discount-modal-close" aria-label="Close">&times;</button>
+				</div>
+				<div class="discount-modal-body">
+					<form class="row g-2 mb-2" id="discount-search-form" autocomplete="off">
+						<div class="col-auto">
+							<input type="text" class="form-control form-control-sm" id="promotionName"
+								placeholder="프로모션명">
+						</div>
+						<div class="col-auto">
+							<select class="form-select form-select-sm" id="promotionType">
+								<option value="">타입</option>
+								<option value="DISCOUNT">할인</option>
+								<option value="GIFT">증정</option>
+								<option value="ONE_PLUS_ONE">1+1</option>
+								<option value="COUPON">쿠폰발행</option>
+							</select>
+						</div>
+						<div class="col-auto">
+							<input type="date" class="form-control form-control-sm" id="promotionStart">
+						</div>
+						<div class="col-auto">
+							<input type="date" class="form-control form-control-sm" id="promotionEnd">
+						</div>
+						<div class="col-auto">
+							<select class="form-select form-select-sm" id="promotionActive">
+								<option value="">진행여부</option>
+								<option value="true">진행중</option>
+								<option value="false">종료</option>
+							</select>
+						</div>
+						<div class="col-auto">
+							<button type="button" class="btn btn-outline-secondary btn-sm"
+								id="search-promotion-btn">검색</button>
+						</div>
+					</form>
+					<div id="promotion-modal-list" style="max-height: 240px; overflow-y:auto;"
+						class="border rounded p-2"></div>
+					<div class="mt-2">
+						<div class="small text-muted mb-1">선택된 할인혜택</div>
+						<div id="selected-discount-list-modal" class="d-flex flex-wrap gap-2"></div>
+					</div>
+				</div>
+				<div class="discount-modal-footer">
+					<button type="button" class="btn btn-secondary btn-sm discount-modal-cancel">취소</button>
+					<button type="button" class="btn btn-primary btn-sm" id="discount-apply-btn">적용</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-package com.dev.IbioScience.controller.api.product;
+package com.dev.IbioScience.controller.productRegister;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;

@@ -9,7 +9,6 @@ import com.dev.IbioScience.model.product.enums.DisplayStatus;
 import com.dev.IbioScience.model.product.enums.PriceExposeTarget;
 import com.dev.IbioScience.model.product.enums.ProductNewState;
 import com.dev.IbioScience.model.product.enums.ProductState;
-import com.dev.IbioScience.model.product.enums.RelatedRegisterType;
 import com.dev.IbioScience.model.product.enums.SaleStatus;
 import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -89,7 +88,7 @@ public class Product {
     // 제조일자
     private LocalDate manufacturedAt;
 
-    // 유통기한
+    // 공급일자
     private LocalDate expiredAt;
 
     // CKEditor 등으로 작성된 상세설명(HTML)
@@ -103,11 +102,6 @@ public class Product {
     // 관련상품 사용여부
     @Column(nullable = false)
     private Boolean useRelatedProducts = false;
-
-    // 관련상품 등록방식
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private RelatedRegisterType relatedRegisterType = RelatedRegisterType.PRODUCT;
 
     // 내부 전용 자체 소분류 FK
     @ManyToOne(fetch = FetchType.LAZY)
@@ -159,6 +153,19 @@ public class Product {
 
     // 유효기간 종료일
     private LocalDate validTo;
+    
+    // ===== 아이콘(내장) =====
+    @Column(length = 500)
+    private String iconUrl;         // 공개 URL
+    @Column(length = 500)
+    private String iconPath;        // 서버 저장 경로
+    @Column(length = 255)
+    private String iconFileName;    // 파일명
+
+    @Column(nullable = false)
+    private Boolean useIconPeriod = false;
+    private LocalDate iconStartDate;
+    private LocalDate iconEndDate;
 
     // 대표/추가 이미지 리스트 (1:N)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)

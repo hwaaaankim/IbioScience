@@ -85,7 +85,7 @@ public class BrandAPIController {
         return ResponseEntity.ok().build();
     }
     
-    @GetMapping("/api/brand/search")
+    @GetMapping("/search")
     public ResponseEntity<List<BrandSearchDTO>> searchBrand(@RequestParam String keyword) {
         List<Brand> brands = brandRepository.findByNameContainingIgnoreCase(keyword);
         List<BrandSearchDTO> result = brands.stream().map(BrandSearchDTO::fromEntity).collect(Collectors.toList());

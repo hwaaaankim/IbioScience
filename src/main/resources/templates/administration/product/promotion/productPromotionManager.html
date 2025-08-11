@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
-    data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
 
@@ -33,13 +33,14 @@
 								<label class="form-label">기간정책</label>
 								<select class="form-select" name="term" id="filter-term">
 									<option value="">전체</option>
-									<option th:value="ALWAYS"
-										th:selected="${term == T(com.dev.IbioScience.model.product.enums.PromotionTerm).ALWAYS}">
-										상시</option>
-									<option th:value="PERIOD"
-										th:selected="${term == T(com.dev.IbioScience.model.product.enums.PromotionTerm).PERIOD}">
-										기간한정</option>
+									<option th:value="ALWAYS" th:selected="${term != null and term.name() == 'ALWAYS'}">
+										상시
+									</option>
+									<option th:value="PERIOD" th:selected="${term != null and term.name() == 'PERIOD'}">
+										기간한정
+									</option>
 								</select>
+
 							</div>
 							<div class="col-md-1 filter-date" style="display:none;">
 								<label class="form-label">시작일</label>
@@ -96,12 +97,12 @@
 												<span th:text="${p.active ? '진행중' : '진행안함'}"></span>
 											</td>
 											<td>
-												<span
-													th:if="${p.term == T(com.dev.IbioScience.model.product.enums.PromotionTerm).ALWAYS}">상시</span>
-												<span
-													th:if="${p.term == T(com.dev.IbioScience.model.product.enums.PromotionTerm).PERIOD}"
-													th:text="${#temporals.format(p.startDate,'yyyy-MM-dd')} + ' ~ ' + ${#temporals.format(p.endDate,'yyyy-MM-dd')}"></span>
+												<span th:if="${p.term == null}">-</span>
+												<span th:if="${p.term != null and p.term.name() == 'ALWAYS'}">상시</span>
+												<span th:if="${p.term != null and p.term.name() == 'PERIOD'}"
+													th:text="${#temporals.format(p.startDate, 'yyyy-MM-dd')} + ' ~ ' + ${#temporals.format(p.endDate, 'yyyy-MM-dd')}"></span>
 											</td>
+
 											<td th:text="${p.type.label}">타입</td>
 											<td>
 												<form th:action="@{|/productPromotionDelete/${p.id}|}" method="post"

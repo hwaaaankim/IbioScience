@@ -1,5 +1,6 @@
 package com.dev.IbioScience.repository.category;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,5 +15,7 @@ public interface CategoryLargeRepository extends JpaRepository<CategoryLarge, Lo
     List<CategoryLarge> findAllByOrderByNameAsc();
     boolean existsByName(String name);
     boolean existsById(Long id);
+    
+    List<CategoryLarge> findByIdIn(Collection<Long> ids);
 }
 
