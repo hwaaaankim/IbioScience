@@ -27,7 +27,9 @@ import com.dev.IbioScience.dto.productDetail.ProductDetailReadResponseDTO.PriceP
 import com.dev.IbioScience.dto.productDetail.ProductDetailReadResponseDTO.ProductAnswerReadDTO;
 import com.dev.IbioScience.dto.productDetail.ProductDetailReadResponseDTO.PromotionReadDTO;
 import com.dev.IbioScience.dto.productDetail.ProductDetailReadResponseDTO.RelatedProductReadDTO;
-
+import com.dev.IbioScience.model.product.InternalCategoryLarge;
+import com.dev.IbioScience.model.product.InternalCategoryMedium;
+import com.dev.IbioScience.model.product.InternalCategorySmall;
 import com.dev.IbioScience.model.product.Product;
 import com.dev.IbioScience.model.product.ProductAnswer;
 import com.dev.IbioScience.model.product.ProductExtraField;
@@ -40,7 +42,6 @@ import com.dev.IbioScience.model.product.enums.ProductImageType;
 import com.dev.IbioScience.model.product.relation.MediumSmallCategory;
 import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
 import com.dev.IbioScience.model.product.relation.SmallProductCategory;
-
 import com.dev.IbioScience.repository.category.MediumSmallCategoryRepository;
 import com.dev.IbioScience.repository.category.SmallProductCategoryRepository;
 import com.dev.IbioScience.repository.product.ProductPromotionMappingRepository;
@@ -111,8 +112,25 @@ public class ProductDetailQueryService {
         pricePolicy.setPriceReplacementText(p.getPriceReplacementText());
         dto.setPricePolicy(pricePolicy);
 
-        // 내부 카테고리
-        dto.setInternalCategorySmallId(p.getInternalCategorySmall() != null ? p.getInternalCategorySmall().getId() : null);
+        // ✅ 내부 자체분류 (대/중/소 모두)
+        if (p.getInternalCategorySmall() != null) {
+            InternalCategorySmall s = p.getInternalCategorySmall();
+            dto.setInternalCategorySmallId(s.getId());
+
+            InternalCategoryMedium m = s.getMedium(); // 엔티티에 getMedium() 존재 가정(프로젝트 설계상 1:1)
+            if (m != null) {
+                dto.setInternalCategoryMediumId(m.getId());
+
+                InternalCategoryLarge l = m.getLarge(); // 엔티티에 getLarge() 존재 가정
+                if (l != null) {
+                    dto.setInternalCategoryLargeId(l.getId());
+                }
+            }
+        } else {
+            dto.setInternalCategorySmallId(null);
+            dto.setInternalCategoryMediumId(null);
+            dto.setInternalCategoryLargeId(null);
+        }
 
         // 브랜드
         if (p.getBrand() != null) {

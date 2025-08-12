@@ -90,6 +90,25 @@ document.addEventListener("DOMContentLoaded", function() {
 		}
 	});
 
+	function debugScanHtml(tag, key, html) {
+		try {
+			const hasDoubleSlashUpload = /(^|["'=\s])\/\/upload\//i.test(html);
+			const tempCount = (html.match(/\/upload\/temp\//g) || []).length;
+
+			if (hasDoubleSlashUpload) {
+				console.warn(`[${tag}] ${key} - "//upload/" 흔적 감지 → 치환 필요`);
+			}
+			if (tempCount > 0) {
+				console.warn(`[${tag}] ${key} - "/upload/temp/" 잔여 ${tempCount}건`);
+			}
+			if (!hasDoubleSlashUpload && tempCount === 0) {
+				console.log(`[${tag}] ${key} - 잔여 없음(ok)`);
+			}
+		} catch (e) {
+			console.warn(`[${tag}] ${key} - debugScanHtml 오류`, e);
+		}
+	}
+
 	function renderSelectedCategories() {
 		selectedList.innerHTML = '';
 		selectedCategories.forEach((c, idx) => {
@@ -505,22 +524,44 @@ document.addEventListener("DOMContentLoaded", function() {
 	// === [추가] 에디터 임시이미지 식별 접두어
 	const TEMP_IMG_PREFIX = '/upload/temp/';
 
-	// === [추가] 문자열에서 임시 이미지 URL만 뽑아내기(중복/공백 제거, 순서 유지)
+	// === 문자열에서 임시 이미지 URL만 뽑아내기(절대/상대 모두, 중복 제거, 순서 유지)
 	function extractTempImageUrls(html) {
 		if (!html) return [];
 		const urls = [];
 		const seen = new Set();
-		// src="..."/src='...'/src=... 모두 대응
 		const re = /<img[^>]*\s+src\s*=\s*(['"]?)([^'">\s]+)\1/ig;
 		let m;
 		while ((m = re.exec(html)) !== null) {
-			const url = m[2];
-			if (typeof url === 'string' && url.startsWith(TEMP_IMG_PREFIX) && !seen.has(url)) {
+			let url = m[2];
+			const idx = url.indexOf('/upload/');
+			if (idx < 0) continue;
+
+			url = url.substring(idx); // '/upload/temp/...'
+
+			// 여기서 상수 활용
+			if (!url.startsWith(TEMP_IMG_PREFIX)) continue;
+
+			if (!seen.has(url)) {
 				seen.add(url);
 				urls.push(url);
 			}
 		}
+		console.log('[TEMP_URLS]', { count: urls.length, urls });
 		return urls;
+	}
+
+	// === [NEW] 최종 HTML에서 /upload/product/ URL만 뽑기 (중복 제거, 순서 유지)
+	function extractProductImageUrls(html) {
+		if (!html) return [];
+		const out = [];
+		const seen = new Set();
+		const re = /\/upload\/product\/[^"' >]+/ig;
+		let m;
+		while ((m = re.exec(html)) !== null) {
+			const url = m[0];
+			if (!seen.has(url)) { seen.add(url); out.push(url); }
+		}
+		return out;
 	}
 
 	// === [추가] 서버 통신 래퍼: 실패시 상세 메시지 파싱
@@ -541,15 +582,36 @@ document.addEventListener("DOMContentLoaded", function() {
 		return res.json();
 	}
 
-	// === [추가] 에디터 이동 API 호출
+	// [교체] JSON/TEXT 자동 판별 유틸
+	async function fetchJsonOrText(url, init = {}) {
+		const res = await fetch(url, init);
+		if (!res.ok) {
+			let msg = `HTTP ${res.status}`;
+			try {
+				const data = await res.json();
+				msg = data?.message || data?.error || msg;
+			} catch {
+				try { msg = await res.text(); } catch { /* ignore */ }
+			}
+			const err = new Error(msg);
+			err.status = res.status;
+			throw err;
+		}
+		const ct = (res.headers.get('content-type') || '').toLowerCase();
+		if (ct.includes('application/json')) return res.json();
+		const text = await res.text();
+		try { return JSON.parse(text); } catch { return text; }
+	}
+
+	// [교체] moveEditorImagesAPI 에서 위 유틸 사용
 	async function moveEditorImagesAPI(productId, payload) {
-		// payload: { type, key, html, tempImgList }
-		return fetchJson(`/api/product/${productId}/move-editor-images`, {
+		return fetchJsonOrText(`/api/product/${productId}/move-editor-images`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(payload)
 		});
 	}
+
 
 	// === [추가] submit 버튼 상태 토글
 	function setSubmitting(on) {
@@ -1496,6 +1558,18 @@ document.addEventListener("DOMContentLoaded", function() {
 				}
 			});
 
+			// [C] 이동 전 로깅/스캔 — 여기 추가!
+			console.log('[MOVE_JOBS]', moveJobs);
+
+			if (detailEditor && editorHtmlMap['detailHtml']) {
+				debugScanHtml('BEFORE_MOVE', 'detailHtml', editorHtmlMap['detailHtml']);
+			}
+			Object.keys(editorHtmlMap).forEach(k => {
+				if (k !== 'detailHtml' && k.startsWith('question_')) {
+					debugScanHtml('BEFORE_MOVE', k, editorHtmlMap[k] || '');
+				}
+			});
+
 			if (moveJobs.length === 0) {
 				console.log('이동할 임시 에디터 이미지가 없습니다. (등록 완료)');
 				console.groupEnd();
@@ -1510,25 +1584,50 @@ document.addEventListener("DOMContentLoaded", function() {
 			const moveResults = [];
 			for (const job of moveJobs) {
 				try {
-					console.log('이동 요청 →', job.type, job.key, job.tempImgList);
-					const r = await moveEditorImagesAPI(productId, job);
-					console.log('이동 성공 ←', r);
-					moveResults.push({ ok: true, key: job.key, res: r });
+					// [SEND] 보낼 임시 URL 목록
+					console.group(`MOVE → ${job.key}`);
+					console.table(job.tempImgList.map((u, i) => ({ idx: i, tempUrl: u })));
 
-					// 에디터 화면 데이터도 최신으로 치환
-					if (job.key === 'detailHtml' && detailEditor) {
-						detailEditor.setData(r.newHtml || job.html);
+					// 서버 호출
+					const res = await moveEditorImagesAPI(productId, job);
+
+					// 응답 로깅(문자열/객체 어떤 형태든 미리 확인)
+					console.log('[MOVE_RESP_RAW]', job.key, { type: typeof res });
+					const newHtml = (typeof res === 'string') ? res : (res?.newHtml ?? job.html);
+					console.log('[MOVE_RESP_PREVIEW]', (newHtml || '').slice(0, 200) + '...');
+
+					// [RECV] 받은 HTML에서 /upload/product/ URL만 추출해서 표로 출력
+					const productUrls = extractProductImageUrls(newHtml);
+					console.table(productUrls.map((u, i) => ({ idx: i, productUrl: u })));
+
+					moveResults.push({ ok: true, key: job.key, res });
+
+					// 이동 후 HTML 내부에 남은 문제 패턴 체크
+					debugScanHtml?.('AFTER_MOVE', job.key, newHtml);
+
+					// 에디터 반영
+					if (job.key === 'detailHtml' && typeof detailEditor?.setData === 'function') {
+						detailEditor.setData(newHtml);
 					} else if (job.key.startsWith('question_')) {
-						const editorId = 'editor-' + job.key.replace('question_', 'question-'); // editor-question-1
-						if (ckeInstances[editorId]) {
-							ckeInstances[editorId].setData(r.newHtml || job.html);
+						const editorId = 'editor-' + job.key.replace('question_', 'question-'); // editor-question-123
+						const inst = ckeInstances[editorId];
+						if (inst?.setData) {
+							inst.setData(newHtml);
+						} else {
+							const ta = document.getElementById(editorId);
+							if (ta) ta.value = newHtml;
+							console.warn('[CKE 폴백] 인스턴스 미발견 → textarea에 값만 주입:', editorId);
 						}
 					}
+
+					console.groupEnd();
 				} catch (err) {
 					console.error('이동 실패 ←', job.key, err);
 					moveResults.push({ ok: false, key: job.key, error: err });
+					console.groupEnd();
 				}
 			}
+
 			console.groupEnd();
 
 			// === 4) 결과 안내 ===
@@ -1543,7 +1642,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			}
 
 			// 필요 시 이동
-			// location.href = `/admin/productDetail/${productId}`;
+			location.href = '/productManager';
 		} catch (err) {
 			console.error('[등록 중 오류]', err);
 			alert('등록 중 오류: ' + (err?.message || err));

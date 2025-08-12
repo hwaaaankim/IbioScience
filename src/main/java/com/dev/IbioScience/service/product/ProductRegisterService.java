@@ -13,8 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -75,6 +76,8 @@ import com.dev.IbioScience.repository.product.register.ProductRepository;
 import com.dev.IbioScience.repository.product.register.RelatedProductRepository;
 import com.dev.IbioScience.utils.FileStorageUtil;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -105,6 +108,9 @@ public class ProductRegisterService {
 
 	@Value("${spring.upload.path}")
 	private String uploadBasePath;
+
+	@PersistenceContext
+	private EntityManager em;
 
 	@Transactional
 	public Long registerProduct(ProductRegisterRequestDTO req) throws IOException {
@@ -405,102 +411,240 @@ public class ProductRegisterService {
 		return urlList;
 	}
 
+	private List<String> extractTempUrlsFromHtml(String html) {
+		List<String> out = new ArrayList<>();
+		if (html == null || html.isEmpty())
+			return out;
+		try {
+			java.util.regex.Pattern p = java.util.regex.Pattern
+					.compile("(?i)(?:https?:)?(?://[^\"'\\s>]+)?(/upload/temp/[^\"'>\\s]+)");
+			java.util.regex.Matcher m = p.matcher(html);
+			while (m.find()) {
+				String u = normalizeUploadUrls(m.group(1));
+				out.add(u);
+			}
+		} catch (Exception ignore) {
+		}
+		return out;
+	}
+
 	@Transactional
 	public String moveEditorImages(Long productId, String type, String key, String html, List<String> tempImgList) {
+
 		Product product = productRepository.findById(productId)
 				.orElseThrow(() -> new IllegalArgumentException("상품 없음: " + productId));
-		String targetDir;
-		List<String> newUrls = new ArrayList<>();
 
+		// === [ADD] 프론트 누락 대비: tempImgList 비었으면 html에서 재추출
+		if ((tempImgList == null || tempImgList.isEmpty()) && html != null) {
+			tempImgList = extractTempUrlsFromHtml(html);
+			System.out.println(">>> [DEBUG] extracted temp from html: " + tempImgList.size());
+		}
+
+		// 1) 타겟 정보
+		String targetDir;
+		ProductAnswer targetAnswer = null;
 		if ("detailHtml".equals(type) && "detailHtml".equals(key)) {
 			targetDir = uploadBasePath + "/product/" + productId + "/detail";
 		} else if ("question".equals(type) && key != null && key.startsWith("question_")) {
 			String idx = key.replace("question_", "");
 			Long idNum = parseLongSafe(idx);
-			ProductAnswer answer = findAnswerByKey(productId, idNum);
-			targetDir = uploadBasePath + "/product/" + productId + "/common/editor/" + answer.getId();
+			targetAnswer = findAnswerByKey(productId, idNum);
+			if (targetAnswer == null)
+				throw new IllegalArgumentException("답변 없음: " + key);
+			targetDir = uploadBasePath + "/product/" + productId + "/common/editor/" + targetAnswer.getId();
 		} else {
 			throw new IllegalArgumentException("지원하지 않는 type/key");
 		}
-
 		File dir = new File(targetDir);
-		if (!dir.exists())
-			dir.mkdirs();
+		if (!dir.exists() && !dir.mkdirs())
+			throw new RuntimeException("타겟 폴더 생성 실패: " + targetDir);
 
-		for (String tempUrl : tempImgList) {
-			String relative = tempUrl.replaceFirst("/upload/", "");
+		// 2) temp -> target 이동 + 치환 맵 구성
+		Map<String, String> replaceMap = new java.util.LinkedHashMap<>();
+		List<String> movedFileNames = new ArrayList<>();
+		List<String> temps = (tempImgList == null) ? java.util.Collections.emptyList() : tempImgList;
+
+		if (tempImgList != null) {
+			for (String u : tempImgList)
+				System.out.println("  [TEMP_URL] " + u);
+		}
+
+		for (String tempUrlRaw : temps) {
+			String uploadUrl = extractUploadPath(tempUrlRaw); // '/upload/temp/...'
+			String relative = toUploadRelativePath(uploadUrl); // 'temp/...'
 			File tempFile = new File(uploadBasePath, relative);
-			String fileName = tempUrl.substring(tempUrl.lastIndexOf('/') + 1);
+			String fileName = extractFileNameOnly(uploadUrl);
+
 			File targetFile = new File(dir, fileName);
 			try {
+				System.out.println("tempFile.toPath() : " + tempFile.toPath());
+				System.out.println("targetFile.toPath() : " + targetFile.toPath());
 				Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			} catch (Exception e) {
-				throw new RuntimeException("임시파일 이동 실패", e);
+				throw new RuntimeException("임시파일 이동 실패: " + uploadUrl, e);
 			}
+
 			String webPath;
 			if ("detailHtml".equals(type)) {
 				webPath = "/upload/product/" + productId + "/detail/" + fileName;
+
 				ProductDetailImage di = new ProductDetailImage();
 				di.setProduct(product);
 				di.setUrl(webPath);
 				di.setPath(targetFile.getAbsolutePath());
 				di.setFileName(fileName);
 				di.setUploadedAt(LocalDateTime.now());
-				di.setInUse(true);
 				productDetailImageRepository.save(di);
 			} else {
-				String idx = key.replace("question_", "");
-				Long idNum = parseLongSafe(idx);
-				ProductAnswer answer = findAnswerByKey(productId, idNum);
-				webPath = "/upload/product/" + productId + "/common/editor/" + answer.getId() + "/" + fileName;
+				
+				webPath = "/upload/product/" + productId + "/common/editor/" + targetAnswer.getId() + "/" + fileName;
 				ProductAnswerDetailImage ai = new ProductAnswerDetailImage();
-				ai.setAnswer(answer);
+				ai.setAnswer(targetAnswer);
 				ai.setUrl(webPath);
 				ai.setPath(targetFile.getAbsolutePath());
 				ai.setFileName(fileName);
 				ai.setUploadedAt(LocalDateTime.now());
-				ai.setInUse(true);
 				productAnswerDetailImageRepository.save(ai);
 			}
-			newUrls.add(webPath);
+
+			replaceMap.put(uploadUrl, webPath);
+			movedFileNames.add(fileName);
 		}
 
-		String newHtml = html;
-		for (int i = 0; i < tempImgList.size(); i++)
-			newHtml = newHtml.replace(tempImgList.get(i), newUrls.get(i));
+		// 3) HTML 치환
+		String newHtml = (html == null) ? "" : html;
 
+		// 3-1) 정확 매핑
+		for (Map.Entry<String, String> e : replaceMap.entrySet()) {
+			newHtml = replaceSrcExact(newHtml, e.getKey(), e.getValue());
+		}
+		// 3-2) 파일명 폴백
+		for (String fileName : movedFileNames) {
+			String newUrl = resolveNewUrlByFileName(replaceMap, fileName);
+			if (newUrl != null)
+				newHtml = replaceImageSrcByFilename(newHtml, fileName, newUrl);
+		}
+		// 3-3) 폴더 폴백
 		if ("detailHtml".equals(type)) {
+		    newHtml = newHtml.replaceAll(
+		        // 파일명 부분을 ([^"'>\\s]+) 로 캡처
+		        "(?i)(?<=src\\s*=\\s*['\"])(?:https?:)?(?://[^\"'\\s>]+)?/*upload/temp/\\d{8}/detailHtml/([^\"'>\\s]+)(?=['\"])",
+		        // 베이스 + $1(캡처된 파일명)
+		        java.util.regex.Matcher.quoteReplacement("/upload/product/" + productId + "/detail/") + "$1"
+		    );
+		} else {
+		    String answerBase = "/upload/product/" + productId + "/common/editor/" + targetAnswer.getId() + "/";
+		    newHtml = newHtml.replaceAll(
+		        "(?i)(?<=src\\s*=\\s*['\"])(?:https?:)?(?://[^\"'\\s>]+)?/*upload/temp/\\d{8}/question_\\d+/([^\"'>\\s]+)(?=['\"])",
+		        java.util.regex.Matcher.quoteReplacement(answerBase) + "$1"
+		    );
+		}
+
+		newHtml = normalizeUploadUrls(newHtml);
+
+		int afterTemp = Math.max(0, newHtml.split("/upload/temp/").length - 1);
+		System.out.println("[MOVE_HTML] AFTER  tempCount=" + afterTemp);
+
+		// 4) 최종 참조 URL(/upload/product/...) 수집 + 정규화
+		java.util.Set<String> finalRefs = new java.util.LinkedHashSet<>();
+		try {
+			java.util.regex.Pattern p = java.util.regex.Pattern
+					.compile("(?i)(?:https?:)?(?://[^\"'\\s>]+)?(/upload/product/[^\"'>\\s]+)");
+			java.util.regex.Matcher m = p.matcher(newHtml);
+			while (m.find())
+				finalRefs.add(normalizeUploadUrls(m.group(1)));
+		} catch (Exception ignore) {
+			ignore.getStackTrace();
+		}
+
+		// 5) 기존 레코드 로드 및 삭제/보강 (기존 그대로)
+		if ("detailHtml".equals(type)) {
+			// ===== 여기서 디버깅 시작 =====
+		    List<ProductDetailImage> olds = em
+		            .createQuery("select d from ProductDetailImage d where d.product = :p", ProductDetailImage.class)
+		            .setParameter("p", product).getResultList();
+		    olds.forEach(d -> System.out.println("DB : " + normalizeUploadUrls(d.getUrl())));
+
+		    finalRefs.forEach(r -> System.out.println("HTML: " + r));
+
+		    olds.forEach(d -> {
+		        String dbUrl = normalizeUploadUrls(d.getUrl());
+		        boolean keep = finalRefs.contains(dbUrl);
+		        System.out.println("KEEP? " + keep + " | DB=" + dbUrl);
+		    });
+		    // ===== 디버깅 끝 =====
+
+			for (ProductDetailImage d : olds) {
+				if (!finalRefs.contains(normalizeUploadUrls(d.getUrl()))) {
+					deletePhysicalFileSafe(d.getPath());
+					productDetailImageRepository.delete(d);
+				}
+			}
+			java.util.Set<String> exists = olds.stream().map(x -> normalizeUploadUrls(x.getUrl()))
+					.collect(java.util.stream.Collectors.toSet());
+			for (String url : finalRefs) {
+				if (!exists.contains(url)) {
+					String rel = toUploadRelativePath(url);
+					File f = new File(uploadBasePath, rel);
+					String fileName = extractFileNameOnly(url);
+					ProductDetailImage di = new ProductDetailImage();
+					di.setProduct(product);
+					di.setUrl(url);
+					di.setPath(f.getAbsolutePath());
+					di.setFileName(fileName);
+					di.setUploadedAt(LocalDateTime.now());
+					productDetailImageRepository.save(di);
+				}
+			}
 			product.setDetailHtml(newHtml);
 			productRepository.save(product);
 		} else {
-			String idx = key.replace("question_", "");
-			Long idNum = parseLongSafe(idx);
-			ProductAnswer answer = findAnswerByKey(productId, idNum);
-			answer.setValue(newHtml);
-			productAnswerRepository.save(answer);
+			List<ProductAnswerDetailImage> olds = em
+					.createQuery("select a from ProductAnswerDetailImage a where a.answer = :ans",
+							ProductAnswerDetailImage.class)
+					.setParameter("ans", targetAnswer).getResultList();
+
+			java.util.Set<String> exists = olds.stream().map(x -> normalizeUploadUrls(x.getUrl()))
+					.collect(java.util.stream.Collectors.toSet());
+			for (String url : finalRefs) {
+				if (!exists.contains(url)) {
+					String rel = toUploadRelativePath(url);
+					File f = new File(uploadBasePath, rel);
+					String fileName = extractFileNameOnly(url);
+					ProductAnswerDetailImage ai = new ProductAnswerDetailImage();
+					ai.setAnswer(targetAnswer);
+					ai.setUrl(url);
+					ai.setPath(f.getAbsolutePath());
+					ai.setFileName(fileName);
+					ai.setUploadedAt(LocalDateTime.now());
+					productAnswerDetailImageRepository.save(ai);
+				}
+			}
+			targetAnswer.setValue(newHtml);
+			productAnswerRepository.save(targetAnswer);
 		}
+
 		return newHtml;
 	}
 
 	private ProductImage saveProductImage(Product product, MultipartFile file, ProductImageType type, int sortOrder) {
-	    String subDir;
-	    if (type == ProductImageType.MAIN) {
-	        subDir = "/product/" + product.getId() + "/rep"; // 대표 이미지
-	    } else {
-	        subDir = "/product/" + product.getId() + "/images"; // 추가 이미지
-	    }
+		String subDir;
+		if (type == ProductImageType.MAIN) {
+			subDir = "/product/" + product.getId() + "/rep"; // 대표 이미지
+		} else {
+			subDir = "/product/" + product.getId() + "/images"; // 추가 이미지
+		}
 
-	    String filePath = fileStorageUtil.save(file, uploadBasePath + subDir);
-	    ProductImage image = new ProductImage();
-	    image.setProduct(product);
-	    image.setType(type);
-	    image.setPath(filePath);
-	    image.setFileName(file.getOriginalFilename());
-	    image.setUrl(toPublicUrl(filePath));
-	    image.setSortOrder(sortOrder);
-	    return productImageRepository.save(image);
+		String filePath = fileStorageUtil.save(file, uploadBasePath + subDir);
+		ProductImage image = new ProductImage();
+		image.setProduct(product);
+		image.setType(type);
+		image.setPath(filePath);
+		image.setFileName(file.getOriginalFilename());
+		image.setUrl(toPublicUrl(filePath));
+		image.setSortOrder(sortOrder);
+		return productImageRepository.save(image);
 	}
-
 
 	private String saveDisplayOptionFile(Product product, ProductQuestion question, MultipartFile file)
 			throws IOException {
@@ -528,17 +672,17 @@ public class ProductRegisterService {
 
 	// ProductRegisterService 내부
 	private String toPublicUrl(String absoluteSavedPath) {
-	    String base = new File(uploadBasePath).getAbsolutePath().replace("\\", "/");
-	    String abs  = new File(absoluteSavedPath).getAbsolutePath().replace("\\", "/");
+		String base = new File(uploadBasePath).getAbsolutePath().replace("\\", "/");
+		String abs = new File(absoluteSavedPath).getAbsolutePath().replace("\\", "/");
 
-	    // uploadBasePath 이후의 상대경로 산출
-	    String rel = abs.replace(base, "");
-	    if (!rel.startsWith("/")) rel = "/" + rel;
+		// uploadBasePath 이후의 상대경로 산출
+		String rel = abs.replace(base, "");
+		if (!rel.startsWith("/"))
+			rel = "/" + rel;
 
-	    // ★ 정적 리소스 핸들러와 일치하도록 '/upload' 접두어를 강제
-	    return ("/upload" + rel).replaceAll("/+", "/");
+		// ★ 정적 리소스 핸들러와 일치하도록 '/upload' 접두어를 강제
+		return ("/upload" + rel).replaceAll("/+", "/");
 	}
-
 
 	private Long parseLongSafe(String s) {
 		try {
@@ -548,16 +692,143 @@ public class ProductRegisterService {
 		}
 	}
 
-	private ProductAnswer findAnswerByKey(Long productId, Long idNum) {
-		if (idNum == null)
+	private ProductAnswer findAnswerByKey(Long productId, Long questionId) {
+		if (questionId == null) {
 			throw new IllegalArgumentException("key 식별자 없음");
-		Optional<ProductAnswer> byId = productAnswerRepository.findById(idNum);
-		if (byId.isPresent())
-			return byId.get();
-		ProductQuestion q = productQuestionRepository.findById(idNum)
-				.orElseThrow(() -> new IllegalArgumentException("질문/답변 식별 불가: " + idNum));
+		}
+		// questionId 는 항상 ProductQuestion의 ID 로 취급
+		ProductQuestion q = productQuestionRepository.findById(questionId)
+				.orElseThrow(() -> new IllegalArgumentException("질문 없음(id): " + questionId));
+
 		return productAnswerRepository.findTopByProductIdAndQuestionIdOrderByIdAsc(productId, q.getId())
-				.orElseThrow(() -> new IllegalArgumentException("해당 제품/질문에 대한 답변 없음"));
+				.orElseThrow(() -> new IllegalArgumentException(
+						"해당 제품/질문에 대한 답변 없음 (productId=" + productId + ", questionId=" + questionId + ")"));
 	}
 
+	/** HTML 내 img src에서 '/upload/...' 부분만 추출 (절대 URL이어도 /upload 부터) */
+	private String extractUploadPath(String url) {
+		if (url == null)
+			return null;
+		int idx = url.indexOf("/upload/");
+		return (idx >= 0) ? url.substring(idx) : url; // '/upload/...' 또는 원문
+	}
+
+	/** '/upload/...'를 파일시스템 상대경로('temp/...')로 변환 */
+	private String toUploadRelativePath(String uploadUrl) {
+		if (uploadUrl == null)
+			return null;
+		String p = uploadUrl;
+		if (p.startsWith("/"))
+			p = p.substring(1); // 'upload/...'
+		if (p.startsWith("upload/"))
+			p = p.substring("upload/".length()); // 'temp/...'
+		return p;
+	}
+
+	/** URL에서 파일명만 추출 (쿼리/해시 제거) */
+	private String extractFileNameOnly(String url) {
+		if (url == null)
+			return null;
+		int q = url.indexOf('?');
+		if (q >= 0)
+			url = url.substring(0, q);
+		int h = url.indexOf('#');
+		if (h >= 0)
+			url = url.substring(0, h);
+		int slash = url.lastIndexOf('/');
+		return (slash >= 0) ? url.substring(slash + 1) : url;
+	}
+
+	/** html에서 특정 파일명으로 끝나는 img src 전체를 newUrl로 교체 (절대/상대/쿼리/해시 전부 포괄) */
+	private String replaceImageSrcByFilename(String html, String fileName, String newUrl) {
+		if (html == null || fileName == null || fileName.isEmpty() || newUrl == null)
+			return html;
+		String escapedFile = Pattern.quote(fileName);
+		// src=".../파일명[?쿼리][#해시]" 형태 전체를 newUrl로 교체
+		String pattern = "(?i)(?<=src\\s*=\\s*['\"])" + "[^\"'>\\s]*" // 스킴/호스트/경로 아무거나
+				+ "/" + escapedFile + "(?:\\?[^\"'>#]*)?" // 선택적 쿼리
+				+ "(?:#[^\"'>]*)?" // 선택적 해시
+				+ "(?=['\"])";
+		return html.replaceAll(pattern, Matcher.quoteReplacement(newUrl));
+	}
+
+	/** html 내에서 정확한 src="...old..." 만 new 로 교체 (절대/상대/쿼리/해시/도메인/슬래시 모두 허용) */
+	private String replaceSrcExact(String html, String oldUrl, String newUrl) {
+		if (html == null || oldUrl == null || newUrl == null)
+			return html;
+
+		// oldUrl에서 "/upload/..."만 추출
+		String core = extractUploadPath(oldUrl); // "/upload/temp/..."
+		String coreNoSlash = core.replaceFirst("^/+", ""); // "upload/temp/..."
+		String justPath = coreNoSlash.replaceFirst("^upload/", ""); // "temp/..."
+
+		// src="…(도메인/프로토콜/슬래시 상관없이)…/temp/.../파일[?쿼리][#해시]" → newUrl
+		String quotedFile = Pattern.quote(extractFileNameOnly(core));
+		String anyPrefix = "(?i)(?<=src\\s*=\\s*['\"])" + "(?:https?:)?(?://[^\"'\\s>]+)?" // 프로토콜/도메인 optional
+				+ "/*" // 선행 슬래시 0개 이상
+				+ "(?:upload/)?" + "(?:temp/[^\"'>\\s]*/)" + "([^\"'>\\s]*/)*" + quotedFile
+				+ "(?:\\?[^\"'>#]*)?(?:#[^\"'>]*)?" + "(?=['\"])";
+
+		// 우선 정규식 치환
+		String out = html.replaceAll(anyPrefix, Matcher.quoteReplacement(newUrl));
+
+		// 문자열 그대로가 남아있다면 마지막으로 문자열 치환도 한 번
+		out = out.replace(core, newUrl).replace(coreNoSlash, newUrl).replace("/" + justPath, newUrl).replace(justPath,
+				newUrl);
+
+		return out;
+	}
+
+	/** 결과 html의 슬래시/프로토콜 정규화 */
+	private String normalizeUploadUrls(String html) {
+		if (html == null)
+			return null;
+		String out = html;
+
+		// //upload → /upload
+		out = out.replaceAll("(?i)(['\"])\\s*//+upload/", "$1/upload/");
+
+		// /upload 앞에 다중 슬래시 정리
+		out = out.replaceAll("(?i)/+upload/", "/upload/");
+
+		// 중복 슬래시 정리 (http:// 는 건드리지 않음)
+		out = out.replaceAll("(?<!:)//+", "/");
+
+		return out;
+	}
+
+	/**
+	 * 매핑 테이블(replaceMap)에서 파일명으로 새 URL 찾기 - replaceMap:
+	 * key=/upload/temp/.../파일명.png , value=/upload/product/.../파일명.png
+	 */
+	private String resolveNewUrlByFileName(Map<String, String> map, String fileName) {
+		if (map == null || fileName == null || fileName.isEmpty())
+			return null;
+
+		// 1) key가 .../파일명 으로 끝나는 항목 찾기
+		for (Map.Entry<String, String> e : map.entrySet()) {
+			String oldUrl = e.getKey();
+			if (oldUrl != null && oldUrl.endsWith("/" + fileName)) {
+				return e.getValue();
+			}
+		}
+		// 2) 파일명만 추출해서 비교
+		for (Map.Entry<String, String> e : map.entrySet()) {
+			String oldUrl = e.getKey();
+			String keyName = extractFileNameOnly(oldUrl);
+			if (fileName.equals(keyName)) {
+				return e.getValue();
+			}
+		}
+		return null;
+	}
+
+	private void deletePhysicalFileSafe(String path) {
+		if (path == null || path.isBlank())
+			return;
+		try {
+			Files.deleteIfExists(Path.of(path));
+		} catch (Exception ignore) {
+		}
+	}
 }

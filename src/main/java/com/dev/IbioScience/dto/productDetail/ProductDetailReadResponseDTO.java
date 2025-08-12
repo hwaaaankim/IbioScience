@@ -41,6 +41,10 @@ public class ProductDetailReadResponseDTO {
 
     // 분류
     private List<CategoryPathReadDTO> externalCategories; // (대/중/소)
+    
+    // ✅ 내부 자체분류 (대/중/소 모두 포함)
+    private Long internalCategoryLargeId;
+    private Long internalCategoryMediumId;
     private Long internalCategorySmallId;
 
     // 브랜드
