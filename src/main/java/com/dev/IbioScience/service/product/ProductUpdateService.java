@@ -444,8 +444,97 @@ public class ProductUpdateService {
 				productGradeBenefitRepository.save(b);
 			}
 		}
+		// ========== 11) 공통표시항목(질문/답변) ==========
+		List<ProductQuestion> questions = productQuestionRepository.findAll();
 
+		// === (변경) 에디터형(CKEDITOR)과 파일형(FILE)은 update에서 건드리지 않도록 제외 집합 구성
+		final java.util.Set<QuestionType> EXCLUDED_TYPES = java.util.EnumSet.of(QuestionType.FILE,
+				QuestionType.CKEDITOR);
 
+		/*
+		 * 11-1) 에디터형/파일형을 제외한 기존 답변 삭제 (자식부터) - editor(CKEDITOR)는 moveEditorImages()에서
+		 * 관리되므로 이곳에서 절대 삭제/갱신하지 않음 - file(FILE)은 아래 11-3 단계에서 별도 처리
+		 */
+		List<ProductAnswer> answersToDelete = em
+				.createQuery("select a from ProductAnswer a join a.question q "
+						+ "where a.product = :p and q.type not in :excluded", ProductAnswer.class)
+				.setParameter("p", product).setParameter("excluded", EXCLUDED_TYPES).getResultList();
+
+		deleteAnswersAndChildren(answersToDelete);
+
+		/*
+		 * 11-2) 요청 값으로 '에디터형/파일형을 제외한' 비파일형 답변 재삽입 - CKEDITOR는 moveEditorImages()로,
+		 * FILE은 11-3에서 다룸
+		 */
+		if (req.getDisplayOptions() != null) {
+			for (Map.Entry<String, String> en : req.getDisplayOptions().entrySet()) {
+				String key = en.getKey(); // "question_{id}"
+				Long qid = parseQuestionKey(key);
+				ProductQuestion q = findQuestion(questions, qid);
+
+				// === (변경) 에디터/파일형은 완전히 제외
+				if (EXCLUDED_TYPES.contains(q.getType())) {
+					continue;
+				}
+
+				ProductAnswer a = new ProductAnswer();
+				a.setProduct(product);
+				a.setQuestion(q);
+				a.setValue(en.getValue());
+				productAnswerRepository.save(a);
+			}
+		}
+
+		/*
+		 * 11-3) 파일형(KEEP/DELETE/REPLACE) - 기존 로직 유지, 다만 널가드 추가
+		 */
+		Map<String, String> fileActions = (req.getDisplayOptionFileActions() != null)
+				? req.getDisplayOptionFileActions()
+				: java.util.Collections.emptyMap();
+
+		for (ProductQuestion q : questions) {
+			if (q.getType() != QuestionType.FILE) {
+				continue;
+			}
+
+			String baseKey = "question_" + q.getId();
+			String act = fileActions.getOrDefault(baseKey + "_fileAction", "KEEP");
+
+			// 기존 파일형 답변 로드
+			List<ProductAnswer> fileAnswers = em
+					.createQuery("select a from ProductAnswer a where a.product = :p and a.question = :q",
+							ProductAnswer.class)
+					.setParameter("p", product).setParameter("q", q).getResultList();
+
+			if ("DELETE".equalsIgnoreCase(act) || "REPLACE".equalsIgnoreCase(act)) {
+				// 파일형도 동일하게: 자식 -> flush -> 부모 (물리파일 포함) 일괄 삭제
+				deleteAnswersAndChildren(fileAnswers);
+			}
+
+			if ("REPLACE".equalsIgnoreCase(act)) {
+				List<MultipartFile> newFiles = (req.getDisplayOptionFiles() != null)
+						? req.getDisplayOptionFiles().get(baseKey)
+						: null;
+				if (newFiles != null) {
+					for (MultipartFile f : newFiles) {
+						if (f == null || f.isEmpty())
+							continue;
+
+						String dir = uploadBasePath + "/product/" + product.getId() + "/question_" + q.getId();
+						String savedPath = fileStorageUtil.save(f, dir);
+
+						ProductAnswer a = new ProductAnswer();
+						a.setProduct(product);
+						a.setQuestion(q);
+						a.setFileUrl(toPublicUrl(savedPath));
+						a.setPath(savedPath);
+						a.setFileName(f.getOriginalFilename());
+						productAnswerRepository.save(a);
+					}
+				}
+			}
+			// KEEP은 아무 것도 하지 않음
+		}
 	}
 
 	private void deleteAnswersAndChildren(Collection<ProductAnswer> answers) {
