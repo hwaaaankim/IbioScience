@@ -1,41 +1,55 @@
 package com.dev.IbioScience.handler.exception;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> handleBadRequest(IllegalArgumentException ex) {
+    private ResponseEntity<Map<String, Object>> json(HttpStatus status, String message, HttpServletRequest req) {
+        Map<String, Object> body = Map.of(
+            "success", false,
+            "status", status.value(),
+            "error", status.getReasonPhrase(),
+            "message", Optional.ofNullable(message).orElse(""),
+            "path", req != null ? req.getRequestURI() : "",
+            "timestamp", LocalDateTime.now().toString()
+        );
         return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(Map.of("message", ex.getMessage()));
+            .status(status)
+            .contentType(MediaType.APPLICATION_JSON) // ★ JSON으로 명시 고정
+            .body(body);
     }
 
-    @ExceptionHandler(IllegalStateException.class) // ★★ 꼭 추가! ★★
-    public ResponseEntity<?> handleIllegalState(IllegalStateException ex) {
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST) // 400 BAD_REQUEST로 맞추세요!
-            .body(Map.of("message", ex.getMessage()));
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequest(IllegalArgumentException ex, HttpServletRequest req) {
+        return json(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex, HttpServletRequest req) {
+        return json(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
     }
 
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<?> handleNotFound(NoSuchElementException ex) {
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(Map.of("message", ex.getMessage()));
+    public ResponseEntity<Map<String, Object>> handleNotFound(NoSuchElementException ex, HttpServletRequest req) {
+        return json(HttpStatus.NOT_FOUND, ex.getMessage(), req);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleOther(Exception ex) {
-        return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(Map.of("message", "서버 내부 오류가 발생했습니다."));
+    public ResponseEntity<Map<String, Object>> handleOther(Exception ex, HttpServletRequest req) {
+        // 필요시 서버 로그
+        ex.printStackTrace();
+        return json(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.", req);
     }
 }
