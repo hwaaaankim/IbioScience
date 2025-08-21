@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="frontHead">
+
+	<title>HOME</title>
+	<meta charset="utf-8">
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<meta name="author" content="">
+	<meta name="robots" content="" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<link href="/front/ico/favicon-16x16.png" rel="shortcut icon" type="/front/image/png" />
+	<link href="/front/css/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="/front/css/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+	<link href="/front/js/datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
+	<link href="/front/js/owl-carousel/owl.carousel.css" rel="stylesheet">
+	<link href="/front/css/themecss/lib.css" rel="stylesheet">
+	<link href="/front/js/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+	<link href="/front/js/minicolors/miniColors.css" rel="stylesheet">
+
+	<link href="/front/css/themecss/so_searchpro.css" rel="stylesheet">
+	<link href="/front/css/themecss/so_megamenu.css" rel="stylesheet">
+	<link href="/front/css/themecss/so-categories.css" rel="stylesheet">
+	<link href="/front/css/themecss/so-listing-tabs.css" rel="stylesheet">
+	<link href="/front/css/themecss/so-category-slider.css" rel="stylesheet">
+	<link href="/front/css/themecss/so-newletter-popup.css" rel="stylesheet">
+
+	<link href="/front/css/footer/footer1.css" rel="stylesheet">
+	<link href="/front/css/header/header1.css" rel="stylesheet">
+	<link href="/front/css/theme.css" id="color_scheme" rel="stylesheet">
+	<link href="/front/css/responsive.css" rel="stylesheet">
+	<link href='https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700' rel='stylesheet' type='text/css'>
+	<link href="/front/css/ibio-index-megamenu.css" rel="stylesheet">
+</head>
+
+<!-- ==================== HEADER (완성본) ==================== -->
+<header id="header" class="typeheader-1" th:fragment="frontHeader">
+	<div class="header-top hidden-compact">
+		<div class="container">
+			<div class="row">
+				<div class="header-top-left col-lg-7 col-md-8 col-sm-6 col-xs-4">
+					<div class="hidden-md hidden-sm hidden-xs welcome-msg">
+						아이바이오 미국 보스턴 바이오 전시회 참여기업 선정
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="header-middle">
+		<div class="container">
+			<div class="row">
+				<div class="navbar-logo col-lg-2 col-md-3 col-sm-4 col-xs-12">
+					<div class="logo">
+						<a href="#"><img src="/front/image/catalog/logo.png" title="Your Store" alt="Your Store" /></a>
+					</div>
+				</div>
+
+				<!-- 검색 박스 (모바일에서 우측으로) -->
+				<div class="col-lg-7 col-md-6 col-sm-5">
+					<div class="search-header-w">
+						<!-- 모바일: 햄버거/돋보기 -->
+						<div class="ibio-index-mobile-icons hidden-lg hidden-md">
+							<button id="ibio-index-hamburger" class="ibio-index-hamburger" aria-label="모바일 메뉴 열기">
+								<span></span><span></span><span></span>
+							</button>
+							<button id="ibio-index-mobile-search" class="ibio-index-mobile-search" aria-label="검색 열기">
+								<i class="fa fa-search"></i>
+							</button>
+						</div>
+
+						<div id="sosearchpro" class="sosearchpro-wrapper so-search ">
+							<form method="GET" action="#">
+								<div id="search0" class="search input-group form-group">
+									<input class="autosearch-input form-control" type="text" value="" size="50"
+										autocomplete="off" placeholder="Keyword here..." name="search">
+									<button type="submit" class="button-search btn btn-primary" name="submit_search">
+										<i class="fa fa-search"></i>
+									</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+
+				<div class="middle-right col-lg-3 col-md-3 col-sm-3">
+					<ul class="wishlist-comp hidden-md hidden-sm hidden-xs">
+						<li class="compare hidden-xs"><a href="#" class="top-link-compare" title="Compare "><i
+									class="fa fa-refresh"></i></a></li>
+						<li class="wishlist hidden-xs"><a href="#" id="wishlist-total" class="top-link-wishlist"
+								title="Wish List (0) "><i class="fa fa-heart"></i></a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="header-bottom hidden-compact">
+		<div class="container">
+			<div class="row">
+				<div class="main-menu-w col-lg-12 col-md-9" style="position:relative;">
+					<!-- 1차 네비 -->
+					<div class="responsive so-megamenu megamenu-style-dev">
+						<nav class="navbar-default">
+							<div class=" container-megamenu horizontal open ">
+								<div class="megamenu-wrapper">
+									<span id="remove-megamenu" class="fa fa-times"></span>
+									<div class="megamenu-pattern">
+										<div class="container-mega">
+											<ul class="megamenu" data-transition="slide" data-animationtime="250">
+												<li>
+													<a href="#" class="clearfix"
+														id="ibio-index-allcat-trigger"><strong>전체카테고리</strong></a>
+												</li>
+												<li><a href="#" class="clearfix"><strong>HOME</strong></a></li>
+												<li><a href="#" class="clearfix"><strong>이벤트</strong></a></li>
+												<li><a href="#" class="clearfix"><strong>딜러샾</strong></a></li>
+												<li><a href="#" class="clearfix"><strong>브랜드</strong></a></li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+						</nav>
+					</div>
+
+					<!-- ===== PC/Tablet 메가메뉴 ===== -->
+					<div id="ibio-index-mega" class="ibio-index-mega" aria-hidden="true">
+						<div class="ibio-index-mega-inner">
+							<div class="ibio-index-col">
+								<div class="ibio-index-col-head">대분류</div>
+								<ul id="ibio-index-large-list" class="ibio-index-col-list"></ul>
+							</div>
+							<div class="ibio-index-col">
+								<div class="ibio-index-col-head">중분류</div>
+								<ul id="ibio-index-medium-list" class="ibio-index-col-list ibio-index-empty"></ul>
+							</div>
+							<div class="ibio-index-col">
+								<div class="ibio-index-col-head">소분류</div>
+								<ul id="ibio-index-small-list" class="ibio-index-col-list ibio-index-empty"></ul>
+							</div>
+							<div class="ibio-index-col">
+								<div class="ibio-index-col-head">브랜드</div>
+								<div id="ibio-index-brand-list" class="ibio-index-brand-list ibio-index-disabled"></div>
+							</div>
+							<div class="ibio-index-col">
+								<div class="ibio-index-col-head">
+									제품
+									<button id="ibio-index-mega-close" class="ibio-index-close"
+										aria-label="닫기">×</button>
+								</div>
+								<ul id="ibio-index-product-list" class="ibio-index-col-list ibio-index-empty"></ul>
+							</div>
+						</div>
+					</div>
+					<!-- /메가메뉴 -->
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- ===== 모바일: 풀스크린 오버레이 (폭 100%) ===== -->
+	<div id="ibio-index-m-overlay" class="ibio-index-m-overlay" aria-hidden="true">
+		<div class="ibio-index-m-panel" id="ibio-index-m-panel" data-state="hidden">
+			<!-- 상단 카드 -->
+			<div class="ibio-index-m-card">
+				<div class="ibio-index-m-card-top">
+					<div class="ibio-index-m-header-title">(주)아이바이오사이언스</div>
+					<button id="ibio-index-m-close" class="ibio-index-m-close" aria-label="닫기">×</button>
+				</div>
+				<div class="ibio-index-m-card-mid">
+					<div class="ibio-index-m-avatar"><img src="/front/image/catalog/logo.png" alt=""></div>
+					<div class="ibio-index-m-hello">
+						<div>비회원입니다.</div>
+						<div>로그인을 해주세요.</div>
+					</div>
+					<div class="ibio-index-m-login">
+						<button class="ibio-index-m-btn ibio-index-m-btn-primary">로그인</button>
+						<button class="ibio-index-m-btn">회원가입</button>
+					</div>
+				</div>
+				<div class="ibio-index-m-quick">
+					<div class="ibio-index-m-qitem">
+						<div class="ibio-index-m-qnum">0건</div>
+						<div>장바구니</div>
+					</div>
+					<div class="ibio-index-m-qitem">
+						<div class="ibio-index-m-qnum">0건</div>
+						<div>주문내역</div>
+					</div>
+					<div class="ibio-index-m-qitem">
+						<div class="ibio-index-m-qnum">0건</div>
+						<div>관심상품</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 카테고리 아코디언 (요청대로 '기초실험장비' 제목 제거) -->
+			<div class="ibio-index-m-section">
+				<ul id="ibio-index-m-large" class="ibio-index-m-list"></ul>
+			</div>
+
+			<!-- 문의/고객센터 섹션 -->
+			<div class="ibio-index-m-etc">
+				<div class="ibio-index-m-ask">
+					<div class="ibio-index-m-ask-title">문의하기</div>
+					<div class="ibio-index-m-ask-desc">궁금하시거나 의뢰가 필요하신가요? 빠르게 피드백 드리겠습니다.</div>
+				</div>
+				<div class="ibio-index-m-call">
+					<div class="ibio-index-m-call-title">상담문의</div>
+					<div class="ibio-index-m-call-phone">02-743-7190</div>
+					<div class="ibio-index-m-call-desc">평일 : 10:00 ~ 17:00 / 토요일, 일요일, 공휴일 휴무</div>
+				</div>
+			</div>
+
+			<!-- 모바일: 브랜드 FAB -->
+			<button id="ibio-index-brand-fab" class="ibio-index-brand-fab" title="브랜드 선택" disabled>
+				<i class="fa fa-tags"></i>
+			</button>
+		</div>
+
+		<!-- 모바일: 브랜드 모달 -->
+		<div id="ibio-index-brand-modal" class="ibio-index-brand-modal" aria-hidden="true">
+			<div class="ibio-index-brand-modal-dialog">
+				<div class="ibio-index-brand-modal-head">
+					<strong>브랜드 선택</strong>
+					<button id="ibio-index-brand-modal-close" class="ibio-index-close" aria-label="닫기">×</button>
+				</div>
+				<div class="ibio-index-brand-modal-body" id="ibio-index-brand-modal-body"></div>
+			</div>
+		</div>
+	</div>
+</header>
+
+
+<footer class="footer-container typefooter-1" th:fragment="frontFooter">
+	<div class="container">
+		<div class="row footer-top">
+			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+				<div class="socials-w">
+					<h2>Follow socials</h2>
+					<ul class="socials">
+						<li class="facebook"><a href="https://www.facebook.com/MagenTech" target="_blank"><i
+									class="fa fa-facebook"></i><span>Facebook</span></a></li>
+						<li class="twitter"><a href="https://twitter.com/smartaddons" target="_blank"><i
+									class="fa fa-twitter"></i><span>Twitter</span></a></li>
+						<li class="google_plus"><a href="https://plus.google.com/u/0/+Smartaddons/posts"
+								target="_blank"><i class="fa fa-google-plus"></i><span>Google Plus</span></a>
+						</li>
+						<li class="pinterest"><a href="https://www.pinterest.com/smartaddons/" target="_blank"><i
+									class="fa fa-pinterest"></i><span>Pinterest</span></a></li>
+						<li class="youtube"><a href="#" target="_blank"><i
+									class="fa fa-youtube-play"></i><span>Youtube</span></a></li>
+						<li class="linkedin"><a href="#" target="_blank"><i
+									class="fa fa-linkedin"></i><span>linkedin</span></a></li>
+						<li class="skype"><a href="#" target="_blank"><i class="fa fa-skype"></i><span>skype</span></a>
+						</li>
+					</ul>
+				</div>
+			</div>
+			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+				<div class="module newsletter-footer1">
+					<div class="newsletter">
+
+						<div class="title-block">
+							<div class="page-heading font-title">
+								Signup for Newsletter
+							</div>
+
+						</div>
+
+						<div class="block_content">
+							<form method="post" id="signup" name="signup"
+								class="form-group form-inline signup send-mail">
+								<div class="form-group">
+									<div class="input-box">
+										<input type="email" placeholder="Your email address..." value=""
+											class="form-control" id="txtemail" name="txtemail" size="55">
+									</div>
+									<div class="subcribe">
+										<button class="btn btn-primary btn-default font-title" type="submit"
+											onclick="return subscribe_newsletter();" name="submit">
+											Subscribe
+										</button>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="footer-middle ">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-2 col-md-4 col-sm-4 col-xs-12 col-infos">
+					<div class="infos-footer">
+						<a href="#"><img src="/front/image/catalog/logo-footer.png" alt="image"></a>
+						<ul class="menu">
+							<li class="adres">
+								San Luis potosí, centro historico, 78000 san luis potosí, SPL, Mexico
+							</li>
+							<li class="phone">
+								(+0214)0 315 215 - (+0214)0 315 215
+							</li>
+							<li class="mail">
+								<a href="mailto:contact@opencartworks.com">contact@opencartworks.com</a>
+							</li>
+							<li class="time">
+								Open time: 8:00AM - 6:00PM
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="col-lg-2 col-md-4 col-sm-4 col-xs-12 col-style">
+					<div class="box-information box-footer">
+						<div class="module clearfix">
+							<h3 class="modtitle">Information</h3>
+							<div class="modcontent">
+								<ul class="menu">
+									<li><a href="#">About Us</a></li>
+									<li><a href="#">FAQ</a></li>
+									<li><a href="#">Warranty And Services</a></li>
+									<li><a href="#">Support 24/7 page</a></li>
+									<li><a href="#">Product Registration</a></li>
+									<li><a href="#">Product Support</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-2 col-md-4 col-sm-4 col-xs-12 col-style">
+					<div class="box-account box-footer">
+						<div class="module clearfix">
+							<h3 class="modtitle">My Account</h3>
+							<div class="modcontent">
+								<ul class="menu">
+									<li><a href="#">Brands</a></li>
+									<li><a href="#">Gift Certificates</a></li>
+									<li><a href="#">Affiliates</a></li>
+									<li><a href="#">Specials</a></li>
+									<li><a href="#">FAQs</a></li>
+									<li><a href="#">Custom Link</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-2 col-md-4 col-sm-4 col-xs-12 col-clear">
+					<div class="box-service box-footer">
+						<div class="module clearfix">
+							<h3 class="modtitle">Categories</h3>
+							<div class="modcontent">
+								<ul class="menu">
+									<li><a href="#">Event & Party Supplies</a></li>
+									<li><a href="#">Home Improvement</a></li>
+									<li><a href="#">Lamps & Light Fixtures</a></li>
+									<li><a href="#">Kitchen & Bath Fixtures</a></li>
+									<li><a href="#">Customer Service</a></li>
+									<li><a href="#">Kitchen & Dining</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-2 col-md-4 col-sm-4 col-xs-12 col-style">
+					<div class="box-service box-footer">
+						<div class="module clearfix">
+							<h3 class="modtitle">Services</h3>
+							<div class="modcontent">
+								<ul class="menu">
+									<li><a href="#">Contact Us</a></li>
+									<li><a href="#">Returns</a></li>
+									<li><a href="#">Support</a></li>
+									<li><a href="#">Site Map</a></li>
+									<li><a href="#">Customer Service</a></li>
+									<li><a href="#">Custom Link</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+
+				</div>
+				<div class="col-lg-2 col-md-4 col-sm-4 col-xs-12 col-style">
+					<div class="box-service box-footer">
+						<div class="module clearfix">
+							<h3 class="modtitle">Categories</h3>
+							<div class="modcontent">
+								<ul class="menu">
+									<li><a href="#">Event & Party Supplies</a></li>
+									<li><a href="#">Home Improvement</a></li>
+									<li><a href="#">Lamps & Light Fixtures</a></li>
+									<li><a href="#">Kitchen & Bath Fixtures</a></li>
+									<li><a href="#">Customer Service</a></li>
+									<li><a href="#">Kitchen & Dining</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="container">
+		<div class="row">
+			<div class="footer-b">
+				<div class="bottom-cont">
+					<a href="#"><img src="/front/image/catalog/demo/payment/pay1.jpg" alt="image"></a>
+					<ul class="footer-links">
+						<li><a href="#">About Us</a></li>
+						<li><a href="#">Customer Service</a></li>
+						<li><a href="#">Privacy Policy</a></li>
+						<li><a href="#">Site Map</a></li>
+						<li><a href="#">Orders and Returns</a></li>
+						<li><a href="#">Contact Us</a></li>
+					</ul>
+					<p>**$50 off orders $350+ with the code BOO50. $75 off orders $500+ with the code BOO75.
+						$150 off orders $1000+ with the code BOO150. Valid from October 28, 2016 to October 31,
+						2016. Offer may not be combined with any other offers or promotions, is non-exchangeable
+						and non-refundable. Offer valid within the US only.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="footer-bottom">
+		<div class="container">
+			<div class="col-lg-12 col-xs-12 payment-w">
+				<img src="/front/image/catalog/demo/payment/payment.png" alt="imgpayment">
+			</div>
+		</div>
+		<div class="copyright-w">
+			<div class="container">
+				<div class="copyright">
+					SuperMarket © 2018 Demo Store. All Rights Reserved. Designed by <a
+						href="http://www.opencartworks.com/" target="_blank">OpenCartWorks.Com</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="back-to-top"><i class="fa fa-angle-up"></i></div>
+</footer>
+<th:block th:fragment="frontScript">
+
+	<script type="text/javascript" src="/front/js/jquery-2.2.4.min.js"></script>
+	<script type="text/javascript" src="/front/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/front/js/owl-carousel/owl.carousel.js"></script>
+	<script type="text/javascript" src="/front/js/slick-slider/slick.js"></script>
+	<script type="text/javascript" src="/front/js/themejs/libs.js"></script>
+	<script type="text/javascript" src="/front/js/unveil/jquery.unveil.js"></script>
+	<script type="text/javascript" src="/front/js/countdown/jquery.countdown.min.js"></script>
+	<script type="text/javascript" src="/front/js/dcjqaccordion/jquery.dcjqaccordion.2.8.min.js"></script>
+	<script type="text/javascript" src="/front/js/datetimepicker/moment.js"></script>
+	<script type="text/javascript" src="/front/js/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+	<script type="text/javascript" src="/front/js/jquery-ui/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="/front/js/modernizr/modernizr-2.6.2.min.js"></script>
+	<script type="text/javascript" src="/front/js/minicolors/jquery.miniColors.min.js"></script>
+	<script type="text/javascript" src="/front/js/themejs/application.js"></script>
+	<script type="text/javascript" src="/front/js/themejs/homepage.js"></script>
+	<script type="text/javascript" src="/front/js/themejs/toppanel.js"></script>
+	<script type="text/javascript" src="/front/js/themejs/so_megamenu.js"></script>
+	<script type="text/javascript" src="/front/js/themejs/addtocart.js"></script>
+	<script type="text/javascript" src="/front/js/ibio-index-megamenu.js"></script>
+</th:block>
+</body>
+
+</html>

@@ -1,0 +1,492 @@
+:root {
+	--ibio-item-h: 40px;
+	--ibio-head-h: 44px;
+	--ibio-max-h: calc(var(--ibio-item-h) * 7);
+	--ibio-border: #e6e8ec;
+	--ibio-bg: #fff;
+	--ibio-head: #111;
+	--ibio-muted: #9aa3ae;
+	--ibio-primary: #ff5a1f;
+}
+
+/* ====== PC/Tablet 메가메뉴 ====== */
+#ibio-index-mega {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 100%;
+	width: 100%;
+	background: var(--ibio-bg);
+	border: 1px solid var(--ibio-border);
+	border-top: none;
+	box-shadow: 0 12px 28px rgba(0, 0, 0, .08);
+	z-index: 9999;
+	display: block;
+	/* 항상 존재시키고 */
+	opacity: 0;
+	/* 보임/숨김은 투명도로 제어 */
+	pointer-events: none;
+	/* 숨김일 때 클릭 막기 */
+	transform: translateY(8px);
+	transition: opacity .18s ease, transform .18s ease;
+	height: calc(var(--ibio-head-h) + var(--ibio-max-h));
+}
+
+#ibio-index-mega[aria-hidden="false"] {
+	opacity: 1;
+	transform: translateY(0);
+	pointer-events: auto;
+}
+
+.ibio-index-mega-inner {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: 0;
+	height: 100%;
+}
+
+.ibio-index-col {
+	border-right: 1px solid var(--ibio-border);
+	background: #fff;
+	display: flex;
+	flex-direction: column;
+}
+
+.ibio-index-col:last-child {
+	border-right: none;
+}
+
+.ibio-index-col-head {
+	height: var(--ibio-head-h);
+	line-height: var(--ibio-head-h);
+	padding: 0 14px;
+	font-weight: 700;
+	color: var(--ibio-head);
+	border-bottom: 1px solid var(--ibio-border);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.ibio-index-close {
+	border: none;
+	background: transparent;
+	font-size: 20px;
+	cursor: pointer;
+	color: #777;
+}
+
+.ibio-index-close:hover {
+	color: #000;
+}
+
+.ibio-index-col-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	overflow: auto;
+	flex: 1;
+	max-height: var(--ibio-max-h);
+}
+
+.ibio-index-col-list.ibio-index-empty {
+	color: var(--ibio-muted);
+	padding: 0;
+}
+
+.ibio-index-col-list li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	height: var(--ibio-item-h);
+	padding: 0 12px;
+	cursor: pointer;
+	border-bottom: 1px solid #f3f4f6;
+}
+
+.ibio-index-col-list li:hover {
+	background: #f8f9fb;
+}
+
+.ibio-index-text {
+	flex: 1;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.ibio-index-arrow {
+	font-size: 18px;
+	color: #666;
+}
+
+.ibio-index-col-list .active {
+	background: #fff2ec;
+}
+
+/* 브랜드 열 */
+.ibio-index-brand-list {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+	overflow: auto;
+	flex: 1;
+	max-height: var(--ibio-max-h);
+}
+
+.ibio-index-brand-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: var(--ibio-item-h);
+	border-bottom: 1px solid #f3f4f6;
+	cursor: pointer;
+	padding: 0 12px;
+}
+
+.ibio-index-brand-item:hover {
+	background: #f8f9fb;
+}
+
+.ibio-index-brand-badge {
+	width: 150px;
+	height: 30px;
+	border: 1px dashed #cfd6dd;
+	background: #f4f6f8;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	color: #6b7684;
+}
+
+.ibio-index-brand-item.active .ibio-index-brand-badge {
+	border-color: var(--ibio-primary);
+	background: #fff7f3;
+	color: #222;
+}
+
+.ibio-index-disabled {
+	filter: grayscale(1);
+	opacity: .45;
+	pointer-events: none;
+}
+
+/* ====== 모바일 오버레이 & 패널 애니메이션 ====== */
+#ibio-index-m-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .45);
+	display: none;
+	z-index: 10000;
+}
+
+#ibio-index-m-overlay[aria-hidden="false"] {
+	display: block;
+}
+
+.ibio-index-lock {
+	overflow: hidden;
+	position: fixed;
+	width: 100%;
+}
+
+.ibio-index-m-panel {
+	position: absolute;
+	inset: 0;
+	background: #fff;
+	overflow: auto;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+	transform: translateX(-100%);
+	/* 기본: 왼쪽 밖 */
+	opacity: 0;
+}
+
+.ibio-index-m-panel[data-state="showing"] {
+	animation: ibioSlideIn .25s ease both;
+}
+
+.ibio-index-m-panel[data-state="hiding"] {
+	animation: ibioSlideOut .25s ease both;
+}
+
+.ibio-index-m-panel[data-state="visible"] {
+	transform: none;
+	opacity: 1;
+}
+
+@keyframes ibioSlideIn {
+	from {
+		transform: translateX(-100%);
+		opacity: .6;
+	}
+
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes ibioSlideOut {
+	from {
+		transform: translateX(0);
+		opacity: 1;
+	}
+
+	to {
+		transform: translateX(-100%);
+		opacity: .6;
+	}
+}
+
+/* 카드 & 상단 비주얼(요청 이미지 느낌) */
+.ibio-index-m-card {
+	background: #fff;
+	border-bottom: 1px solid var(--ibio-border);
+}
+
+.ibio-index-m-header-title {
+	color: #fff;
+	position: absolute;
+	left: 16px;
+	top: 10px;
+	font-weight: 700;
+}
+
+.ibio-index-m-card-top {
+	background: #f26a1f;
+	height: 52px;
+	position: relative;
+}
+
+.ibio-index-m-close {
+	position: absolute;
+	right: 10px;
+	top: 8px;
+	border: none;
+	background: transparent;
+	font-size: 22px;
+	color: #fff;
+}
+
+.ibio-index-m-card-mid {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 16px;
+}
+
+.ibio-index-m-avatar img {
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	object-fit: contain;
+	background: #fff;
+}
+
+.ibio-index-m-hello {
+	font-size: 14px;
+}
+
+.ibio-index-m-login {
+	margin-left: auto;
+	display: flex;
+	gap: 8px;
+}
+
+.ibio-index-m-btn {
+	height: 36px;
+	padding: 0 12px;
+	border: 1px solid var(--ibio-border);
+	background: #fff;
+	border-radius: 6px;
+}
+
+.ibio-index-m-btn-primary {
+	background: var(--ibio-primary);
+	color: #fff;
+	border-color: var(--ibio-primary);
+}
+
+.ibio-index-m-quick {
+	display: flex;
+	border-top: 1px solid var(--ibio-border);
+}
+
+.ibio-index-m-qitem {
+	flex: 1;
+	text-align: center;
+	padding: 12px 6px;
+	border-right: 1px solid var(--ibio-border);
+}
+
+.ibio-index-m-qitem:last-child {
+	border-right: none;
+}
+
+.ibio-index-m-qnum {
+	font-weight: 700;
+	margin-bottom: 6px;
+}
+
+/* 카테고리(제목 제거) */
+.ibio-index-m-section {
+	padding: 10px 0;
+}
+
+.ibio-index-m-list {
+	list-style: none;
+	margin: 0;
+	padding: 0 0 10px;
+}
+
+.ibio-index-m-li {
+	border-top: 1px solid #f2f3f5;
+}
+
+.ibio-index-m-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 16px;
+	cursor: pointer;
+}
+
+.ibio-index-m-arrow {
+	color: #999;
+}
+
+/* 아코디언 컨테이너: 기본 닫힘(display:none) → JS에서 display 제어 */
+.ibio-index-m-sub {
+	margin: 0;
+	padding: 0;
+	height: 0;
+	overflow: hidden;
+	display: none;
+	/* 열려 있을 때만 여백을 주고, 닫힐 때 완전히 제거 → '틈' 방지 */
+}
+
+.ibio-index-m-sub.open {
+	padding-bottom: 8px;
+}
+
+.ibio-index-m-prod {
+	padding: 8px 16px;
+	border-top: 1px dashed #eee;
+}
+
+/* FAB & 모달 */
+.ibio-index-brand-fab {
+	position: fixed;
+	right: 12px;
+	bottom: 100px;
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	background: var(--ibio-primary);
+	color: #fff;
+	border: none;
+	box-shadow: 0 10px 22px rgba(0, 0, 0, .2);
+	transform: scale(.94);
+	opacity: .85;
+	z-index: 10020;
+}
+
+.ibio-index-brand-fab:disabled {
+	background: #cfd6dd;
+	opacity: .65;
+}
+
+.ibio-index-brand-fab:enabled {
+	transform: scale(1);
+}
+
+.ibio-index-brand-modal {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .4);
+	display: none;
+	z-index: 10030;
+}
+
+.ibio-index-brand-modal[aria-hidden="false"] {
+	display: block;
+}
+
+.ibio-index-brand-modal-dialog {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: min(92vw, 560px);
+	background: #fff;
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.ibio-index-brand-modal-head {
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--ibio-border);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.ibio-index-brand-modal-body {
+	padding: 12px;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 12px;
+	max-height: 60vh;
+	overflow: auto;
+}
+
+.ibio-index-brand-btn {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	border: 1px solid var(--ibio-border);
+	border-radius: 10px;
+	padding: 10px;
+	cursor: pointer;
+	background: #fff;
+}
+
+.ibio-index-brand-btn.active {
+	border-color: var(--ibio-primary);
+	background: #fff7f3;
+}
+
+/* 992px 미만에서는 PC메가메뉴 숨김(항상 비활성화) */
+@media (max-width:991.98px) {
+	#ibio-index-mega {
+		pointer-events: none !important;
+		opacity: 0 !important;
+		transform: translateY(8px) !important;
+	}
+
+	.ibio-index-mobile-icons {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.ibio-index-hamburger {
+		width: 36px;
+		height: 32px;
+		border: none;
+		background: transparent;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 5px;
+	}
+
+	.ibio-index-hamburger span {
+		display: block;
+		height: 2px;
+		background: #333;
+	}
+}
