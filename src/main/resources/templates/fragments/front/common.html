@@ -35,9 +35,8 @@
 	<link href="/front/css/ibio-index-megamenu.css" rel="stylesheet">
 </head>
 
-<!-- ==================== HEADER (완성본) ==================== -->
 <header id="header" class="typeheader-1" th:fragment="frontHeader">
-	<div class="header-top hidden-compact">
+	<div class="header-top">
 		<div class="container">
 			<div class="row">
 				<div class="header-top-left col-lg-7 col-md-8 col-sm-6 col-xs-4">
@@ -52,16 +51,16 @@
 	<div class="header-middle">
 		<div class="container">
 			<div class="row">
-				<div class="navbar-logo col-lg-2 col-md-3 col-sm-4 col-xs-12">
+				<div class="navbar-logo col-lg-2 col-md-3 col-sm-12 col-xs-12">
 					<div class="logo">
-						<a href="#"><img src="/front/image/catalog/logo.png" title="Your Store" alt="Your Store" /></a>
+						<a href="#"><img src="/front/image/catalog/logo.png" title="#" alt="#" /></a>
 					</div>
 				</div>
 
 				<!-- 검색 박스 (모바일에서 우측으로) -->
-				<div class="col-lg-7 col-md-6 col-sm-5">
+				<div class="col-lg-7 col-md-6 col-sm-12">
 					<div class="search-header-w">
-						<!-- 모바일: 햄버거/돋보기 -->
+						<!-- 모바일: 햄버거/돋보기 (991px 미만에서만 표시) -->
 						<div class="ibio-index-mobile-icons hidden-lg hidden-md">
 							<button id="ibio-index-hamburger" class="ibio-index-hamburger" aria-label="모바일 메뉴 열기">
 								<span></span><span></span><span></span>
@@ -71,23 +70,37 @@
 							</button>
 						</div>
 
+						<!-- PC 기본 검색 폼 -->
 						<div id="sosearchpro" class="sosearchpro-wrapper so-search ">
-							<form method="GET" action="#">
-								<div id="search0" class="search input-group form-group">
-									<input class="autosearch-input form-control" type="text" value="" size="50"
-										autocomplete="off" placeholder="Keyword here..." name="search">
+							<form id="ibio-index-pc-search-form" method="GET" action="#">
+								<div id="search0" class="search input-group form-group ibio-index-pc-searchbox">
+									<input id="ibio-index-pc-search-input" class="autosearch-input form-control"
+										type="text" value="" autocomplete="off" placeholder="Keyword here..."
+										name="search">
 									<button type="submit" class="button-search btn btn-primary" name="submit_search">
 										<i class="fa fa-search"></i>
 									</button>
 								</div>
 							</form>
+
+							<!-- PC: 최근검색어 드롭다운 (클릭 시 노출) -->
+							<div id="ibio-index-search-dropdown" class="ibio-index-search-dropdown" aria-hidden="true">
+								<div class="ibio-index-search-dd-head">
+									<span>최근 검색어</span>
+									<button type="button" id="ibio-index-search-dd-clear"
+										class="ibio-index-search-dd-clear">모두 지우기</button>
+								</div>
+								<div id="ibio-index-search-dd-list" class="ibio-index-search-dd-list">
+									<!-- JS로 채움 -->
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
 
 				<div class="middle-right col-lg-3 col-md-3 col-sm-3">
 					<ul class="wishlist-comp hidden-md hidden-sm hidden-xs">
-						<li class="compare hidden-xs"><a href="#" class="top-link-compare" title="Compare "><i
+						<li class="compare hidden-xs"><a href="#" class="top-link-compare" title="#"><i
 									class="fa fa-refresh"></i></a></li>
 						<li class="wishlist hidden-xs"><a href="#" id="wishlist-total" class="top-link-wishlist"
 								title="Wish List (0) "><i class="fa fa-heart"></i></a></li>
@@ -97,19 +110,18 @@
 		</div>
 	</div>
 
-	<div class="header-bottom hidden-compact">
+	<div class="header-bottom">
 		<div class="container">
 			<div class="row">
 				<div class="main-menu-w col-lg-12 col-md-9" style="position:relative;">
 					<!-- 1차 네비 -->
 					<div class="responsive so-megamenu megamenu-style-dev">
 						<nav class="navbar-default">
-							<div class=" container-megamenu horizontal open ">
+							<div class="container-megamenu horizontal open ">
 								<div class="megamenu-wrapper">
-									<span id="remove-megamenu" class="fa fa-times"></span>
 									<div class="megamenu-pattern">
 										<div class="container-mega">
-											<ul class="megamenu" data-transition="slide" data-animationtime="250">
+											<ul class="megamenu">
 												<li>
 													<a href="#" class="clearfix"
 														id="ibio-index-allcat-trigger"><strong>전체카테고리</strong></a>
@@ -155,7 +167,6 @@
 							</div>
 						</div>
 					</div>
-					<!-- /메가메뉴 -->
 				</div>
 			</div>
 		</div>
@@ -197,7 +208,7 @@
 				</div>
 			</div>
 
-			<!-- 카테고리 아코디언 (요청대로 '기초실험장비' 제목 제거) -->
+			<!-- 카테고리 아코디언 -->
 			<div class="ibio-index-m-section">
 				<ul id="ibio-index-m-large" class="ibio-index-m-list"></ul>
 			</div>
@@ -232,8 +243,37 @@
 			</div>
 		</div>
 	</div>
-</header>
 
+	<!-- ===== 모바일: 전체폭 검색 모달 ===== -->
+	<div id="ibio-index-m-search-overlay" class="ibio-index-m-search-overlay" aria-hidden="true">
+		<div class="ibio-index-m-search-dialog">
+			<div class="ibio-index-m-search-head">
+				<div class="ibio-index-m-search-title"><i class="fa fa-search"></i> 검색</div>
+				<button id="ibio-index-m-search-close" class="ibio-index-m-search-close" aria-label="닫기">×</button>
+			</div>
+			<form id="ibio-index-m-search-form" class="ibio-index-m-search-form" action="#" method="GET">
+				<select id="ibio-index-m-search-select" class="ibio-index-m-search-select" aria-label="검색 분류">
+					<option value="">전체</option>
+					<option value="product">제품</option>
+					<option value="brand">브랜드</option>
+				</select>
+				<input id="ibio-index-m-search-input" class="ibio-index-m-search-input" type="text"
+					placeholder="검색어를 입력하세요" name="search" autocomplete="off">
+				<button type="submit" class="ibio-index-m-search-btn"><i class="fa fa-search"></i></button>
+			</form>
+			<div class="ibio-index-m-search-recent">
+				<div class="ibio-index-m-search-recent-head">
+					<span>최근 검색어</span>
+					<button id="ibio-index-m-search-clear" type="button" class="ibio-index-m-search-clear">모두
+						지우기</button>
+				</div>
+				<div id="ibio-index-m-search-recent-list" class="ibio-index-m-search-recent-list">
+					<!-- JS로 채움 -->
+				</div>
+			</div>
+		</div>
+	</div>
+</header>
 
 <footer class="footer-container typefooter-1" th:fragment="frontFooter">
 	<div class="container">
