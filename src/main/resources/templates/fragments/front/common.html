@@ -31,6 +31,7 @@
 	<link href="/front/css/header/header1.css" rel="stylesheet">
 	<link href="/front/css/theme.css" id="color_scheme" rel="stylesheet">
 	<link href="/front/css/responsive.css" rel="stylesheet">
+	<link href="/front/css/add.css" rel="stylesheet">
 	<link href='https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700' rel='stylesheet' type='text/css'>
 	<link href="/front/css/ibio-index-megamenu.css" rel="stylesheet">
 </head>
@@ -51,9 +52,10 @@
 	<div class="header-middle">
 		<div class="container">
 			<div class="row">
+				<!-- 로고 -->
 				<div class="navbar-logo col-lg-2 col-md-3 col-sm-12 col-xs-12">
 					<div class="logo">
-						<a href="#"><img src="/front/image/catalog/logo.png" title="#" alt="#" /></a>
+						<a href="#"><img height="40px;" src="/front/image/sample/250-40.png" title="#" alt="#" /></a>
 					</div>
 				</div>
 
@@ -70,14 +72,15 @@
 							</button>
 						</div>
 
-						<!-- PC 기본 검색 폼 -->
-						<div id="sosearchpro" class="sosearchpro-wrapper so-search ">
+						<!-- PC 기본 검색 폼 (기존 구조 그대로) -->
+						<div id="sosearchpro" class="sosearchpro-wrapper so-search">
 							<form id="ibio-index-pc-search-form" method="GET" action="#">
 								<div id="search0" class="search input-group form-group ibio-index-pc-searchbox">
 									<input id="ibio-index-pc-search-input" class="autosearch-input form-control"
 										type="text" value="" autocomplete="off" placeholder="Keyword here..."
-										name="search">
-									<button type="submit" class="button-search btn btn-primary" name="submit_search">
+										name="search" />
+									<button type="submit" class="button-search btn btn-primary" name="submit_search"
+										aria-label="검색">
 										<i class="fa fa-search"></i>
 									</button>
 								</div>
@@ -98,17 +101,46 @@
 					</div>
 				</div>
 
+				<!-- 오른쪽 아이콘/텍스트 영역 -->
 				<div class="middle-right col-lg-3 col-md-3 col-sm-3">
-					<ul class="wishlist-comp hidden-md hidden-sm hidden-xs">
-						<li class="compare hidden-xs"><a href="#" class="top-link-compare" title="#"><i
-									class="fa fa-refresh"></i></a></li>
-						<li class="wishlist hidden-xs"><a href="#" id="wishlist-total" class="top-link-wishlist"
-								title="Wish List (0) "><i class="fa fa-heart"></i></a></li>
+					<ul class="front-header-quick hidden-md hidden-sm hidden-xs">
+						<li class="front-header-item">
+							<a href="/login" class="front-header-link" title="로그인 or 회원가입">
+								<i class="fa fa-shopping-bag" aria-hidden="true"></i>
+								<span class="front-header-text">로그인 or 회원가입</span>
+							</a>
+						</li>
+						<li class="front-header-item">
+							<a href="/cart" class="front-header-link" title="장바구니">
+								<i class="fa fa-shopping-cart" aria-hidden="true"></i>
+								<span class="front-header-text">장바구니</span>
+							</a>
+						</li>
+						<li class="front-header-item">
+							<a href="/wishlist" class="front-header-link" title="찜목록">
+								<i class="fa fa-heart" aria-hidden="true"></i>
+								<span class="front-header-text">찜목록</span>
+							</a>
+						</li>
+						<li class="front-header-item">
+							<a href="/orders/track" class="front-header-link" title="주문배송조회">
+								<i class="fa fa-truck" aria-hidden="true"></i>
+								<span class="front-header-text">주문배송조회</span>
+							</a>
+						</li>
+						<li class="front-header-item">
+							<a href="/mypage" class="front-header-link" title="마이페이지">
+								<i class="fa fa-user" aria-hidden="true"></i>
+								<span class="front-header-text">마이페이지</span>
+							</a>
+						</li>
 					</ul>
 				</div>
+
 			</div>
 		</div>
 	</div>
+
 
 	<div class="header-bottom">
 		<div class="container">
@@ -123,8 +155,12 @@
 										<div class="container-mega">
 											<ul class="megamenu">
 												<li>
-													<a href="#" class="clearfix"
-														id="ibio-index-allcat-trigger"><strong>전체카테고리</strong></a>
+													<a href="#" class="clearfix front-header-allcat-link"
+														id="ibio-index-allcat-trigger" aria-label="전체카테고리">
+														<i class="fa fa-bars front-header-hamburger"
+															aria-hidden="true"></i>
+														<strong>전체카테고리</strong>
+													</a>
 												</li>
 												<li><a href="#" class="clearfix"><strong>HOME</strong></a></li>
 												<li><a href="#" class="clearfix"><strong>이벤트</strong></a></li>

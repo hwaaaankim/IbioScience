@@ -1,16 +1,5 @@
 @charset "UTF-8";
 
-/* [2] */
-/* [8] */
-/*===============================================
- [SASS DIRECTORY ]
- [1] Minxin Link
- [2] Minxin Button
- [3] Minxin Triangle
- [4] Minxin LABEL PRODUCT
- [5] Minxin Scrollbars
- [6] Minxin Dev Custom
- ==============================================*/
 .no-margin {
 	margin: 0 !important;
 }
@@ -340,7 +329,7 @@
  [1] BLOCK HEADER
  ==============================================*/
 .typeheader-1 {
-	background: url(../../image/bg/bg-header1.jpg) no-repeat left 36px;
+	background-color: white;
 	/*=====SEARCH ======*/
 	/*BLOCK CART*/
 	/*MENU MEGA*/
@@ -494,7 +483,7 @@
 
 .typeheader-1 .wishlist-comp li a i {
 	font-size: 26px;
-	color: #fff;
+	color: #000;
 }
 
 .typeheader-1 .wishlist-comp li a span {
@@ -809,7 +798,7 @@
 
 .typeheader-1 .container-megamenu.horizontal ul.megamenu>li>a {
 	line-height: 100%;
-	color: #fff;
+	color: #000;
 }
 
 .typeheader-1 .container-megamenu.horizontal ul.megamenu>li.item-special,
@@ -990,4 +979,442 @@
 
 .wrapper-boxed .typeheader-1 .telephone ul li:first-child {
 	display: none;
+}
+
+
+/* header add start */
+/* ====== Front Header Icons (right) ====== */
+.front-header-quick {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 24px;
+	/* 아이템 간격 */
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.front-header-item {
+	display: flex;
+}
+
+.front-header-link {
+	display: flex;
+	flex-direction: column;
+	/* 아이콘 위, 텍스트 아래 */
+	align-items: center;
+	text-decoration: none;
+	gap: 6px;
+}
+
+.front-header-link i {
+	font-size: 18px;
+	/* 아이콘 크기 */
+	line-height: 1;
+}
+
+.front-header-text {
+	font-size: 12px;
+	/* 텍스트 크기 */
+	line-height: 1;
+	white-space: nowrap;
+}
+
+/* 색상: 기본(검정), 호버(오렌지) — 두 번째 이미지 느낌 */
+.front-header-link,
+.front-header-link:visited {
+	color: #111;
+}
+
+.front-header-link:hover,
+.front-header-link:focus {
+	color: #FE5000;
+	/* 포커스/호버 시 포인트 컬러 */
+}
+
+/* 헤더 높이/정렬 보정이 필요하면 사용 (옵션) */
+@media (min-width: 1200px) {
+	.front-header-quick {
+		margin-top: 2px;
+		/* 상하 미세 조정 */
+	}
+}
+
+/* 반응형: 기존처럼 md/sm/xs에서는 숨김(HTML의 hidden-*로 처리) */
+/* 만약 md 이하에서도 아이콘만 보이게 하려면 아래를 참고해서 조정하세요.
+@media (max-width: 991.98px) {
+  .front-header-quick { justify-content: flex-end; gap: 16px; }
+  .front-header-text { display: none; }  // 텍스트 감추고 아이콘만
+}
+*/
+/* ================================
+   공통: header row 수직 가운데 정렬
+   (Bootstrap의 .row는 flex이므로 align-items만 보정)
+===================================*/
+.typeheader-1 .header-middle .row {
+	align-items: center;
+}
+
+/* ================================
+   PC 검색창 (두 번째 이미지 스타일)
+   네임스페이스: .front-header-search
+===================================*/
+.front-header-search-wrap {
+	display: flex;
+	align-items: center;
+}
+
+.front-header-search {
+	width: 100%;
+}
+
+.front-header-search__form {
+	display: flex;
+	align-items: center;
+	height: 44px;
+	/* 검색바 전체 높이 */
+	border: 2px solid #FE5000;
+	/* 오렌지 테두리 */
+	border-radius: 28px;
+	/* 둥근 모서리 */
+	padding: 0 6px 0 14px;
+	/* 좌우 여백 */
+	background: #fff;
+	box-sizing: border-box;
+}
+
+.front-header-search__input {
+	flex: 1 1 auto;
+	height: 100%;
+	border: 0;
+	outline: 0;
+	font-size: 14px;
+	color: #333;
+	padding: 0 8px 0 2px;
+	background: transparent;
+}
+
+.front-header-search__input::placeholder {
+	color: #9aa0a6;
+	/* 연한 회색 플레이스홀더 */
+}
+
+.front-header-search__btn {
+	flex: 0 0 auto;
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	border: 0;
+	margin-left: 6px;
+	background: #FE5000;
+	/* 오렌지 원형 버튼 */
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: background .15s ease-in-out, transform .05s ease-in-out;
+}
+
+.front-header-search__btn i {
+	color: #fff;
+	font-size: 16px;
+	line-height: 1;
+}
+
+.front-header-search__btn:hover {
+	background: #e65900;
+}
+
+.front-header-search__btn:active {
+	transform: scale(0.97);
+}
+
+/* 1200px 이상에서 미세 수직보정이 필요하면 조절 (환경에 따라 0~2px) */
+@media (min-width: 1200px) {
+	.front-header-search {
+		margin-top: 0;
+	}
+}
+
+/* 991px 이하: PC 검색창 숨김(기존 동작 유지) */
+@media (max-width: 991.98px) {
+	.front-header-search--pc {
+		display: none !important;
+	}
+}
+
+/* ================================
+   오른쪽 아이콘/텍스트 묶음
+   (간격 축소, 텍스트 볼드, 자간 보정)
+===================================*/
+.front-header-quick {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 18px;
+	/* 간격 살짝 좁힘 (기존 24px→18px) */
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.front-header-item {
+	display: flex;
+}
+
+.front-header-link {
+	display: flex;
+	flex-direction: column;
+	/* 아이콘 위, 텍스트 아래 */
+	align-items: center;
+	gap: 4px;
+	/* 아이콘-텍스트 간격 살짝 줄임 */
+	text-decoration: none;
+	color: #111;
+}
+
+.front-header-link i {
+	font-size: 19px;
+	/* 아이콘 크기 미세 확대 */
+	line-height: 1;
+}
+
+.front-header-text {
+	font-size: 12px;
+	line-height: 1;
+	font-weight: 600;
+	/* 텍스트 bold */
+	letter-spacing: -0.2px;
+	/* 자간 살짝 줄임 */
+	white-space: nowrap;
+}
+
+.front-header-link:hover,
+.front-header-link:focus {
+	color: #FE5000;
+}
+
+/* 991px 이하: PC용 아이콘 묶음 숨김(기존 동작 유지) */
+@media (max-width: 991.98px) {
+	.front-header-quick {
+		display: none !important;
+	}
+}
+
+/* ================================
+   레거시 규칙과의 충돌 회피 가이드
+   - 기존 #sosearchpro .search ...와 충돌하지 않도록
+   - 본 구현에서는 .search 클래스를 사용하지 않음
+===================================*/
+/* 혹시 기존 CSS가 더 높은 특이성으로 간섭하면 아래처럼 추가 특이성 부여 가능
+.typeheader-1 #sosearchpro.front-header-search .front-header-search__btn { position: static !important; }
+*/
+/* === 데스크톱에서 헤더 한 줄 정렬 안정화 === */
+@media (min-width: 992px) {
+
+	/* ① 한 줄을 flex로, 세로 가운데 정렬 */
+	.typeheader-1 .header-middle .container>.row {
+		display: flex;
+		align-items: center;
+		/* 세로 중앙 */
+	}
+
+	/* ② 좌/우 칼럼은 내용만큼(auto) */
+	.typeheader-1 .header-middle .navbar-logo,
+	.typeheader-1 .header-middle .middle-right {
+		flex: 0 0 auto;
+		width: auto;
+		/* col-lg-? 퍼센트 무시 */
+	}
+
+	/* ③ 가운데 칼럼은 가변폭(1fr) + 내부에서 중앙 정렬 */
+	.typeheader-1 .header-middle .col-lg-7.col-md-6.col-sm-12 {
+		flex: 1 1 0;
+		width: auto;
+		/* col-lg-7 폭 무시 */
+		display: flex;
+		justify-content: center;
+		/* 가운데 칼럼 내 수평 중앙 */
+	}
+
+	/* ④ 검색 래퍼와 위젯의 최대폭 제한: 중앙에서 폭 줄이기 */
+	.typeheader-1 .header-middle .search-header-w {
+		flex: 0 1 auto;
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		/* 검색 박스를 칼럼 중앙 */
+	}
+
+	/* 검색 박스 최대폭(필요 시 수치만 조절) */
+	.typeheader-1 .header-middle #sosearchpro {
+		flex: 0 1 720px;
+		/* 최대 약 720px */
+		max-width: 720px;
+		width: 100%;
+	}
+}
+
+/* === PC 검색박스: 오렌지 테두리 + pill + 우측 원형 버튼 === */
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox {
+	display: flex;
+	align-items: center;
+	height: 44px;
+	/* 전체 높이 */
+	padding: 0 6px 0 14px;
+	border: 2px solid #FE5000;
+	border-radius: 999px;
+	background: #fff;
+	position: relative;
+	box-shadow: none;
+}
+
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox input.autosearch-input {
+	flex: 1 1 auto;
+	height: 40px;
+	/* 내부 입력 높이 */
+	border: 0;
+	outline: 0;
+	background: transparent;
+	font-size: 14px;
+	color: #333;
+	padding: 0 10px 0 0;
+}
+
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox input.autosearch-input::placeholder {
+	color: #9aa0a6;
+}
+
+/* 레거시 절대배치 규칙 무력화 + 원형 버튼화 */
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox .button-search {
+	position: static !important;
+	/* 기존 absolute 해제 */
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	border: 0;
+	margin-left: 6px;
+	background: #FE5000;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: background .15s ease-in-out, transform .05s ease-in-out;
+}
+
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox .button-search i {
+	color: #fff;
+	font-size: 16px;
+	line-height: 1;
+}
+
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox .button-search:hover {
+	background: #e65900;
+}
+
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox .button-search:active {
+	transform: scale(.97);
+}
+
+/* 불필요한 기본 스타일 상쇄(버튼/인풋 주변) */
+.typeheader-1 #sosearchpro .input-group.form-group.ibio-index-pc-searchbox {
+	margin: 0;
+	border: 0;
+	box-shadow: none;
+}
+
+/* 아이콘/텍스트 묶음: 간격/볼드/자간 보정 */
+.front-header-quick {
+	gap: 16px;
+}
+
+/* 18→16로 살짝 더 좁힘 */
+.front-header-link {
+	gap: 4px;
+}
+
+.front-header-link i {
+	font-size: 19px;
+}
+
+.front-header-text {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: -0.2px;
+}
+
+/* ========== PC 검색 버튼: 배경 제거 + 아이콘 확대 ========== */
+/* 대상: #sosearchpro > #search0.ibio-index-pc-searchbox 안의 버튼만 */
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox .button-search {
+	position: static !important;
+	/* 기존 absolute 무력화 유지 */
+	background: transparent !important;
+	/* 배경 제거 */
+	border: 0 !important;
+	/* 테두리 제거 */
+	border-radius: 0 !important;
+	/* 둥근 버튼 해제 */
+	width: auto;
+	/* 고정 너비 제거 */
+	height: auto;
+	/* 고정 높이 제거 */
+	padding: 0 6px;
+	/* 클릭 여유 */
+	margin-left: 6px;
+	/* 입력 오른쪽 여백 */
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: none !important;
+	transform: none !important;
+}
+
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox .button-search i {
+	color: #FE5000;
+	/* 오렌지 아이콘 */
+	font-size: 22px;
+	/* ← 아이콘 크게 (원하면 24px로) */
+	line-height: 1;
+}
+
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox .button-search:hover i {
+	color: #e65900;
+	/* 호버 시 살짝 진하게 */
+}
+
+.typeheader-1 #sosearchpro #search0.ibio-index-pc-searchbox .button-search:active i {
+	transform: none;
+	/* 눌림 축소 효과 제거 */
+}
+
+/* 전체카테고리: 햄버거 아이콘 + 텍스트 정렬 */
+.front-header-allcat-link {
+	display: inline-flex;
+	/* 아이콘-텍스트 가로 정렬 */
+	align-items: center;
+	/* 수직 중앙 */
+	gap: 8px;
+	/* 아이콘-텍스트 간격 */
+	text-decoration: none;
+}
+
+/* 햄버거 아이콘 크기/색 */
+.front-header-hamburger {
+	font-size: 18px;
+	/* 필요시 20~22px로 키우세요 */
+	line-height: 1;
+	color: #222;
+}
+
+/* 호버 색상 (사이트 포인트 컬러) */
+.front-header-allcat-link:hover .front-header-hamburger,
+.front-header-allcat-link:focus .front-header-hamburger {
+	color: #FE5000;
+}
+
+/* 글자 기본색 보정(테마에 따라 필요 시) */
+.front-header-allcat-link>strong {
+	color: inherit;
+	font-weight: 700;
 }

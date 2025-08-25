@@ -1,0 +1,90 @@
+.p-l-n {
+	padding-left: 0px !important;
+}
+
+.p-r-n {
+	padding-right: 0px !important;
+}
+
+.m-l-n {
+	margin-left: 0px !important;
+}
+
+.m-r-n {
+	margin-right: 0px !important;
+}
+
+.mt-20 {
+	margin-top: 20px;
+}
+.text-bolder{
+	font-weight:bolder;
+}
+/* === 최근 본 제품 박스 외곽선/타이틀바 ====================== */
+.module.product-simple.extra-layout1 {
+	border: 1px solid #e6ecf3;
+	/* 외곽선 */
+	border-radius: 12px;
+	background: #fff;
+}
+
+/* 타이틀바: 좌측 제목, 우측에 점(페이지네이션) */
+.module.product-simple.extra-layout1>.modtitle {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 12px;
+	border-bottom: 1px solid #eef2f7;
+	font-size: 14px;
+	font-weight: 700;
+	color: #333;
+	margin: 0;
+	/* 테마 여백 상쇄 */
+}
+
+/* 박스 내부 여백 */
+.module.product-simple.extra-layout1>.modcontent {
+	padding: 8px 10px 12px;
+}
+
+/* === Owl dots(페이지네이션) 표시/스타일 ===================== */
+/* 테마에서 감춰져 있는 경우 강제 노출 */
+#so_extra_slider_1 .owl2-dots {
+	display: flex !important;
+	align-items: center;
+	gap: 6px;
+}
+
+/* 점 기본 */
+#so_extra_slider_1 .owl2-dot {
+	display: inline-flex;
+}
+
+#so_extra_slider_1 .owl2-dot span {
+	display: block;
+	width: 6px;
+	height: 6px;
+	border-radius: 999px;
+	background: #000;
+	/* 비활성(연회색) */
+	transition: width .15s ease, background .15s ease;
+}
+
+/* 활성 점 = 둥근 직사각형(스크린샷처럼) */
+#so_extra_slider_1 .owl2-dot.active span {
+	width: 30px;
+	/* 길게 늘어난 파란바 */
+	background: #094BAD;
+	/* 파란색 */
+}
+
+#so_extra_slider_1 .yt-content-slider .owl2-controls {
+	position: absolute;
+	top: 16px;
+	right: 20px;
+}
+
+.product-simple .modtitle {
+	background-color: rgba(0, 0, 0, 0.2);
+	border-radius: 10px 10px 0 0;
+}

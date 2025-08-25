@@ -1,52 +1,9 @@
-/* -------------------------------------------------------------------------------- /
-	
-	Magentech jQuery
-	Created by Magentech
-	v1.0 - 20.9.2016
-	All rights reserved.
-
-	+----------------------------------------------------+
-		TABLE OF CONTENTS
-	+----------------------------------------------------+
-	
-	[1]		Language and Currency Dropdowns
-	[2]		Header Top link
-	[3]		Resonsive Header Top
-	[4]		Accordion to Bonus page
-	[5]		Magnific Popup
-	[6]		Quick View
-	[7]		Quantity minus and plus
-	[8]		Owl carousel - Slider
-	[9]		Listing Tabs - Slider
-	[10]	Other Query
-	[11]	Page Quickview
-	[12]	Page About Us
-	[13]	Page Category
-	[14]	Page Detail
-/ -------------------------------------------------------------------------------- */
-
 
 $(document).ready(function(){
-	/* ---------------------------------------------------
-	Preloading Screen
--------------------------------------------------- */
 $(window).load(function() {
 	// Animate loader off screen
 	$('body').addClass('loaded');
 });
-
-/* ---------------------------------------------------
-	Language and Currency Dropdowns
--------------------------------------------------- */
-
-	/*$screensize = $(window).width();
-	if ($screensize > 991) {
-	$('#currency, #bt-language, #my_account').hover(function() {
-		$(this).find('ul').stop(true, true).slideDown('fast');
-	  },function() {
-		$(this).find('ul').stop(true, true).css('display', 'none');
-	  });
-	}*/
 	
 // Hide tooltip when clicking on it
     var hasTooltip = $("[data-toggle='tooltip']").tooltip();
@@ -390,26 +347,17 @@ $(function ($) {
 			range = form.find('.range');
 
 			console.log(startValues);
-
 		// form.find('#slider').slider('option','values', startValues);
 
 		form.find('#slider').slider('values', 0, min);
 		form.find('#slider').slider('values', 1, max);
 
 		form.find('.options_list').children().eq(0).children().trigger('click');
-
 		range.children('.min_value').val(min).next().val(max);
-
 		range.children('.min_val').text('$' + min).next().text('$' + max);
 
 	});
-	
-	
 });
-
-/* ---------------------------------------------------
-	Owl carousel - Slider
--------------------------------------------------- */
 
 
 /* ---------------------------------------------------

@@ -6,7 +6,7 @@
 	--ibio-bg: #fff;
 	--ibio-head: #111;
 	--ibio-muted: #9aa3ae;
-	--ibio-primary: #ff5a1f;
+	--ibio-primary: #FE5000;
 }
 
 /* ====== PC/Tablet 메가메뉴 ====== */
@@ -643,7 +643,7 @@
 .ibio-index-search-dropdown {
 	position: absolute;
 	left: 0;
-	right: 60px;
+	right: 0px;
 	top: 100%;
 	margin-top: 8px;
 	background: #fff;
