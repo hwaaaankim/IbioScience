@@ -15,11 +15,43 @@
 }
 
 .mt-20 {
-	margin-top: 20px;
+	margin-top: 20px !important;
 }
-.text-bolder{
-	font-weight:bolder;
+
+.mt-3 {
+	margin-top: 3rem !important;
 }
+
+.mt-5 {
+	margin-top: 5rem !important;
+}
+
+.text-bolder {
+	font-weight: bolder !important;
+}
+
+.justify-content-center {
+	justify-content: center !important;
+}
+
+.d-flex {
+	display: flex !important;
+}
+
+@media(max-width:1199px) {
+	.t-d-n {
+		display: none !important;
+	}
+
+}
+
+@media(max-width:991px) {
+	.m-d-n {
+		display: none;
+	}
+
+}
+
 /* === 최근 본 제품 박스 외곽선/타이틀바 ====================== */
 .module.product-simple.extra-layout1 {
 	border: 1px solid #e6ecf3;

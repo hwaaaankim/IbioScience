@@ -610,25 +610,8 @@ $(document).ready(function($) {
 		});
 	});
 
-	function buttonpage(element) {
-		var $element = $(element),
-			$slider = $(".yt-content-slider", $element),
-			data = $slider.data();
-		if (data.buttonpage == "top") {
-			$(".owl2-controls", $element).insertBefore($slider);
-			$(".owl2-dots", $element).insertAfter($(".owl2-prev", $slider));
-		} else {
-			$(".owl2-nav", $element).insertBefore($slider);
-			$(".owl2-controls", $element).insertAfter($slider);
-		}
-	}
-
-	// Home 1 - Latest Blogs
-	(function(element) { buttonpage(element); })(".blog-sidebar");
-
 	// ▼▼▼ 여기입니다: #so_extra_slider_1 처리 블록 내부에 바로 이어 붙이세요
 	(function(element) {
-		buttonpage(element);
 
 		// [추가] 도트를 타이틀바(h3.modtitle) 우측으로 이동
 		var $wrap = $(element);
@@ -640,7 +623,6 @@ $(document).ready(function($) {
 	})("#so_extra_slider_1");
 	// ▲▲▲ 여기까지가 추가 구간
 
-	(function(element) { buttonpage(element); })("#so_extra_slider_2");
 
 });
 

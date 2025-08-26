@@ -1,4 +1,4 @@
-package com.dev.IbioScience.controller;
+package com.dev.IbioScience.controller.temp;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

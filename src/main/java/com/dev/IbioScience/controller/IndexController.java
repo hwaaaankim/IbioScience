@@ -11,5 +11,4 @@ public class IndexController {
 		
 		return "front/index";
 	}
-	
 }

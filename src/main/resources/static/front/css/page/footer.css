@@ -1,0 +1,424 @@
+:root {
+	--ff-text: #333;
+	--ff-sub: #666;
+	--ff-line: #e6e6e6;
+	--ff-soft: #f5f5f5;
+	/* 상단 슬랩 배경 */
+	--ff-dark: #5d5d5d;
+	/* 링크바/스크롤바 배경 */
+	--ff-accent: #ff7a1a;
+	/* 포인트 */
+	--ff-btn: #efefef;
+	--ff-more: #7aa0c7;
+}
+
+#front-footer {
+	color: var(--ff-text);
+	font-size: 14px;
+	line-height: 1.62;
+	letter-spacing: .1px
+}
+
+/* ========== 상단 슬랩(단일 배경 + 세로 나눔선) ========== */
+.front-footer-slab {
+	background: var(--ff-soft);
+	border-top: 1px solid var(--ff-line);
+	border-bottom: 1px solid var(--ff-line);
+}
+
+.front-footer-row {
+	min-height: 236px;
+	align-items: stretch
+}
+
+.front-footer-cell {
+	position: relative;
+	display: flex
+}
+
+.front-footer-cell+.front-footer-cell {
+	border-left: 1px solid var(--ff-line)
+}
+
+/* 세로 나눔선 */
+.front-footer-cell-inner {
+	padding: 20px 22px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	width: 100%;
+}
+
+/* 제목 */
+.front-footer-title {
+	font-size: 18px;
+	font-weight: 700;
+	margin: 2px 0 6px;
+	display: flex;
+	align-items: center;
+}
+
+.front-footer-title--withlink .front-footer-more {
+	font-size: 12px;
+	color: var(--ff-more);
+	text-decoration: none;
+	white-space: nowrap
+}
+
+.front-footer-title--withlink .front-footer-more:hover {
+	text-decoration: underline
+}
+
+/* 고객센터 */
+.front-footer-cs-phone {
+	font-size: 18px;
+	font-weight: 800;
+	color: var(--ff-accent);
+	margin: 0 0 6px
+}
+
+.front-footer-meta {
+	color: var(--ff-sub);
+	line-height: 1.4;
+	font-size: 14px;
+}
+
+.front-footer-meta>div+div {
+	margin-top: 4px;
+	font-size: 14px;
+	letter-spacing: -1px;
+}
+
+/* 무통장 */
+.front-footer-bank-name {
+	font-size: 18px;
+	font-weight: 800;
+	color: var(--ff-accent)
+}
+
+.front-footer-bank-acc {
+	font-size: 14px;
+	color: var(--ff-accent);
+	font-weight: 800;
+	margin-top: 4px
+}
+
+.front-footer-bank-meta {
+	margin-top: 8px;
+	color: var(--ff-sub)
+}
+
+.front-footer-bank-notice {
+	color: #d35454;
+	font-size: 12px;
+	line-height: 1.48;
+	margin-top: 6px
+}
+
+/* 배송조회 */
+.front-footer-ship-label {
+	font-weight: 800;
+	font-size: 18px;
+	margin-bottom: 10px
+}
+
+.front-footer-ship-tel {
+	color: var(--ff-accent)
+}
+
+.front-footer-ship-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 210px;
+	height: 40px;
+	padding: 0 16px 0 18px;
+	border-radius: 999px;
+	background: var(--ff-btn);
+	color: #333;
+	border: 1px solid #ddd;
+	font-weight: 700;
+	text-decoration: none
+}
+
+.front-footer-ship-btn:hover {
+	filter: brightness(.98)
+}
+
+.front-footer-ship-icon {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 1px solid #cfcfcf;
+	background: #fff;
+	position: relative;
+	flex: 0 0 28px
+}
+
+.front-footer-ship-icon::before {
+	content: "›";
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-45%, -54%);
+	font-size: 18px;
+	color: #333
+}
+
+/* 공지(PC 리스트) */
+.front-footer-notice-list {
+	list-style: none;
+	margin: 0;
+	padding: 0
+}
+
+.front-footer-notice-item {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 10px;
+	align-items: center;
+	padding: 7px 0;
+	border-bottom: 1px solid var(--ff-line)
+}
+
+.front-footer-notice-item:last-child {
+	border-bottom: none
+}
+
+.front-footer-notice-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap
+}
+
+.front-footer-notice-meta {
+	color: var(--ff-sub);
+	font-size: 12px;
+	white-space: nowrap
+}
+
+/* ===== 모바일 전용 무한 스크롤 티커 ===== */
+.front-footer-cell--ticker-mo {
+	display: none;
+	border-left: none
+}
+
+.front-footer-ticker {
+	display: block;
+	background: var(--ff-dark);
+	color: #fff;
+	text-decoration: none
+}
+
+.front-footer-ticker-inner {
+	overflow: hidden;
+	padding: 10px 8px
+}
+
+.front-footer-ticker-track {
+	display: inline-flex;
+	gap: 30px;
+	white-space: nowrap;
+	will-change: transform;
+	animation: frontFooterTicker 36s linear infinite
+}
+
+.front-footer-ticker:hover .front-footer-ticker-track {
+	animation-play-state: paused
+}
+
+.front-footer-ticker-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	color: #fff;
+	font-size: 13px
+}
+
+.front-footer-ticker-bullet {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #fff;
+	opacity: .95;
+	display: inline-block
+}
+
+.front-footer-ticker-title {
+	max-width: 52vw;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap
+}
+
+.front-footer-ticker-meta {
+	opacity: .85;
+	font-size: 12px
+}
+
+@keyframes frontFooterTicker {
+	from {
+		transform: translateX(0)
+	}
+
+	to {
+		transform: translateX(-50%)
+	}
+}
+
+/* ===== 링크바 ===== */
+.front-footer-links {
+	background: var(--ff-dark);
+	color: #fff
+}
+
+.front-footer-linknav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 24px;
+	justify-content: center;
+	padding: 12px 0
+}
+
+.front-footer-link {
+	color: #fff;
+	text-decoration: none
+}
+
+.front-footer-link:hover {
+	text-decoration: underline
+}
+
+
+
+/* ===== 하단 회사정보 ===== */
+.front-footer-bottom-wrap {
+	padding: 18px 0 26px
+}
+
+.front-footer-logo-col {
+	margin-bottom: 12px
+}
+
+.front-footer-logo {
+	width: 400px;
+	height: auto
+}
+
+.front-footer-company {
+	font-size: 13px;
+	line-height: 1.46;
+	letter-spacing: .05px
+}
+
+.front-footer-company>div+div {
+	margin-top: 3px
+}
+
+.front-footer-copy {
+	margin-top: 6px;
+	color: var(--ff-sub)
+}
+
+.front-footer-title.front-footer-title--withlink {
+	justify-content: space-between;
+	gap: 20px;
+}
+
+/* ===== 반응형 ===== */
+/* PC (≥992px) : 공지 노출, 세로 나눔선 유지 */
+@media (min-width:992px) {
+	.front-footer-cell--notice {
+		display: flex;
+	}
+
+	.front-footer-cell--ticker-mo {
+		display: none !important
+	}
+
+	.front-footer-bottom-wrap {
+		padding-top: 30px !important;
+		padding-bottom: 30px !important;
+	}
+
+	.front-footer-logo-col {
+		display: flex;
+		justify-content: center;
+		/* 가로 가운데 정렬 */
+		align-items: center;
+		/* 세로 가운데 정렬 */
+	}
+}
+
+/* Tablet (≥768px <992px) : 공지 전부 제거(리스트/스크롤 둘 다 없음) */
+@media (min-width:768px) and (max-width:991.98px) {
+	.front-footer-cell--notice {
+		display: none !important
+	}
+
+	.front-footer-cell--ticker-mo {
+		display: none !important
+	}
+}
+
+/* Mobile (<768px) : 고객센터/무통장 50% 한 줄 → 스크롤 공지 → 배송조회 → 링크바 */
+@media (max-width:767.98px) {
+	.front-footer-cell--notice {
+		display: none !important
+	}
+
+	.front-footer-cell--ticker-mo {
+		display: block !important
+	}
+
+	.front-footer-logo {
+		width: 210px
+	}
+
+	/* 모바일 첫 줄 2칸 사이 세로 구분선 유지 */
+	.front-footer-cell--bank {
+		border-left: 1px solid var(--ff-line)
+	}
+
+	/* 아래로 내려오는 배송조회는 위쪽 여백 보정 */
+	.front-footer-cell--ship .front-footer-cell-inner {
+		padding-top: 16px
+	}
+
+	.front-footer-cell-inner {
+		padding: 20px 10px;
+	}
+
+	.front-footer-meta div {
+		font-size: 11px;
+		letter-spacing: -1x;
+		line-height: 1.2;
+	}
+
+	.front-footer-cell--ship {
+		text-align: center;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.front-footer-linknav {
+		gap: 10px;
+	}
+
+	.front-footer-linknav a {
+		font-size: 12px;
+	}
+
+	.front-footer-cell--ship .front-footer-cell-inner {
+		padding-top: 30px;
+		padding-bottom: 30px;
+	}
+
+	.front-footer-bottom-wrap {
+		align-items: center;
+		text-align: center;
+		justify-content: center;
+	}
+
+
+}

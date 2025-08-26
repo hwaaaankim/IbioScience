@@ -7445,7 +7445,6 @@ p.price-old{
 }
 
 .filters-panel.product-filter-bottom {
-	border-top: 1px solid #ebebeb;
 	padding-top: 20px;
 	margin-top: 20px;
 }
@@ -7581,7 +7580,7 @@ p.price-old{
 .box-pagination .pagination>li span,
 .box-pagination .pagination>li a {
 	text-align: center;
-	width: 33px;
+	width: 80px;
 	height: 33px;
 	line-height: 33px;
 	border-radius: 3px;
@@ -7597,7 +7596,7 @@ p.price-old{
 /*================ PRODUCT LIST ===================*/
 .products-list {
 	clear: both;
-	margin-bottom: 30px;
+	margin-bottom: 10px;
 	/*====================PRODUCT GRID ====================*/
 	/*----------------PRODUCT Table ------------------*/
 	/*----------------PRODUCT LIST ------------------*/
@@ -7785,7 +7784,6 @@ p.price-old{
 
 .products-list.grid .product-layout .product-item-container>.list-block,
 .products-list .product-grid .product-item-container>.list-block,
-.products-list.grid .product-layout .product-item-container .description,
 .products-list .product-grid .product-item-container .description {
 	display: none;
 }
@@ -8425,8 +8423,7 @@ p.price-old{
 }
 
 .products-list.list .product-layout .product-item-container {
-	display: table;
-	margin-bottom: 30px;
+	margin-bottom: 10px;
 }
 
 .products-list.list .product-layout .product-item-container .left-block {
