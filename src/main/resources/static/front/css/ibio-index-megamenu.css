@@ -247,7 +247,7 @@
 	color: #fff;
 	position: absolute;
 	left: 16px;
-	top: 10px;
+	top: 15px;
 	font-weight: 700;
 }
 
@@ -260,7 +260,7 @@
 .ibio-index-m-close {
 	position: absolute;
 	right: 10px;
-	top: 8px;
+	top: 15px;
 	border: none;
 	background: transparent;
 	font-size: 22px;
@@ -335,13 +335,15 @@
 .ibio-index-m-list {
 	list-style: none;
 	margin: 0;
-	padding: 0 0 10px;
+	padding: 0 0 0px;
 }
 
 .ibio-index-m-li {
 	border-top: 1px solid #f2f3f5;
 }
-
+.ibio-index-m-li:last-child{
+	border-bottom: 1px solid #f2f3f5;
+}
 .ibio-index-m-row {
 	display: flex;
 	align-items: center;
@@ -692,4 +694,71 @@
 
 .ibio-index-search-dd-chip i {
 	color: #a0a4ad;
+}
+/* ===========================
+   모바일 문의하기 / 상담문의 영역
+   =========================== */
+.ibio-index-m-etc {
+  background: #fff;
+  padding: 16px;
+  border-top: 1px solid #eee;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.ibio-index-m-ask{
+	padding-top:10px;
+	padding-bottom:10px;
+	margin-bottom:10px;
+}
+.ibio-index-m-call{
+	padding-top:10px;
+	padding-bottom:10px;
+}
+/* 문의하기 영역 */
+.ibio-index-m-ask-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.ibio-index-m-ask-desc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+  margin-bottom: 0px;
+}
+
+/* 상담문의 영역 */
+.ibio-index-m-call {
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+.ibio-index-m-call-title {
+  font-size: 17px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.ibio-index-m-call-title::before {
+  content: "\f095"; /* FontAwesome 전화 아이콘 */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-size: 16px;
+  color: #ff6600;
+  margin-right: 6px;
+}
+
+/* 전화번호 강조 */
+.ibio-index-m-call-phone {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ff6600;
+}
+
+/* 운영 시간 안내 */
+.ibio-index-m-call-desc {
+  font-size: 12px;
+  color: #999;
 }

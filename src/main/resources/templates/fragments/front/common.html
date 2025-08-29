@@ -27,6 +27,7 @@
 	<link href="/front/css/themecss/so-category-slider.css" rel="stylesheet">
 	<link href="/front/css/themecss/so-newletter-popup.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 	<link href="/front/css/footer/footer1.css" rel="stylesheet">
 	<link href="/front/css/header/header1.css" rel="stylesheet">
 	<link href="/front/css/theme.css" id="color_scheme" rel="stylesheet">
@@ -36,6 +37,7 @@
 	<link href="/front/css/ibio-index-megamenu.css" rel="stylesheet">
 	<link href="/front/css/page/footer.css" rel="stylesheet">
 	<link href="/front/css/page/productList.css" rel="stylesheet">
+	<link href="/front/css/page/dealerProductList.css" rel="stylesheet">
 </head>
 
 <header id="header" class="typeheader-1" th:fragment="frontHeader">
@@ -157,9 +159,9 @@
 										<div class="container-mega">
 											<ul class="megamenu">
 												<li>
-													<a href="#" class="clearfix front-header-allcat-link"
+													<a href="#" class="clearfix"
 														id="ibio-index-allcat-trigger" aria-label="전체카테고리">
-														<i class="fa fa-bars front-header-hamburger"
+														<i class="fa fa-bars"
 															aria-hidden="true"></i>
 														<strong>전체카테고리</strong>
 													</a>
@@ -183,7 +185,7 @@
 																				href="/productList">제품 리스트</a></li>
 
 																		<li><a class="subcategory_item"
-																				href="/dealerShop">딜러샾(입점몰)</a></li>
+																				href="/dealerProductList">딜러샾(입점몰)</a></li>
 																		<li><a class="subcategory_item"
 																				href="/productDetail">제품상세페이지</a></li>
 																		<li><a class="subcategory_item"
@@ -312,7 +314,7 @@
 					<button id="ibio-index-m-close" class="ibio-index-m-close" aria-label="닫기">×</button>
 				</div>
 				<div class="ibio-index-m-card-mid">
-					<div class="ibio-index-m-avatar"><img src="/front/image/catalog/logo.png" alt=""></div>
+					<div class="ibio-index-m-avatar"><img src="/front/image/sample/100-100.png" alt=""></div>
 					<div class="ibio-index-m-hello">
 						<div>비회원입니다.</div>
 						<div>로그인을 해주세요.</div>
@@ -336,6 +338,21 @@
 						<div>관심상품</div>
 					</div>
 				</div>
+				<div class="ibio-index-m-quick">
+					<div class="ibio-index-m-qitem">
+						<div class="ibio-index-m-qnum">0건</div>
+						<div>장바구니</div>
+					</div>
+					<div class="ibio-index-m-qitem">
+						<div class="ibio-index-m-qnum">0건</div>
+						<div>주문내역</div>
+					</div>
+					<div class="ibio-index-m-qitem">
+						<div class="ibio-index-m-qnum">0건</div>
+						<div>관심상품</div>
+					</div>
+					
+				</div>
 			</div>
 
 			<!-- 카테고리 아코디언 -->
@@ -347,7 +364,8 @@
 			<div class="ibio-index-m-etc">
 				<div class="ibio-index-m-ask">
 					<div class="ibio-index-m-ask-title">문의하기</div>
-					<div class="ibio-index-m-ask-desc">궁금하시거나 의뢰가 필요하신가요? 빠르게 피드백 드리겠습니다.</div>
+					<div class="ibio-index-m-ask-desc">궁금하시거나 의뢰가 필요하신가요?</div>
+					<div class="ibio-index-m-ask-desc">빠르게 피드백 드리겠습니다.</div>
 				</div>
 				<div class="ibio-index-m-call">
 					<div class="ibio-index-m-call-title">상담문의</div>
@@ -543,6 +561,7 @@
 	<script type="text/javascript" src="/front/js/themejs/addtocart.js"></script>
 	<script type="text/javascript" src="/front/js/ibio-index-megamenu.js"></script>
 	<script type="text/javascript" src="/front/js/page/footer.js"></script>
+
 </th:block>
 </body>
 

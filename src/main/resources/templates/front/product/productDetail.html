@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">분류</a></li>
+				<li><a href="#">분류</a></li>
+				<li><a href="#">분류</a></li>
+
+			</ul>
+
+			<div class="row justify-content-center d-flex">
+				<div id="content" class="col-md-10 col-sm-12 col-xs-12">
+
+					<div class="product-view row">
+						<div class="left-content-product">
+
+							<div class="content-product-left class-honizol col-md-5 col-sm-12 col-xs-12">
+								<div class="large-image m-d-n">
+									<img itemprop="image" class="product-image-zoom"
+										src="/front/image/sample/600-600.png">
+								</div>
+
+								<div id="thumb-slider" class="yt-content-slider full_slider owl-drag" data-rtl="yes"
+									data-autoplay="no" data-autoheight="no" data-delay="4" data-speed="0.6"
+									data-margin="10" data-items_column00="4" data-items_column0="4"
+									data-items_column1="3" data-items_column2="4" data-items_column3="1"
+									data-items_column4="1" data-arrows="yes" data-pagination="no" data-lazyload="yes"
+									data-loop="no" data-hoverpause="yes">
+									<a data-index="0" class="img thumbnail "
+										data-image="/front/image/sample/600-600.png">
+										<img src="/front/image/sample/600-600.png">
+									</a>
+									<a data-index="1" class="img thumbnail "
+										data-image="/front/image/sample/600-600.png">
+										<img src="/front/image/sample/600-600.png">
+									</a>
+									<a data-index="2" class="img thumbnail "
+										data-image="/front/image/sample/600-600.png">
+										<img src="/front/image/sample/600-600.png">
+									</a>
+									<a data-index="3" class="img thumbnail "
+										data-image="/front/image/sample/600-600.png">
+										<img src="/front/image/sample/600-600.png">
+									</a>
+									<a data-index="4" class="img thumbnail "
+										data-image="/front/image/sample/600-600.png">
+										<img src="/front/image/sample/600-600.png">
+									</a>
+								</div>
+							</div>
+
+							<div class="content-product-right col-md-7 col-sm-12 col-xs-12">
+								<div class="title-product">
+									<h1>제품명</h1>
+									<p>제품의 간략한 설명</p>
+								</div>
+								<div class="box-review form-group">
+									<div class="ratings">
+										<div class="rating-box">
+											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-1x"></i></span>
+											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-1x"></i></span>
+											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-1x"></i></span>
+											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-1x"></i></span>
+											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-1x"></i></span>
+										</div>
+									</div>
+									<a class="reviews_button" href="#">0
+									</a> 개의 리뷰 보기
+								</div>
+
+								<div class="product-box-desc">
+									<div class="inner-box-desc">
+										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
+										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
+										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
+										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
+										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
+										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
+										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
+										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
+									</div>
+								</div>
+
+
+								<div id="product">
+
+									<div class="form-group box-info-product">
+										<div class="option quantity">
+											<div class="input-group quantity-control">
+												<label>수량</label>
+												<input class="form-control" type="text" name="quantity" value="1">
+												<input type="hidden" name="product_id" value="50">
+												<span class="input-group-addon product_quantity_down">−</span>
+												<span class="input-group-addon product_quantity_up">+</span>
+											</div>
+										</div>
+										<div class="cart">
+											<input type="button" id="btn-go-option" value="옵션보기"
+												class="btn btn-mega btn-lg">
+											<input type="button" data-toggle="tooltip" title="" value="장바구니담기"
+												data-loading-text="Loading..." id="button-cart"
+												class="btn btn-mega btn-lg" data-original-title="장바구니담기">
+											<input type="button" value="바로구매" class="btn btn-mega btn-lg">
+										</div>
+										<div class="add-to-links wish_comp">
+											<ul class="blank list-inline">
+												<li class="wishlist">
+													<a class="icon" data-original-title="관심상품등록"><i
+															class="fa fa-heart"></i>
+													</a>
+												</li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Product Tabs -->
+					<div class="producttab ">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-sm-3">
+								<li class="active"><a data-toggle="tab" href="#tab-detail">상세페이지</a></li>
+								<li class="item_nonactive"><a data-toggle="tab" href="#tab-option">옵션</a></li>
+								<li class="item_nonactive"><a data-toggle="tab" href="#tab-file">첨부파일</a></li>
+								<li class="item_nonactive"><a data-toggle="tab" href="#tab-delivery">배송안내</a></li>
+								<li class="item_nonactive"><a data-toggle="tab" href="#tab-review">리뷰</a></li>
+							</ul>
+							<div class="tab-content col-lg-10 col-sm-9 col-xs-12">
+								<div id="tab-detail" class="tab-pane fade active in">
+								</div>
+								<div id="tab-option" class="tab-pane fade">
+									<div class="product-list-option-panel">
+										<div class="product-list-option-inner">
+											<div class="table-responsive">
+												<table class="table table-bordered product-list-option-table">
+													<thead>
+														<tr>
+															<th>Cat. No</th>
+															<th>품명</th>
+															<th class="text-right">판매가</th>
+															<th>단위</th>
+															<th class="product-list-qty">수량</th>
+															<th>선택</th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr data-price="72405">
+															<td>357531</td>
+															<td>10mL Serological Pipet, PS, Individually Paper-Plastic
+																wrap
+															</td>
+															<td class="text-right">72,405</td>
+															<td>50Bag/200CS</td>
+															<td class="product-list-qty">
+																<input type="number"
+																	class="form-control input-sm product-list-qty-input"
+																	value="1" min="1">
+															</td>
+															<td class="text-center"><input type="checkbox"
+																	class="product-list-row-check"></td>
+														</tr>
+														<tr data-price="67400">
+															<td>357550</td>
+															<td>50mL Serological Pipet, PS, Individually Paper-Plastic
+																wrap
+															</td>
+															<td class="text-right">67,400</td>
+															<td>50Bag/200CS</td>
+															<td class="product-list-qty">
+																<input type="number"
+																	class="form-control input-sm product-list-qty-input"
+																	value="1" min="1">
+															</td>
+															<td class="text-center"><input type="checkbox"
+																	class="product-list-row-check"></td>
+														</tr>
+														<tr data-price="59400">
+															<td>357543</td>
+															<td>5mL Serological Pipet, PS, Individually Paper-Plastic
+																wrap
+															</td>
+															<td class="text-right">59,400</td>
+															<td>50Bag/200CS</td>
+															<td class="product-list-qty">
+																<input type="number"
+																	class="form-control input-sm product-list-qty-input"
+																	value="1" min="1">
+															</td>
+															<td class="text-center"><input type="checkbox"
+																	class="product-list-row-check"></td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+
+											<!-- 총금액 -->
+											<div class="product-list-total">
+												<span class="product-list-total-label">Total.</span>
+												<span class="product-list-total-price">59,400</span><span
+													class="product-list-won"> 원</span>
+											</div>
+
+											<!-- 안내 문구 -->
+											<ul class="product-list-notes">
+												<li>제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수 있습니다.</li>
+												<li>가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수 있습니다.</li>
+											</ul>
+
+											<!-- 하단 버튼 -->
+											<div class="product-list-bottom-btns">
+												<button type="button"
+													class="product-list-btn product-list-btn-quote">견적내기</button>
+												<button type="button"
+													class="product-list-btn product-list-btn-buy">바로구매</button>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div id="tab-file" class="tab-pane fade">
+								</div>
+								<div id="tab-delivery" class="tab-pane fade">
+								</div>
+								<div id="tab-review" class="tab-pane fade">
+									<form>
+										<div id="review">
+											<table class="table table-striped table-bordered review-table">
+												<thead>
+													<tr>
+														<td class="m-d-n">NO</td>
+														<td class="m-d-n">상품</td>
+														<td>내용</td>
+														<td>별점</td>
+														<td>작성자/작성일</td>
+													</tr>
+												</thead>
+												<tbody>
+
+													<tr>
+														<td class="m-d-n">1</td>
+														<td class="m-d-n">
+															<div class="row review-content">
+																<div class="col-lg-4">
+																	<img width="80px;" height="auto;"
+																		class="img-responsive"
+																		src="/front/image/sample/270-270.png">
+																</div>
+																<div class="col-lg-8">
+																	<h3>제품명</h3>
+																	<p>제품에 대한 리뷰 의견.</p>
+																</div>
+															</div>
+														</td>
+														<td></td>
+														<td>
+															<div class="ratings">
+																<div class="rating-box">
+																	<span class="fa fa-stack"><i
+																			class="fa fa-star fa-stack-1x"></i><i
+																			class="fa fa-star-o fa-stack-1x"></i></span>
+																	<span class="fa fa-stack"><i
+																			class="fa fa-star fa-stack-1x"></i><i
+																			class="fa fa-star-o fa-stack-1x"></i></span>
+																	<span class="fa fa-stack"><i
+																			class="fa fa-star fa-stack-1x"></i><i
+																			class="fa fa-star-o fa-stack-1x"></i></span>
+																	<span class="fa fa-stack"><i
+																			class="fa fa-star fa-stack-1x"></i><i
+																			class="fa fa-star-o fa-stack-1x"></i></span>
+																	<span class="fa fa-stack"><i
+																			class="fa fa-star-o fa-stack-1x"></i></span>
+																</div>
+															</div>
+														</td>
+														<td>이름/날짜</td>
+													</tr>
+												</tbody>
+											</table>
+											<nav class="justify-content-center d-flex">
+												<ul class="pagination">
+													<li class="page-item"><a class="page-link" href="#">Previous</a>
+													</li>
+													<li class="page-item"><a class="page-link" href="#">1</a></li>
+													<li class="page-item"><a class="page-link" href="#">2</a></li>
+													<li class="page-item"><a class="page-link" href="#">3</a></li>
+													<li class="page-item"><a class="page-link" href="#">Next</a></li>
+												</ul>
+											</nav>
+										</div>
+										<h2 id="review-title">리뷰작성</h2>
+										<div class="contacts-form">
+											<div class="form-group"> <span class="icon icon-bubbles-2"></span>
+												<textarea class="form-control">제품을 구매한 경우 리뷰를 작성할 수 있습니다.</textarea>
+											</div>
+
+											<div class="form-group">
+												<b>Rating</b> <span>Bad</span>&nbsp;
+												<input type="radio" name="rating" value="1"> &nbsp;
+												<input type="radio" name="rating" value="2"> &nbsp;
+												<input type="radio" name="rating" value="3"> &nbsp;
+												<input type="radio" name="rating" value="4"> &nbsp;
+												<input type="radio" name="rating" value="5"> &nbsp;<span>Good</span>
+
+											</div>
+											<div class="buttons clearfix"><a id="button-review"
+													class="btn buttonGray">리뷰작성</a></div>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="related titleLine products-list grid module ">
+						<h3 class="modtitle">연관제품</h3>
+
+						<div class="releate-products yt-content-slider products-list" data-rtl="no" data-loop="yes"
+							data-autoplay="no" data-autoheight="no" data-autowidth="no" data-delay="4" data-speed="0.6"
+							data-margin="30" data-items_column00="5" data-items_column0="5" data-items_column1="3"
+							data-items_column2="3" data-items_column3="2" data-items_column4="1" data-arrows="yes"
+							data-pagination="no" data-lazyload="yes" data-hoverpause="yes">
+							<div class="item">
+								<div class="item-inner product-layout transition product-grid">
+									<div class="product-item-container">
+										<div class="left-block left-b">
+
+											<div class="product-image-container">
+												<a href="#">
+													<img src="/front/image/sample/270-270.png" class="img-responsive">
+												</a>
+											</div>
+										</div>
+										<div class="right-block">
+											<div class="button-group so-quickview cartinfo--left">
+												<button type="button" class="addToCart">
+													<span>관심상품등록</span>
+												</button>
+												<button type="button" class="addToCart">
+													<span>상세사항확인</span>
+												</button>
+											</div>
+											<div class="caption hide-cont">
+												<div class="ratings">
+													<div class="rating-box"> <span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+													</div>
+													<span class="rating-num">( 2 )</span>
+												</div>
+												<h4><a href="#">제품명</a></h4>
+
+											</div>
+											<p class="price">
+												<span class="price-new">할인 후 가격</span>
+												<span class="price-old">할인 전 가격</span>
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="item">
+								<div class="item-inner product-layout transition product-grid">
+									<div class="product-item-container">
+										<div class="left-block left-b">
+
+											<div class="product-image-container">
+												<a href="#">
+													<img src="/front/image/sample/270-270.png" class="img-responsive">
+												</a>
+											</div>
+										</div>
+										<div class="right-block">
+											<div class="button-group so-quickview cartinfo--left">
+												<button type="button" class="addToCart">
+													<span>관심상품등록</span>
+												</button>
+												<button type="button" class="addToCart">
+													<span>상세사항확인</span>
+												</button>
+											</div>
+											<div class="caption hide-cont">
+												<div class="ratings">
+													<div class="rating-box"> <span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+													</div>
+													<span class="rating-num">( 2 )</span>
+												</div>
+												<h4><a href="#">제품명</a></h4>
+
+											</div>
+											<p class="price">
+												<span class="price-new">할인 후 가격</span>
+												<span class="price-old">할인 전 가격</span>
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="item">
+								<div class="item-inner product-layout transition product-grid">
+									<div class="product-item-container">
+										<div class="left-block left-b">
+
+											<div class="product-image-container">
+												<a href="#">
+													<img src="/front/image/sample/270-270.png" class="img-responsive">
+												</a>
+											</div>
+										</div>
+										<div class="right-block">
+											<div class="button-group so-quickview cartinfo--left">
+												<button type="button" class="addToCart">
+													<span>관심상품등록</span>
+												</button>
+												<button type="button" class="addToCart">
+													<span>상세사항확인</span>
+												</button>
+											</div>
+											<div class="caption hide-cont">
+												<div class="ratings">
+													<div class="rating-box"> <span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+													</div>
+													<span class="rating-num">( 2 )</span>
+												</div>
+												<h4><a href="#">제품명</a></h4>
+
+											</div>
+											<p class="price">
+												<span class="price-new">할인 후 가격</span>
+												<span class="price-old">할인 전 가격</span>
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="item">
+								<div class="item-inner product-layout transition product-grid">
+									<div class="product-item-container">
+										<div class="left-block left-b">
+
+											<div class="product-image-container">
+												<a href="#">
+													<img src="/front/image/sample/270-270.png" class="img-responsive">
+												</a>
+											</div>
+										</div>
+										<div class="right-block">
+											<div class="button-group so-quickview cartinfo--left">
+												<button type="button" class="addToCart">
+													<span>관심상품등록</span>
+												</button>
+												<button type="button" class="addToCart">
+													<span>상세사항확인</span>
+												</button>
+											</div>
+											<div class="caption hide-cont">
+												<div class="ratings">
+													<div class="rating-box"> <span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+													</div>
+													<span class="rating-num">( 2 )</span>
+												</div>
+												<h4><a href="#">제품명</a></h4>
+
+											</div>
+											<p class="price">
+												<span class="price-new">할인 후 가격</span>
+												<span class="price-old">할인 전 가격</span>
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="item">
+								<div class="item-inner product-layout transition product-grid">
+									<div class="product-item-container">
+										<div class="left-block left-b">
+
+											<div class="product-image-container">
+												<a href="#">
+													<img src="/front/image/sample/270-270.png" class="img-responsive">
+												</a>
+											</div>
+										</div>
+										<div class="right-block">
+											<div class="button-group so-quickview cartinfo--left">
+												<button type="button" class="addToCart" title="#">
+													<span>장바구니 담기</span>
+												</button>
+												<button type="button" class="wishlist btn-button">
+													><span></span>
+												</button>
+											</div>
+											<div class="caption hide-cont">
+												<div class="ratings">
+													<div class="rating-box"> <span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+														<span class="fa fa-stack"><i
+																class="fa fa-star fa-stack-2x"></i></span>
+													</div>
+													<span class="rating-num">( 2 )</span>
+												</div>
+												<h4><a href="#">제품명</a></h4>
+
+											</div>
+											<p class="price">
+												<span class="price-new">할인 후 가격</span>
+												<span class="price-old">할인 전 가격</span>
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<script>
+		/* global jQuery */
+		(function ($) {
+			"use strict";
+
+			$(function () {
+				var $optBtn = $("#btn-go-option");
+				var $tabLink = $('.tabsslider .nav.nav-tabs a[href="#tab-option"]');
+				var $scrollBlock = $("#tab-option");
+
+				// 탭 활성화 후 스크롤
+				$tabLink.on("shown.bs.tab", function () {
+					if ($scrollBlock.length) {
+						var top = $scrollBlock.offset().top - 200; // 200px 여백
+						$("html, body").stop().animate({scrollTop: top}, 450, "swing");
+					}
+				});
+
+				// "옵션보기" 버튼 클릭 시 탭 열기
+				$optBtn.on("click", function (e) {
+					e.preventDefault();
+					$tabLink.tab("show");
+				});
+			});
+		})(jQuery);
+	</script>
+
+
+</body>
+
+</html>

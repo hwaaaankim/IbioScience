@@ -1,0 +1,290 @@
+/* 전체 래퍼: 페이지 너비 꽉 채움 */
+.dealer-productList-wrap {
+	width: 100%;
+	background: #fff;
+}
+
+/* 슬라이드 아이템: 간격 20px, 라운드 15px */
+.dealer-productList-slider .dealer-productList-item {
+	overflow: hidden;
+	border-radius: 15px;
+}
+
+.dealer-productList-slider .dealer-productList-item img {
+	width: 100%;
+	display: block;
+	border-radius: 15px;
+}
+
+/* Owl 애니메이션 보정 */
+.dealer-productList-slider .owl-item {
+	transition: transform .2s ease;
+}
+
+/* 컨트롤/페이지네이션: 슬라이더 이미지 기준 20px 아래 */
+.dealer-productList-controls {
+	margin-top: 20px;
+	/* 슬라이더 아래 20px */
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 0 16px;
+}
+
+/* 진행바 컨테이너 */
+.dealer-productList-progress {
+	position: relative;
+	flex: 1 1 auto;
+	height: 3px;
+	overflow: hidden;
+	/* 세그먼트 클리핑 */
+}
+
+/* 회색 트랙 */
+.dealer-productList-progress-track {
+	position: absolute;
+	inset: 0;
+	background: #d9d9d9;
+	z-index: 1;
+}
+
+/* 검정 세그먼트(현재 위치 표시) */
+.dealer-productList-progress-bar {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	/* JS에서 left %로 이동 */
+	width: 0%;
+	/* JS에서 100/총개수 %로 세팅 */
+	background: #111;
+	z-index: 2;
+	transition: left .25s ease, width .25s ease;
+}
+
+/* 버튼 */
+.dealer-productList-buttons {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.dealer-productList-buttons button {
+	width: 30px;
+	height: 22px;
+	border: 1px solid #bbb;
+	background: #fff;
+	line-height: 20px;
+	font-size: 12px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.dealer-productList-buttons button:hover {
+	border-color: #111;
+}
+
+/* 반응형 여백 보정 */
+@media (max-width: 991.98px) {
+	.dealer-productList-controls {
+		padding: 0 12px;
+	}
+}
+
+/* Tablet */
+@media (max-width: 575.98px) {
+	.dealer-productList-controls {
+		padding: 0 8px;
+	}
+}
+
+/* Mobile */
+
+/* ===== 상단 카드형 ===== */
+.dealer-productList-wrap {
+	width: 100%;
+	background: #fff;
+}
+
+.dealer-productList-slider .dealer-productList-item {
+	overflow: hidden;
+	border-radius: 15px;
+}
+
+.dealer-productList-slider .dealer-productList-item img {
+	width: 100%;
+	display: block;
+	border-radius: 15px;
+}
+
+.dealer-productList-slider .owl-item {
+	transition: transform .2s ease;
+}
+
+.dealer-productList-controls {
+	margin-top: 20px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 0 16px;
+}
+
+.dealer-productList-progress {
+	position: relative;
+	flex: 1 1 auto;
+	height: 3px;
+	overflow: hidden;
+}
+
+.dealer-productList-progress-track {
+	position: absolute;
+	inset: 0;
+	background: #d9d9d9;
+	z-index: 1;
+}
+
+.dealer-productList-progress-bar {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 0%;
+	background: #111;
+	z-index: 2;
+	transition: left .25s ease, width .25s ease;
+}
+
+.dealer-productList-buttons {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.dealer-productList-buttons button {
+	width: 30px;
+	height: 22px;
+	border: 1px solid #bbb;
+	background: #fff;
+	line-height: 20px;
+	font-size: 12px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.dealer-productList-buttons button:hover {
+	border-color: #111;
+}
+
+@media (max-width:991.98px) {
+	.dealer-productList-controls {
+		padding: 0 12px;
+	}
+}
+
+@media (max-width:575.98px) {
+	.dealer-productList-controls {
+		padding: 0 8px;
+	}
+}
+
+/* ===== 하단 동그란 로고 ===== */
+.dealer-productList-brandWrap {
+	width: 100%;
+	background: #fff;
+	padding: 8px 12px 24px;
+	position: relative;
+	/* nav 절대배치 기준 */
+}
+
+.dealer-productList-brandSlider {
+	position: relative;
+}
+
+.dealer-productList-brandSlider .dealer-productList-brandItem {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.dealer-productList-brandSlider .dealer-productList-brandItem img {
+	width: 68px;
+	height: 68px;
+	border-radius: 50%;
+	border: 1px solid #e0e0e0;
+	object-fit: cover;
+	display: block;
+}
+
+/* (owl2/owl 공통 대응) nav 컨테이너: 수직 중앙, 양끝, 줄바꿈 방지 */
+.dealer-productList-brandWrap .owl2-nav,
+.dealer-productList-brandWrap .owl-nav {
+	position: absolute !important;
+	top: 50% !important;
+	left: 0 !important;
+	right: 0 !important;
+	transform: translateY(-50%) !important;
+	z-index: 5;
+	pointer-events: none;
+	/* 컨테이너는 클릭 통과 */
+}
+
+/* (owl2/owl 공통 대응) prev/next 버튼 */
+.dealer-productList-brandWrap .owl2-prev,
+.dealer-productList-brandWrap .owl2-next,
+.dealer-productList-brandWrap .owl-prev,
+.dealer-productList-brandWrap .owl-next {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 32px;
+	height: 32px;
+	line-height: 26px;
+	text-align: center;
+	border: 1px solid #bbb;
+	background: #fff;
+	border-radius: 50%;
+	font-size: 20px;
+	font-weight:600;
+	cursor: pointer;
+	pointer-events: auto;
+	background-color: rgba(255,255,255,0.3);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+}
+
+.dealer-productList-brandWrap .owl2-prev,
+.dealer-productList-brandWrap .owl-prev {
+	left: 4px;
+}
+
+.dealer-productList-brandWrap .owl2-next,
+.dealer-productList-brandWrap .owl-next {
+	right: 4px;
+}
+
+.dealer-productList-brandWrap .owl2-prev:hover,
+.dealer-productList-brandWrap .owl2-next:hover,
+.dealer-productList-brandWrap .owl-prev:hover,
+.dealer-productList-brandWrap .owl-next:hover {
+	border-color: #111;
+}
+
+/* 도트는 사용 안 함 */
+.dealer-productList-brandWrap .owl2-dots,
+.dealer-productList-brandWrap .owl-dots {
+	display: none !important;
+}
+
+/* 반응형: 로고 크기 조정 */
+@media (max-width:991.98px) {
+	.dealer-productList-brandSlider .dealer-productList-brandItem img {
+		width: 62px;
+		height: 62px;
+	}
+}
+
+@media (max-width:575.98px) {
+	.dealer-productList-brandSlider .dealer-productList-brandItem img {
+		width: 56px;
+		height: 56px;
+	}
+}

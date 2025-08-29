@@ -163,9 +163,6 @@
 }
 
 @media (max-width:991px) {
-	.grid-container{
-		width:50%;
-	}
 	/* Mobile: 텍스트 버튼을 간략화하려면 여기에서 .addToCart 텍스트 숨김 등 조정 가능(요청 시 적용) */
 	.product-list-option-inner {
 		padding: 10px;
