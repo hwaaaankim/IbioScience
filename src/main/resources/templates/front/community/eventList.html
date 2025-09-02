@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">고객센터</a></li>
+				<li><a href="#">이벤트</a></li>
+			</ul>
+
+			<div class="row">
+				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
+					<div class="producttab">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
+								<li class="item_nonactive"><a href="/noticeList">공지사항</a></li>
+								<li class="item_nonactive"><a href="/qna">QnA</a></li>
+								<li class="active"><a href="/eventList">이벤트</a></li>
+							</ul>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">이벤트</h3>
+								<!-- ============== Event List ============== -->
+								<div class="event-list-area">
+
+									<!-- 탭 -->
+									<div class="event-list-tabs" role="tablist" aria-label="이벤트 탭">
+										<button type="button" class="event-list-tab is-active"
+											data-target="#event-list-ongoing" aria-selected="true">
+											진행중 이벤트
+										</button>
+										<button type="button" class="event-list-tab" data-target="#event-list-ended"
+											aria-selected="false">
+											종료된 이벤트
+										</button>
+									</div>
+
+									<!-- 진행중 -->
+									<div id="event-list-ongoing" class="event-list-grid" role="tabpanel"
+										aria-labelledby="진행중">
+										<!-- 카드 1 -->
+										<a href="#" class="event-list-card">
+											<div class="event-list-thumb">
+												<img src="/front/image/sample/450-300.png" alt="오픈 기념 이벤트">
+											</div>
+											<div class="event-list-meta">
+												<div class="event-list-title" title="[이벤트] 오픈 기념 특별 프로모션 안내">
+													[이벤트] 오픈 기념 특별 프로모션 안내
+												</div>
+												<div class="event-list-period"><i class="fas fa-calendar-alt"
+														aria-hidden="true"></i> 2025-09-01 ~ 2025-09-30</div>
+											</div>
+										</a>
+
+										<!-- 카드 2 -->
+										<a href="#" class="event-list-card">
+											<div class="event-list-thumb">
+												<img src="/front/image/sample/450-300.png" alt="브랜드 위크 할인전">
+											</div>
+											<div class="event-list-meta">
+												<div class="event-list-title"
+													title="[이벤트] 브랜드 위크: 인기 상품 한정 특가 & 사은품 증정">
+													[이벤트] 브랜드 위크: 인기 상품 한정 특가 &amp; 사은품 증정
+												</div>
+												<div class="event-list-period"><i class="fas fa-calendar-alt"
+														aria-hidden="true"></i> 2025-09-05 ~ 2025-09-21</div>
+											</div>
+										</a>
+
+										<!-- 카드 3 -->
+										<a href="#" class="event-list-card">
+											<div class="event-list-thumb">
+												<img src="/front/image/sample/450-300.png" alt="리뷰 이벤트">
+											</div>
+											<div class="event-list-meta">
+												<div class="event-list-title" title="[이벤트] 포토 리뷰 작성하면 적립금 최대 5,000P 지급">
+													[이벤트] 포토 리뷰 작성하면 적립금 최대 5,000P 지급
+												</div>
+												<div class="event-list-period"><i class="fas fa-calendar-alt"
+														aria-hidden="true"></i> 2025-09-01 ~ 2025-10-01</div>
+											</div>
+										</a>
+
+										<!-- 카드 4 -->
+										<a href="#" class="event-list-card">
+											<div class="event-list-thumb">
+												<img src="/front/image/sample/450-300.png" alt="신규 회원 쿠폰팩">
+											</div>
+											<div class="event-list-meta">
+												<div class="event-list-title"
+													title="[이벤트] 신규 회원 가입 시 웰컴 쿠폰팩 즉시 지급 (중복 사용 불가)">
+													[이벤트] 신규 회원 가입 시 웰컴 쿠폰팩 즉시 지급 (중복 사용 불가)
+												</div>
+												<div class="event-list-period"><i class="fas fa-calendar-alt"
+														aria-hidden="true"></i> 상시 진행</div>
+											</div>
+										</a>
+									</div>
+
+									<!-- 진행 종료 -->
+									<div id="event-list-ended" class="event-list-grid event-list-hidden" role="tabpanel"
+										aria-labelledby="진행 종료">
+										<a href="#" class="event-list-card">
+											<div class="event-list-thumb">
+												<img src="/front/image/sample/450-300.png" alt="여름 특가전 종료">
+											</div>
+											<div class="event-list-meta">
+												<div class="event-list-title" title="[이벤트] 여름 특가전 (종료)">
+													[이벤트] 여름 특가전 (종료)
+												</div>
+												<div class="event-list-period"><i class="fas fa-calendar-alt"
+														aria-hidden="true"></i> 2025-07-01 ~ 2025-07-31</div>
+											</div>
+										</a>
+
+										<a href="#" class="event-list-card">
+											<div class="event-list-thumb">
+												<img src="/front/image/sample/450-300.png" alt="신제품 체험단 모집 종료">
+											</div>
+											<div class="event-list-meta">
+												<div class="event-list-title" title="[이벤트] 신제품 체험단 모집 (종료)">
+													[이벤트] 신제품 체험단 모집 (종료)
+												</div>
+												<div class="event-list-period"><i class="fas fa-calendar-alt"
+														aria-hidden="true"></i> 2025-08-01 ~ 2025-08-15</div>
+											</div>
+										</a>
+									</div>
+
+								</div>
+
+								<nav class="d-flex justify-content-center">
+									<ul class="pagination">
+										<li class="page-item"><a class="page-link" href="#">Previous</a>
+										</li>
+										<li class="page-item"><a class="page-link" href="#">1</a></li>
+										<li class="page-item"><a class="page-link" href="#">2</a></li>
+										<li class="page-item"><a class="page-link" href="#">3</a></li>
+										<li class="page-item"><a class="page-link" href="#">Next</a></li>
+									</ul>
+								</nav>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+	<th:block th:replace="fragments/front/common :: communityBtnGroup"></th:block>
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<script>
+		/* global jQuery */
+		(function ($) {
+			"use strict";
+			$(function () {
+				// 탭 전환
+				$('.event-list-tab').on('click', function () {
+					var $btn = $(this);
+					var target = $btn.data('target');
+
+					// 버튼 상태
+					$('.event-list-tab').removeClass('is-active').attr('aria-selected', 'false');
+					$btn.addClass('is-active').attr('aria-selected', 'true');
+
+					// 패널 전환
+					$('.event-list-grid').addClass('event-list-hidden');
+					$(String(target)).removeClass('event-list-hidden');
+				});
+			});
+		})(jQuery);
+	</script>
+
+</body>
+
+</html>

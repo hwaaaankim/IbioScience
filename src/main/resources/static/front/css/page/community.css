@@ -1,0 +1,655 @@
+/* Community Common */
+/* ===== 모바일 FAB: back-to-top 위로, 색상 구분 ===== */
+.community-common-fab {
+	cursor: pointer;
+	background-color: #2563eb;
+	/* 파란색: back-to-top과 구분 */
+	width: 45px;
+	min-height: 42px;
+	position: fixed;
+	bottom: 70px;
+	/* back-to-top(20px + 42px + 8px 간격) */
+	right: 10px;
+	/* back-to-top과 같은 정렬 */
+	z-index: 41;
+	/* back-to-top(40)보다 위 */
+	display: none;
+	/* 기본 비표시, 991px 이하에서 표시 */
+	text-align: center;
+	border-radius: 3px;
+	opacity: 1;
+	transition: all 0.5s ease-in-out 0s;
+	-webkit-transition: all 0.5s ease-in-out 0s;
+	transform: scale(1);
+	border: 0;
+	color: #fff;
+	padding: 0;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, .12);
+}
+
+.community-common-fab:hover {
+	background-color: #1e40af;
+}
+
+.community-common-fab i {
+	font-size: 20px;
+	line-height: 42px;
+	/* 수직 중앙 */
+}
+
+/* 991px 이하일 때만 FAB 보이기 */
+@media (max-width: 991px) {
+	.community-common-fab {
+		display: block;
+	}
+}
+
+/* ===== 모달 ===== */
+.community-common-modal[aria-hidden="true"] {
+	display: none;
+}
+
+.community-common-modal[aria-hidden="false"] {
+	display: block;
+}
+
+/* 오버레이: 옅은 검정 */
+.community-common-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.35);
+	z-index: 1000;
+	opacity: 0;
+	transition: opacity .2s ease;
+}
+
+/* 다이얼로그: 내용만큼 높이, 필요 시 스크롤 */
+.community-common-dialog {
+	position: fixed;
+	z-index: 1001;
+	inset: 0;
+	margin: auto;
+	width: min(92vw, 420px);
+	height: auto !important;
+	/* 강제 자동 높이 */
+	max-height: 260px;
+	/* 너무 커지지 않도록 제한 */
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+	transform: translateY(10px);
+	opacity: 0;
+	transition: transform .2s ease, opacity .2s ease;
+	padding: 18px 16px 12px;
+	overflow: auto;
+	/* 항목 증가 시 내부 스크롤 */
+}
+
+/* 오픈 상태 애니메이션 */
+.community-common-modal[aria-hidden="false"] .community-common-overlay {
+	opacity: 1;
+}
+
+.community-common-modal[aria-hidden="false"] .community-common-dialog {
+	transform: translateY(0);
+	opacity: 1;
+}
+
+/* 타이틀 & 닫기 버튼 */
+.community-common-title {
+	margin: 0 36px 12px 4px;
+	font-size: 16px;
+	font-weight: 700;
+	color: #111827;
+}
+
+.community-common-close {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	border: 0;
+	background: transparent;
+	color: #6b7280;
+	font-size: 20px;
+	cursor: pointer;
+	padding: 4px;
+}
+
+.community-common-close:hover {
+	color: #111827;
+}
+
+/* 메뉴 리스트 */
+.community-common-menu {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 4px;
+}
+
+.community-common-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 10px;
+	border-radius: 8px;
+	text-decoration: none;
+	color: #1f2937;
+	background: #f9fafb;
+	transition: background .15s ease, transform .02s ease;
+	font-size: 15px;
+}
+
+.community-common-item i {
+	font-size: 18px;
+	color: #2563eb;
+}
+
+.community-common-item:hover {
+	background: #eef2ff;
+}
+
+.community-common-item:active {
+	transform: translateY(1px);
+}
+
+/* 데스크톱에서 모달/버튼 숨김(안전장치) */
+@media (min-width: 992px) {
+	.community-common-modal {
+		display: none !important;
+	}
+
+	.community-common-fab {
+		display: none !important;
+	}
+}
+
+/* 모달 오픈 시 바디 스크롤 잠금(선택) */
+body.community-common-modal-open {
+	overflow: hidden;
+}
+
+/* Community Common End */
+/* Notice List Start */
+/* 외곽 컨테이너 (외곽선만, 내부 보더 없음) */
+.notice-list-tablebox {
+	border: 1px solid #e5e7eb;
+	/* 옅은 회색 외곽선 */
+	overflow: hidden;
+	/* 둥근 모서리 유지 */
+	background: #fff;
+}
+
+/* 테이블 기본 */
+.notice-list-table {
+	width: 100%;
+	border-collapse: separate;
+	/* 내부 보더 없음 */
+	border-spacing: 0;
+	/* 간격 제거 */
+	table-layout: fixed;
+	/* 말줄임 안정화 */
+	font-size: 14px;
+}
+
+/* 헤더: 굵게 + 옅은 회색 배경 */
+.notice-list-table thead th {
+	background: #f5f6f8;
+	/* 옅은 회색 */
+	font-weight: 700;
+	color: #111827;
+	padding: 14px 12px;
+	text-align: center;
+}
+
+/* 바디: 내부 보더 제거, 줄간격만으로 구분 */
+.notice-list-table tbody td {
+	padding: 14px 12px;
+	text-align: center;
+	/* 기본 센터 정렬 */
+	color: #374151;
+	vertical-align: middle;
+}
+
+/* 행 hover 효과(선 없이도 구분감) */
+.notice-list-table tbody tr:hover {
+	background: #fafafa;
+}
+
+/* 제목만 좌측 정렬 + 말줄임 */
+.notice-list-title {
+	text-align: left;
+}
+
+.notice-list-title a {
+	display: block;
+	max-width: 100%;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	/* ... 처리 */
+	color: #1f2937;
+	text-decoration: none;
+}
+
+.notice-list-title a:hover {
+	text-decoration: underline;
+}
+
+/* 반응형: 모바일에서 .m-d-n 숨김, 여백 조정 */
+@media (max-width: 767.98px) {
+
+	.notice-list-table thead th.m-d-n,
+	.notice-list-table tbody td.m-d-n {
+		display: none !important;
+	}
+
+	.notice-list-table thead th {
+		padding: 12px 10px;
+		font-size: 13px;
+	}
+
+	.notice-list-table tbody td {
+		padding: 12px 10px;
+		font-size: 13px;
+	}
+}
+
+/* 태블릿 살짝 타이트하게 */
+@media (min-width: 768px) and (max-width: 1199.98px) {
+
+	.notice-list-table thead th,
+	.notice-list-table tbody td {
+		padding: 12px 10px;
+	}
+}
+
+/* 제목 컬럼만 강제 좌측 정렬 */
+.notice-list-table td.notice-list-title,
+.notice-list-table th.notice-list-title {
+	text-align: left !important;
+}
+
+.community-title {
+	color: black !important;
+	font-weight: 600;
+	font-size: 20px;
+}
+
+/* Notice List End */
+
+/* Notice Detail Start */
+.notice-detail-wrap {
+	padding-top: 30px;
+	padding-bottom: 30px;
+}
+
+/* Notice Detail End */
+
+
+/* Qna List Start */
+/* ================= Base ================= */
+.qna-list-section {
+	padding: 8px 0 0;
+}
+
+/* ================= 카테고리 9개 ================= */
+/* PC/태블릿: 9개 1열 유지 */
+.qna-list-cats {
+	display: grid;
+	grid-template-columns: repeat(9, 1fr);
+	gap: 12px;
+	margin: 12px 0 18px;
+}
+
+.qna-list-cat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 14px 8px;
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-radius: 6px;
+	color: #6b7280;
+	font-size: 13px;
+	line-height: 1;
+	cursor: pointer;
+	transition: border-color .15s ease, box-shadow .15s ease, color .15s ease, background .15s ease;
+}
+
+.qna-list-cat i {
+	font-size: 20px;
+}
+
+.qna-list-cat span {
+	font-weight: 600;
+}
+
+.qna-list-cat:hover {
+	border-color: #c7d2fe;
+	box-shadow: 0 1px 6px rgba(37, 99, 235, .08);
+	color: #374151;
+}
+
+.qna-list-cat.is-active {
+	border-color: #2563eb;
+	color: #2563eb;
+	background: #f8fafc;
+}
+
+/* 모바일: 5 + 4 두 줄 */
+@media (max-width: 991px) {
+	.qna-list-cats {
+		grid-template-columns: repeat(5, 1fr);
+		gap: 8px;
+	}
+
+	.qna-list-cat {
+		padding: 10px 6px;
+		font-size: 12px;
+	}
+
+	.qna-list-cat i {
+		font-size: 18px;
+	}
+}
+
+/* ================= 목록(헤더 없는 테이블) ================= */
+.qna-list-tablebox {
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	overflow: hidden;
+	background: #fff;
+}
+
+.qna-list-table {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.qna-list-item+.qna-list-item {
+	border-top: 1px solid #eee;
+}
+
+/* 행 - 머리 */
+.qna-list-head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 14px;
+	cursor: pointer;
+	user-select: none;
+}
+
+.qna-list-head:hover {
+	background: #fafafa;
+}
+
+/* 좌측 Q 뱃지 */
+.qna-list-qbadge {
+	flex: 0 0 auto;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #eef2ff;
+	color: #2563eb;
+	font-weight: 700;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	border: 1px solid #c7d2fe;
+}
+
+/* 제목 (말줄임) */
+.qna-list-title {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: #111827;
+	font-size: 14px;
+}
+
+/* 우측 화살표 */
+.qna-list-arrow {
+	flex: 0 0 auto;
+	color: #6b7280;
+	transition: transform .18s ease;
+}
+
+.qna-list-item.is-open .qna-list-arrow {
+	transform: rotate(180deg);
+	color: #374151;
+}
+
+/* 행 - 내용(리치 컨텐츠 영역) */
+.qna-list-body {
+	display: none;
+	background: #fff;
+}
+
+.qna-list-body-inner {
+	padding: 14px 18px;
+	color: #374151;
+	line-height: 1.6;
+	font-size: 14px;
+}
+
+.qna-list-body-inner img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+	margin: 0 auto;
+	border: 1px solid #eee;
+	border-radius: 6px;
+}
+
+/* 반응형 폰트/패딩 조정 */
+@media (max-width: 991px) {
+	.qna-list-head {
+		padding: 12px 12px;
+	}
+
+	.qna-list-title {
+		font-size: 13px;
+	}
+
+	.qna-list-body-inner {
+		padding: 12px 14px;
+		font-size: 13px;
+	}
+}
+
+/* Qna List End */
+
+/* Event List Start */
+/* ===== 공통 영역 ===== */
+.event-list-area {
+	padding-top: 6px;
+}
+
+/* ===== 탭 ===== */
+.event-list-tabs {
+	display: inline-flex;
+	gap: 8px;
+	border-bottom: 1px solid #e5e7eb;
+	margin: 0 0 16px;
+}
+
+.event-list-tab {
+	appearance: none;
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-bottom-color: transparent;
+	border-radius: 6px 6px 0 0;
+	padding: 10px 16px;
+	font-size: 14px;
+	color: #374151;
+	cursor: pointer;
+	transition: color .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.event-list-tab:hover {
+	background: #f9fafb;
+}
+
+.event-list-tab.is-active {
+	color: #2563eb;
+	border-color: #c7d2fe;
+	background: #f8fafc;
+}
+
+/* ===== 카드 그리드 ===== */
+/* PC 기본: 4열 */
+.event-list-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 16px;
+}
+
+.event-list-hidden {
+	display: none;
+}
+
+/* 태블릿(768~1199): 3열 */
+@media (max-width: 1199.98px) {
+	.event-list-grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+/* 모바일(≤767): 2열 */
+@media (max-width: 767.98px) {
+	.event-list-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+/* ===== 카드 ===== */
+.event-list-card {
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	overflow: hidden;
+	text-decoration: none;
+	transition: border-color .15s ease, box-shadow .15s ease, transform .02s ease;
+}
+
+.event-list-card:hover {
+	border-color: #c7d2fe;
+	box-shadow: 0 4px 12px rgba(37, 99, 235, .08);
+}
+
+.event-list-card:active {
+	transform: translateY(1px);
+}
+
+/* 썸네일 */
+.event-list-thumb {
+	aspect-ratio: 3 / 2;
+	/* 450x300 비율 */
+	background: #f3f4f6;
+	overflow: hidden;
+}
+
+.event-list-thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+/* 메타 */
+.event-list-meta {
+	padding: 10px 12px 12px;
+}
+
+.event-list-title {
+	color: #111827;
+	font-weight: 700;
+	line-height: 1.35;
+	min-height: 3.6em;
+	/* 2줄 높이 확보(가변 레이아웃 안정화) */
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	/* 2줄 … 처리 */
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.event-list-period {
+	margin-top: 6px;
+	color: #6b7280;
+	font-size: 13px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* === 세그먼트 탭 색상 토큰(필요 시 여기만 조정) === */
+:root {
+	--event-tab-active-bg: #0b1e4b;
+	/* 짙은 남색 */
+	--event-tab-inactive-bg: #e9e9ed;
+	/* 연한 회색 */
+	--event-tab-inactive-text: #9aa0a6;
+	--event-tab-active-text: #ffffff;
+}
+
+/* 컨테이너: 회색 배경의 라운드 바 */
+.event-list-tabs {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	background: var(--event-tab-inactive-bg);
+	border-radius: 10px;
+	overflow: hidden;
+	padding: 0;
+	/* 내부 여백 없이 정확히 반반 */
+	margin: 10px 0 18px;
+	/* 상하 간격 */
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+/* 버튼: 기본은 투명, 텍스트만 회색 */
+.event-list-tab {
+	appearance: none;
+	border: 0;
+	background: transparent;
+	height: 40px;
+	padding: 0 12px;
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--event-tab-inactive-text);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background .15s ease, color .15s ease;
+}
+
+.event-list-tab:hover {
+	color: #6b7280;
+}
+
+/* 활성: 남색 배경 + 흰 글자 (왼/오른쪽 둥근 모서리는 컨테이너가 담당) */
+.event-list-tab.is-active {
+	background: var(--event-tab-active-bg);
+	color: var(--event-tab-active-text);
+}
+
+/* 반응형 높이 살짝 축소 */
+@media (max-width: 767.98px) {
+	.event-list-tab {
+		height: 36px;
+		font-size: 12.5px;
+	}
+}
+
+/* Event List End */

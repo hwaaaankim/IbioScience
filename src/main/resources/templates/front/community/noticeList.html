@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">고객센터</a></li>
+				<li><a href="#">공지사항</a></li>
+			</ul>
+
+			<div class="row">
+				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
+					<div class="producttab">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
+								<li class="active"><a href="/noticeList">공지사항</a></li>
+								<li class="item_nonactive"><a href="/qna">QnA</a></li>
+								<li class="item_nonactive"><a href="/eventList">이벤트</a></li>
+							</ul>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">공지사항</h3>
+								<div class="notice-list-wrap">
+									<div class="notice-list-tablebox">
+										<table class="notice-list-table">
+											<colgroup>
+												<col style="width:90px" />
+												<col />
+												<col style="width:140px" class="m-d-n" />
+												<col style="width:140px" />
+												<col style="width:110px" class="m-d-n" />
+											</colgroup>
+											<thead>
+												<tr>
+													<th scope="col">번호</th>
+													<th scope="col">제목</th>
+													<th scope="col" class="m-d-n">작성자</th>
+													<th scope="col">작성일</th>
+													<th scope="col" class="m-d-n">조회수</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td>5</td>
+													<td class="notice-list-title">
+														<a href="#">[필독] 9월 정기 점검 안내 및 서비스 일시 중단 공지 – 상세 일정과 영향 범위
+															안내드립니다</a>
+													</td>
+													<td class="m-d-n">관리자</td>
+													<td>2025-09-02</td>
+													<td class="m-d-n">128</td>
+												</tr>
+												<tr>
+													<td>4</td>
+													<td class="notice-list-title">
+														<a href="#">신규 브랜드 입점 이벤트 및 한정 쿠폰 배포 안내</a>
+													</td>
+													<td class="m-d-n">마케팅팀</td>
+													<td>2025-08-28</td>
+													<td class="m-d-n">342</td>
+												</tr>
+												<tr>
+													<td>3</td>
+													<td class="notice-list-title">
+														<a href="#">택배 지연 지역 안내(기상 영향)</a>
+													</td>
+													<td class="m-d-n">고객센터</td>
+													<td>2025-08-25</td>
+													<td class="m-d-n">89</td>
+												</tr>
+												<tr>
+													<td>2</td>
+													<td class="notice-list-title">
+														<a href="#">회원 등급/적립 정책 변경 사전 공지</a>
+													</td>
+													<td class="m-d-n">운영팀</td>
+													<td>2025-08-20</td>
+													<td class="m-d-n">210</td>
+												</tr>
+												<tr>
+													<td>1</td>
+													<td class="notice-list-title">
+														<a href="#">사이트 리뉴얼 완료 및 주요 변경사항 요약</a>
+													</td>
+													<td class="m-d-n">관리자</td>
+													<td>2025-08-15</td>
+													<td class="m-d-n">523</td>
+												</tr>
+											</tbody>
+										</table>
+
+									</div>
+								</div>
+								<nav class="d-flex justify-content-center">
+									<ul class="pagination">
+										<li class="page-item"><a class="page-link" href="#">Previous</a>
+										</li>
+										<li class="page-item"><a class="page-link" href="#">1</a></li>
+										<li class="page-item"><a class="page-link" href="#">2</a></li>
+										<li class="page-item"><a class="page-link" href="#">3</a></li>
+										<li class="page-item"><a class="page-link" href="#">Next</a></li>
+									</ul>
+								</nav>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+	<th:block th:replace="fragments/front/common :: communityBtnGroup"></th:block>
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+</body>
+
+</html>

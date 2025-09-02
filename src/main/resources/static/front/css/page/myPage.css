@@ -1,0 +1,2413 @@
+/* =========================================================
+   MyPage - Mobile FAB & Modal (myPage-common-*)
+   ========================================================= */
+/* ===== 모바일 FAB (back-to-top 위 8px 간격, 파란색) ===== */
+.myPage-common-fab {
+	cursor: pointer;
+	background-color: #2563eb;
+	width: 45px;
+	min-height: 42px;
+	position: fixed;
+	bottom: 70px;
+	/* back-to-top(20) + 높이(42) + 간격(8) */
+	right: 10px;
+	/* back-to-top과 같은 정렬 */
+	z-index: 41;
+	/* back-to-top(40)보다 위 */
+	display: none;
+	/* 991px 이하에서만 보이도록 */
+	text-align: center;
+	border-radius: 3px;
+	opacity: 1;
+	transition: all .5s ease-in-out 0s;
+	transform: scale(1);
+	border: 0;
+	color: #fff;
+	padding: 0;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, .12);
+}
+
+.myPage-common-fab:hover {
+	background-color: #1e40af;
+}
+
+.myPage-common-fab i {
+	font-size: 20px;
+	line-height: 42px;
+}
+
+@media (max-width: 991px) {
+	.myPage-common-fab {
+		display: block;
+	}
+}
+
+/* ===== 모달 표시/비표시 ===== */
+.myPage-common-modal[aria-hidden="true"] {
+	display: none;
+}
+
+.myPage-common-modal[aria-hidden="false"] {
+	display: block;
+}
+
+/* 오버레이 */
+.myPage-common-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .35);
+	z-index: 1000;
+	opacity: 0;
+	transition: opacity .2s ease;
+}
+
+/* 다이얼로그 (내용만큼, 과도하지 않게 제한) */
+.myPage-common-dialog {
+	position: fixed;
+	z-index: 1001;
+	inset: 0;
+	margin: auto;
+	width: min(92vw, 420px);
+	height: auto !important;
+	max-height: min(80vh, 520px);
+	/* 10개 메뉴 대응, 화면 꽉 채우지 않음 */
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+	transform: translateY(10px);
+	opacity: 0;
+	transition: transform .2s ease, opacity .2s ease;
+	padding: 18px 16px 12px;
+	overflow: auto;
+}
+
+.myPage-common-modal[aria-hidden="false"] .myPage-common-overlay {
+	opacity: 1;
+}
+
+.myPage-common-modal[aria-hidden="false"] .myPage-common-dialog {
+	transform: translateY(0);
+	opacity: 1;
+}
+
+/* 타이틀 & 닫기 */
+.myPage-common-title {
+	margin: 0 36px 12px 4px;
+	font-size: 16px;
+	font-weight: 700;
+	color: #111827;
+}
+
+.myPage-common-close {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	border: 0;
+	background: transparent;
+	color: #6b7280;
+	font-size: 20px;
+	cursor: pointer;
+	padding: 4px;
+}
+
+.myPage-common-close:hover {
+	color: #111827;
+}
+
+/* 메뉴 리스트 */
+.myPage-common-menu {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 4px;
+}
+
+.myPage-common-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 10px;
+	border-radius: 8px;
+	text-decoration: none;
+	color: #1f2937;
+	background: #f9fafb;
+	transition: background .15s ease, transform .02s ease;
+	font-size: 15px;
+}
+
+.myPage-common-item i {
+	font-size: 18px;
+	color: #2563eb;
+}
+
+.myPage-common-item:hover {
+	background: #eef2ff;
+}
+
+.myPage-common-item:active {
+	transform: translateY(1px);
+}
+
+/* 데스크톱에서 강제 숨김(안전장치) */
+@media (min-width: 992px) {
+	.myPage-common-modal {
+		display: none !important;
+	}
+
+	.myPage-common-fab {
+		display: none !important;
+	}
+}
+
+/* 모달 오픈 시 바디 스크롤 잠금 */
+body.myPage-common-modal-open {
+	overflow: hidden;
+}
+
+/* =========================================================
+   MyPage - Main (myPage-main-*)
+   ========================================================= */
+
+/* ================= 색상/치수 토큰 ================= */
+:root {
+	--mp-navy: #0b1e4b;
+	--mp-navy-600: #0a1a41;
+	--mp-gray-50: #f6f7f9;
+	--mp-gray-100: #eef1f4;
+	--mp-gray-200: #e5e7eb;
+	--mp-gray-600: #6b7280;
+	--mp-gray-800: #1f2937;
+	--mp-green: #22c55e;
+	--mp-green-700: #16a34a;
+	/* 모바일 표 3컬럼 폭 */
+	--mp-m-col2: 60px;
+	/* 수량 */
+	--mp-m-col3: 96px;
+	/* 총금액 */
+}
+
+/* 공통 레이아웃 */
+.myPage-main-area {
+	padding: 8px 6px 0;
+}
+
+.myPage-main-title {
+	text-align: center;
+	font-size: 18px;
+	font-weight: 700;
+	margin: 4px 0 14px;
+	color: #111827;
+}
+
+/* ========== 상단 요약 카드 ========== */
+.myPage-main-summary {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.myPage-main-topbar {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 8px;
+	background: #fff;
+	border: 1px solid var(--mp-gray-200);
+	border-radius: 12px;
+	padding: 8px;
+	overflow: hidden;
+}
+
+.myPage-main-topcell {
+	background: #fff;
+	border-radius: 8px;
+	padding: 10px 12px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+	border-right: 1px solid var(--mp-gray-100);
+}
+
+.myPage-main-topcell:last-child {
+	border-right: 0;
+}
+
+.myPage-main-toplabel {
+	color: var(--mp-gray-600);
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.myPage-main-topvalue {
+	font-weight: 700;
+	color: #111827;
+	white-space: nowrap;
+}
+
+.myPage-main-point {
+	font-size: 14px;
+	color: #111827;
+	white-space: nowrap;
+}
+
+.myPage-main-point strong {
+	font-size: 18px;
+	font-weight: 800;
+}
+
+.myPage-main-point span {
+	margin-left: 4px;
+	color: var(--mp-gray-600);
+	font-weight: 600;
+}
+
+.myPage-main-topbtn {
+	margin-left: auto;
+	white-space: nowrap;
+	padding: 6px 10px;
+	font-size: 12px;
+	border-radius: 16px;
+	background: var(--mp-navy);
+	color: #fff;
+	text-decoration: none;
+}
+
+.myPage-main-topbtn--line {
+	background: #fff;
+	color: var(--mp-gray-800);
+	border: 1px solid var(--mp-gray-200);
+}
+
+/* 인사 배너 */
+.myPage-main-greet {
+	background: var(--mp-navy);
+	color: #fff;
+	border-radius: 10px;
+	padding: 12px 14px;
+	font-weight: 700;
+	box-shadow: inset 0 -2px 0 rgba(255, 255, 255, .08);
+}
+
+.myPage-main-greet span {
+	opacity: .95;
+}
+
+/* 그린 버튼 */
+.myPage-main-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+}
+
+.myPage-main-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 10px 14px;
+	border-radius: 999px;
+	text-decoration: none;
+	font-weight: 700;
+	width: 150px;
+	transition: background .15s ease, transform .02s ease, box-shadow .15s ease;
+}
+
+.myPage-main-btn i {
+	font-size: 12px;
+}
+
+.myPage-main-btn--green {
+	background: var(--mp-green);
+	color: #fff;
+	box-shadow: 0 3px 10px rgba(34, 197, 94, .22);
+}
+
+.myPage-main-btn--green:hover {
+	background: var(--mp-green-700);
+}
+
+.myPage-main-btn:active {
+	transform: translateY(1px);
+}
+
+/* ========== 섹션 공통 ========== */
+.myPage-main-section {
+	margin-top: 18px;
+}
+
+.myPage-main-sechead {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.myPage-main-sechead h4 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 800;
+	color: black !important;
+}
+
+.myPage-main-desc {
+	margin: 0;
+	color: var(--mp-gray-600);
+	font-size: 12px;
+}
+
+/* ========== 진행 중인 주문 ========== */
+.myPage-main-progress {
+	display: flex;
+	gap: 18px;
+	align-items: stretch;
+	background: var(--mp-gray-50);
+	border: 1px solid var(--mp-gray-200);
+	border-radius: 12px;
+	padding: 14px;
+	margin-top: 10px;
+}
+
+.myPage-main-steps {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+}
+
+.myPage-main-step {
+	text-align: center;
+}
+
+.myPage-main-stepround {
+	width: 46px;
+	height: 46px;
+	border-radius: 50%;
+	background: #fff;
+	border: 1px solid var(--mp-gray-200);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	color: #111827;
+	box-shadow: 0 1px 0 rgba(0, 0, 0, .02);
+}
+
+.myPage-main-steplabel {
+	margin-top: 6px;
+	font-size: 12px;
+	color: #374151;
+}
+
+.myPage-main-stepsep {
+	color: #cbd5e1;
+	font-size: 18px;
+}
+
+.myPage-main-shipbox {
+	width: 320px;
+	background: #fff;
+	border: 1px solid var(--mp-gray-200);
+	border-radius: 12px;
+	padding: 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.myPage-main-shiptitle {
+	color: #ef4444;
+	font-weight: 800;
+}
+
+.myPage-main-btn--primary {
+	background: var(--mp-navy);
+	width: 100%;
+	color: #fff;
+	border-radius: 999px;
+	padding: 10px 14px;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	justify-content: center;
+}
+
+.myPage-main-btn--primary:hover {
+	background: var(--mp-navy-600);
+}
+
+.myPage-main-shipdesc {
+	color: var(--mp-gray-600);
+	font-size: 12px;
+	line-height: 1.5;
+	margin: 0;
+}
+
+/* ========== 최근 주문 정보 ========== */
+.myPage-main-tablewrap {
+	border: 1px solid var(--mp-gray-200);
+	border-radius: 8px;
+	overflow: hidden;
+	margin-top: 10px;
+	background: #fff;
+}
+
+/* 1200~991px: 가로 스크롤(줄이지 않음) */
+@media (max-width:1199.98px) and (min-width:992px) {
+	.myPage-main-tablewrap {
+		overflow-x: auto;
+	}
+
+	.myPage-main-table {
+		min-width: 1100px;
+	}
+}
+
+.myPage-main-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	table-layout: fixed;
+}
+
+.myPage-main-table thead th {
+	background: #f5f6f8;
+	font-weight: 800;
+	padding: 12px 10px;
+	text-align: center;
+	color: #111827;
+	border-bottom: 1px solid var(--mp-gray-200);
+}
+
+.myPage-main-table tbody td {
+	padding: 12px 10px;
+	text-align: center;
+	color: #374151;
+	vertical-align: middle;
+}
+
+/* 1열(두 줄) */
+.myPage-main-col1 {
+	text-align: left;
+}
+
+.myPage-main-date {
+	font-weight: 700;
+	color: #111827;
+}
+
+.myPage-main-ordno {
+	color: #6b7280;
+}
+
+/* 2열 제목/코드 */
+.myPage-main-tdtitle {
+	text-align: left;
+}
+
+.myPage-main-ocode {
+	color: #111827;
+	margin-bottom: 2px;
+}
+
+.myPage-main-odetail {
+	color: #374151;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* 데스크톱 폭 고정 */
+@media (min-width:992px) {
+	.myPage-main-table {
+		table-layout: fixed;
+	}
+
+	.myPage-main-table th:nth-child(1),
+	.myPage-main-table td:nth-child(1) {
+		width: 220px;
+	}
+
+	.myPage-main-table th:nth-child(3),
+	.myPage-main-table td:nth-child(3) {
+		width: 120px;
+	}
+
+	.myPage-main-table th:nth-child(4),
+	.myPage-main-table td:nth-child(4) {
+		width: 90px;
+	}
+
+	.myPage-main-table th:nth-child(5),
+	.myPage-main-table td:nth-child(5) {
+		width: 120px;
+	}
+
+	.myPage-main-table th:nth-child(6),
+	.myPage-main-table td:nth-child(6) {
+		width: 110px;
+	}
+
+	.myPage-main-table th:nth-child(7),
+	.myPage-main-table td:nth-child(7) {
+		width: 120px;
+	}
+}
+
+/* 버튼 영역: 우측 정렬 + 묶음 경계선은 버튼 영역 기준 */
+.myPage-main-rowactions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 10px;
+	border-top: 1px solid var(--mp-gray-200);
+	border-bottom: 1px solid var(--mp-gray-200);
+	background: #fff;
+}
+
+.myPage-main-smbtn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 8px 10px;
+	border: 1px solid var(--mp-gray-200);
+	background: #fff;
+	color: #111827;
+	border-radius: 6px;
+	text-decoration: none;
+	font-size: 13px;
+	width: 120px;
+}
+
+.myPage-main-smbtn:hover {
+	background: #f8fafc;
+}
+
+/* ================= 모바일(≤991px) - 3컬럼 완전 일치 ================= */
+.myPage-main-mobile-head {
+	display: none;
+}
+
+@media (max-width:991px) {
+	.myPage-main-area {
+		padding: 8px 0 0;
+	}
+
+	/* 상단 요약 카드 */
+	.myPage-main-summary {
+		background: #fff;
+		border: 1px solid var(--mp-gray-200);
+		border-radius: 12px;
+		padding: 12px;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, .04);
+		gap: 10px;
+	}
+
+	.myPage-main-topbar {
+		grid-template-columns: 1fr;
+		gap: 6px;
+		border: 0;
+		padding: 0;
+	}
+
+	.myPage-main-topcell {
+		border: 1px solid var(--mp-gray-200);
+	}
+
+	.myPage-main-actions {
+		flex-direction: column;
+	}
+
+	.myPage-main-btn {
+		width: 100%;
+	}
+
+	/* 주문 카드화 */
+	.myPage-main-progress {
+		flex-direction: column;
+		padding: 12px;
+		gap: 12px;
+		border-radius: 12px;
+	}
+
+	.myPage-main-steps {
+		justify-content: space-between;
+	}
+
+	.myPage-main-stepround {
+		width: 44px;
+		height: 44px;
+	}
+
+	.myPage-main-shipbox {
+		width: auto;
+	}
+
+	/* 모바일 전용 3컬럼 헤더 */
+	.myPage-main-mobile-head {
+		display: grid;
+		grid-template-columns: 1fr var(--mp-m-col2) var(--mp-m-col3);
+		column-gap: 0;
+		align-items: center;
+		padding: 10px;
+		border-bottom: 1px solid var(--mp-gray-200);
+		color: #6b7280;
+		font-size: 13px;
+		background: #f5f6f8;
+		border-top-left-radius: 8px;
+		border-top-right-radius: 8px;
+	}
+
+	.myPage-main-mobile-head span:nth-child(1) {
+		text-align: left;
+	}
+
+	.myPage-main-mobile-head span:nth-child(2) {
+		text-align: center;
+	}
+
+	.myPage-main-mobile-head span:nth-child(3) {
+		text-align: right;
+	}
+
+	/* 본문(각 행)을 헤더와 동일 그리드로 */
+	.myPage-main-table thead {
+		display: none;
+	}
+
+	.myPage-main-table tbody tr {
+		display: grid;
+		grid-template-columns: 1fr var(--mp-m-col2) var(--mp-m-col3);
+		column-gap: 0;
+		align-items: start;
+		background: #fff;
+	}
+
+	.myPage-main-table tbody td {
+		padding: 10px;
+		border: 0;
+		background: #fff;
+	}
+
+	/* 보일 3컬럼 매핑: 2(주문내역/코드) · 4(수량) · 5(총금액) */
+	.myPage-main-table tbody td:nth-child(2) {
+		grid-column: 1;
+		text-align: left;
+	}
+
+	.myPage-main-table tbody td:nth-child(4) {
+		grid-column: 2;
+		text-align: center;
+		align-self: start;
+	}
+
+	.myPage-main-table tbody td:nth-child(5) {
+		grid-column: 3;
+		text-align: right;
+		align-self: start;
+	}
+
+	/* 숨길 컬럼 */
+	.myPage-main-table tbody td:nth-child(1),
+	.myPage-main-table tbody td:nth-child(3),
+	.myPage-main-table tbody td:nth-child(6),
+	.myPage-main-table tbody td:nth-child(7) {
+		display: none;
+	}
+
+	/* 버튼 줄: 우측 정렬 유지 */
+	.myPage-main-rowactions {
+		justify-content: flex-end;
+		flex-wrap: wrap;
+	}
+
+	.myPage-main-smbtn {
+		width: auto;
+	}
+
+	/* 제품명 2줄 말줄임 */
+	.myPage-main-odetail {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+}
+
+/* ========== 주문상세 모달(내용 높이에 딱 맞춤) ========== */
+.myPage-main-modal[aria-hidden="true"] {
+	display: none;
+}
+
+.myPage-main-modal[aria-hidden="false"] {
+	display: block;
+}
+
+.myPage-main-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .45);
+	z-index: 2000;
+}
+
+.myPage-main-dialog {
+	position: fixed;
+	inset: 0;
+	margin: auto;
+	z-index: 2001;
+	width: 90%;
+	max-width: 640px;
+	height: auto;
+	max-height: 60vh;
+	/* 내용에 맞추고, 넘치면 스크롤 */
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+	overflow: auto;
+	padding: 16px;
+	transform: translateY(8px);
+	opacity: 0;
+	transition: transform .2s ease, opacity .2s ease;
+}
+
+.myPage-main-modal[aria-hidden="false"] .myPage-main-dialog {
+	transform: translateY(0);
+	opacity: 1;
+}
+
+.myPage-main-mclose {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+	color: #6b7280;
+	font-size: 20px;
+}
+
+.myPage-main-mclose:hover {
+	color: #111827;
+}
+
+.myPage-main-mtitle {
+	margin: 0 28px 10px 2px;
+	font-size: 16px;
+	font-weight: 800;
+	color: #111827;
+}
+
+.myPage-main-mbody {
+	font-size: 14px;
+	color: #374151;
+	line-height: 1.55;
+}
+
+/* 모달 내용 블록 */
+.myPage-main-mgroup {
+	border: 1px solid var(--mp-gray-200);
+	border-radius: 8px;
+	overflow: hidden;
+	margin-top: 8px;
+}
+
+.myPage-main-mrow {
+	display: flex;
+	padding: 10px 12px;
+	border-top: 1px solid var(--mp-gray-200);
+}
+
+.myPage-main-mrow:first-child {
+	border-top: 0;
+}
+
+.myPage-main-mlabel {
+	width: 110px;
+	color: #6b7280;
+}
+
+.myPage-main-mvalue {
+	flex: 1;
+	color: #111827;
+}
+
+.myPage-main-mitems {
+	padding: 10px 12px;
+}
+
+.myPage-main-mitems strong {
+	display: block;
+	margin-bottom: 4px;
+}
+
+/* 모달 타이트 반응형 */
+@media (max-width:575.98px) {
+	.myPage-main-dialog {
+		width: 90%;
+		padding: 12px;
+		max-height: calc(60vh - 48px);
+	}
+
+	.myPage-main-mtitle {
+		font-size: 15px;
+	}
+
+	.myPage-main-mrow {
+		padding: 8px 10px;
+	}
+
+	.myPage-main-mlabel {
+		width: 96px;
+		font-size: 13px;
+	}
+
+	.myPage-main-mvalue {
+		font-size: 13px;
+	}
+}
+
+/* (안전) 행 경계선 강제 제거 - 버튼 영역만 경계선 사용 */
+.myPage-main-table tbody tr {
+	border-bottom: 0 !important;
+}
+
+/* =========================
+   FIX: 모바일 3컬럼 정렬/폭 완전 일치
+   ========================= */
+:root {
+	/* 필요시 여기 숫자만 바꾸면 헤더/본문 동시에 반영됩니다 */
+	--mp-m-col2: 60px;
+	/* 수량 */
+	--mp-m-col3: 96px;
+	/* 총금액 */
+}
+
+@media (max-width: 991px) {
+
+	/* 헤더/본문 모두 동일한 grid 정의 + 여백 통일 */
+	.myPage-main-tablewrap .myPage-main-mobile-head {
+		display: grid !important;
+		grid-template-columns: minmax(0, 1fr) var(--mp-m-col2) var(--mp-m-col3) !important;
+		column-gap: 0 !important;
+		padding: 10px !important;
+		border-bottom: 1px solid var(--mp-gray-200) !important;
+		background: #f5f6f8 !important;
+	}
+
+	.myPage-main-tablewrap .myPage-main-mobile-head span:nth-child(1) {
+		text-align: left !important;
+	}
+
+	.myPage-main-tablewrap .myPage-main-mobile-head span:nth-child(2) {
+		text-align: center !important;
+	}
+
+	.myPage-main-tablewrap .myPage-main-mobile-head span:nth-child(3) {
+		text-align: right !important;
+	}
+
+	/* 본문 행도 헤더와 동일한 grid(폭/간격 완전 동일) */
+	.myPage-main-tablewrap .myPage-main-table tbody tr {
+		display: grid !important;
+		grid-template-columns: minmax(0, 1fr) var(--mp-m-col2) var(--mp-m-col3) !important;
+		column-gap: 0 !important;
+		align-items: start !important;
+	}
+
+	.myPage-main-tablewrap .myPage-main-table tbody td {
+		padding: 10px !important;
+		border: 0 !important;
+		background: #fff !important;
+		box-sizing: border-box !important;
+		/* 패딩 포함 계산 */
+	}
+
+	/* 보여줄 3컬럼 매핑: 2(주문내역/코드)·4(수량)·5(총금액) */
+	.myPage-main-tablewrap .myPage-main-table tbody td:nth-child(2) {
+		grid-column: 1 !important;
+		text-align: left !important;
+	}
+
+	.myPage-main-tablewrap .myPage-main-table tbody td:nth-child(4) {
+		grid-column: 2 !important;
+		text-align: center !important;
+		align-self: start !important;
+	}
+
+	.myPage-main-tablewrap .myPage-main-table tbody td:nth-child(5) {
+		grid-column: 3 !important;
+		text-align: right !important;
+		align-self: start !important;
+	}
+
+	/* 숨길 컬럼 강제 */
+	.myPage-main-tablewrap .myPage-main-table tbody td:nth-child(1),
+	.myPage-main-tablewrap .myPage-main-table tbody td:nth-child(3),
+	.myPage-main-tablewrap .myPage-main-table tbody td:nth-child(6),
+	.myPage-main-tablewrap .myPage-main-table tbody td:nth-child(7) {
+		display: none !important;
+	}
+
+	/* 버튼 줄은 묶음의 경계선, 우측 정렬 유지 */
+	.myPage-main-tablewrap .myPage-main-rowactions {
+		justify-content: flex-end !important;
+		gap: 8px !important;
+		padding: 10px !important;
+		border-top: 1px solid var(--mp-gray-200) !important;
+		border-bottom: 1px solid var(--mp-gray-200) !important;
+		flex-wrap: wrap;
+	}
+
+	.myPage-main-tablewrap .myPage-main-smbtn {
+		width: auto !important;
+	}
+}
+
+/* ============== 보너스: 혹시 남아있는 행 구분선 제거 ============== */
+.myPage-main-table tbody tr {
+	border-bottom: 0 !important;
+}
+
+/* =========================
+   HOTFIX: 모바일(≤991px)에서 table 레이아웃 완전 비활성화
+   - colgroup/표 알고리즘을 끄고, grid만 사용
+   ========================= */
+@media (max-width: 991px) {
+
+	/* 테이블 성격 제거 */
+	.myPage-main-table {
+		display: block !important;
+		width: 100% !important;
+	}
+
+	.myPage-main-table thead {
+		display: none !important;
+	}
+
+	.myPage-main-table tbody {
+		display: block !important;
+		width: 100% !important;
+	}
+
+	.myPage-main-table colgroup,
+	.myPage-main-table col {
+		display: none !important;
+	}
+
+	/* ← colgroup 폭 영향 제거 */
+
+	/* 헤더 3칸과 완전히 같은 그리드 */
+	.myPage-main-mobile-head {
+		display: grid !important;
+		grid-template-columns: minmax(0, 1fr) var(--mp-m-col2) var(--mp-m-col3) !important;
+		column-gap: 0 !important;
+		padding: 10px !important;
+		border-bottom: 1px solid var(--mp-gray-200) !important;
+		background: #f5f6f8 !important;
+	}
+
+	.myPage-main-mobile-head span:nth-child(1) {
+		text-align: left !important;
+	}
+
+	.myPage-main-mobile-head span:nth-child(2) {
+		text-align: center !important;
+	}
+
+	.myPage-main-mobile-head span:nth-child(3) {
+		text-align: right !important;
+	}
+
+	/* 본문 행 = 동일한 3칸 그리드 */
+	.myPage-main-table tbody tr {
+		display: grid !important;
+		grid-template-columns: minmax(0, 1fr) var(--mp-m-col2) var(--mp-m-col3) !important;
+		column-gap: 0 !important;
+		align-items: start !important;
+		background: #fff !important;
+	}
+
+	.myPage-main-table tbody td {
+		display: block !important;
+		padding: 10px !important;
+		border: 0 !important;
+		background: #fff !important;
+		box-sizing: border-box !important;
+	}
+
+	/* 표시 컬럼 매핑: 2(주문내역/코드) · 4(수량) · 5(총금액) */
+	.myPage-main-table tbody td:nth-child(2) {
+		grid-column: 1 !important;
+		text-align: left !important;
+	}
+
+	.myPage-main-table tbody td:nth-child(4) {
+		grid-column: 2 !important;
+		text-align: center !important;
+		align-self: start !important;
+	}
+
+	.myPage-main-table tbody td:nth-child(5) {
+		grid-column: 3 !important;
+		text-align: right !important;
+		align-self: start !important;
+	}
+
+	/* 나머지 컬럼 숨김 */
+	.myPage-main-table tbody td:nth-child(1),
+	.myPage-main-table tbody td:nth-child(3),
+	.myPage-main-table tbody td:nth-child(6),
+	.myPage-main-table tbody td:nth-child(7) {
+		display: none !important;
+	}
+
+	/* 버튼 영역(우측 정렬, 묶음 경계선) */
+	.myPage-main-rowactions {
+		justify-content: flex-end !important;
+		gap: 8px !important;
+		padding: 10px !important;
+		border-top: 1px solid var(--mp-gray-200) !important;
+		border-bottom: 1px solid var(--mp-gray-200) !important;
+		flex-wrap: wrap;
+	}
+
+	.myPage-main-smbtn {
+		width: auto !important;
+	}
+}
+
+/* Order List Start */
+/* ===== 공통 리셋(겹침 방지) ===== */
+/* ===== 기본 컨테이너 ===== */
+.order-filter-wrap {
+	padding: 12px 0 18px;
+	border-top: 1px solid #e9ecef;
+	border-bottom: 1px solid #e9ecef
+}
+
+.order-filter-wrap * {
+	box-sizing: border-box
+}
+
+/* ===== 필드(라벨+컨트롤) : 간격을 clamp로 줄여서 '줄바꿈 직전까지' 가까워지게 ===== */
+.order-filter-field {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	gap: clamp(6px, 0.9vw, 10px);
+	/* ⬅ 요구사항 1: 여유가 줄수록 간격 자동 축소 */
+}
+
+/* ===== 라벨 폭: 통일 + 축소 ===== */
+.order-filter-label {
+	--label-w: 66px;
+	/* PC 기본 폭 (요구사항 2: 기존보다 축소) */
+	width: var(--label-w);
+	min-width: var(--label-w);
+	font-weight: 700;
+	color: #111;
+	letter-spacing: -.2px
+}
+
+@media (max-width: 991.98px) {
+	.order-filter-label {
+		--label-w: 68px;
+	}
+}
+
+/* Tablet */
+@media (max-width: 767.98px) {
+	.order-filter-label {
+		--label-w: 64px;
+	}
+}
+
+/* Mobile */
+
+.order-filter-control {
+	flex: 1;
+	min-width: 0
+}
+
+/* ===== 공통 폼 ===== */
+.order-filter-input,
+.order-filter-select,
+.order-filter-radio,
+.order-filter-btn {
+	height: 45px;
+	line-height: 45px;
+	padding-top: 0;
+	padding-bottom: 0;
+	border-radius: 2px
+}
+
+.order-filter-input,
+.order-filter-select {
+	width: 100%
+}
+
+/* ===== 날짜: grid로 안정 배치 + 간격 clamp ===== */
+.order-filter-datewrap {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+	column-gap: clamp(6px, 1.6vw, 10px);
+	align-items: center
+}
+
+.order-filter-tilde {
+	user-select: none
+}
+
+/* ===== 기간 라디오: 4등분 그리드(동일 폭, 컨테이너 꽉 채움) ===== */
+.order-filter-range {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	/* 요구사항 3 */
+	gap: clamp(6px, 1vw, 8px);
+	min-width: 0;
+}
+
+.order-filter-range input[type=radio] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	pointer-events: none
+}
+
+.order-filter-radio {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: 0 10px;
+	border: 1px solid #cbd5e1;
+	background: #fff;
+	color: #111;
+	cursor: pointer;
+	white-space: nowrap;
+	margin-bottom: 0px !important;
+}
+
+.order-filter-radio:hover {
+	background: #f4f6f8
+}
+
+.order-filter-range input[type=radio]:checked+.order-filter-radio {
+	background: #0b2540;
+	color: #fff;
+	border-color: #0b2540
+}
+
+/* ===== 검색 버튼 ===== */
+.order-filter-actions {
+	display: flex;
+	justify-content: center;
+	margin-top: 14px
+}
+
+.order-filter-btn {
+	min-width: 160px;
+	background: #0b2540;
+	color: #fff;
+	border: 1px solid #0b2540;
+	font-weight: 700
+}
+
+.order-filter-btn:hover {
+	filter: brightness(1.05)
+}
+
+/* ===== 모바일 세로 간격 균일화 (요구사항 4) ===== */
+@media (max-width: 767.98px) {
+	.order-filter-row {
+		row-gap: 12px
+	}
+
+	.order-filter-col {
+		margin-bottom: 0
+	}
+
+	/* 중복 간격 방지 */
+	.order-filter-field {
+		gap: 8px
+	}
+
+	/* 더 조밀하게 */
+}
+
+/* Order List End */
+
+/* Point List Start */
+/* ========== 적립금 내역 테이블 ========== */
+.pointList-table-section {
+	margin: 20px 0;
+}
+
+.pointList-table-head h4 {
+	font-size: 18px;
+	font-weight: 700;
+	margin-bottom: 4px;
+}
+
+.pointList-table-desc {
+	font-size: 14px;
+	color: #666;
+	margin-bottom: 12px;
+}
+
+.pointList-table-wrap {
+	overflow-x: auto;
+}
+
+.pointList-table {
+	width: 100%;
+	border-collapse: collapse;
+	text-align: center;
+	font-size: 14px;
+}
+
+.pointList-table th,
+.pointList-table td {
+	border: 1px solid #e5e7eb;
+	padding: 10px;
+	vertical-align: middle;
+}
+
+.pointList-table thead th {
+	background: #f9fafb;
+	font-weight: 600;
+	color: #111;
+}
+
+.pointList-table-td-point {
+	font-weight: 700;
+	color: #0b2540;
+	/* 포인트 컬러 */
+}
+
+/* ===== 반응형 처리 ===== */
+@media (max-width: 767px) {
+
+	/* 적립일자 컬럼 숨김 */
+	.pointList-table-col-date,
+	.pointList-table-th-date,
+	.pointList-table-td-date {
+		display: none;
+	}
+
+	/* 텍스트 좌측 정렬 */
+	.pointList-table td {
+		text-align: left;
+	}
+}
+
+/* Point List End */
+
+/* Estimate List Start */
+/* ====== FILTER (우측 정렬) ====== */
+.estimateList-filter {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 10px 0 8px;
+}
+
+.estimateList-control {
+	height: 40px;
+	line-height: 40px;
+	padding: 0 10px;
+	border: 1px solid #cfd4da;
+	min-width: 140px
+}
+
+#estimateList-keyword {
+	min-width: 220px
+}
+
+.estimateList-btn {
+	height: 40px;
+	line-height: 40px;
+	padding: 0 16px;
+	border-radius: 2px;
+	background: #0b2540;
+	color: #fff;
+	border: 1px solid #0b2540;
+	display: inline-block;
+	text-decoration: none
+}
+
+.estimateList-btn:hover {
+	filter: brightness(1.05)
+}
+
+.estimateList-btn.outline {
+	background: #fff;
+	color: #0b2540
+}
+
+/* ====== TABLE ====== */
+.estimateList-tablewrap {
+	width: 100%;
+	overflow-x: auto
+}
+
+.estimateList-table {
+	width: 100%;
+	border-collapse: collapse;
+	table-layout: fixed;
+	font-size: 14px
+}
+
+.estimateList-table th,
+.estimateList-table td {
+	border: 1px solid #e5e7eb;
+	padding: 10px;
+	vertical-align: middle;
+	text-align: center
+}
+
+.estimateList-table thead th {
+	background: #f7f8fa;
+	color: #111;
+	font-weight: 600
+}
+
+.estimateList-th-title,
+.estimateList-td-title {
+	text-align: left
+}
+
+.estimateList-title {
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: #111
+}
+
+/* ====== ACTIONS (우측 정렬) ====== */
+.estimateList-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin: 10px 0 12px
+}
+
+/* ====== RESPONSIVE: 991px 이하에서 체크박스/제목만 표시 ====== */
+@media (max-width: 991px) {
+
+	/* NO(2), 답변여부(3), 작성일(5), 공개여부(6) 숨김 */
+	.estimateList-table col:nth-child(2),
+	.estimateList-table col:nth-child(3),
+	.estimateList-table col:nth-child(5),
+	.estimateList-table col:nth-child(6),
+	.estimateList-table th:nth-child(2),
+	.estimateList-table th:nth-child(3),
+	.estimateList-table th:nth-child(5),
+	.estimateList-table th:nth-child(6),
+	.estimateList-table td:nth-child(2),
+	.estimateList-table td:nth-child(3),
+	.estimateList-table td:nth-child(5),
+	.estimateList-table td:nth-child(6) {
+		display: none
+	}
+
+	/* 제목 셀은 남은 폭을 전부 사용 */
+	.estimateList-table {
+		table-layout: auto
+	}
+
+	.estimateList-td-title {
+		width: auto
+	}
+
+	.estimateList-filter {
+		justify-content: flex-end;
+		gap: 6px
+	}
+
+	#estimateList-keyword {
+		min-width: 160px
+	}
+}
+
+/* 더 좁은 모바일에서 필터가 2~3줄로 감기더라도 좌/우 여백과 간격만 정돈 */
+@media (max-width: 575px) {
+	.estimateList-filter {
+		gap: 6px
+	}
+
+	.estimateList-control {
+		min-width: 120px
+	}
+
+	#estimateList-keyword {
+		min-width: 140px
+	}
+}
+
+/* === estimateList: 테이블 내부 보더 제거, 외곽선만 남김 === */
+.estimateList-table {
+	border: 1px solid #e5e7eb;
+	/* 바깥 테두리만 */
+	border-collapse: separate;
+	/* 내부 보더 제거를 위해 separate */
+	border-spacing: 0;
+}
+
+.estimateList-table th,
+.estimateList-table td {
+	border: 0;
+	/* 내부 보더 제거 */
+}
+
+/* Estimate List End*/
+
+/* Inquiry List Start */
+/* ====== FILTER ====== */
+.inquiryList-filter {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 10px 0 8px;
+}
+
+.inquiryList-control {
+	height: 40px;
+	line-height: 40px;
+	padding: 0 10px;
+	border: 1px solid #cfd4da;
+	min-width: 140px
+}
+
+#inquiryList-keyword {
+	min-width: 220px
+}
+
+.inquiryList-btn {
+	height: 40px;
+	line-height: 40px;
+	padding: 0 16px;
+	border-radius: 2px;
+	background: #0b2540;
+	color: #fff;
+	border: 1px solid #0b2540;
+	display: inline-block;
+	text-decoration: none
+}
+
+.inquiryList-btn:hover {
+	filter: brightness(1.05)
+}
+
+.inquiryList-btn.outline {
+	background: #fff;
+	color: #0b2540
+}
+
+/* ====== TABLE (외곽선만 남김) ====== */
+.inquiryList-tablewrap {
+	width: 100%;
+	overflow-x: auto
+}
+
+.inquiryList-table {
+	width: 100%;
+	table-layout: fixed;
+	font-size: 14px;
+	border: 1px solid #e5e7eb;
+	border-collapse: separate;
+	border-spacing: 0;
+	/* 외곽선만 */
+}
+
+.inquiryList-table th,
+.inquiryList-table td {
+	border: 0;
+	padding: 10px;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.inquiryList-table thead th {
+	background: #f7f8fa;
+	color: #111;
+	font-weight: 600
+}
+
+/* 헤더 배경만 */
+.inquiryList-th-title,
+.inquiryList-td-title {
+	text-align: left
+}
+
+.inquiryList-title {
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: #111
+}
+
+/* ====== ACTIONS ====== */
+.inquiryList-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin: 10px 0 12px;
+}
+
+/* ====== RESPONSIVE: 991px 이하에서 체크박스/제목만 표시 ====== */
+@media (max-width: 991px) {
+
+	.inquiryList-table col:nth-child(2),
+	.inquiryList-table col:nth-child(3),
+	.inquiryList-table col:nth-child(5),
+	.inquiryList-table col:nth-child(6),
+	.inquiryList-table th:nth-child(2),
+	.inquiryList-table th:nth-child(3),
+	.inquiryList-table th:nth-child(5),
+	.inquiryList-table th:nth-child(6),
+	.inquiryList-table td:nth-child(2),
+	.inquiryList-table td:nth-child(3),
+	.inquiryList-table td:nth-child(5),
+	.inquiryList-table td:nth-child(6) {
+		display: none
+	}
+
+	.inquiryList-table {
+		table-layout: auto
+	}
+
+	.inquiryList-td-title {
+		width: auto
+	}
+
+	.inquiryList-filter {
+		justify-content: flex-end;
+		gap: 6px
+	}
+
+	#inquiryList-keyword {
+		min-width: 160px
+	}
+}
+
+@media (max-width: 575px) {
+	.inquiryList-filter {
+		gap: 6px
+	}
+
+	.inquiryList-control {
+		min-width: 120px
+	}
+
+	#inquiryList-keyword {
+		min-width: 140px
+	}
+}
+
+/* Inquiry List End */
+/* ExchangeReturn List Start */
+/* ====== FILTER ====== */
+.exchangeReturnList-filter {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 10px 0 8px;
+}
+
+.exchangeReturnList-control {
+	height: 40px;
+	line-height: 40px;
+	padding: 0 10px;
+	border: 1px solid #cfd4da;
+	min-width: 140px
+}
+
+#exchangeReturnList-keyword {
+	min-width: 220px
+}
+
+.exchangeReturnList-btn {
+	height: 40px;
+	line-height: 40px;
+	padding: 0 16px;
+	border-radius: 2px;
+	background: #0b2540;
+	color: #fff;
+	border: 1px solid #0b2540;
+	display: inline-block;
+	text-decoration: none
+}
+
+.exchangeReturnList-btn:hover {
+	filter: brightness(1.05)
+}
+
+.exchangeReturnList-btn.outline {
+	background: #fff;
+	color: #0b2540
+}
+
+/* ====== TABLE (외곽선만 남김) ====== */
+.exchangeReturnList-tablewrap {
+	width: 100%;
+	overflow-x: auto
+}
+
+.exchangeReturnList-table {
+	width: 100%;
+	table-layout: fixed;
+	font-size: 14px;
+	border: 1px solid #e5e7eb;
+	border-collapse: separate;
+	border-spacing: 0;
+	/* 외곽선만 */
+}
+
+.exchangeReturnList-table th,
+.exchangeReturnList-table td {
+	border: 0;
+	padding: 10px;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.exchangeReturnList-table thead th {
+	background: #f7f8fa;
+	color: #111;
+	font-weight: 600
+}
+
+.exchangeReturnList-th-title,
+.exchangeReturnList-td-title {
+	text-align: left
+}
+
+.exchangeReturnList-title {
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: #111
+}
+
+/* ====== ACTIONS ====== */
+.exchangeReturnList-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin: 10px 0 12px;
+}
+
+/* ====== RESPONSIVE: 991px 이하에서 체크박스/제목만 표시 ====== */
+@media (max-width: 991px) {
+
+	/* NO(2), 답변여부(3), 작성일(5) 숨김 */
+	.exchangeReturnList-table col:nth-child(2),
+	.exchangeReturnList-table col:nth-child(3),
+	.exchangeReturnList-table col:nth-child(5),
+	.exchangeReturnList-table th:nth-child(2),
+	.exchangeReturnList-table th:nth-child(3),
+	.exchangeReturnList-table th:nth-child(5),
+	.exchangeReturnList-table td:nth-child(2),
+	.exchangeReturnList-table td:nth-child(3),
+	.exchangeReturnList-table td:nth-child(5) {
+		display: none
+	}
+
+	.exchangeReturnList-table {
+		table-layout: auto
+	}
+
+	.exchangeReturnList-td-title {
+		width: auto
+	}
+
+	.exchangeReturnList-filter {
+		justify-content: flex-end;
+		gap: 6px
+	}
+
+	#exchangeReturnList-keyword {
+		min-width: 160px
+	}
+}
+
+@media (max-width: 575px) {
+	.exchangeReturnList-filter {
+		gap: 6px
+	}
+
+	.exchangeReturnList-control {
+		min-width: 120px
+	}
+
+	#exchangeReturnList-keyword {
+		min-width: 140px
+	}
+}
+
+/* ExchangeReturn List End */
+
+/* ======================= Inquiry Start ======================= */
+/* ===== 1:1문의 폼 ===== */
+.inquiry-page-wrap {
+	padding: 8px 0 16px;
+}
+
+.inquiry-page-form * {
+	box-sizing: border-box;
+}
+
+.inquiry-page-field {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin: 8px 0;
+}
+
+.inquiry-page-label {
+	width: 90px;
+	min-width: 90px;
+	font-weight: 700;
+	color: #111;
+}
+
+.inquiry-page-control {
+	flex: 1;
+	min-width: 0;
+}
+
+/* 컨트롤 통일감 (각 폼 엘리먼트 40~45px) */
+.inquiry-page-input,
+.inquiry-page-select {
+	height: 45px;
+	line-height: 45px;
+	padding: 0 10px;
+	border: 1px solid #cfd4da;
+	border-radius: 0;
+	/* 딱딱하게 */
+	width: 100%;
+	/* ⬅ 셀렉트 포함 영역 꽉 채우기 */
+}
+
+.inquiry-page-textarea {
+	width: 100%;
+	border: 1px solid #cfd4da;
+	border-radius: 0;
+}
+
+/* 접근성: 숨김 input[type=file]용 */
+.visually-hidden {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}
+
+/* 파일 리스트 */
+.inquiry-page-fileList {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	gap: 10px;
+	margin: 6px 0 12px;
+}
+
+/* 이미지 썸네일 카드 */
+.inquiry-page-fileItem {
+	grid-column: span 3;
+	/* 기본 4열 */
+	border: 1px solid #e5e7eb;
+	border-radius: 0;
+	background: #fff;
+	position: relative;
+	padding: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 1 / 1;
+	overflow: hidden;
+}
+
+.inquiry-page-fileItem img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+/* 일반 파일 칩 */
+.inquiry-page-fileChip {
+	grid-column: span 6;
+	/* 텍스트가 있어 가로 2칸 */
+	border: 1px solid #e5e7eb;
+	background: #f9fafb;
+	border-radius: 0;
+	padding: 10px 36px 10px 12px;
+	position: relative;
+	display: flex;
+	align-items: center;
+	min-height: 45px;
+	overflow: hidden;
+}
+
+.inquiry-page-fileChip-name {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 100%;
+	color: #111;
+}
+
+/* 파일 개별 삭제 버튼(공통) */
+.inquiry-page-fileRemove {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	cursor: pointer;
+	border: 0;
+	background: #111;
+	color: #fff;
+	width: 22px;
+	height: 22px;
+	line-height: 22px;
+	text-align: center;
+}
+
+/* 파일 액션 버튼 그룹 */
+.inquiry-page-fileActions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+/* 버튼 공통 */
+.inquiry-page-btn {
+	height: 40px;
+	line-height: 40px;
+	padding: 0 14px;
+	border: 1px solid #0b2540;
+	background: #0b2540;
+	color: #fff;
+	border-radius: 0;
+	font-weight: 700;
+	cursor: pointer;
+	display: inline-block;
+	text-decoration: none;
+}
+
+.inquiry-page-btn:hover {
+	filter: brightness(1.05);
+}
+
+.inquiry-page-btn.outline {
+	background: #fff;
+	color: #0b2540;
+}
+
+.inquiry-page-btn.navy {
+	background: #0b2540;
+	color: #fff;
+}
+
+/* 파일 선택 버튼(label) 스타일 */
+.inquiry-page-btn.file {
+	user-select: none;
+}
+
+/* 반응형 */
+@media (max-width: 1199.98px) {
+	.inquiry-page-fileItem {
+		grid-column: span 4;
+	}
+
+	/* 3열 */
+	.inquiry-page-fileChip {
+		grid-column: span 12;
+	}
+
+	/* 한 줄 전체 */
+}
+
+@media (max-width: 767.98px) {
+	.inquiry-page-label {
+		width: 80px;
+		min-width: 80px;
+	}
+
+	.inquiry-page-fileItem {
+		grid-column: span 6;
+	}
+
+	/* 2열 */
+	.inquiry-page-fileChip {
+		grid-column: span 12;
+	}
+}
+
+/* ======================= Inquiry End ======================= */
+
+/* ======================= Estimate Page Start ======================= */
+.estimate-page-wrap {
+	padding: 8px 0 16px;
+}
+
+.estimate-page-filter-label {
+	display: block;
+	font-weight: 700;
+	color: #111;
+	margin-bottom: 4px;
+}
+
+.estimate-page-control {
+	height: 45px;
+	line-height: 45px;
+	padding: 0 10px;
+	border-radius: 0;
+}
+
+#estimate-page-search {
+	height: 45px;
+	/* input과 동일한 높이 */
+}
+
+/* 필터 select/input 영역 꽉 채우기 */
+.estimate-page-filter .estimate-page-control {
+	width: 100%;
+	min-width: 0;
+	/* flex/grid 안에서 잘 줄어들도록 */
+	box-sizing: border-box;
+}
+
+/* 버튼 */
+.estimate-page-btn {
+	height: 45px;
+	line-height: 45px;
+	padding: 0 16px;
+	border: 1px solid #0b2540;
+	background: #0b2540;
+	color: #fff;
+	border-radius: 0;
+	font-weight: 700;
+}
+
+/* 행을 늘려주고, 버튼 col을 세로 플렉스로 만들어 바닥정렬 */
+.estimate-page-filter-row {
+	align-items: stretch;
+}
+
+/* col 높이 동일하게 */
+.estimate-page-btn-col {
+	display: flex;
+	flex-direction: column;
+	/* 세로 방향 */
+}
+
+.estimate-page-btn-col .estimate-page-btn {
+	margin-top: auto;
+	/* 바닥으로 밀기 */
+	height: 45px;
+	/* 인풋과 동일 높이 */
+}
+
+.estimate-page-btn:hover {
+	filter: brightness(1.05);
+}
+
+.estimate-page-btn.navy {
+	background: #0b2540;
+	color: #fff;
+}
+
+/* 테이블 */
+.estimate-page-tableWrap {
+	--row-h: 74px;
+	--head-h: 46px;
+	border: 1px solid #e5e7eb;
+	border-radius: 0;
+	/* 10행 + 헤더 높이만큼 보여주고 스크롤 */
+	max-height: calc(var(--row-h) * 10 + var(--head-h));
+	overflow: auto;
+}
+
+.estimate-page-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	table-layout: fixed;
+	font-size: 14px;
+}
+
+.estimate-page-table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: #f7f8fa;
+	color: #111;
+	font-weight: 600;
+	border-bottom: 1px solid #e5e7eb;
+	height: var(--head-h);
+	text-align: center;
+	vertical-align: middle;
+	padding: 10px;
+}
+
+.estimate-page-table tbody td {
+	border-bottom: 1px solid #f0f2f4;
+	height: var(--row-h);
+	vertical-align: middle;
+	text-align: center;
+	padding: 10px;
+	background: #fff;
+}
+
+/* 제품 셀: 이미지(좌) + 이름(우) */
+.estimate-page-th-prod,
+.estimate-page-td-prod {
+	text-align: left
+}
+
+.estimate-page-prod {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+}
+
+.estimate-page-prod img {
+	width: 48px;
+	height: 48px;
+	object-fit: cover;
+	display: block;
+	border: 1px solid #e5e7eb;
+}
+
+.estimate-page-prod-name {
+	display: block;
+	color: #111;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* 수량 인풋 */
+.estimate-page-qty {
+	width: 88px;
+	height: 38px;
+	border: 1px solid #cfd4da;
+	border-radius: 0;
+	text-align: center;
+	margin: 0 auto;
+}
+
+/* 액션(오른쪽 정렬) */
+.estimate-page-actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 10px;
+}
+
+/* 반응형: 모바일(≤991px)에서는 체크박스 + 제품명만 보이기 */
+@media (max-width: 991px) {
+
+	.estimate-page-table col:nth-child(2),
+	.estimate-page-table col:nth-child(3),
+	.estimate-page-table col:nth-child(5),
+	.estimate-page-table thead th:nth-child(2),
+	.estimate-page-table thead th:nth-child(3),
+	.estimate-page-table thead th:nth-child(5),
+	.estimate-page-table tbody td:nth-child(2),
+	.estimate-page-table tbody td:nth-child(3),
+	.estimate-page-table tbody td:nth-child(5) {
+		display: none;
+	}
+
+	/* 제품 셀은 남은 폭 모두 사용 */
+	.estimate-page-table {
+		table-layout: auto;
+	}
+}
+
+/* 체크박스 크기 미세 보정 */
+.estimate-page-table input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+}
+
+/* 모든 col 높이를 같게 하고, 내부를 세로 플렉스로 구성 */
+.estimate-page-filter-row {
+	align-items: stretch;
+}
+
+.estimate-page-formcol {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+/* 컨트롤/버튼을 바닥으로 밀기 (label 위, 컨트롤/버튼 아래) */
+.estimate-page-formcol>.estimate-page-control,
+.estimate-page-formcol>.estimate-page-btn {
+	margin-top: auto;
+}
+
+/* 상세사항 텍스트영역: 전 해상도 100% */
+.estimate-page-textarea {
+	width: 100%;
+	border: 1px solid #cfd4da;
+	border-radius: 0;
+	/* 둥근 모서리 없음 */
+	resize: vertical;
+	/* 필요 시 세로 리사이즈 */
+}
+
+/* ======================= Estimate Page End ======================= */
+
+/* =================== ExchangeReturn Page Start =================== */
+.exchangeReturn-page-wrap {
+	padding: 8px 0 16px;
+}
+
+.exchangeReturn-page-label {
+	display: block;
+	font-weight: 700;
+	color: #111;
+	margin-bottom: 4px;
+}
+
+.exchangeReturn-page-control {
+	height: 45px;
+	line-height: 45px;
+	padding: 0 10px;
+	border-radius: 0;
+	width: 100%;
+	min-width: 0;
+}
+
+.exchangeReturn-page-btn {
+	height: 45px;
+	line-height: 45px;
+	padding: 0 16px;
+	border: 1px solid #0b2540;
+	background: #0b2540;
+	color: #fff;
+	border-radius: 0;
+	font-weight: 700;
+	width:100%;
+	cursor: pointer;
+}
+
+.exchangeReturn-page-btn:hover {
+	filter: brightness(1.05);
+}
+
+.exchangeReturn-page-btn.outline {
+	background: #fff;
+	color: #0b2540;
+}
+
+/* 테이블(10행 스크롤, 고정 행높이) */
+.exchangeReturn-page-tableWrap {
+	--row-h: 90px;
+	/* 행 높이 */
+	--head-h: 46px;
+	/* 헤더 높이 */
+	border: 1px solid #e5e7eb;
+	max-height: calc(var(--row-h) * 10 + var(--head-h));
+	overflow: auto;
+}
+
+.exchangeReturn-page-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	table-layout: fixed;
+	font-size: 14px;
+}
+
+.exchangeReturn-page-table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: #f7f8fa;
+	color: #111;
+	font-weight: 600;
+	border-bottom: 1px solid #e5e7eb;
+	height: var(--head-h);
+	padding: 10px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.exchangeReturn-page-table tbody td {
+	border-bottom: 1px solid #f0f2f4;
+	height: var(--row-h);
+	vertical-align: middle;
+	padding: 12px 10px;
+	text-align: center;
+	background: #fff;
+}
+
+.exchangeReturn-page-table tbody td:first-child {
+	text-align: center;
+}
+
+.exchangeReturn-page-table .text-start {
+	text-align: left !important;
+}
+
+/* 오더 내용(제품 목록) */
+.exchangeReturn-page-orderbox {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.exchangeReturn-page-item {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	min-width: 0;
+}
+
+.exchangeReturn-page-item-name {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: #111;
+}
+
+.exchangeReturn-page-item-qty {
+	color: #666;
+}
+
+/* 상세사항 */
+.exchangeReturn-page-textarea {
+	width: 100%;
+	border: 1px solid #cfd4da;
+	border-radius: 0;
+	resize: vertical;
+}
+
+/* 파일 업로드 */
+.visually-hidden {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}
+
+.exchangeReturn-page-fileActions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-bottom: 8px;
+}
+
+.exchangeReturn-page-btn.file {
+	user-select: none;
+}
+
+.exchangeReturn-page-fileList {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	gap: 10px;
+}
+
+/* 이미지 썸네일 150x150 */
+.exchangeReturn-page-thumb {
+	grid-column: span 3;
+	width: 150px;
+	height: 150px;
+	border: 1px solid #e5e7eb;
+	background: #fff;
+	position: relative;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.exchangeReturn-page-thumb img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+/* 일반 파일 칩 */
+.exchangeReturn-page-fileChip {
+	grid-column: span 6;
+	border: 1px solid #e5e7eb;
+	background: #f9fafb;
+	padding: 10px 36px 10px 12px;
+	min-height: 45px;
+	position: relative;
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+}
+
+.exchangeReturn-page-fileChip-name {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 100%;
+	color: #111;
+}
+
+/* 파일 삭제 버튼 */
+.exchangeReturn-page-remove {
+	position: absolute;
+	right: 6px;
+	top: 6px;
+	width: 22px;
+	height: 22px;
+	line-height: 22px;
+	text-align: center;
+	background: #111;
+	color: #fff;
+	border: 0;
+	cursor: pointer;
+}
+
+/* 모바일 단 */
+@media (max-width:1199.98px) {
+	.exchangeReturn-page-thumb {
+		grid-column: span 4;
+	}
+
+	/* 3열 */
+	.exchangeReturn-page-fileChip {
+		grid-column: span 12;
+	}
+}
+
+@media (max-width:767.98px) {
+	.exchangeReturn-page-thumb {
+		grid-column: span 6;
+	}
+
+	/* 2열 */
+}
+
+/* =================== ExchangeReturn Page End =================== */

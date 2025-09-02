@@ -24,10 +24,22 @@ public class CustomerFrontController {
 		return "front/customer/estimateList";
 	}
 	
+	@GetMapping("/estimate")
+	public String estimate() {
+		
+		return "front/customer/estimate";
+	}
+	
 	@GetMapping("/exchangeReturnList")
 	public String exchangeReturnList() {
 		
 		return "front/customer/exchangeReturnList";
+	}
+	
+	@GetMapping("/exchangeReturn")
+	public String exchangeReturn() {
+		
+		return "front/customer/exchangeReturn";
 	}
 	
 	@GetMapping("/infoUpdate")

@@ -67,6 +67,12 @@
 .mt-1{
 	margin-top:1rem !important;
 }
+.pb-3{
+	padding-bottom:3rem !important;
+}
+.m-b-5{
+	margin-bottom:5px !important;
+}
 @media(max-width:1199px) {
 	.t-d-n {
 		display: none !important;
@@ -78,7 +84,6 @@
 	.m-d-n {
 		display: none !important;
 	}
-
 }
 
 /* === 최근 본 제품 박스 외곽선/타이틀바 ====================== */

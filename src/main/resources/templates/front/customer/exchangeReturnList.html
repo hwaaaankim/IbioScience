@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">마이페이지</a></li>
+			</ul>
+
+			<div class="row">
+				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
+					<div class="producttab">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
+								<li class="item_nonactive"><a href="/myPage">마이페이지</a></li>
+								<li class="item_nonactive"><a href="/orderList">주문배송조회</a></li>
+								<li class="item_nonactive"><a href="/pointList">적립금내역</a></li>
+								<li class="item_nonactive"><a href="/estimateList">견적문의</a></li>
+								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
+								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
+								<li class="item_nonactive"><a href="/reviewList">나의상품후기</a></li>
+								<li class="active"><a href="/exchangeReturnList">교환/반품신청</a></li>
+								<li class="item_nonactive"><a href="/inquiryList">1:1문의</a></li>
+								<li class="item_nonactive"><a href="/infoUpdate">회원정보수정</a></li>
+							</ul>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3"
+								style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">교환/반품신청</h3>
+								<!-- ======================= 마이페이지 메인 ======================= -->
+								<div class="myPage-main-area">
+
+									<!-- ===================== 교환/반품신청 리스트 ===================== -->
+									<section class="exchangeReturnList-table-section">
+
+										<!-- 우측 정렬 필터 -->
+										<div class="exchangeReturnList-filter">
+											<select id="exchangeReturnList-pageSize" class="exchangeReturnList-control">
+												<option value="10">10개씩 보기</option>
+												<option value="30">30개씩 보기</option>
+												<option value="50">50개씩 보기</option>
+											</select>
+
+											<select id="exchangeReturnList-sort" class="exchangeReturnList-control">
+												<option value="date_desc">작성일순 ↓</option>
+												<option value="title_asc">가나다순</option>
+											</select>
+
+											<input id="exchangeReturnList-keyword" class="exchangeReturnList-control"
+												type="text" placeholder="제목검색" />
+											<button id="exchangeReturnList-searchBtn" type="button"
+												class="exchangeReturnList-btn">검색</button>
+										</div>
+
+										<!-- 테이블 -->
+										<div class="exchangeReturnList-tablewrap">
+											<table class="exchangeReturnList-table">
+												<colgroup>
+													<col style="width:48px"> <!-- 체크박스 -->
+													<col style="width:64px"> <!-- 번호 -->
+													<col style="width:110px"> <!-- 답변여부 -->
+													<col> <!-- 제목 -->
+													<col style="width:120px"> <!-- 작성일 -->
+												</colgroup>
+												<thead>
+													<tr>
+														<th><input type="checkbox" id="exchangeReturnList-checkAll"
+																aria-label="전체 선택"></th>
+														<th>NO</th>
+														<th>답변여부</th>
+														<th class="exchangeReturnList-th-title">제목</th>
+														<th>작성일</th>
+													</tr>
+												</thead>
+												<tbody id="exchangeReturnList-tbody">
+													<!-- 샘플 -->
+													<tr>
+														<td><input type="checkbox" class="exchangeReturnList-check">
+														</td>
+														<td>1</td>
+														<td>답변대기</td>
+														<td class="exchangeReturnList-td-title">
+															<a href="#" class="exchangeReturnList-title"
+																title="사이즈 오배송으로 교환 요청드립니다.">
+																사이즈 오배송으로 교환 요청드립니다.
+															</a>
+														</td>
+														<td>2025-08-05</td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+
+										<!-- 우측 정렬 액션 -->
+										<div class="exchangeReturnList-actions">
+											<button id="exchangeReturnList-deleteBtn" type="button"
+												class="exchangeReturnList-btn outline" disabled>삭제</button>
+											<a href="/exchangeReturn" class="exchangeReturnList-btn">교환/반품신청</a>
+										</div>
+
+										<!-- 페이지네이션 -->
+										<nav class="d-flex justify-content-center">
+											<ul class="pagination">
+												<li class="page-item"><a class="page-link" href="#">First</a></li>
+												<li class="page-item"><a class="page-link" href="#">Previous</a></li>
+												<li class="page-item active"><a class="page-link" href="#">1</a></li>
+												<li class="page-item"><a class="page-link" href="#">Next</a></li>
+												<li class="page-item"><a class="page-link" href="#">Last</a></li>
+											</ul>
+										</nav>
+									</section>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+	<script src="/front/js/page/exchangeReturnList.js"></script>
+</body>
+
+</html>

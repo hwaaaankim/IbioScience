@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">고객센터</a></li>
+				<li><a href="#">공지사항</a></li>
+				<li><a href="#">공지사항 상세</a></li>
+			</ul>
+
+			<div class="row">
+				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
+					<div class="producttab">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
+								<li class="active"><a href="/noticeList">공지사항</a></li>
+								<li class="item_nonactive"><a href="/qna">QnA</a></li>
+								<li class="item_nonactive"><a href="/eventList">이벤트</a></li>
+							</ul>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="border-left:1px solid #ddd;">
+								<div class="article-info notice-detail-wrap">
+									<div class="blog-header">
+										<h3>공지사항 제목</h3>
+									</div>
+									<div class="article-sub-title">
+										<span class="article-author">작성자 : <a href="#"> 관리자</a></span>
+										<span class="article-date">작성일: 20250801</span>
+										<span class="article-comment">231 회</span>
+									</div>
+									<div class="form-group">
+										<a href="/front/image/sample/1650-450.png" class="image-popup">
+											<img src="/front/image/sample/1650-450.png"></a>
+									</div>
+
+									<div class="article-description">
+										<p>공지사항 내용</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+	<th:block th:replace="fragments/front/common :: communityBtnGroup"></th:block>
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+</body>
+
+</html>

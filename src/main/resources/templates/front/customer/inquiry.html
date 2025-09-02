@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">마이페이지</a></li>
+			</ul>
+
+			<div class="row">
+				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
+					<div class="producttab">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
+								<li class="item_nonactive"><a href="/myPage">마이페이지</a></li>
+								<li class="item_nonactive"><a href="/orderList">주문배송조회</a></li>
+								<li class="item_nonactive"><a href="/pointList">적립금내역</a></li>
+								<li class="item_nonactive"><a href="/estimateList">견적문의</a></li>
+								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
+								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
+								<li class="item_nonactive"><a href="/reviewList">나의상품후기</a></li>
+								<li class="item_nonactive"><a href="/exchangeReturnList">교환/반품신청</a></li>
+								<li class="active"><a href="/inquiryList">1:1문의</a></li>
+								<li class="item_nonactive"><a href="/infoUpdate">회원정보수정</a></li>
+							</ul>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3"
+								style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">1:1문의</h3>
+								<!-- ======================= 마이페이지 메인 ======================= -->
+								<div class="myPage-main-area">
+									<!-- ===== 1:1문의 폼 ===== -->
+									<div class="inquiry-page-wrap">
+										<form id="inquiry-page-form" class="inquiry-page-form" autocomplete="off">
+											<!-- 제목 -->
+											<div class="inquiry-page-field">
+												<label for="inquiry-page-title" class="inquiry-page-label">제목</label>
+												<div class="inquiry-page-control">
+													<input type="text" id="inquiry-page-title"
+														class="form-control inquiry-page-input" placeholder="제목을 입력하세요"
+														required>
+												</div>
+											</div>
+
+											<div class="row gx-3 gy-3">
+												<!-- 주제 -->
+												<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+													<div class="inquiry-page-field">
+														<label for="inquiry-page-topic"
+															class="inquiry-page-label">주제</label>
+														<div class="inquiry-page-control">
+															<select id="inquiry-page-topic"
+																class="form-select inquiry-page-select" required>
+																<option value="">선택하세요</option>
+																<option>상품문의</option>
+																<option>배송문의</option>
+																<option>교환/반품</option>
+																<option>기타</option>
+															</select>
+														</div>
+													</div>
+												</div>
+												<!-- 날짜 (오늘, readonly) -->
+												<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+													<div class="inquiry-page-field">
+														<label for="inquiry-page-date"
+															class="inquiry-page-label">날짜</label>
+														<div class="inquiry-page-control">
+															<input type="date" id="inquiry-page-date"
+																class="form-control inquiry-page-input" readonly>
+														</div>
+													</div>
+												</div>
+
+												<!-- 회원 아이디 (임시, readonly) -->
+												<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+													<div class="inquiry-page-field">
+														<label for="inquiry-page-memberId" class="inquiry-page-label">회원
+															아이디</label>
+														<div class="inquiry-page-control">
+															<input type="text" id="inquiry-page-memberId"
+																class="form-control inquiry-page-input"
+																value="guest@example.com" readonly>
+														</div>
+													</div>
+												</div>
+												<!-- 회원 등급 (임시, readonly) -->
+												<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+													<div class="inquiry-page-field">
+														<label for="inquiry-page-memberGrade"
+															class="inquiry-page-label">회원 등급</label>
+														<div class="inquiry-page-control">
+															<input type="text" id="inquiry-page-memberGrade"
+																class="form-control inquiry-page-input" value="일반회원"
+																readonly>
+														</div>
+													</div>
+												</div>
+											</div>
+
+											<!-- 내용 -->
+											<div class="inquiry-page-field mt-2">
+												<label for="inquiry-page-content" class="inquiry-page-label">내용</label>
+												<div class="inquiry-page-control">
+													<textarea id="inquiry-page-content"
+														class="form-control inquiry-page-textarea" rows="7"
+														placeholder="문의 내용을 입력하세요" required></textarea>
+												</div>
+											</div>
+
+											<!-- 파일 -->
+											<div class="inquiry-page-field mt-2">
+												<label class="inquiry-page-label">파일</label>
+												<div class="inquiry-page-control">
+													<!-- 숨김 파일 입력 (여러 번 누적 추가 가능) -->
+													<input type="file" id="inquiry-page-file" class="visually-hidden"
+														multiple>
+
+													<!-- 등록된 파일 미리보기/목록 -->
+													<div id="inquiry-page-fileList" class="inquiry-page-fileList"></div>
+
+													<!-- 액션 -->
+													<div class="inquiry-page-fileActions">
+														<button type="button" class="inquiry-page-btn outline"
+															id="inquiry-page-clearAll">전체삭제</button>
+
+														<!-- 파일 선택 버튼(라벨로 스타일링) -->
+														<label for="inquiry-page-file"
+															class="inquiry-page-btn file">파일추가</label>
+
+														<button type="submit" class="inquiry-page-btn navy"
+															id="inquiry-page-submit">문의하기</button>
+													</div>
+												</div>
+											</div>
+										</form>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+	<script src="/front/js/page/inquiry.js"></script>
+</body>
+
+</html>

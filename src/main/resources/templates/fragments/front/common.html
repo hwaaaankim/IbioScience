@@ -19,15 +19,13 @@
 	<link href="/front/css/themecss/lib.css" rel="stylesheet">
 	<link href="/front/js/jquery-ui/jquery-ui.min.css" rel="stylesheet">
 	<link href="/front/js/minicolors/miniColors.css" rel="stylesheet">
-
 	<link href="/front/css/themecss/so_searchpro.css" rel="stylesheet">
 	<link href="/front/css/themecss/so_megamenu.css" rel="stylesheet">
 	<link href="/front/css/themecss/so-categories.css" rel="stylesheet">
 	<link href="/front/css/themecss/so-listing-tabs.css" rel="stylesheet">
 	<link href="/front/css/themecss/so-category-slider.css" rel="stylesheet">
 	<link href="/front/css/themecss/so-newletter-popup.css" rel="stylesheet">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 	<link href="/front/css/footer/footer1.css" rel="stylesheet">
 	<link href="/front/css/header/header1.css" rel="stylesheet">
 	<link href="/front/css/theme.css" id="color_scheme" rel="stylesheet">
@@ -38,6 +36,9 @@
 	<link href="/front/css/page/footer.css" rel="stylesheet">
 	<link href="/front/css/page/productList.css" rel="stylesheet">
 	<link href="/front/css/page/dealerProductList.css" rel="stylesheet">
+	<link href="/front/css/page/all.css" rel="stylesheet">
+	<link href="/front/css/page/community.css" rel="stylesheet">
+	<link href="/front/css/page/myPage.css" rel="stylesheet">
 </head>
 
 <header id="header" class="typeheader-1" th:fragment="frontHeader">
@@ -140,7 +141,6 @@
 						</li>
 					</ul>
 				</div>
-
 			</div>
 		</div>
 	</div>
@@ -159,10 +159,9 @@
 										<div class="container-mega">
 											<ul class="megamenu">
 												<li>
-													<a href="#" class="clearfix"
-														id="ibio-index-allcat-trigger" aria-label="전체카테고리">
-														<i class="fa fa-bars"
-															aria-hidden="true"></i>
+													<a href="#" class="clearfix" id="ibio-index-allcat-trigger"
+														aria-label="전체카테고리">
+														<i class="fa fa-bars" aria-hidden="true"></i>
 														<strong>전체카테고리</strong>
 													</a>
 												</li>
@@ -185,15 +184,17 @@
 																				href="/productList">제품 리스트</a></li>
 
 																		<li><a class="subcategory_item"
-																				href="/dealerProductList">딜러샾(입점몰)</a></li>
+																				href="/dealerProductList">딜러샾(입점몰)</a>
+																		</li>
 																		<li><a class="subcategory_item"
 																				href="/productDetail">제품상세페이지</a></li>
 																		<li><a class="subcategory_item"
 																				href="/noticeList">공지사항</a></li>
 																		<li><a class="subcategory_item"
-																				href="/noticeDetail">공지사항 상세페이지(X)</a></li>	
+																				href="/noticeDetail">공지사항 상세페이지(X)</a>
+																		</li>
 																		<li><a class="subcategory_item"
-																				href="/paymentStart">주문서작성</a></li>		
+																				href="/paymentStart">주문서작성</a></li>
 																	</ul>
 																</div>
 																<div class="col-md-3">
@@ -203,7 +204,7 @@
 																		<li><a class="subcategory_item"
 																				href="/eventList">이벤트</a>
 																		<li><a class="subcategory_item"
-																				href="/eventDetail">이벤트 상세(X)</a>		
+																				href="/eventDetail">이벤트 상세(X)</a>
 																		</li>
 																		<li><a class="subcategory_item"
 																				href="/myPage">마이페이지-메인</a>
@@ -225,7 +226,7 @@
 																		<li><a class="subcategory_item"
 																				href="/couponList">마이쿠폰</a>
 																		<li><a class="subcategory_item"
-																				href="/eventDetail">관심상품</a>		
+																				href="/eventDetail">관심상품</a>
 																		</li>
 																		<li><a class="subcategory_item"
 																				href="/cart">장바구니</a>
@@ -234,7 +235,8 @@
 																				href="/reviewList">나의상품후기</a>
 																		</li>
 																		<li><a class="subcategory_item"
-																				href="/exchangeReturnList">교환/반품신청 내역</a>
+																				href="/exchangeReturnList">교환/반품신청
+																				내역</a>
 																		</li>
 																	</ul>
 																</div>
@@ -245,13 +247,13 @@
 																		<li><a class="subcategory_item"
 																				href="/infoUpdate">회원정보수정</a>
 																		<li><a class="subcategory_item"
-																				href="/signUp">회원가입</a>		
+																				href="/signUp">회원가입</a>
 																		</li>
 																		<li><a class="subcategory_item"
 																				href="/signIn">로그인</a>
 																		</li>
 																		<li><a class="subcategory_item"
-																				href="/inquiry">1:1 문의하기(X)</a>		
+																				href="/inquiry">1:1 문의하기(X)</a>
 																		</li>
 																		<li><a class="subcategory_item"
 																				href="/exchangeReturn">교환/반품신청(X)</a>
@@ -340,18 +342,32 @@
 				</div>
 				<div class="ibio-index-m-quick">
 					<div class="ibio-index-m-qitem">
-						<div class="ibio-index-m-qnum">0건</div>
-						<div>장바구니</div>
+						<div class="ibio-index-m-qnum"><i class="fas fa-user-circle"></i></div>
+						<div>마이페이지</div>
 					</div>
 					<div class="ibio-index-m-qitem">
-						<div class="ibio-index-m-qnum">0건</div>
-						<div>주문내역</div>
+						<div class="ibio-index-m-qnum"><i class="fas fa-file-invoice-dollar"></i></div>
+						<div>견적문의</div>
 					</div>
 					<div class="ibio-index-m-qitem">
-						<div class="ibio-index-m-qnum">0건</div>
-						<div>관심상품</div>
+						<div class="ibio-index-m-qnum"><i class="fas fa-headset"></i></div>
+						<div>1:1문의</div>
 					</div>
-					
+				</div>
+
+				<div class="ibio-index-m-quick">
+					<div class="ibio-index-m-qitem">
+						<div class="ibio-index-m-qnum"><i class="fas fa-gift"></i></div>
+						<div>이벤트</div>
+					</div>
+					<div class="ibio-index-m-qitem">
+						<div class="ibio-index-m-qnum"><i class="fas fa-store"></i></div>
+						<div>딜러샾</div>
+					</div>
+					<div class="ibio-index-m-qitem">
+						<div class="ibio-index-m-qnum"><i class="fas fa-tags"></i></div>
+						<div>브랜드</div>
+					</div>
 				</div>
 			</div>
 
@@ -538,6 +554,187 @@
 	<div class="back-to-top"><i class="fa fa-angle-up" aria-hidden="true"></i></div>
 </footer>
 
+<th:block th:fragment="communityBtnGroup">
+	<!-- 모바일 전용 커뮤니티 메뉴 버튼 -->
+	<!-- 모바일 전용 커뮤니티 메뉴 버튼 -->
+	<button type="button" class="community-common-fab" aria-controls="community-common-modal" aria-expanded="false"
+		aria-label="커뮤니티 메뉴 열기">
+		<i class="fa fa-bars" aria-hidden="true"></i>
+	</button>
+
+	<!-- 모달 & 오버레이 -->
+	<div id="community-common-modal" class="community-common-modal" role="dialog" aria-modal="true" aria-hidden="true">
+		<div class="community-common-overlay" data-community-common-close></div>
+
+		<div class="community-common-dialog" role="document" aria-labelledby="community-common-modal-title"
+			tabindex="-1">
+			<button type="button" class="community-common-close" aria-label="닫기" data-community-common-close>
+				<i class="fa fa-times" aria-hidden="true"></i>
+			</button>
+
+			<h3 id="community-common-modal-title" class="community-common-title">커뮤니티</h3>
+
+			<nav class="community-common-menu" aria-label="커뮤니티 메뉴">
+				<a href="/noticeList" class="community-common-item">
+					<i class="fa fa-bullhorn" aria-hidden="true"></i><span>공지사항</span>
+				</a>
+				<a href="/qna" class="community-common-item">
+					<i class="fa fa-question-circle" aria-hidden="true"></i><span>QnA</span>
+				</a>
+				<a href="/eventList" class="community-common-item">
+					<i class="fa fa-gift" aria-hidden="true"></i><span>이벤트</span>
+				</a>
+			</nav>
+		</div>
+	</div>
+
+	<script>
+		(function () {
+			var fab = document.querySelector('.community-common-fab');
+			var modal = document.getElementById('community-common-modal');
+			var overlay = modal.querySelector('.community-common-overlay');
+			var closeBtns = modal.querySelectorAll('[data-community-common-close]');
+			var dialog = modal.querySelector('.community-common-dialog');
+
+			function openModal() {
+				modal.setAttribute('aria-hidden', 'false');
+				fab.setAttribute('aria-expanded', 'true');
+				document.body.classList.add('community-common-modal-open');
+				// 포커스 이동(접근성)
+				setTimeout(function () {dialog.focus && dialog.focus();}, 0);
+			}
+			function closeModal() {
+				modal.setAttribute('aria-hidden', 'true');
+				fab.setAttribute('aria-expanded', 'false');
+				document.body.classList.remove('community-common-modal-open');
+				// 트리거로 포커스 복귀
+				setTimeout(function () {fab.focus && fab.focus();}, 0);
+			}
+
+			// FAB 클릭 -> 열기
+			fab.addEventListener('click', function () {
+				// 991px 이하일 때만 동작 (안전장치)
+				if (window.matchMedia('(max-width: 991px)').matches) openModal();
+			});
+
+			// 오버레이 클릭, X 버튼 클릭 -> 닫기
+			overlay.addEventListener('click', closeModal);
+			closeBtns.forEach(function (btn) {btn.addEventListener('click', closeModal);});
+
+			// ESC 닫기
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') {
+					closeModal();
+				}
+			});
+
+			// 뷰포트가 커지면(데스크톱 전환) 자동 닫기
+			window.addEventListener('resize', function () {
+				if (window.matchMedia('(min-width: 992px)').matches && modal.getAttribute('aria-hidden') === 'false') {
+					closeModal();
+				}
+			});
+		})();
+	</script>
+</th:block>
+<th:block th:fragment="myPageBtnGroup">
+	<!-- 모바일 전용 마이페이지 메뉴 버튼 -->
+	<button type="button" class="myPage-common-fab" aria-controls="myPage-common-modal" aria-expanded="false"
+		aria-label="마이페이지 메뉴 열기">
+		<i class="fas fa-bars" aria-hidden="true"></i>
+	</button>
+
+	<!-- 모달 & 오버레이 -->
+	<div id="myPage-common-modal" class="myPage-common-modal" role="dialog" aria-modal="true" aria-hidden="true">
+		<div class="myPage-common-overlay" data-myPage-common-close></div>
+
+		<div class="myPage-common-dialog" role="document" aria-labelledby="myPage-common-modal-title" tabindex="-1">
+			<button type="button" class="myPage-common-close" aria-label="닫기" data-myPage-common-close>
+				<i class="fas fa-times" aria-hidden="true"></i>
+			</button>
+
+			<h3 id="myPage-common-modal-title" class="myPage-common-title">마이페이지</h3>
+
+			<nav class="myPage-common-menu" aria-label="마이페이지 메뉴">
+				<!-- TODO: href 경로는 실제 서비스 URL에 맞게 교체하세요 -->
+				<a href="#" class="myPage-common-item">
+					<i class="fas fa-user-circle" aria-hidden="true"></i><span>마이페이지</span>
+				</a>
+				<a href="#" class="myPage-common-item">
+					<i class="fas fa-shipping-fast" aria-hidden="true"></i><span>주문배송조회</span>
+				</a>
+				<a href="#" class="myPage-common-item">
+					<i class="fas fa-coins" aria-hidden="true"></i><span>적립금내역</span>
+				</a>
+				<a href="#" class="myPage-common-item">
+					<i class="fas fa-file-invoice-dollar" aria-hidden="true"></i><span>견적문의</span>
+				</a>
+				<a href="#" class="myPage-common-item">
+					<i class="fas fa-ticket-alt" aria-hidden="true"></i><span>마이쿠폰</span>
+				</a>
+				<a href="#" class="myPage-common-item">
+					<i class="fas fa-heart" aria-hidden="true"></i><span>관심상품</span>
+				</a>
+				<a href="#" class="myPage-common-item">
+					<i class="fas fa-star" aria-hidden="true"></i><span>나의상품후기</span>
+				</a>
+				<a href="#" class="myPage-common-item">
+					<i class="fas fa-exchange-alt" aria-hidden="true"></i><span>교환-반품신청</span>
+				</a>
+				<a href="#" class="myPage-common-item">
+					<i class="fas fa-headset" aria-hidden="true"></i><span>1:1문의</span>
+				</a>
+				<a href="#" class="myPage-common-item">
+					<i class="fas fa-user-cog" aria-hidden="true"></i><span>회원정보수정</span>
+				</a>
+			</nav>
+		</div>
+	</div>
+
+	<script>
+		(function () {
+			var fab = document.querySelector('.myPage-common-fab');
+			var modal = document.getElementById('myPage-common-modal');
+			var overlay = modal.querySelector('.myPage-common-overlay');
+			var closeBtns = modal.querySelectorAll('[data-myPage-common-close]');
+			var dialog = modal.querySelector('.myPage-common-dialog');
+
+			function openModal() {
+				modal.setAttribute('aria-hidden', 'false');
+				fab.setAttribute('aria-expanded', 'true');
+				document.body.classList.add('myPage-common-modal-open');
+				setTimeout(function () {dialog.focus && dialog.focus();}, 0);
+			}
+			function closeModal() {
+				modal.setAttribute('aria-hidden', 'true');
+				fab.setAttribute('aria-expanded', 'false');
+				document.body.classList.remove('myPage-common-modal-open');
+				setTimeout(function () {fab.focus && fab.focus();}, 0);
+			}
+
+			// FAB 클릭 -> 열기 (991px 이하에서만)
+			fab.addEventListener('click', function () {
+				if (window.matchMedia('(max-width: 991px)').matches) openModal();
+			});
+
+			// 오버레이 & X 버튼 -> 닫기
+			overlay.addEventListener('click', closeModal);
+			closeBtns.forEach(function (btn) {btn.addEventListener('click', closeModal);});
+
+			// ESC 닫기
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+			});
+
+			// 데스크톱 전환 시 자동 닫기
+			window.addEventListener('resize', function () {
+				if (window.matchMedia('(min-width: 992px)').matches && modal.getAttribute('aria-hidden') === 'false') {
+					closeModal();
+				}
+			});
+		})();
+	</script>
+</th:block>
 
 <th:block th:fragment="frontScript">
 

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">마이페이지</a></li>
+			</ul>
+
+			<div class="row">
+				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
+					<div class="producttab">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
+								<li class="item_nonactive"><a href="/myPage">마이페이지</a></li>
+								<li class="item_nonactive"><a href="/orderList">주문배송조회</a></li>
+								<li class="item_nonactive"><a href="/pointList">적립금내역</a></li>
+								<li class="active"><a href="/estimateList">견적문의</a></li>
+								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
+								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
+								<li class="item_nonactive"><a href="/reviewList">나의상품후기</a></li>
+								<li class="item_nonactive"><a href="/exchangeReturnList">교환/반품신청</a></li>
+								<li class="item_nonactive"><a href="/inquiryList">1:1문의</a></li>
+								<li class="item_nonactive"><a href="/infoUpdate">회원정보수정</a></li>
+							</ul>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3"
+								style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">견적서문의</h3>
+								<!-- ======================= 마이페이지 메인 ======================= -->
+								<div class="myPage-main-area">
+
+									<!-- ===== 견적서 문의 ===== -->
+									<div class="estimate-page-wrap">
+										<!-- 필터 -->
+										<div class="estimate-page-filter">
+											<div class="row gx-2 gy-2">
+												<!-- 대분류 -->
+												<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+													<label for="estimate-page-catL"
+														class="estimate-page-filter-label">대분류</label>
+													<select id="estimate-page-catL"
+														class="form-select estimate-page-control"></select>
+												</div>
+												<!-- 중분류 -->
+												<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+													<label for="estimate-page-catM"
+														class="estimate-page-filter-label">중분류</label>
+													<select id="estimate-page-catM"
+														class="form-select estimate-page-control"></select>
+												</div>
+												<!-- 소분류 -->
+												<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+													<label for="estimate-page-catS"
+														class="estimate-page-filter-label">소분류</label>
+													<select id="estimate-page-catS"
+														class="form-select estimate-page-control"></select>
+												</div>
+												<!-- 브랜드 -->
+												<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+													<label for="estimate-page-brand"
+														class="estimate-page-filter-label">브랜드</label>
+													<select id="estimate-page-brand"
+														class="form-select estimate-page-control"></select>
+												</div>
+											</div>
+
+											<div class="row gx-2 gy-2 mt-1 estimate-page-filter-row">
+												<!-- 제품명 -->
+												<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
+													<div class="estimate-page-formcol">
+														<label for="estimate-page-name"
+															class="estimate-page-filter-label">제품명</label>
+														<input type="text" id="estimate-page-name"
+															class="form-control estimate-page-control"
+															placeholder="제품명을 입력하세요(부분검색)">
+													</div>
+												</div>
+
+												<!-- 검색 버튼 -->
+												<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+													<div class="estimate-page-formcol">
+														<label for="estimate-page-name"
+															class="estimate-page-filter-label">검색</label>
+														<button id="estimate-page-search" type="button"
+															class="estimate-page-btn w-100">검색</button>
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<!-- 리스트 -->
+										<div class="estimate-page-list mt-3">
+											<div class="estimate-page-tableWrap">
+												<table class="estimate-page-table">
+													<colgroup>
+														<col style="width:52px"><!-- 체크 -->
+														<col style="width:28%"><!-- 분류 -->
+														<col style="width:14%"><!-- 브랜드 -->
+														<col><!-- 제품 -->
+														<col style="width:110px"><!-- 수량 -->
+													</colgroup>
+													<thead>
+														<tr>
+															<th><input type="checkbox" id="estimate-page-checkAll"
+																	aria-label="전체 선택"></th>
+															<th>제품분류 (대 &gt; 중 &gt; 소)</th>
+															<th>브랜드</th>
+															<th class="estimate-page-th-prod">제품</th>
+															<th>수량</th>
+														</tr>
+													</thead>
+													<tbody id="estimate-page-tbody">
+														<!-- JS 렌더링 -->
+													</tbody>
+												</table>
+											</div>
+										</div>
+										<!-- 상세사항 -->
+										<div class="estimate-page-detail mt-3">
+											<label for="estimate-page-detail"
+												class="estimate-page-filter-label">상세사항</label>
+											<textarea id="estimate-page-detail"
+												class="form-control estimate-page-textarea" rows="6"
+												placeholder="상세 요청사항을 입력하세요."></textarea>
+										</div>
+
+										<!-- 액션 -->
+										<div class="estimate-page-actions">
+											<button id="estimate-page-applyBtn" type="button"
+												class="estimate-page-btn navy" disabled>견적문의</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+	<script src="/front/js/page/estimate.js"></script>
+</body>
+
+</html>

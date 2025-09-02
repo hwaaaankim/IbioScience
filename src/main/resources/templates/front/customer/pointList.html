@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">마이페이지</a></li>
+			</ul>
+
+			<div class="row">
+				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
+					<div class="producttab">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
+								<li class="item_nonactive"><a href="/myPage">마이페이지</a></li>
+								<li class="item_nonactive"><a href="/orderList">주문배송조회</a></li>
+								<li class="active"><a href="/pointList">적립금내역</a></li>
+								<li class="item_nonactive"><a href="/estimateList">견적문의</a></li>
+								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
+								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
+								<li class="item_nonactive"><a href="/reviewList">나의상품후기</a></li>
+								<li class="item_nonactive"><a href="/exchangeReturnList">교환/반품신청</a></li>
+								<li class="item_nonactive"><a href="/inquiryList">1:1문의</a></li>
+								<li class="item_nonactive"><a href="/infoUpdate">회원정보수정</a></li>
+							</ul>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3"
+								style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">적립금내역</h3>
+								<!-- ======================= 마이페이지 메인 ======================= -->
+								<div class="myPage-main-area">
+									<!-- ===== 주문조회 필터 ===== -->
+									<section class="order-filter-wrap">
+										<form id="orderFilterForm" class="order-filter-form" autocomplete="off">
+											<!-- 1행 그룹 -->
+											<div class="row gx-3 gy-3 order-filter-row">
+												<!-- 조회기간선택 -->
+												<div
+													class="col-lg-4 col-md-6 col-sm-12 col-xs-12 order-lg-1 order-md-1 m-b-5">
+													<div class="order-filter-field">
+														<label class="order-filter-label">조회기간선택</label>
+														<div class="order-filter-control">
+															<div class="order-filter-range" role="group"
+																aria-label="조회기간">
+																<input type="radio" name="rangePreset" id="range-1m"
+																	value="1m" checked>
+																<label for="range-1m"
+																	class="order-filter-radio">1개월</label>
+
+																<input type="radio" name="rangePreset" id="range-3m"
+																	value="3m">
+																<label for="range-3m"
+																	class="order-filter-radio">3개월</label>
+
+																<input type="radio" name="rangePreset" id="range-6m"
+																	value="6m">
+																<label for="range-6m"
+																	class="order-filter-radio">6개월</label>
+
+																<input type="radio" name="rangePreset" id="range-1y"
+																	value="1y">
+																<label for="range-1y"
+																	class="order-filter-radio">1년</label>
+															</div>
+														</div>
+													</div>
+												</div>
+
+												<!-- 날짜 -->
+												<div
+													class="col-lg-4 col-md-6 col-sm-12 col-xs-12 order-lg-2 order-md-2 m-b-5">
+													<div class="order-filter-field">
+														<label class="order-filter-label">날짜</label>
+														<div class="order-filter-control">
+															<div class="order-filter-datewrap">
+																<input type="date"
+																	class="form-control order-filter-input"
+																	id="startDate">
+																<span class="order-filter-tilde">~</span>
+																<input type="date"
+																	class="form-control order-filter-input"
+																	id="endDate">
+															</div>
+														</div>
+													</div>
+												</div>
+
+												<!-- 주문상태 -->
+												<div
+													class="col-lg-4 col-md-12 col-sm-12 col-xs-12 order-lg-4 order-md-5 m-b-5">
+													<div class="order-filter-field">
+														<label class="order-filter-label">제목검색</label>
+														<div class="order-filter-control">
+															<input type="text" class="form-control order-filter-input"
+																id="sku">
+														</div>
+													</div>
+												</div>
+
+											</div>
+
+											<div class="order-filter-actions">
+												<button type="button" id="orderFilterSearchBtn"
+													class="btn order-filter-btn">검색</button>
+											</div>
+										</form>
+									</section>
+
+									<!-- 적립금 내역 -->
+									<section class="pointList-table-section">
+										<div class="pointList-table-head">
+											<h4>적립금내역</h4>
+											<p class="pointList-table-desc">최근 30일 이내 적립금 내역입니다.</p>
+										</div>
+
+										<div class="pointList-table-wrap">
+											<table class="pointList-table">
+												<colgroup>
+													<col class="pointList-table-col-date" />
+													<col />
+													<col style="width:120px" />
+													<col style="width:140px" />
+												</colgroup>
+												<thead>
+													<tr>
+														<th class="pointList-table-th-date">적립일자</th>
+														<th>내용</th>
+														<th>포인트</th>
+														<th>유효기간</th>
+													</tr>
+												</thead>
+												<tbody>
+													<tr>
+														<td class="pointList-table-td-date">2025-08-01</td>
+														<td class="pointList-table-td-content">
+															회원가입 이벤트 적립
+														</td>
+														<td class="pointList-table-td-point">+1,000</td>
+														<td class="pointList-table-td-expire">2026-08-01</td>
+													</tr>
+													<tr>
+														<td class="pointList-table-td-date">2025-08-15</td>
+														<td class="pointList-table-td-content">
+															구매 적립 (주문번호: 20250815001)
+														</td>
+														<td class="pointList-table-td-point">+3,500</td>
+														<td class="pointList-table-td-expire">2026-08-15</td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+										<nav class="d-flex justify-content-center">
+											<ul class="pagination">
+												<li class="page-item"><a class="page-link" href="#">Previous</a>
+												</li>
+												<li class="page-item"><a class="page-link" href="#">1</a></li>
+												<li class="page-item"><a class="page-link" href="#">2</a></li>
+												<li class="page-item"><a class="page-link" href="#">3</a></li>
+												<li class="page-item"><a class="page-link" href="#">Next</a></li>
+											</ul>
+										</nav>
+									</section>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+</body>
+
+</html>

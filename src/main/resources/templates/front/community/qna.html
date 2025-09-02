@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">고객센터</a></li>
+				<li><a href="#">QnA</a></li>
+			</ul>
+
+			<div class="row">
+				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
+					<div class="producttab">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
+								<li class="item_nonactive"><a href="/noticeList">공지사항</a></li>
+								<li class="active"><a href="/qna">QnA</a></li>
+								<li class="item_nonactive"><a href="/eventList">이벤트</a></li>
+							</ul>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">QnA</h3>
+								<div class="qna-list-section">
+
+									<!-- 상단 9개 카테고리 박스 -->
+									<div class="qna-list-cats">
+										<button type="button" class="qna-list-cat is-active" data-cat="ALL">
+											<i class="fa-solid fa-seedling"></i><span>전체</span>
+										</button>
+										<button type="button" class="qna-list-cat" data-cat="MEMBER">
+											<i class="fa-solid fa-user-circle"></i><span>회원정보</span>
+										</button>
+										<button type="button" class="qna-list-cat" data-cat="PRODUCT">
+											<i class="fa-solid fa-cube"></i><span>제품문의</span>
+										</button>
+										<button type="button" class="qna-list-cat" data-cat="ORDER_CANCEL">
+											<i class="fa-solid fa-rotate-left"></i><span>주문취소/취소</span>
+										</button>
+										<button type="button" class="qna-list-cat" data-cat="ORDER_PAY">
+											<i class="fa-solid fa-credit-card"></i><span>주문/결제</span>
+										</button>
+										<button type="button" class="qna-list-cat" data-cat="EXCHANGE">
+											<i class="fa-solid fa-right-left"></i><span>교환/반품</span>
+										</button>
+										<button type="button" class="qna-list-cat" data-cat="SERVICE">
+											<i class="fa-solid fa-headset"></i><span>서비스</span>
+										</button>
+										<button type="button" class="qna-list-cat" data-cat="EVENT_POINT">
+											<i class="fa-solid fa-gift"></i><span>이벤트/적립금</span>
+										</button>
+										<button type="button" class="qna-list-cat" data-cat="ETC">
+											<i class="fa-solid fa-ellipsis"></i><span>기타</span>
+										</button>
+									</div>
+
+									<!-- 목록 박스(헤더 없는 테이블 형태) -->
+									<div class="qna-list-tablebox">
+										<ul class="qna-list-table">
+											<!-- item 1 -->
+											<li class="qna-list-item">
+												<div class="qna-list-head">
+													<span class="qna-list-qbadge">Q</span>
+													<span class="qna-list-title" title="[이벤트] 오픈 축하 이벤트!">[이벤트] 오픈 축하
+														이벤트!</span>
+													<span class="qna-list-arrow"><i class="fa-solid fa-chevron-down"
+															aria-hidden="true"></i></span>
+												</div>
+												<div class="qna-list-body">
+													<div class="qna-list-body-inner">
+														<p><strong>오픈 기념 이벤트</strong> 안내드립니다. 아래 이미지를 참고해 주세요.</p>
+														<p>참여 기간: 2025-09-01 ~ 2025-09-30, 당첨자는 개별 연락 드립니다.</p>
+														<img src="/front/image/sample/1130-900.png" alt="이벤트 안내 이미지">
+														<p>※ 자세한 유의사항은 이벤트 상세 페이지에서 확인 가능합니다.</p>
+													</div>
+												</div>
+											</li>
+
+											<!-- item 2 -->
+											<li class="qna-list-item">
+												<div class="qna-list-head">
+													<span class="qna-list-qbadge">Q</span>
+													<span class="qna-list-title"
+														title="[주문/결제] 카드 결제 후 주문 상태가 결제완료인데 주문 취소는 어떻게 하나요?">
+														[주문/결제] 카드 결제 후 주문 상태가 결제완료인데 주문 취소는 어떻게 하나요?
+													</span>
+													<span class="qna-list-arrow"><i class="fa-solid fa-chevron-down"
+															aria-hidden="true"></i></span>
+												</div>
+												<div class="qna-list-body">
+													<div class="qna-list-body-inner">
+														<p>배송 준비 이전 단계에서는 <em>마이페이지 &gt; 주문내역</em>에서 직접 취소가 가능합니다.
+															배송 준비 이후에는 고객센터로 문의해 주세요.</p>
+													</div>
+												</div>
+											</li>
+
+											<!-- item 3 -->
+											<li class="qna-list-item">
+												<div class="qna-list-head">
+													<span class="qna-list-qbadge">Q</span>
+													<span class="qna-list-title" title="[서비스] A/S는 어떻게 접수하나요?">[서비스]
+														A/S는 어떻게 접수하나요?</span>
+													<span class="qna-list-arrow"><i class="fa-solid fa-chevron-down"
+															aria-hidden="true"></i></span>
+												</div>
+												<div class="qna-list-body">
+													<div class="qna-list-body-inner">
+														<p>제품 보증기간 내 무상 A/S가 제공됩니다. <strong>1:1 문의</strong>로
+															구매정보와 증상/사진을 남겨주시면 확인 후 절차를 안내드립니다.</p>
+													</div>
+												</div>
+											</li>
+
+											<!-- item 4 -->
+											<li class="qna-list-item">
+												<div class="qna-list-head">
+													<span class="qna-list-qbadge">Q</span>
+													<span class="qna-list-title" title="[회원정보] 비밀번호 변경은 어디서 하나요?">[회원정보]
+														비밀번호 변경은 어디서 하나요?</span>
+													<span class="qna-list-arrow"><i class="fa-solid fa-chevron-down"
+															aria-hidden="true"></i></span>
+												</div>
+												<div class="qna-list-body">
+													<div class="qna-list-body-inner">
+														<p><em>마이페이지 &gt; 회원정보 수정</em>에서 변경할 수 있습니다. 보안을 위해
+															주기적인 변경을 권장드립니다.</p>
+													</div>
+												</div>
+											</li>
+										</ul>
+									</div>
+								</div>
+								<nav class="d-flex justify-content-center">
+									<ul class="pagination">
+										<li class="page-item"><a class="page-link" href="#">Previous</a>
+										</li>
+										<li class="page-item"><a class="page-link" href="#">1</a></li>
+										<li class="page-item"><a class="page-link" href="#">2</a></li>
+										<li class="page-item"><a class="page-link" href="#">3</a></li>
+										<li class="page-item"><a class="page-link" href="#">Next</a></li>
+									</ul>
+								</nav>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+	<th:block th:replace="fragments/front/common :: communityBtnGroup"></th:block>
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<script>
+		/* eslint-disable */
+		(function ($) {
+			"use strict";
+			$(function () {
+
+				// 아코디언: 한 번에 하나만 열림
+				var $list = $('.qna-list-table');
+
+				$list.on('click', '.qna-list-head', function () {
+					var $item = $(this).closest('.qna-list-item');
+					var $body = $item.find('.qna-list-body');
+
+					if ($item.hasClass('is-open')) {
+						$body.stop(true, true).slideUp(200);
+						$item.removeClass('is-open');
+					} else {
+						// 다른 항목 닫기
+						$list.find('.qna-list-item.is-open .qna-list-body').stop(true, true).slideUp(200);
+						$list.find('.qna-list-item.is-open').removeClass('is-open');
+						// 현재 항목 열기
+						$item.addClass('is-open');
+						$body.stop(true, true).slideDown(200);
+					}
+				});
+
+				// 상단 카테고리 hover/active UI만 (백엔드 연동 전)
+				$('.qna-list-cat').on('click', function () {
+					$('.qna-list-cat').removeClass('is-active');
+					$(this).addClass('is-active');
+					// TODO: 추후 카테고리별 목록 로딩 연동
+				});
+
+			});
+		})(jQuery);
+	</script>
+
+</body>
+
+</html>

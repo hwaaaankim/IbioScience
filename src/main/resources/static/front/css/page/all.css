@@ -1,0 +1,213 @@
+/* 시각적 숨김(스크린리더 전용 텍스트) */
+.product-detail-sr-only {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
+}
+
+/* 리스트 컨테이너 */
+.product-detail-file-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	border: 1px solid #eee;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+/* 아이템 행(PC/Tablet: 가로 정렬) */
+.product-detail-file-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #eee;
+	background: #fff;
+	transition: background 0.2s;
+}
+
+.product-detail-file-item:last-child {
+	border-bottom: 0;
+}
+
+.product-detail-file-item:hover {
+	background: #f9fafb;
+}
+
+/* 좌측(아이콘 + 정보) 묶음 */
+.product-detail-file-left {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	/* 말줄임 허용 */
+	gap: 12px;
+}
+
+/* 아이콘 */
+.product-detail-file-icon {
+	font-size: 22px;
+	line-height: 1;
+	width: 28px;
+	text-align: center;
+	color: #6b7280;
+	/* 기본 중립 */
+}
+
+/* 파일 텍스트 영역 */
+.product-detail-file-info {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+/* 파일명: 한 줄 말줄임 */
+.product-detail-file-name {
+	font-weight: 600;
+	color: #111827;
+	max-width: 48vw;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* 메타(확장자/사이즈) */
+.product-detail-file-meta {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	color: #6b7280;
+}
+
+.product-detail-file-ext {
+	text-transform: uppercase;
+}
+
+.product-detail-file-dot {
+	opacity: .6;
+}
+
+/* 다운로드 버튼 */
+.product-detail-file-download {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	border-radius: 6px;
+	background: #2563eb;
+	color: #fff;
+	text-decoration: none;
+	font-size: 14px;
+	white-space: nowrap;
+	transition: background .15s, transform .03s;
+}
+
+.product-detail-file-download:hover {
+	background: #1e40af;
+	color: #fff !important;
+}
+
+.product-detail-file-download:active {
+	transform: translateY(1px);
+}
+
+.product-detail-download-text {
+	display: inline;
+}
+
+/* -------- 확장자별 아이콘 색 자동화 (data-ext) -------- */
+.product-detail-file-item[data-ext="pdf"] .product-detail-file-icon {
+	color: #E11D48;
+}
+
+/* 레드 */
+.product-detail-file-item[data-ext="doc"],
+.product-detail-file-item[data-ext="docx"] .product-detail-file-icon,
+.product-detail-file-item[data-ext="docx"] .product-detail-file-icon {
+	color: #2563eb;
+}
+
+/* 블루 */
+.product-detail-file-item[data-ext="xls"],
+.product-detail-file-item[data-ext="xlsx"] .product-detail-file-icon,
+.product-detail-file-item[data-ext="xlsx"] .product-detail-file-icon {
+	color: #16a34a;
+}
+
+/* 그린 */
+.product-detail-file-item[data-ext="ppt"],
+.product-detail-file-item[data-ext="pptx"] .product-detail-file-icon,
+.product-detail-file-item[data-ext="pptx"] .product-detail-file-icon {
+	color: #f97316;
+}
+
+/* 오렌지 */
+.product-detail-file-item[data-ext="zip"] .product-detail-file-icon {
+	color: #7c3aed;
+}
+
+/* 퍼플 */
+.product-detail-file-item[data-ext="txt"] .product-detail-file-icon {
+	color: #111827;
+}
+
+/* 블랙 */
+
+/* ========== 반응형 ========== */
+
+/* Mobile (≤ 575.98px): 세로 스택 + 버튼 100% */
+@media (max-width: 575.98px) {
+	.product-detail-file-item {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 10px;
+		padding: 12px 14px;
+	}
+
+	.product-detail-file-left {
+		gap: 10px;
+	}
+
+	.product-detail-file-name {
+		max-width: 100%;
+		font-size: 15px;
+	}
+
+	.product-detail-file-meta {
+		font-size: 12px;
+		gap: 6px;
+	}
+
+	.product-detail-file-download {
+		width: 100%;
+		justify-content: center;
+		padding: 10px 14px;
+		font-size: 15px;
+	}
+}
+
+/* Tablet (≥ 576px and < 992px): 버튼 크기/여백 살짝 확대, 텍스트 여지 확대 */
+@media (min-width: 576px) and (max-width: 991.98px) {
+	.product-detail-file-name {
+		max-width: 56vw;
+	}
+
+	.product-detail-file-download {
+		padding: 9px 14px;
+	}
+}
+
+/* Desktop (≥ 992px): 기본값 유지, 약간 촘촘한 라인 */
+@media (min-width: 992px) {
+	.product-detail-file-item {
+		padding: 14px 18px;
+	}
+}

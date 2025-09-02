@@ -125,7 +125,7 @@
 						</div>
 					</div>
 					<!-- Product Tabs -->
-					<div class="producttab ">
+					<div class="producttab">
 						<div class="tabsslider vertical-tabs col-xs-12">
 							<ul class="nav nav-tabs col-lg-2 col-sm-3">
 								<li class="active"><a data-toggle="tab" href="#tab-detail">상세페이지</a></li>
@@ -136,6 +136,7 @@
 							</ul>
 							<div class="tab-content col-lg-10 col-sm-9 col-xs-12">
 								<div id="tab-detail" class="tab-pane fade active in">
+									<img src="/front/image/sample/1130-1600.png" class="img-responsive">
 								</div>
 								<div id="tab-option" class="tab-pane fade">
 									<div class="product-list-option-panel">
@@ -226,8 +227,83 @@
 									</div>
 								</div>
 								<div id="tab-file" class="tab-pane fade">
+									<ul class="product-detail-file-list">
+										<!-- data-ext에 확장자(소문자)를 넣으면 아이콘 색 자동 적용 -->
+										<li class="product-detail-file-item" data-ext="pdf">
+											<div class="product-detail-file-left">
+												<div class="product-detail-file-icon" aria-hidden="true"><i
+														class="fas fa-file-pdf"></i></div>
+												<div class="product-detail-file-info">
+													<span class="product-detail-file-name"
+														title="제품설명서_v2.1_한글.pdf">제품설명서_v2.1_한글</span>
+													<span class="product-detail-file-meta">
+														<span class="product-detail-file-ext"
+															aria-label="확장자">PDF</span>
+														<span class="product-detail-file-dot"
+															aria-hidden="true">•</span>
+														<span class="product-detail-file-size" aria-label="파일 크기">2.3
+															MB</span>
+													</span>
+												</div>
+											</div>
+											<a href="/download/manual.pdf" class="product-detail-file-download"
+												download>
+												<i class="fas fa-download" aria-hidden="true"></i>
+												<span class="product-detail-sr-only">제품설명서_v2.1_한글 PDF 다운로드</span>
+												<span class="product-detail-download-text">다운로드</span>
+											</a>
+										</li>
+
+										<li class="product-detail-file-item" data-ext="docx">
+											<div class="product-detail-file-left">
+												<div class="product-detail-file-icon" aria-hidden="true"><i
+														class="fas fa-file-word"></i></div>
+												<div class="product-detail-file-info">
+													<span class="product-detail-file-name"
+														title="견적양식_회사공용.docx">견적양식_회사공용</span>
+													<span class="product-detail-file-meta">
+														<span class="product-detail-file-ext">DOCX</span>
+														<span class="product-detail-file-dot"
+															aria-hidden="true">•</span>
+														<span class="product-detail-file-size">850 KB</span>
+													</span>
+												</div>
+											</div>
+											<a href="/download/estimate.docx" class="product-detail-file-download"
+												download>
+												<i class="fas fa-download" aria-hidden="true"></i>
+												<span class="product-detail-sr-only">견적양식_회사공용 DOCX 다운로드</span>
+												<span class="product-detail-download-text">다운로드</span>
+											</a>
+										</li>
+
+										<li class="product-detail-file-item" data-ext="xlsx">
+											<div class="product-detail-file-left">
+												<div class="product-detail-file-icon" aria-hidden="true"><i
+														class="fas fa-file-excel"></i></div>
+												<div class="product-detail-file-info">
+													<span class="product-detail-file-name"
+														title="제품리스트_2025Q3.xlsx">제품리스트_2025Q3</span>
+													<span class="product-detail-file-meta">
+														<span class="product-detail-file-ext">XLSX</span>
+														<span class="product-detail-file-dot"
+															aria-hidden="true">•</span>
+														<span class="product-detail-file-size">1.1 MB</span>
+													</span>
+												</div>
+											</div>
+											<a href="/download/products.xlsx" class="product-detail-file-download"
+												download>
+												<i class="fas fa-download" aria-hidden="true"></i>
+												<span class="product-detail-sr-only">제품리스트_2025Q3 XLSX 다운로드</span>
+												<span class="product-detail-download-text">다운로드</span>
+											</a>
+										</li>
+									</ul>
 								</div>
+
 								<div id="tab-delivery" class="tab-pane fade">
+									<img src="/front/image/sample/1130-900.png" class="img-responsive">
 								</div>
 								<div id="tab-review" class="tab-pane fade">
 									<form>
@@ -302,12 +378,12 @@
 											</div>
 
 											<div class="form-group">
-												<b>Rating</b> <span>Bad</span>&nbsp;
+												<b>별점</b> <span>BAD</span>&nbsp;
 												<input type="radio" name="rating" value="1"> &nbsp;
 												<input type="radio" name="rating" value="2"> &nbsp;
 												<input type="radio" name="rating" value="3"> &nbsp;
 												<input type="radio" name="rating" value="4"> &nbsp;
-												<input type="radio" name="rating" value="5"> &nbsp;<span>Good</span>
+												<input type="radio" name="rating" value="5"> &nbsp;<span>GOOD</span>
 
 											</div>
 											<div class="buttons clearfix"><a id="button-review"
@@ -575,24 +651,44 @@
 				var $optBtn = $("#btn-go-option");
 				var $tabLink = $('.tabsslider .nav.nav-tabs a[href="#tab-option"]');
 				var $scrollBlock = $("#tab-option");
+				var shouldScroll = false; // 옵션보기 버튼으로 연 탭인지 여부
 
-				// 탭 활성화 후 스크롤
-				$tabLink.on("shown.bs.tab", function () {
-					if ($scrollBlock.length) {
+				function scrollToOption() {
+					if (!$scrollBlock.length) return;
+					// 약간의 지연 후 계산(탭 전환으로 DOM 높이 변동 고려)
+					setTimeout(function () {
 						var top = $scrollBlock.offset().top - 200; // 200px 여백
 						$("html, body").stop().animate({scrollTop: top}, 450, "swing");
+					}, 0);
+				}
+
+				// 탭 전환 완료 시(옵션보기 버튼으로 연 경우에만) 스크롤
+				$tabLink.on("shown.bs.tab.optScroll", function () {
+					if (shouldScroll) {
+						shouldScroll = false;
+						scrollToOption();
 					}
 				});
 
-				// "옵션보기" 버튼 클릭 시 탭 열기
+				// "옵션보기" 버튼 클릭 시: 탭 활성화 + 스크롤
 				$optBtn.on("click", function (e) {
 					e.preventDefault();
-					$tabLink.tab("show");
+
+					// 이미 해당 탭이 활성화라면 즉시 스크롤
+					var isActive =
+						$tabLink.attr("aria-selected") === "true" ||
+						$tabLink.parent().hasClass("active"); // (Bootstrap 3 대응)
+
+					if (isActive) {
+						scrollToOption();
+					} else {
+						shouldScroll = true;     // 버튼을 통해 열었음을 표시
+						$tabLink.tab("show");    // 전환 -> shown 이벤트에서 스크롤
+					}
 				});
 			});
 		})(jQuery);
 	</script>
-
 
 </body>
 
