@@ -18,9 +18,9 @@
 					<div class="producttab">
 						<div class="tabsslider vertical-tabs col-xs-12">
 							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
-								<li class="active"><a href="/myPage">마이페이지</a></li>
-								<li class="item_nonactive"><a href="/qna">주문배송조회</a></li>
-								<li class="item_nonactive"><a href="/pointList">적립금내역</a></li>
+								<li class="item_nonactive"><a href="/myPage">마이페이지</a></li>
+								<li class="item_nonactive"><a href="/orderList">주문배송조회</a></li>
+								<li class="active"><a href="/pointList">적립금내역</a></li>
 								<li class="item_nonactive"><a href="/estimateList">견적문의</a></li>
 								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
 								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
@@ -29,19 +29,123 @@
 								<li class="item_nonactive"><a href="/inquiryList">1:1문의</a></li>
 								<li class="item_nonactive"><a href="/infoUpdate">회원정보수정</a></li>
 							</ul>
-							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="border-left:1px solid #ddd;">
-								<h3 class="community-title text-center">이벤트</h3>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3"
+								style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">쿠폰리스트</h3>
+								<!-- ======================= 마이페이지 메인 ======================= -->
+								<div class="myPage-main-area">
+									<!-- ===== 주문조회 필터 ===== -->
+									<section class="order-filter-wrap">
+										<form id="orderFilterForm" class="order-filter-form" autocomplete="off">
+											<!-- 1행 그룹 -->
+											<div class="row gx-3 gy-3 order-filter-row">
+												<!-- 조회기간선택 -->
+												<div
+													class="col-lg-5 col-md-6 col-sm-12 col-xs-12 order-lg-1 order-md-1 m-b-5">
+													<div class="order-filter-field">
+														<label class="order-filter-label">조회기간</label>
+														<div class="order-filter-control">
+															<div class="order-filter-range" role="group"
+																aria-label="조회기간">
+																<input type="radio" name="rangePreset" id="range-1m"
+																	value="1m" checked>
+																<label for="range-1m"
+																	class="order-filter-radio">1개월</label>
 
-								<nav class="d-flex justify-content-center">
-									<ul class="pagination">
-										<li class="page-item"><a class="page-link" href="#">Previous</a>
-										</li>
-										<li class="page-item"><a class="page-link" href="#">1</a></li>
-										<li class="page-item"><a class="page-link" href="#">2</a></li>
-										<li class="page-item"><a class="page-link" href="#">3</a></li>
-										<li class="page-item"><a class="page-link" href="#">Next</a></li>
-									</ul>
-								</nav>
+																<input type="radio" name="rangePreset" id="range-3m"
+																	value="3m">
+																<label for="range-3m"
+																	class="order-filter-radio">3개월</label>
+
+																<input type="radio" name="rangePreset" id="range-6m"
+																	value="6m">
+																<label for="range-6m"
+																	class="order-filter-radio">6개월</label>
+
+																<input type="radio" name="rangePreset" id="range-1y"
+																	value="1y">
+																<label for="range-1y"
+																	class="order-filter-radio">1년</label>
+															</div>
+														</div>
+													</div>
+												</div>
+
+												<!-- 날짜 -->
+												<div
+													class="col-lg-5 col-md-6 col-sm-12 col-xs-12 order-lg-2 order-md-2 m-b-5">
+													<div class="order-filter-field">
+														<label class="order-filter-label">날짜</label>
+														<div class="order-filter-control">
+															<div class="order-filter-datewrap">
+																<input type="date"
+																	class="form-control order-filter-input"
+																	id="startDate">
+																<span class="order-filter-tilde">~</span>
+																<input type="date"
+																	class="form-control order-filter-input"
+																	id="endDate">
+															</div>
+														</div>
+													</div>
+												</div>
+
+												<!-- 주문상태 -->
+												<div
+													class="col-lg-2 col-md-12 col-sm-12 col-xs-12 order-lg-4 order-md-5 m-b-5">
+													<div class="order-filter-field">
+														<button type="button" id="orderFilterSearchBtn"
+															class="btn order-filter-btn w-100">검색</button>
+													</div>
+												</div>
+											</div>
+										</form>
+									</section>
+
+									<!-- ======================= 쿠폰 리스트 ======================= -->
+									<section class="couponList-table-section">
+										<div class="couponList-table-head">
+											<h4>쿠폰 리스트</h4>
+											<p class="couponList-table-desc">[시작일] ~ [종료일] 까지 쿠폰 리스트 입니다.</p>
+										</div>
+
+										<!-- ===== 탭(사용가능 / 사용불가능) : 각 50% 너비 ===== -->
+										<div class="row gx-2 gy-2 m-b-10 couponList-table-tabs" role="tablist"
+											aria-label="쿠폰 사용여부 탭">
+											<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+												<button type="button" class="couponList-table-tab-btn active"
+													data-tab="available" aria-selected="true"
+													aria-controls="couponListTable"
+													id="couponTab-available">사용가능</button>
+											</div>
+											<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+												<button type="button" class="couponList-table-tab-btn"
+													data-tab="unavailable" aria-selected="false"
+													aria-controls="couponListTable"
+													id="couponTab-unavailable">사용불가능</button>
+											</div>
+										</div>
+
+										<div class="couponList-table-wrap">
+											<table class="couponList-table" id="couponListTable">
+												<!-- thead / tbody 는 JS에서 반응형(≥992: 5열, ≤991: 2열)로 렌더링 -->
+											</table>
+										</div>
+
+										<!-- 페이지네이션: 기존 그대로 유지 -->
+										<nav class="d-flex justify-content-center">
+											<ul class="pagination">
+												<li class="page-item"><a class="page-link" href="#">Previous</a></li>
+												<li class="page-item"><a class="page-link" href="#">1</a></li>
+												<li class="page-item"><a class="page-link" href="#">2</a></li>
+												<li class="page-item"><a class="page-link" href="#">3</a></li>
+												<li class="page-item"><a class="page-link" href="#">Next</a></li>
+											</ul>
+										</nav>
+									</section>
+									<!-- ======================= /쿠폰 리스트 ======================= -->
+
+								</div>
 							</div>
 						</div>
 					</div>
@@ -52,6 +156,7 @@
 	</div>
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+	<script src="/front/js/page/couponList.js"></script>
 </body>
 
 </html>
