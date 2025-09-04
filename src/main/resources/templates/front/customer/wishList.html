@@ -4,9 +4,9 @@
 <head th:replace="fragments/front/common :: frontHead"></head>
 
 <body class="common-home res layout-1">
-
 	<div id="wrapper" class="wrapper-fluid banners-effect-3">
-		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<header id="header" class="typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+
 		<div class="main-container container">
 			<ul class="breadcrumb">
 				<li><a href="#"><i class="fa fa-home"></i></a></li>
@@ -17,41 +17,201 @@
 				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
 					<div class="producttab">
 						<div class="tabsslider vertical-tabs col-xs-12">
+
+							<!-- 좌측 마이페이지 탭 -->
 							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
-								<li class="active"><a href="/myPage">마이페이지</a></li>
+								<li class="item_nonactive"><a href="/myPage">마이페이지</a></li>
 								<li class="item_nonactive"><a href="/qna">주문배송조회</a></li>
 								<li class="item_nonactive"><a href="/pointList">적립금내역</a></li>
 								<li class="item_nonactive"><a href="/estimateList">견적문의</a></li>
 								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
-								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
+								<li class="active"><a href="/wishList">관심상품</a></li>
 								<li class="item_nonactive"><a href="/reviewList">나의상품후기</a></li>
 								<li class="item_nonactive"><a href="/exchangeReturnList">교환/반품신청</a></li>
 								<li class="item_nonactive"><a href="/inquiryList">1:1문의</a></li>
-								<li class="item_nonactive"><a href="/infoUpdate">회원정보수정</a></li>
+								<li class="item_nonactive"><a href="/personalInfoUpdate">개인회원정보수정</a></li>
+								<li class="item_nonactive"><a href="/companyInfoUpdate">기업회원정보수정</a></li>
 							</ul>
-							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="border-left:1px solid #ddd;">
-								<h3 class="community-title text-center">이벤트</h3>
 
-								<nav class="d-flex justify-content-center">
-									<ul class="pagination">
-										<li class="page-item"><a class="page-link" href="#">Previous</a>
-										</li>
-										<li class="page-item"><a class="page-link" href="#">1</a></li>
-										<li class="page-item"><a class="page-link" href="#">2</a></li>
-										<li class="page-item"><a class="page-link" href="#">3</a></li>
-										<li class="page-item"><a class="page-link" href="#">Next</a></li>
-									</ul>
-								</nav>
+							<!-- 본문 -->
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3 p-l-m-n p-r-m-n"
+								style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">관심상품</h3>
+
+								<section class="wishList-table-section">
+
+									<!-- 필터 -->
+									<div class="wishList-filter">
+										<select id="wishList-status" class="wishList-control">
+											<option value="all">판매여부 전체</option>
+											<option value="on">판매중</option>
+											<option value="off">판매중지</option>
+										</select>
+										<select id="wishList-pageSize" class="wishList-control">
+											<option value="10">10개씩 보기</option>
+											<option value="30">30개씩 보기</option>
+											<option value="50">50개씩 보기</option>
+										</select>
+										<button id="wishList-searchBtn" type="button" class="wishList-btn">검색</button>
+									</div>
+
+									<!-- 테이블 -->
+									<div class="wishList-tablewrap">
+										<table class="wishList-table">
+											<colgroup>
+												<col style="width:48px"><!-- 체크박스 -->
+												<col><!-- 상품명 (이미지+텍스트) -->
+												<col style="width:180px"><!-- 옵션 -->
+												<col style="width:120px"><!-- 수량 -->
+												<col style="width:140px"><!-- 상품가 -->
+												<col style="width:160px"><!-- 비고(버튼 2개 세로) -->
+											</colgroup>
+											<thead>
+												<tr>
+													<th><input type="checkbox" id="wishList-checkAll"
+															aria-label="전체 선택"></th>
+													<th>상품명</th>
+													<th>옵션</th>
+													<th>수량</th>
+													<th>상품가</th>
+													<th>비고</th>
+												</tr>
+											</thead>
+											<tbody id="wishList-tbody">
+												<!-- 샘플 1 -->
+												<tr>
+													<td>
+														<input type="checkbox" class="wishList-check" data-id="101">
+													</td>
+													<td class="wishList-td-product">
+														<div class="wishList-product">
+															<div class="wishList-thumb">
+																<img src="/front/image/catalog/demo/product/270/e3.jpg"
+																	alt="Falcon Conical Tube">
+															</div>
+															<div class="wishList-pinfo">
+																<div class="wishList-pname"
+																	title="Falcon Conical Tube 15ml/50ml 25PK/500cs">
+																	Falcon Conical Tube 15ml/50ml 25PK/500cs
+																</div>
+																<div class="wishList-pbrand">Biotreat</div>
+															</div>
+														</div>
+													</td>
+													<td class="wishList-td-option">
+														<div class="wishList-optcode">12341234</div>
+														<div class="wishList-optname">Conical Tube 15ml</div>
+													</td>
+													<td class="wishList-td-qty">
+														<!-- PC/Tablet 수량 컨트롤 -->
+														<div class="wishList-qty-pc">
+															<button type="button" class="wishList-qty-btn"
+																data-step="-1" aria-label="수량 감소">-</button>
+															<input type="text" class="wishList-qty-input" value="3"
+																inputmode="numeric" aria-label="수량 입력">
+															<button type="button" class="wishList-qty-btn" data-step="1"
+																aria-label="수량 증가">+</button>
+														</div>
+														<!-- Mobile 수량 스피너 -->
+														<input type="number" class="wishList-qty-mobile" value="3"
+															min="1" aria-label="모바일 수량">
+													</td>
+													<td class="wishList-td-price">
+														<span class="wishList-price">57,270</span> 원
+													</td>
+													<td class="wishList-td-actions">
+														<button type="button" class="wishList-btn block"
+															data-action="go">상품바로가기</button>
+														<button type="button" class="wishList-btn outline block"
+															data-action="remove">삭제</button>
+													</td>
+												</tr>
+
+												<!-- 샘플 2 -->
+												<tr>
+													<td>
+														<input type="checkbox" class="wishList-check" data-id="102">
+													</td>
+													<td class="wishList-td-product">
+														<div class="wishList-product">
+															<div class="wishList-thumb">
+																<img src="/front/image/catalog/demo/product/270/e5.jpg"
+																	alt="FILTER PAPER">
+															</div>
+															<div class="wishList-pinfo">
+																<div class="wishList-pname" title="FILTER PAPER">FILTER
+																	PAPER</div>
+																<div class="wishList-pbrand">Biotreat</div>
+															</div>
+														</div>
+													</td>
+													<td class="wishList-td-option">
+														<div class="wishList-optcode">12341234</div>
+														<div class="wishList-optname">FILTER PAPER</div>
+													</td>
+													<td class="wishList-td-qty">
+														<div class="wishList-qty-pc">
+															<button type="button" class="wishList-qty-btn"
+																data-step="-1" aria-label="수량 감소">-</button>
+															<input type="text" class="wishList-qty-input" value="3"
+																inputmode="numeric" aria-label="수량 입력">
+															<button type="button" class="wishList-qty-btn" data-step="1"
+																aria-label="수량 증가">+</button>
+														</div>
+														<input type="number" class="wishList-qty-mobile" value="3"
+															min="1" aria-label="모바일 수량">
+													</td>
+													<td class="wishList-td-price">
+														<span class="wishList-price">27,270</span> 원
+													</td>
+													<td class="wishList-td-actions">
+														<button type="button" class="wishList-btn block"
+															data-action="go">상품바로가기</button>
+														<button type="button" class="wishList-btn outline block"
+															data-action="remove">삭제</button>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+
+									<!-- 하단 액션 -->
+									<div class="wishList-actions">
+										<button id="wishList-deleteBtn" type="button" class="wishList-btn outline"
+											disabled>선택삭제</button>
+										<button id="wishList-cartBtn" type="button" class="wishList-btn" disabled>장바구니
+											담기</button>
+										<button id="wishList-buyBtn" type="button" class="wishList-btn"
+											disabled>바로구매</button>
+									</div>
+
+									<!-- 페이지네이션 -->
+									<nav class="d-flex justify-content-center">
+										<ul class="pagination">
+											<li class="page-item"><a class="page-link" href="#">First</a></li>
+											<li class="page-item"><a class="page-link" href="#">Previous</a></li>
+											<li class="page-item active"><a class="page-link" href="#">1</a></li>
+											<li class="page-item"><a class="page-link" href="#">Next</a></li>
+											<li class="page-item"><a class="page-link" href="#">Last</a></li>
+										</ul>
+									</nav>
+
+								</section>
 							</div>
+							<!-- //본문 -->
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+
 		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
 	</div>
+
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+
+	<script src="/front/js/page/wishList.js"></script>
 </body>
 
 </html>

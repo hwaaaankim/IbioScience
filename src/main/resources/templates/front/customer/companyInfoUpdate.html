@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">마이페이지</a></li>
+			</ul>
+
+			<div class="row">
+				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
+					<div class="producttab">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
+								<li class="item_nonactive"><a href="/myPage">마이페이지</a></li>
+								<li class="item_nonactive"><a href="/qna">주문배송조회</a></li>
+								<li class="item_nonactive"><a href="/pointList">적립금내역</a></li>
+								<li class="item_nonactive"><a href="/estimateList">견적문의</a></li>
+								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
+								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
+								<li class="item_nonactive"><a href="/reviewList">나의상품후기</a></li>
+								<li class="item_nonactive"><a href="/exchangeReturnList">교환/반품신청</a></li>
+								<li class="item_nonactive"><a href="/inquiryList">1:1문의</a></li>
+								<li class="item_nonactive"><a href="/personalInfoUpdate">개인회원정보수정</a></li>
+								<li class="active"><a href="/companyInfoUpdate">기업회원정보수정</a></li>
+							</ul>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3"
+								style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">기업회원정보수정</h3>
+								<div class="myPage-main-area">
+									<section class="companyInfoUpdate-section">
+										<form id="companyInfoUpdate-form" novalidate>
+											<!-- ===== 회원 정보 ===== -->
+											<div class="companyInfoUpdate-fieldset">
+												<h4 class="companyInfoUpdate-legend">회원 정보</h4>
+
+												<!-- 아이디 -->
+												<div class="row companyInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
+														회원아이디 <span class="companyInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
+														<div class="companyInfoUpdate-inline">
+															<input type="text" id="companyInfoUpdate-username"
+																class="form-control companyInfoUpdate-input" required>
+															<button type="button"
+																class="btn companyInfoUpdate-btn secondary"
+																id="companyInfoUpdate-dupCheckBtn">중복검색</button>
+														</div>
+													</div>
+												</div>
+
+												<!-- 이름 -->
+												<div class="row companyInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
+														이름 <span class="companyInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
+														<input type="text" id="companyInfoUpdate-name"
+															class="form-control companyInfoUpdate-input" required>
+													</div>
+												</div>
+
+												<!-- 비밀번호 -->
+												<div class="row companyInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
+														비밀번호 <span class="companyInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
+														<input type="password" id="companyInfoUpdate-password"
+															class="form-control companyInfoUpdate-input" required>
+													</div>
+												</div>
+
+												<!-- 비밀번호 확인 -->
+												<div class="row companyInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
+														비밀번호 확인 <span class="companyInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
+														<input type="password" id="companyInfoUpdate-password2"
+															class="form-control companyInfoUpdate-input" required>
+														<div id="companyInfoUpdate-pwMessage"
+															class="companyInfoUpdate-msg"></div>
+													</div>
+												</div>
+
+												<!-- 휴대폰 -->
+												<div class="row companyInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
+														휴대폰번호 <span class="companyInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
+														<div class="companyInfoUpdate-phonewrap">
+															<input type="text" maxlength="3"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-phone"
+																id="companyInfoUpdate-m1" required>
+															<span class="companyInfoUpdate-dash">-</span>
+															<input type="text" maxlength="4"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-phone"
+																id="companyInfoUpdate-m2" required>
+															<span class="companyInfoUpdate-dash">-</span>
+															<input type="text" maxlength="4"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-phone"
+																id="companyInfoUpdate-m3" required>
+														</div>
+													</div>
+												</div>
+
+												<!-- 주소 -->
+												<div class="row companyInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
+														주소 <span class="companyInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
+														<div class="companyInfoUpdate-inline">
+															<input type="text" id="companyInfoUpdate-zip"
+																class="form-control companyInfoUpdate-input" readonly
+																required>
+															<button type="button" class="btn companyInfoUpdate-btn"
+																id="companyInfoUpdate-addrSearchBtn">주소 검색</button>
+														</div>
+														<input type="text" id="companyInfoUpdate-road"
+															class="form-control companyInfoUpdate-input mt-6" readonly
+															required>
+														<input type="text" id="companyInfoUpdate-jibun"
+															class="form-control companyInfoUpdate-input mt-6" readonly
+															required>
+														<input type="text" id="companyInfoUpdate-detail"
+															class="form-control companyInfoUpdate-input mt-6"
+															placeholder="상세주소">
+													</div>
+												</div>
+
+												<!-- 이메일 -->
+												<div class="row companyInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
+														이메일 <span class="companyInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
+														<input type="email" id="companyInfoUpdate-email"
+															class="form-control companyInfoUpdate-input" required>
+														<div id="companyInfoUpdate-emailMsg"
+															class="companyInfoUpdate-msg"></div>
+													</div>
+												</div>
+											</div>
+
+											<hr class="companyInfoUpdate-divider">
+
+											<!-- ===== 수신동의 ===== -->
+											<div class="companyInfoUpdate-fieldset">
+												<h4 class="companyInfoUpdate-legend">수신동의</h4>
+												<div class="row companyInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
+														수신동의 <span class="companyInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
+														<p class="companyInfoUpdate-desc">행사안내, 상품정보 등 수신 동의</p>
+														<label><input type="radio" name="agree" value="Y" required>
+															동의함</label>
+														<label><input type="radio" name="agree" value="N" required>
+															동의안함</label>
+													</div>
+												</div>
+											</div>
+
+											<hr class="companyInfoUpdate-divider">
+
+											<!-- ===== 기업 정보 ===== -->
+											<div class="companyInfoUpdate-fieldset">
+												<h4 class="companyInfoUpdate-legend">기업 정보</h4>
+
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">기업명 <span
+															class="companyInfoUpdate-required">*</span></label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<input type="text" id="companyInfoUpdate-companyName"
+															class="form-control companyInfoUpdate-input" required>
+													</div>
+												</div>
+
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">대표자 <span
+															class="companyInfoUpdate-required">*</span></label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<input type="text" id="companyInfoUpdate-ceo"
+															class="form-control companyInfoUpdate-input" required>
+													</div>
+												</div>
+
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">소속기관</label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<input type="text" id="companyInfoUpdate-org"
+															class="form-control companyInfoUpdate-input">
+													</div>
+												</div>
+
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">이메일</label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<input type="email" id="companyInfoUpdate-companyEmail"
+															class="form-control companyInfoUpdate-input">
+													</div>
+												</div>
+
+												<!-- 전화번호 -->
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">전화번호</label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<div class="companyInfoUpdate-phonewrap">
+															<input type="text" maxlength="3"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-phone">
+															<span class="companyInfoUpdate-dash">-</span>
+															<input type="text" maxlength="4"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-phone">
+															<span class="companyInfoUpdate-dash">-</span>
+															<input type="text" maxlength="4"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-phone">
+														</div>
+													</div>
+												</div>
+
+												<!-- 팩스번호 -->
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">팩스번호</label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<div class="companyInfoUpdate-phonewrap">
+															<input type="text" maxlength="3"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-fax">
+															<span class="companyInfoUpdate-dash">-</span>
+															<input type="text" maxlength="4"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-fax">
+															<span class="companyInfoUpdate-dash">-</span>
+															<input type="text" maxlength="4"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-fax">
+														</div>
+													</div>
+												</div>
+
+												<!-- 사업자등록번호 -->
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">사업자등록번호 <span
+															class="companyInfoUpdate-required">*</span></label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<div class="companyInfoUpdate-phonewrap">
+															<input type="text" maxlength="3"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-biznum"
+																required>
+															<span class="companyInfoUpdate-dash">-</span>
+															<input type="text" maxlength="2"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-biznum"
+																required>
+															<span class="companyInfoUpdate-dash">-</span>
+															<input type="text" maxlength="5"
+																class="form-control companyInfoUpdate-input companyInfoUpdate-biznum"
+																required>
+														</div>
+													</div>
+												</div>
+
+												<!-- 사업장 주소 -->
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">사업장 주소</label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<input type="text" id="companyInfoUpdate-bizAddr"
+															class="form-control companyInfoUpdate-input">
+													</div>
+												</div>
+
+												<!-- 업태 -->
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">업태</label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<input type="text" id="companyInfoUpdate-bizType"
+															class="form-control companyInfoUpdate-input">
+													</div>
+												</div>
+
+												<!-- 업종 -->
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">업종</label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<input type="text" id="companyInfoUpdate-bizCategory"
+															class="form-control companyInfoUpdate-input">
+													</div>
+												</div>
+
+												<!-- 사업자등록증 업로드 -->
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">사업자등록증 <span
+															class="companyInfoUpdate-required">*</span></label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<!-- 숨긴 실제 input -->
+														<input type="file" id="companyInfoUpdate-bizFile"
+															class="companyInfoUpdate-fileInput"
+															accept="image/*,.pdf,.doc,.docx" required>
+														<!-- 커스텀 버튼 -->
+														<label for="companyInfoUpdate-bizFile"
+															class="companyInfoUpdate-fileBtn">📎 파일 선택</label>
+														<span id="companyInfoUpdate-fileName"
+															class="companyInfoUpdate-fileName">선택된 파일 없음</span>
+														<div id="companyInfoUpdate-filePreview"
+															class="companyInfoUpdate-filePreview"></div>
+													</div>
+												</div>
+
+											</div>
+
+											<!-- 액션 -->
+											<div class="companyInfoUpdate-actions">
+												<button type="submit" class="btn companyInfoUpdate-btn">수정</button>
+												<a href="/myPage" class="btn companyInfoUpdate-btn outline">취소</a>
+											</div>
+										</form>
+									</section>
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+	<script src="/front/js/page/companyInfoUpdate.js"></script>
+</body>
+
+</html>

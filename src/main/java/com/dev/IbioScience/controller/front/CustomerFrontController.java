@@ -6,12 +6,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class CustomerFrontController {
 
-	@GetMapping("/cart")
-	public String cart() {
-		
-		return "front/customer/cart";
-	}
-
 	@GetMapping("/couponList")
 	public String couponList() {
 		
@@ -42,10 +36,16 @@ public class CustomerFrontController {
 		return "front/customer/exchangeReturn";
 	}
 	
-	@GetMapping("/infoUpdate")
-	public String infoUpdate() {
+	@GetMapping("/personalInfoUpdate")
+	public String personalInfoUpdate() {
 		
-		return "front/customer/infoUpdate";
+		return "front/customer/personalInfoUpdate";
+	}
+	
+	@GetMapping("/companyInfoUpdate")
+	public String companyInfoUpdate() {
+		
+		return "front/customer/companyInfoUpdate";
 	}
 	
 	@GetMapping("/inquiry")

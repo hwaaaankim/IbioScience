@@ -1,0 +1,813 @@
+/* ===== Personal Sign Up Start ===== */
+/* 컬러 토큰 */
+.personalSignUp-wrap {
+	--psu-navy: #0b2a4a;
+	--psu-gray: #6b7280;
+	--psu-line: #e5e7eb;
+	--psu-soft: #f6f7fb;
+}
+
+/* 1열 고정 레이아웃 */
+.personalSignUp-wrap {
+	max-width: 450px;
+	width: 100%;
+	margin: 0 auto 48px;
+}
+
+/* 섹션 */
+.personalSignUp-section {
+	border: none;
+	border-radius: 2px;
+	padding: 0;
+}
+
+.personalSignUp-title {
+	font-size: 16px;
+	font-weight: 700;
+	margin: 0 0 5px;
+	color: #000 !important;
+}
+
+.personalSignUp-section .form-group {
+	margin-bottom: 10px !important;
+}
+
+/* 약관 영역 */
+.personalSignUp-termsBox {
+	border-top: 2px solid var(--psu-navy);
+	border-bottom: 2px solid var(--psu-navy);
+	padding: 10px 0;
+}
+
+.personalSignUp-agree-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	cursor: pointer;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	user-select: none;
+}
+
+.personalSignUp-agree-item:hover {
+	border-color: #cbd5e1;
+}
+
+.personalSignUp-agree-all {
+	background: #f8fafc;
+}
+
+.personalSignUp-agree-line {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 6px 0;
+}
+
+.personalSignUp-agree-check {
+	width: 16px;
+	height: 16px;
+	margin: 0;
+}
+
+.personalSignUp-agree-text {
+	font-size: 14.5px;
+	color: #777;
+	line-height: 1.2;
+}
+
+.personalSignUp-agree-item.is-checked .personalSignUp-agree-text {
+	color: #111;
+	font-weight: 700;
+}
+
+.personalSignUp-agree-hint {
+	font-weight: 400;
+	color: #9aa3af;
+}
+
+.personalSignUp-more {
+	font-size: 12px;
+	color: #9aa3af;
+	text-decoration: none;
+}
+
+.personalSignUp-more:hover {
+	color: #6b7280;
+	text-decoration: underline;
+}
+
+/* 라벨/필수표시 */
+.personalSignUp-label {
+	display: block;
+	margin: 10px 0 2px;
+	line-height: 1.4;
+	font-size: 13px;
+	color: #111;
+	font-weight: 600;
+}
+
+.personalSignUp-label.required::after {
+	content: " *";
+	color: #dc2626;
+	margin-left: 2px;
+}
+
+/* 인풋/버튼 공통 */
+.personalSignUp-input {
+	height: 40px;
+	border-radius: 2px;
+	border: 1px solid var(--psu-line) !important;
+	box-shadow: none;
+}
+
+.personalSignUp-input:focus {
+	border-color: #94a3b8;
+	outline: 0;
+}
+
+.personalSignUp-wrap .btn-primary.personalSignUp-btn {
+	background: var(--psu-navy);
+	border-color: var(--psu-navy);
+	color: #fff;
+	border-radius: 2px;
+}
+
+.personalSignUp-wrap .btn-primary.personalSignUp-btn:hover {
+	background: #09223b;
+	border-color: #09223b;
+}
+
+/* ===== 플렉스 유틸 ===== */
+.personalSignUp-flex {
+	display: flex;
+}
+
+.personalSignUp-gap10 {
+	gap: 10px;
+}
+
+/* 인접 요소 간격 10px 고정 */
+.personalSignUp-alignEnd {
+	align-items: flex-end;
+}
+
+/* 아래쪽 라인 맞춤 */
+.personalSignUp-flexItem {
+	flex: 1 1 0;
+}
+
+.personalSignUp-btnWrap {
+	flex: 0 0 auto;
+}
+
+.personalSignUp-eqBtn {
+	height: 40px;
+	line-height: 38px;
+	padding: 0 14px;
+}
+
+/* 인풋과 동일 높이 */
+
+/* 연락처/이메일 인라인: 인풋 넓게, 구분자는 굵고 길게 */
+.personalSignUp-inline {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.personalSignUp-inline>.form-control {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+/* ‘-’를 굵고 길게(텍스트 대신 라인 요소) */
+.personalSignUp-sep {
+	position: relative;
+	width: 24px;
+	height: 40px;
+	flex: 0 0 24px;
+}
+
+.personalSignUp-sep:before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 50%;
+	height: 2px;
+	background: #586174;
+	transform: translateY(-50%);
+}
+
+/* 이메일 @ 구분자 */
+.personalSignUp-atSep {
+	flex: 0 0 auto;
+	line-height: 40px;
+	font-weight: 700;
+	color: #586174;
+	width: 18px;
+	text-align: center;
+}
+
+/* PW 메시지 */
+.personalSignUp-pwMsg {
+	display: block;
+	margin-top: 6px;
+	font-size: 12px;
+}
+
+.personalSignUp-input.is-valid {
+	border-color: #22c55e !important;
+}
+
+.personalSignUp-input.is-invalid {
+	border-color: #ef4444 !important;
+}
+
+.personalSignUp-pwMsg.ok {
+	color: #16a34a;
+}
+
+.personalSignUp-pwMsg.ng {
+	color: #dc2626;
+}
+
+/* 모바일 패딩 */
+@media (max-width:767px) {
+	.personalSignUp-wrap {
+		padding: 0 10px;
+	}
+}
+
+/* ===== Personal Sign Up End ===== */
+
+/* Company Sign Up Start */
+/* ===== Company Sign Up (prefix: companySignUp-) ===== */
+.companySignUp-wrap {
+	--csu-navy: #0b2a4a;
+	--csu-gray: #6b7280;
+	--csu-line: #e5e7eb;
+	--csu-soft: #f6f7fb;
+	max-width: 450px;
+	width: 100%;
+	margin: 0 auto 48px;
+}
+
+.mb-3 {
+	margin-bottom: 3rem !important;
+}
+
+/* Stepper */
+.companySignUp-stepper {
+	position: relative;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin: 6px 0 18px;
+}
+
+.companySignUp-stepper:before {
+	content: "";
+	position: absolute;
+	left: 22px;
+	right: 22px;
+	top: 20px;
+	height: 3px;
+	background: #e2e8f0;
+	z-index: 0;
+}
+
+.companySignUp-step {
+	position: relative;
+	z-index: 1;
+	text-align: center;
+	width: 50%;
+}
+
+.companySignUp-stepCircle {
+	margin: 0 auto 4px;
+	width: 48px;
+	height: 24px;
+	border-radius: 999px;
+	background: #e5e7eb;
+	color: #9aa3af;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	font-weight: 700;
+}
+
+.companySignUp-stepCircle span {
+	font-size: 12px;
+}
+
+.companySignUp-stepCircle small {
+	font-size: 10px;
+	letter-spacing: .5px;
+}
+
+.companySignUp-stepLabel {
+	font-size: 13px;
+	color: #6b7280;
+}
+
+.companySignUp-active .companySignUp-stepCircle {
+	background: var(--csu-navy);
+	color: #fff;
+}
+
+.companySignUp-active .companySignUp-stepLabel {
+	color: #0b2a4a;
+	font-weight: 700;
+}
+
+/* Section */
+.companySignUp-section {
+	border: none;
+	border-radius: 2px;
+	padding: 0;
+}
+
+.companySignUp-title {
+	font-size: 16px;
+	font-weight: 700;
+	margin: 0 0 5px;
+	color: #000;
+}
+
+.companySignUp-section .form-group {
+	margin-bottom: 10px !important;
+}
+
+/* Terms */
+.companySignUp-termsBox {
+	border-top: 2px solid var(--csu-navy);
+	border-bottom: 2px solid var(--csu-navy);
+	padding: 10px 0;
+}
+
+.companySignUp-agree-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	cursor: pointer;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	user-select: none;
+}
+
+.companySignUp-agree-item:hover {
+	border-color: #cbd5e1;
+}
+
+.companySignUp-agree-all {
+	background: #f8fafc;
+}
+
+.companySignUp-agree-line {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 6px 0;
+}
+
+.companySignUp-agree-check {
+	width: 16px;
+	height: 16px;
+	margin: 0;
+}
+
+.companySignUp-agree-text {
+	font-size: 14.5px;
+	color: #777;
+	line-height: 1.2;
+}
+
+.companySignUp-agree-item.is-checked .companySignUp-agree-text {
+	color: #111;
+	font-weight: 700;
+}
+
+.companySignUp-agree-hint {
+	font-weight: 400;
+	color: #9aa3af;
+}
+
+.companySignUp-more {
+	font-size: 12px;
+	color: #9aa3af;
+	text-decoration: none;
+}
+
+.companySignUp-more:hover {
+	color: #6b7280;
+	text-decoration: underline;
+}
+
+/* Label / required */
+.companySignUp-label {
+	display: block;
+	margin: 10px 0 2px;
+	line-height: 1.4;
+	font-size: 13px;
+	color: #111;
+	font-weight: 600;
+}
+
+.companySignUp-label.required::after {
+	content: " *";
+	color: #dc2626;
+	margin-left: 2px;
+}
+
+/* Inputs/Buttons */
+.companySignUp-input {
+	height: 40px;
+	border-radius: 2px;
+	border: 1px solid var(--csu-line) !important;
+	box-shadow: none;
+}
+
+.companySignUp-input:focus {
+	border-color: #94a3b8;
+	outline: 0;
+}
+
+.companySignUp-btn {
+	border-radius: 2px;
+}
+
+.companySignUp-wrap .btn-primary.companySignUp-btn {
+	background: var(--csu-navy);
+	border-color: var(--csu-navy);
+	color: #fff;
+}
+
+.companySignUp-wrap .btn-primary.companySignUp-btn:hover {
+	background: #09223b;
+	border-color: #09223b;
+}
+
+.companySignUp-eqBtn {
+	height: 40px;
+	line-height: 38px;
+	padding: 0 14px;
+}
+
+/* Flex utils */
+.companySignUp-flex {
+	display: flex;
+}
+
+.companySignUp-gap10 {
+	gap: 10px;
+}
+
+.companySignUp-alignEnd {
+	align-items: flex-end;
+}
+
+.companySignUp-flexItem {
+	flex: 1 1 0;
+}
+
+.companySignUp-btnWrap {
+	flex: 0 0 auto;
+}
+
+/* Inline groups */
+.companySignUp-inline {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.companySignUp-inline>.form-control {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+/* Separators '-' and '@' */
+.companySignUp-sep {
+	position: relative;
+	width: 24px;
+	height: 40px;
+	flex: 0 0 24px;
+}
+
+.companySignUp-sep:before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 50%;
+	height: 2px;
+	background: #586174;
+	transform: translateY(-50%);
+}
+
+.companySignUp-atSep {
+	flex: 0 0 auto;
+	line-height: 40px;
+	font-weight: 700;
+	color: #586174;
+	width: 18px;
+	text-align: center;
+}
+
+/* Password msg */
+.companySignUp-pwMsg {
+	display: block;
+	margin-top: 6px;
+	font-size: 12px;
+}
+
+.companySignUp-input.is-valid {
+	border-color: #22c55e !important;
+}
+
+.companySignUp-input.is-invalid {
+	border-color: #ef4444 !important;
+}
+
+.companySignUp-pwMsg.ok {
+	color: #16a34a;
+}
+
+.companySignUp-pwMsg.ng {
+	color: #dc2626;
+}
+
+/* Divider */
+.companySignUp-dividerTitle {
+	font-weight: 700;
+	font-size: 15px;
+	margin: 8px 0 6px;
+}
+
+.companySignUp-divider {
+	height: 2px;
+	background: #0b2a4a;
+	margin: 0 0 12px;
+}
+
+/* File upload row */
+.companySignUp-fileRow {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.companySignUp-file {
+	display: none !important;
+}
+
+.companySignUp-filePreview {
+	flex: 1 1 0;
+	min-height: 40px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #6b7280;
+}
+
+.companySignUp-filePreview .thumb {
+	width: 150px;
+	height: 150px;
+	border: 1px solid #e5e7eb;
+	border-radius: 4px;
+	object-fit: cover;
+	display: block;
+}
+
+.companySignUp-filePreview .fileTag {
+	display: inline-block;
+	padding: 4px 8px;
+	background: #eef2f7;
+	border-radius: 4px;
+	color: #374151;
+	font-size: 12px;
+}
+
+.companySignUp-filePreview .remove {
+	margin-left: auto;
+	cursor: pointer;
+	font-weight: 700;
+	color: #9b1c1c;
+	font-size: 18px;
+	line-height: 1;
+}
+
+/* Responsive */
+@media (max-width:767px) {
+	.companySignUp-wrap {
+		padding: 0 10px;
+	}
+}
+
+/* Company Sign Up End */
+
+/* Sign In Start */
+/* ===== signIn- ===== */
+.signIn-wrap {
+	--si-navy: #0b2a4a;
+	--si-gray: #6b7280;
+	--si-line: #e5e7eb;
+	max-width: 450px;
+	width: 100%;
+	margin: 0 auto 48px;
+}
+
+.signIn-title {
+	font-size: 16px;
+	font-weight: 700;
+	margin: 0 0 6px;
+	color: #000;
+}
+
+.signIn-divider {
+	height: 2px;
+	background: #0b2a4a;
+	margin: 0 0 14px;
+}
+
+.signIn-label {
+	display: block;
+	margin: 10px 0 4px;
+	font-size: 13px;
+	color: #111;
+	font-weight: 600;
+}
+
+.signIn-input {
+	height: 40px;
+	border-radius: 2px;
+	border: 1px solid var(--si-line) !important;
+	box-shadow: none;
+}
+
+.signIn-input:focus {
+	border-color: #94a3b8;
+	outline: 0;
+}
+
+.signIn-btn {
+	border-radius: 2px;
+}
+
+.signIn-eqBtn {
+	height: 40px;
+	min-height: 40px;
+	display: flex;
+	/* 중앙 정렬 핵심 */
+	align-items: center;
+	/* 수직 중앙 */
+	justify-content: center;
+	/* 수평 중앙 */
+	line-height: 1;
+	/* Bootstrap 기본 line-height 무력화 */
+	padding-top: 0;
+	/* 상하 패딩을 라인하이트에 의존하지 않도록 */
+	padding-bottom: 0;
+}
+
+.signIn-wrap .btn-primary {
+	background: #0b2a4a;
+	border-color: #0b2a4a;
+}
+
+.signIn-wrap .btn-primary:hover {
+	background: #09223b;
+	border-color: #09223b;
+}
+
+/* === 하단 4개 버튼 : 4열·동일 높이(2줄)·수직 중앙정렬 === */
+.signIn-auxBtns {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	/* 한 줄에 4개 */
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.signIn-btn-outline {
+	border: 1px solid var(--si-line);
+	background: #fff;
+	color: #374151;
+	/* 두 줄 높이(대략) + 중앙정렬 */
+	height: 56px;
+	/* 2줄 기준 높이 */
+	line-height: 1.3;
+	padding: 6px 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	white-space: normal;
+	word-break: keep-all;
+	border-radius: 2px;
+}
+
+.signIn-btn-outline:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+
+/* 모바일 패딩 */
+@media (max-width:767px) {
+	.signIn-wrap {
+		padding: 0 10px;
+	}
+}
+
+/* Sign In End */
+
+/* Sign Up Success Start */
+/* ===== signUpSuccess- ===== */
+.signUpSuccess-wrap {
+	--sus-navy: #0b2a4a;
+	--sus-line: #e5e7eb;
+	max-width: 450px;
+	width: 100%;
+	margin: 0 auto 48px;
+	text-align: center;
+}
+
+.signUpSuccess-title {
+	font-size: 16px;
+	font-weight: 700;
+	margin: 0 0 6px;
+	color: #000;
+}
+
+.signUpSuccess-divider {
+	height: 2px;
+	background: #0b2a4a;
+	margin: 0 0 18px;
+}
+
+.signUpSuccess-msg {
+	margin: 10px 0 18px;
+	color: #374151;
+}
+
+.signUpSuccess-msg .lead {
+	font-size: 15px;
+	margin-bottom: 8px;
+}
+
+.signUpSuccess-strong {
+	font-weight: 700;
+	margin: 4px 0 6px;
+}
+
+.signUpSuccess-actions {
+	display: flex;
+	gap: 10px;
+	justify-content: center;
+}
+
+.signUpSuccess-btn {
+	border-radius: 2px;
+	min-width: 120px;
+}
+
+/* 액션 버튼(홈으로/로그인) 수직 중앙정렬 */
+.signUpSuccess-eqBtn {
+	height: 40px;
+	min-height: 40px;
+	display: flex;
+	/* 중앙 정렬 핵심 */
+	align-items: center;
+	/* 수직 중앙 */
+	justify-content: center;
+	/* 수평 중앙 */
+	line-height: 1;
+	/* Bootstrap 기본 line-height 무력화 */
+	padding: 0 16px;
+}
+
+.signUpSuccess-wrap .btn-primary {
+	background: #0b2a4a;
+	border-color: #0b2a4a;
+}
+
+.signUpSuccess-wrap .btn-primary:hover {
+	background: #09223b;
+	border-color: #09223b;
+}
+
+/* 모바일 패딩 */
+@media (max-width:767px) {
+	.signUpSuccess-wrap {
+		padding: 0 10px;
+	}
+}
+
+/* Sign Up Success End*/

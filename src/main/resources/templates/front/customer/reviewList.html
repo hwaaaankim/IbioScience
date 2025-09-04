@@ -4,9 +4,9 @@
 <head th:replace="fragments/front/common :: frontHead"></head>
 
 <body class="common-home res layout-1">
-
 	<div id="wrapper" class="wrapper-fluid banners-effect-3">
-		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<header id="header" class="typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+
 		<div class="main-container container">
 			<ul class="breadcrumb">
 				<li><a href="#"><i class="fa fa-home"></i></a></li>
@@ -17,41 +17,281 @@
 				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
 					<div class="producttab">
 						<div class="tabsslider vertical-tabs col-xs-12">
+
+							<!-- 좌측 마이페이지 탭 -->
 							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
-								<li class="active"><a href="/myPage">마이페이지</a></li>
+								<li class="item_nonactive"><a href="/myPage">마이페이지</a></li>
 								<li class="item_nonactive"><a href="/qna">주문배송조회</a></li>
 								<li class="item_nonactive"><a href="/pointList">적립금내역</a></li>
 								<li class="item_nonactive"><a href="/estimateList">견적문의</a></li>
 								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
 								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
-								<li class="item_nonactive"><a href="/reviewList">나의상품후기</a></li>
+								<li class="active"><a href="/reviewList">나의상품후기</a></li>
 								<li class="item_nonactive"><a href="/exchangeReturnList">교환/반품신청</a></li>
 								<li class="item_nonactive"><a href="/inquiryList">1:1문의</a></li>
-								<li class="item_nonactive"><a href="/infoUpdate">회원정보수정</a></li>
+								<li class="item_nonactive"><a href="/personalInfoUpdate">개인회원정보수정</a></li>
+								<li class="item_nonactive"><a href="/companyInfoUpdate">기업회원정보수정</a></li>
 							</ul>
-							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="border-left:1px solid #ddd;">
-								<h3 class="community-title text-center">이벤트</h3>
 
-								<nav class="d-flex justify-content-center">
-									<ul class="pagination">
-										<li class="page-item"><a class="page-link" href="#">Previous</a>
-										</li>
-										<li class="page-item"><a class="page-link" href="#">1</a></li>
-										<li class="page-item"><a class="page-link" href="#">2</a></li>
-										<li class="page-item"><a class="page-link" href="#">3</a></li>
-										<li class="page-item"><a class="page-link" href="#">Next</a></li>
-									</ul>
-								</nav>
+							<!-- 본문 -->
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3 p-l-m-n p-r-m-n"
+								style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">나의상품후기</h3>
+
+								<section class="reviewList-table-section">
+
+									<!-- 상단 탭 -->
+									<div class="reviewList-tabs">
+										<button type="button" class="reviewList-tab active" data-target="written">내가 작성한
+											리뷰</button>
+										<button type="button" class="reviewList-tab" data-target="writable">작성 가능한
+											리뷰</button>
+									</div>
+
+									<!-- 필터 -->
+									<div class="reviewList-filter">
+										<select id="reviewList-sort" class="reviewList-control">
+											<option value="dateDesc">작성일순</option>
+											<option value="rateDesc">별점높은순</option>
+											<option value="rateAsc">별점낮은순</option>
+										</select>
+
+										<select id="reviewList-pageSize" class="reviewList-control">
+											<option value="10">10개씩 보기</option>
+											<option value="30">30개씩 보기</option>
+											<option value="50">50개씩 보기</option>
+										</select>
+
+										<input type="text" id="reviewList-query"
+											class="reviewList-control reviewList-input" placeholder="제품명/내용 검색" />
+
+										<button id="reviewList-searchBtn" type="button"
+											class="reviewList-btn">검색</button>
+									</div>
+
+									<!-- 테이블 -->
+									<div class="reviewList-tablewrap">
+										<table class="reviewList-table" aria-label="리뷰 목록">
+											<colgroup>
+												<col style="width:48px"><!-- 체크박스 -->
+												<col><!-- 상품명(이미지+텍스트) -->
+												<col style="width:280px"><!-- 내용 -->
+												<col style="width:140px"><!-- 별점 -->
+												<col style="width:140px"><!-- 작성일 -->
+											</colgroup>
+											<thead>
+												<tr>
+													<th>
+														<input type="checkbox" id="reviewList-checkAll"
+															aria-label="전체 선택">
+													</th>
+													<th>상품명</th>
+													<th>내용</th>
+													<th>별점</th>
+													<th>작성일</th>
+												</tr>
+											</thead>
+
+											<tbody id="reviewList-tbody">
+												<!-- === 샘플 행 1 (작성한 리뷰) === -->
+												<tr data-type="written">
+													<td>
+														<input type="checkbox" class="reviewList-check" data-id="901">
+													</td>
+													<td class="reviewList-td-product">
+														<div class="reviewList-product">
+															<div class="reviewList-thumb">
+																<img src="/front/image/catalog/demo/product/270/e3.jpg"
+																	alt="FALCON Conical Tube">
+															</div>
+															<div class="reviewList-pinfo">
+																<div class="reviewList-pname"
+																	title="FALCON Conical Tube 15ml/50ml 25PK 500CS">
+																	FALCON Conical Tube 15ml/50ml 25PK 500CS
+																</div>
+																<div class="reviewList-pbrand">FALCON</div>
+															</div>
+														</div>
+													</td>
+													<td class="reviewList-td-content">
+														제품 꼼꼼하게 검수 후 빠르게 배송해 주셔서 감사드립니다.
+													</td>
+													<td class="reviewList-td-rating">
+														<div class="ratings">
+															<div class="rating-box">
+																<span class="fa fa-stack"><i
+																		class="fa fa-star fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star fa-stack-2x"></i></span>
+															</div>
+															<span class="rating-num">( 5 )</span>
+														</div>
+													</td>
+													<td class="reviewList-td-date">2025-07-01</td>
+												</tr>
+												<tr data-type="written">
+													<td>
+														<input type="checkbox" class="reviewList-check" data-id="901">
+													</td>
+													<td class="reviewList-td-product">
+														<div class="reviewList-product">
+															<div class="reviewList-thumb">
+																<img src="/front/image/catalog/demo/product/270/e3.jpg"
+																	alt="FALCON Conical Tube">
+															</div>
+															<div class="reviewList-pinfo">
+																<div class="reviewList-pname"
+																	title="FALCON Conical Tube 15ml/50ml 25PK 500CS">
+																	FALCON Conical Tube 15ml/50ml 25PK 500CS
+																</div>
+																<div class="reviewList-pbrand">FALCON</div>
+															</div>
+														</div>
+													</td>
+													<td class="reviewList-td-content">
+														제품 꼼꼼하게 검수 후 빠르게 배송해 주셔서 감사드립니다.
+													</td>
+													<td class="reviewList-td-rating">
+														<div class="ratings">
+															<div class="rating-box">
+																<span class="fa fa-stack"><i
+																		class="fa fa-star fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star fa-stack-2x"></i></span>
+															</div>
+															<span class="rating-num">( 5 )</span>
+														</div>
+													</td>
+													<td class="reviewList-td-date">2025-07-01</td>
+												</tr>
+												<!-- === 샘플 행 2 (작성 가능한 리뷰) === -->
+												<tr data-type="writable">
+													<td>
+														<input type="checkbox" class="reviewList-check" data-id="902">
+													</td>
+													<td class="reviewList-td-product">
+														<div class="reviewList-product">
+															<div class="reviewList-thumb">
+																<img src="/front/image/catalog/demo/product/270/e5.jpg"
+																	alt="FILTER PAPER">
+															</div>
+															<div class="reviewList-pinfo">
+																<div class="reviewList-pname" title="FILTER PAPER">
+																	FILTER PAPER</div>
+																<div class="reviewList-pbrand">Biotreat</div>
+															</div>
+														</div>
+													</td>
+													<td class="reviewList-td-content">
+														(아직 작성하지 않은 리뷰입니다. 눌러서 작성해 보세요.)
+													</td>
+													<td class="reviewList-td-rating">
+														<div class="ratings">
+															<div class="rating-box">
+																<span class="fa fa-stack"><i
+																		class="fa fa-star-o fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star-o fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star-o fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star-o fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star-o fa-stack-2x"></i></span>
+															</div>
+														</div>
+													</td>
+													<td class="reviewList-td-date">2025-06-20</td>
+												</tr>
+												<tr data-type="writable">
+													<td>
+														<input type="checkbox" class="reviewList-check" data-id="902">
+													</td>
+													<td class="reviewList-td-product">
+														<div class="reviewList-product">
+															<div class="reviewList-thumb">
+																<img src="/front/image/catalog/demo/product/270/e5.jpg"
+																	alt="FILTER PAPER">
+															</div>
+															<div class="reviewList-pinfo">
+																<div class="reviewList-pname" title="FILTER PAPER">
+																	FILTER PAPER</div>
+																<div class="reviewList-pbrand">Biotreat</div>
+															</div>
+														</div>
+													</td>
+													<td class="reviewList-td-content">
+														(아직 작성하지 않은 리뷰입니다. 눌러서 작성해 보세요.)
+													</td>
+													<td class="reviewList-td-rating">
+														<div class="ratings">
+															<div class="rating-box">
+																<span class="fa fa-stack"><i
+																		class="fa fa-star-o fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star-o fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star-o fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star-o fa-stack-2x"></i></span>
+																<span class="fa fa-stack"><i
+																		class="fa fa-star-o fa-stack-2x"></i></span>
+															</div>
+														</div>
+													</td>
+													<td class="reviewList-td-date">2025-06-20</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+
+									<!-- 하단 액션 -->
+									<div class="reviewList-actions">
+										<button id="reviewList-deleteBtn" type="button" class="reviewList-btn outline"
+											disabled>삭제</button>
+										<button id="reviewList-editBtn" type="button" class="reviewList-btn"
+											disabled>수정</button>
+									</div>
+
+									<!-- 페이지네이션 -->
+									<nav class="d-flex justify-content-center">
+										<ul class="pagination">
+											<li class="page-item"><a class="page-link" href="#">First</a></li>
+											<li class="page-item"><a class="page-link" href="#">Previous</a></li>
+											<li class="page-item active"><a class="page-link" href="#">1</a></li>
+											<li class="page-item"><a class="page-link" href="#">Next</a></li>
+											<li class="page-item"><a class="page-link" href="#">Last</a></li>
+										</ul>
+									</nav>
+
+								</section>
 							</div>
+							<!-- //본문 -->
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+
 		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
 	</div>
+
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+
+	<script src="/front/js/page/reviewList.js"></script>
 </body>
 
 </html>

@@ -17,4 +17,17 @@ public class PaymentFrontController {
 		
 		return "front/payment/paymentEnd";
 	}
+	
+	@GetMapping("/cart")
+	public String cart() {
+		
+		return "front/payment/cart";
+	}
+
+	@GetMapping("/receipt")
+	public String receipt() {
+		
+		return "front/payment/receipt";
+	}
+	
 }

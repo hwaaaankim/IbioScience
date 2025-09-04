@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class="typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="/"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">장바구니</a></li>
+			</ul>
+
+			<!-- ===== Progress Step ===== -->
+			<div class="cart-progress cart-hpad">
+				<ul class="cart-progress-steps">
+					<li class="step active">
+						<div class="badge">STEP. 01</div>
+						<div class="label">장바구니</div>
+					</li>
+					<li class="step">
+						<div class="badge">STEP. 02</div>
+						<div class="label">주문서 작성</div>
+					</li>
+					<li class="step">
+						<div class="badge">STEP. 03</div>
+						<div class="label">주문 결제 완료</div>
+					</li>
+				</ul>
+			</div>
+
+			<!-- ===== Cart Table ===== -->
+			<div class="cartPage-wrap cart-hpad">
+				<div class="table-responsive">
+					<table class="table cart-table">
+						<thead>
+							<tr>
+								<th class="col-check"><input type="checkbox" id="cart-checkall"></th>
+								<th class="col-catno">Cat. No</th>
+								<th class="col-name">품명</th>
+								<th class="col-calib">교정여부</th>
+								<th class="col-price">판매가</th>
+								<th class="col-dealer">딜러가</th>
+								<th class="col-unit">단위</th>
+								<th class="col-qty">수량</th>
+							</tr>
+						</thead>
+						<tbody id="cart-tbody">
+							<!-- 샘플 3행 (생략: 기존과 동일) -->
+							<tr data-id="357551" data-unit="50Bag/200CS" data-price="72065" data-dealer="61255">
+								<td class="col-check"><input type="checkbox" class="row-check"></td>
+								<td class="col-catno">357551</td>
+								<td class="col-name">
+									<div class="name-cell">
+										<img src="/front/image/sample/100-100.png" class="thumb" alt="">
+										<div class="texts">
+											<div class="brand">Biotreat</div>
+											<div class="title">Lorem ipsum dolor sit amet, consectetur adipiscing
+												elit...</div>
+											<div class="cat">Cat. No : <span>357551</span></div>
+										</div>
+									</div>
+								</td>
+								<td class="col-calib">
+									<select class="form-control form-control-sm calib-select">
+										<option value="N" selected>교정안함</option>
+										<option value="Y">교정함</option>
+									</select>
+								</td>
+								<td class="col-price"><span class="price" data-value="72065">72,065</span>원</td>
+								<td class="col-dealer"><strong class="dealer price" data-value="61255">61,255</strong>원
+								</td>
+								<td class="col-unit">50Bag/200CS</td>
+								<td class="col-qty">
+									<div class="qty-stepper" data-min="1">
+										<input type="number" class="qty-input" value="1" min="1">
+										<div class="steppers">
+											<button type="button" class="btn-step up"><i
+													class="fa fa-angle-up"></i></button>
+											<button type="button" class="btn-step down"><i
+													class="fa fa-angle-down"></i></button>
+										</div>
+									</div>
+								</td>
+							</tr>
+							<!-- 이하 2행 동일 구조 -->
+						</tbody>
+					</table>
+				</div>
+
+				<!-- 액션 버튼 -->
+				<div class="cart-actions d-flex justify-content-between align-items-center cart-hpad">
+					<div class="left cart-ops">
+						<button type="button" class="btn btn-outline-gray btn-unify" id="btn-delete">삭제</button>
+						<button type="button" class="btn btn-outline-gray btn-unify" id="btn-empty">장바구니 비우기</button>
+					</div>
+					<div class="right cart-ops">
+						<button type="button" class="btn btn-cart-primary btn-unify" id="btn-qty-apply">수량 변경하기</button>
+					</div>
+				</div>
+
+				<!-- 합계 -->
+				<div class="cart-total-wrap cart-hpad">
+					<div class="totals-table">
+						<div class="trow head">
+							<div>총 상품금액</div>
+							<div>부가세(10%)</div>
+							<div>총 배송비</div>
+							<div>총 할인금액</div>
+							<div>최종 결제 금액</div>
+						</div>
+						<div class="trow body">
+							<div><span id="total-products">0</span> 원</div>
+							<div><span id="total-vat">0</span> 원</div>
+							<div><span id="total-shipping">0</span> 원</div>
+							<div><span id="total-discount">0</span> 원</div>
+							<div class="strong"><span id="total-final">0</span> 원</div>
+						</div>
+					</div>
+
+					<!-- 모바일 요약 -->
+					<div class="mobile-summary">
+						<div class="ms-left">
+							<div class="ms-head">최종 결제 금액</div>
+							<div class="ms-price"><strong><span id="m-total-final">0</span> 원</strong></div>
+						</div>
+						<div class="ms-right">
+							<button type="button" class="btn btn-outline-gray btn-unify" data-toggle="modal"
+								data-target="#detailModal">상세내역</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- 하단 구매 버튼 -->
+				<div class="final-bar cart-hpad">
+					<div class="final-actions">
+						<button type="button" class="btn btn-cart-success btn-unify" id="btn-buy-selected">선택상품
+							구매</button>
+						<button type="button" class="btn btn-cart-primary btn-unify" id="btn-buy-all">전체구매</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+
+	<!-- 상세내역 모달(생략: 기존 동일) -->
+
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<script src="/front/js/page/cart.js"></script>
+</body>
+
+</html>

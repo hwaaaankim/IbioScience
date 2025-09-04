@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">마이페이지</a></li>
+			</ul>
+
+			<div class="row">
+				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
+					<div class="producttab">
+						<div class="tabsslider vertical-tabs col-xs-12">
+							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
+								<li class="item_nonactive"><a href="/myPage">마이페이지</a></li>
+								<li class="item_nonactive"><a href="/qna">주문배송조회</a></li>
+								<li class="item_nonactive"><a href="/pointList">적립금내역</a></li>
+								<li class="item_nonactive"><a href="/estimateList">견적문의</a></li>
+								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
+								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
+								<li class="item_nonactive"><a href="/reviewList">나의상품후기</a></li>
+								<li class="item_nonactive"><a href="/exchangeReturnList">교환/반품신청</a></li>
+								<li class="item_nonactive"><a href="/inquiryList">1:1문의</a></li>
+								<li class="active"><a href="/personalInfoUpdate">개인회원정보수정</a></li>
+								<li class="item_nonactive"><a href="/companyInfoUpdate">기업회원정보수정</a></li>
+							</ul>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3"
+								style="border-left:1px solid #ddd;">
+								<h3 class="community-title text-center">개인회원정보수정</h3>
+								<div class="myPage-main-area">
+									<section class="personalInfoUpdate-section">
+										<!-- 상단 안내/제목 필요 시 추가 가능 -->
+
+										<form id="personalInfoUpdate-form" novalidate>
+											<!-- ===== 회원 정보 ===== -->
+											<div class="personalInfoUpdate-fieldset">
+												<h4 class="personalInfoUpdate-legend">회원 정보</h4>
+
+												<!-- 아이디 + 중복체크 -->
+												<div class="row personalInfoUpdate-row">
+													<label for="personalInfoUpdate-username"
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 personalInfoUpdate-label">
+														회원아이디 <span class="personalInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 personalInfoUpdate-controlwrap">
+														<div class="personalInfoUpdate-inline">
+															<input type="text" id="personalInfoUpdate-username"
+																name="username"
+																class="form-control personalInfoUpdate-input"
+																placeholder="아이디" required maxlength="30"
+																autocomplete="username">
+															<button type="button"
+																class="btn personalInfoUpdate-btn secondary"
+																id="personalInfoUpdate-dupCheckBtn">중복검색</button>
+														</div>
+														<div class="personalInfoUpdate-help">영문/숫자 4~30자 권장</div>
+													</div>
+												</div>
+
+												<!-- 이름 -->
+												<div class="row personalInfoUpdate-row">
+													<label for="personalInfoUpdate-name"
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 personalInfoUpdate-label">
+														이름 <span class="personalInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 personalInfoUpdate-controlwrap">
+														<input type="text" id="personalInfoUpdate-name" name="name"
+															class="form-control personalInfoUpdate-input"
+															placeholder="이름" required maxlength="50"
+															autocomplete="name">
+													</div>
+												</div>
+
+												<!-- 비밀번호 -->
+												<div class="row personalInfoUpdate-row">
+													<label for="personalInfoUpdate-password"
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 personalInfoUpdate-label">
+														비밀번호 <span class="personalInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 personalInfoUpdate-controlwrap">
+														<input type="password" id="personalInfoUpdate-password"
+															name="password"
+															class="form-control personalInfoUpdate-input"
+															placeholder="영문/숫자/특수문자 포함 8~32자" required minlength="8"
+															maxlength="32" autocomplete="new-password">
+													</div>
+												</div>
+
+												<!-- 비밀번호 확인 -->
+												<div class="row personalInfoUpdate-row">
+													<label for="personalInfoUpdate-password2"
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 personalInfoUpdate-label">
+														비밀번호 확인 <span class="personalInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 personalInfoUpdate-controlwrap">
+														<input type="password" id="personalInfoUpdate-password2"
+															name="password2"
+															class="form-control personalInfoUpdate-input"
+															placeholder="비밀번호를 다시 입력하세요" required minlength="8"
+															maxlength="32" autocomplete="new-password">
+														<div id="personalInfoUpdate-pwMessage"
+															class="personalInfoUpdate-msg"></div>
+													</div>
+												</div>
+
+												<!-- 휴대폰번호 3-4-4 -->
+												<div class="row personalInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 personalInfoUpdate-label">
+														휴대폰 번호 <span class="personalInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 personalInfoUpdate-controlwrap">
+														<div class="personalInfoUpdate-phonewrap">
+															<input type="text" inputmode="numeric" pattern="[0-9]*"
+																maxlength="3"
+																class="form-control personalInfoUpdate-input personalInfoUpdate-phone"
+																id="personalInfoUpdate-m1" required
+																aria-label="휴대폰 앞자리">
+															<span class="personalInfoUpdate-dash">-</span>
+															<input type="text" inputmode="numeric" pattern="[0-9]*"
+																maxlength="4"
+																class="form-control personalInfoUpdate-input personalInfoUpdate-phone"
+																id="personalInfoUpdate-m2" required
+																aria-label="휴대폰 중간자리">
+															<span class="personalInfoUpdate-dash">-</span>
+															<input type="text" inputmode="numeric" pattern="[0-9]*"
+																maxlength="4"
+																class="form-control personalInfoUpdate-input personalInfoUpdate-phone"
+																id="personalInfoUpdate-m3" required
+																aria-label="휴대폰 끝자리">
+														</div>
+													</div>
+												</div>
+
+												<!-- 유선번호 3-4-4 (선택) -->
+												<div class="row personalInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 personalInfoUpdate-label">
+														사내번호
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 personalInfoUpdate-controlwrap">
+														<div class="personalInfoUpdate-phonewrap">
+															<input type="text" inputmode="numeric" pattern="[0-9]*"
+																maxlength="3"
+																class="form-control personalInfoUpdate-input personalInfoUpdate-tel"
+																id="personalInfoUpdate-t1" aria-label="전화 앞자리">
+															<span class="personalInfoUpdate-dash">-</span>
+															<input type="text" inputmode="numeric" pattern="[0-9]*"
+																maxlength="4"
+																class="form-control personalInfoUpdate-input personalInfoUpdate-tel"
+																id="personalInfoUpdate-t2" aria-label="전화 중간자리">
+															<span class="personalInfoUpdate-dash">-</span>
+															<input type="text" inputmode="numeric" pattern="[0-9]*"
+																maxlength="4"
+																class="form-control personalInfoUpdate-input personalInfoUpdate-tel"
+																id="personalInfoUpdate-t3" aria-label="전화 끝자리">
+														</div>
+													</div>
+												</div>
+
+												<!-- 소속기관/부서 -->
+												<div class="row personalInfoUpdate-row">
+													<label for="personalInfoUpdate-org"
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 personalInfoUpdate-label">
+														소속기관/부서
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 personalInfoUpdate-controlwrap">
+														<input type="text" id="personalInfoUpdate-org" name="org"
+															class="form-control personalInfoUpdate-input"
+															placeholder="(주)아이바이오사이언스">
+													</div>
+												</div>
+
+												<!-- 주소 -->
+												<div class="row personalInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 personalInfoUpdate-label">
+														주소 <span class="personalInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 personalInfoUpdate-controlwrap">
+														<div class="personalInfoUpdate-inline">
+															<input type="text" id="personalInfoUpdate-zip"
+																class="form-control personalInfoUpdate-input"
+																placeholder="우편번호" readonly required>
+															<button type="button" class="btn personalInfoUpdate-btn"
+																id="personalInfoUpdate-addrSearchBtn">주소 검색</button>
+														</div>
+														<input type="text" id="personalInfoUpdate-road"
+															class="form-control personalInfoUpdate-input mt-6"
+															placeholder="도로명주소" readonly required>
+														<input type="text" id="personalInfoUpdate-jibun"
+															class="form-control personalInfoUpdate-input mt-6"
+															placeholder="지번주소" readonly required>
+														<input type="text" id="personalInfoUpdate-detail"
+															class="form-control personalInfoUpdate-input mt-6"
+															placeholder="상세주소(동/호수)">
+													</div>
+												</div>
+
+												<!-- 이메일 -->
+												<div class="row personalInfoUpdate-row">
+													<label for="personalInfoUpdate-email"
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 personalInfoUpdate-label">
+														이메일 <span class="personalInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 personalInfoUpdate-controlwrap">
+														<input type="email" id="personalInfoUpdate-email" name="email"
+															class="form-control personalInfoUpdate-input"
+															placeholder="name@example.com" required
+															autocomplete="email">
+														<div id="personalInfoUpdate-emailMsg"
+															class="personalInfoUpdate-msg"></div>
+													</div>
+												</div>
+											</div>
+
+											<!-- ===== Divider ===== -->
+											<hr class="personalInfoUpdate-divider">
+
+											<!-- ===== 수신동의 ===== -->
+											<div class="personalInfoUpdate-fieldset">
+												<h4 class="personalInfoUpdate-legend">수신동의</h4>
+
+												<div class="row personalInfoUpdate-row">
+													<label
+														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 personalInfoUpdate-label">
+														수신동의 <span class="personalInfoUpdate-required">*</span>
+													</label>
+													<div
+														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 personalInfoUpdate-controlwrap">
+														<p class="personalInfoUpdate-desc">행사안내, 상품정보 등 마케팅 정보 수신(이메일,
+															SMS)에 동의합니다.</p>
+														<div class="personalInfoUpdate-radios">
+															<label class="radio-inline"><input type="radio" name="agree"
+																	value="Y" required> 동의함</label>
+															<label class="radio-inline"><input type="radio" name="agree"
+																	value="N" required> 동의안함</label>
+														</div>
+													</div>
+												</div>
+											</div>
+
+											<!-- ===== 액션 버튼 ===== -->
+											<div class="personalInfoUpdate-actions">
+												<button type="submit" class="btn personalInfoUpdate-btn">수정</button>
+												<a href="/myPage" class="btn personalInfoUpdate-btn outline">취소</a>
+											</div>
+										</form>
+									</section>
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+	<script src="/front/js/page/personalInfoUpdate.js"></script>
+</body>
+
+</html>
