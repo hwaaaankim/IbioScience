@@ -1,81 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<springProfile name="test">
-		<appender name="STDOUT"
-			class="ch.qos.logback.core.ConsoleAppender">
-			<encoder>
-				<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n
-				</pattern>
-			</encoder>
-		</appender>
+    <!-- =========================
+         TEST 프로파일 (콘솔만)
+         ========================= -->
+    <springProfile name="test">
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+            </encoder>
+        </appender>
 
-		<logger name="com.dev.IbioScience" level="DEBUG" />
-		<logger name="org.hibernate" level="INFO" />
-		<logger name="org.springframework" level="INFO" />
+        <logger name="com.dev.IbioScience" level="DEBUG"/>
+        <logger name="org.hibernate" level="INFO"/>
+        <logger name="org.springframework" level="INFO"/>
 
-		<root level="INFO">
-			<appender-ref ref="STDOUT" />
-		</root>
-	</springProfile>
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
 
-	<!-- 운영서버에서만 적용될 속성 -->
-	<springProfile name="prod">
-		<property name="LOG_PATH" value="/home/ubuntu/IbioScience/log" />
-		<property name="APP_NAME" value="IbioScience" />
+    <!-- =========================
+         PROD 프로파일 (콘솔 + 날짜별 파일 저장)
+         ========================= -->
+    <springProfile name="prod">
+        <property name="LOG_PATH" value="/home/ubuntu/IbioScience/log"/>
+        <property name="APP_NAME" value="IbioScience"/>
 
-		<appender name="ALL_LOG"
-			class="ch.qos.logback.core.FileAppender">
-			<file>${LOG_PATH}/${APP_NAME}.log</file>
-			<append>true</append>
-			<encoder>
-				<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}
-					- %msg%n</pattern>
-			</encoder>
-		</appender>
+        <!-- 콘솔 출력 -->
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
 
-		<appender name="ROLLING_FILE"
-			class="ch.qos.logback.core.rolling.RollingFileAppender">
-			<file>${LOG_PATH}/${APP_NAME}.rolling.log</file>
-			<encoder>
-				<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}
-					- %msg%n</pattern>
-			</encoder>
-			<rollingPolicy
-				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-				<fileNamePattern>${LOG_PATH}/${APP_NAME}.rolling.%d{yyyy-MM-dd}.log
-				</fileNamePattern>
-				<maxHistory>30</maxHistory>
-			</rollingPolicy>
-		</appender>
+        <!-- 일자별 롤링 파일 (현재 파일 + 일자 보관) -->
+        <appender name="ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <!-- 현재 쓰는 파일 -->
+            <file>${LOG_PATH}/${APP_NAME}.log</file>
+            <append>true</append>
 
-		<logger name="com.dev.IbioScience" level="DEBUG" />
-		<logger name="org.hibernate" level="INFO" />
-		<logger name="org.springframework" level="INFO" />
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
 
-		<root level="INFO">
-			<appender-ref ref="ALL_LOG" />
-			<appender-ref ref="ROLLING_FILE" />
-		</root>
-	</springProfile>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <!-- 일자별 보관 파일(.gz 압축) -->
+                <fileNamePattern>${LOG_PATH}/${APP_NAME}.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+                <!-- 보관 기간 -->
+                <maxHistory>30</maxHistory>
+                <!-- 시작 시 지난 로그 정리 -->
+                <cleanHistoryOnStart>true</cleanHistoryOnStart>
+                <!-- (선택) 총 보관 용량 제한: 필요시 주석 해제
+                <totalSizeCap>5GB</totalSizeCap>
+                -->
+            </rollingPolicy>
+        </appender>
 
-	<!-- 로컬 개발환경 (콘솔 출력만) -->
-	<springProfile name="default">
-		<appender name="STDOUT"
-			class="ch.qos.logback.core.ConsoleAppender">
-			<encoder>
-				<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n
-				</pattern>
-			</encoder>
-		</appender>
+        <!-- 패키지별 레벨 -->
+        <logger name="com.dev.IbioScience" level="DEBUG"/>
+        <logger name="org.hibernate" level="INFO"/>
+        <logger name="org.springframework" level="INFO"/>
 
-		<logger name="com.dev.IbioScience" level="DEBUG" />
-		<logger name="org.hibernate" level="INFO" />
-		<logger name="org.springframework" level="INFO" />
+        <!-- 루트 로거: 콘솔 + 파일 모두로 출력 -->
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="ROLLING_FILE"/>
+        </root>
+    </springProfile>
 
-		<root level="INFO">
-			<appender-ref ref="STDOUT" />
-		</root>
-	</springProfile>
+    <!-- =========================
+         DEFAULT(로컬) 프로파일 (콘솔만)
+         ========================= -->
+    <springProfile name="default">
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="com.dev.IbioScience" level="DEBUG"/>
+        <logger name="org.hibernate" level="INFO"/>
+        <logger name="org.springframework" level="INFO"/>
+
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
 
 </configuration>
