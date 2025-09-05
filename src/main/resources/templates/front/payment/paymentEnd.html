@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+	<div id="wrapper" class="wrapper-fluid banners-effect-3">
+		<header id="header" class="typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+
+		<div class="main-container container">
+			<ul class="breadcrumb">
+				<li><a href="/"><i class="fa fa-home"></i></a></li>
+				<li><a href="#">쇼핑</a></li>
+				<li><a href="#">결제완료</a></li>
+			</ul>
+
+			<!-- ===== Progress ===== -->
+			<div class="cart-progress cart-hpad">
+				<ul class="cart-progress-steps">
+					<li class="step">
+						<div class="badge">STEP. 01</div>
+						<div class="label">장바구니</div>
+					</li>
+					<li class="step">
+						<div class="badge">STEP. 02</div>
+						<div class="label">주문서 작성</div>
+					</li>
+					<li class="step active">
+						<div class="badge">STEP. 03</div>
+						<div class="label">주문 결제 완료</div>
+					</li>
+				</ul>
+			</div>
+
+			<!-- ===== 완료 헤더 영역 ===== -->
+			<section class="paymentEnd-head">
+				<div class="paymentEnd-headIcon" aria-hidden="true">
+					<!-- 초록 배경 + 흰색 V -->
+					<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" role="img"
+						aria-label="결제 완료">
+						<circle cx="36" cy="36" r="34" fill="#22c55e" stroke="#22c55e" stroke-width="2" />
+						<path d="M23 37.5l9.2 9.2L49 29" fill="none" stroke="#ffffff" stroke-width="4"
+							stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				</div>
+				<h2 class="paymentEnd-headTitle">주문해주셔서 감사드립니다.</h2>
+				<p class="paymentEnd-headSub">고객님의 주문이 정상적으로 접수 되었습니다.</p>
+
+				<div class="paymentEnd-headActions">
+					<a href="#" class="btn paymentEnd-btnPrimary paymentEnd-receiptBtn">영수증 다운받기</a>
+				</div>
+			</section>
+
+			<!-- ===== 주문 상품 테이블 ===== -->
+			<section class="paymentEnd-orderTable-wrap">
+				<div class="paymentEnd-divider-strong"></div>
+
+				<table class="table paymentEnd-orderTable">
+					<thead>
+						<tr>
+							<th>상품정보</th>
+							<th class="text-end">판매가</th>
+							<th class="text-end">배송비</th>
+							<th class="text-end">적립금</th>
+							<th class="text-center">수량</th>
+							<th class="text-end">총 할인금액</th>
+							<th class="text-end">합계금액</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td data-label="상품정보">
+								<div class="paymentEnd-prod">
+									<img src="/front/image/sample/100-100.png" alt="상품" class="paymentEnd-prod-thumb">
+									<div class="paymentEnd-prod-info">
+										<div class="paymentEnd-prod-name">Orion Star A211 pH Benchtop Meter, pH 번호판 미터
+										</div>
+										<div class="paymentEnd-prod-sku text-muted">상품코드 12345678</div>
+									</div>
+								</div>
+							</td>
+							<td class="text-end" data-label="판매가">
+								<div class="paymentEnd-cellVal"><span data-bind="price">59,400</span><span>원</span>
+								</div>
+							</td>
+							<td class="text-end" data-label="배송비">
+								<div class="paymentEnd-cellVal"><span data-bind="shipping">4,000</span><span>원</span>
+								</div>
+							</td>
+							<td class="text-end" data-label="적립금">
+								<div class="paymentEnd-cellVal"><span data-bind="point">0</span><span>원</span></div>
+							</td>
+							<td class="text-center" data-label="수량">
+								<!-- 입력 대신 텍스트 -->
+								<span class="paymentEnd-qtyText" data-bind="qty">1</span>
+							</td>
+							<td class="text-end" data-label="총 할인금액">
+								<div class="paymentEnd-cellVal paymentEnd-cellGroup">
+									<span data-bind="discount">0</span><span>원</span>
+									<button type="button"
+										class="btn btn-xs btn-outline-primary paymentEnd-discountDetailBtn">내역보기</button>
+								</div>
+							</td>
+							<td class="text-end" data-label="합계금액">
+								<div class="paymentEnd-cellVal"><span data-bind="subtotal">63,400</span><span>원</span>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="paymentEnd-divider-soft"></div>
+
+				<!-- ===== 주문 상품 테이블 아래 주문정보 ===== -->
+				<div class="paymentEnd-orderInfo">
+					<div class="paymentEnd-orderInfo-row">
+						<div><strong>주문번호</strong> : <span data-bind="orderNo">0000-0000</span></div>
+						<div class="paymentEnd-orderInfo-divider">|</div>
+						<div><strong>배송지 주소</strong> : <span data-bind="address">서울시 종로구 익선동 59 현대뜨레비앙 1703호</span>
+						</div>
+						<div class="paymentEnd-orderInfo-divider">|</div>
+						<div><strong>입금계좌</strong> : <span data-bind="bank">국민은행 000-00-00000</span></div>
+						<div class="paymentEnd-orderInfo-divider">|</div>
+						<div><strong>예금주</strong> : <span>(주)아이바이오사이언스</span></div>
+					</div>
+				</div>
+
+				<!-- ===== 버튼 ===== -->
+				<div class="paymentEnd-actionBtns">
+					<a href="/myPage" class="btn paymentEnd-btnPrimary paymentEnd-fixedBtn">마이페이지 바로가기 →</a>
+					<a href="/" class="btn paymentEnd-btnGhost paymentEnd-fixedBtn">메인으로 바로가기 →</a>
+				</div>
+
+				<!-- ===== 출고 안내 ===== -->
+				<div class="paymentEnd-shippingNotice">
+					<div class="paymentEnd-shippingIcon" aria-hidden="true">
+						<svg width="40" height="40" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img"
+							aria-label="배송 안내">
+							<rect x="3" y="8" width="13" height="7" rx="1.5" fill="#1e3a8a" opacity=".12" />
+							<path
+								d="M3 14V9.5A1.5 1.5 0 0 1 4.5 8h9A1.5 1.5 0 0 1 15 9.5V14M15 12h3l2 2v2h-2M7 18a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm9 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"
+								stroke="#1e3a8a" stroke-width="1.6" fill="none" stroke-linecap="round"
+								stroke-linejoin="round" />
+						</svg>
+					</div>
+					<div class="paymentEnd-shippingText">
+						<p>제품은 빠른 시일내에 출고될 예정입니다.</p>
+						<p>문의사항이 있으신 경우 (주) 아이바이오사이언스</p>
+						<p>고객센터 02-743-7190으로 연락 부탁드립니다.</p>
+					</div>
+				</div>
+
+				<div class="paymentEnd-divider-strong"></div>
+			</section>
+		</div>
+
+		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
+	</div>
+
+	<!-- ===== 할인내역 모달(필요 시 유지) ===== -->
+	<div class="paymentEnd-modal" id="paymentEnd-discountModal" aria-hidden="true">
+		<div class="paymentEnd-modal-dialog">
+			<div class="paymentEnd-modal-header">
+				<h5>할인 내역</h5>
+				<button type="button" class="paymentEnd-modal-close" data-close>&times;</button>
+			</div>
+			<div class="paymentEnd-modal-body">
+				<ul class="list-unstyled mb-0" id="paymentEnd-discountList"></ul>
+			</div>
+			<div class="paymentEnd-modal-footer">
+				<button type="button" class="btn paymentEnd-btnPrimary" data-close>확인</button>
+			</div>
+		</div>
+	</div>
+
+	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+</body>
+
+</html>

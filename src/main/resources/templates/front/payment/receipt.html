@@ -10,16 +10,147 @@
 		<div class="main-container container">
 			<ul class="breadcrumb">
 				<li><a href="/"><i class="fa fa-home"></i></a></li>
-				<li><a href="#">장바구니</a></li>
+				<li><a href="#">쇼핑</a></li>
+				<li><a href="#">영수증출력</a></li>
 			</ul>
 
-			<div class="row">
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="signIn-wrap">
-						<h3 class="signIn-title">쇼핑하기</h3>
-						<div class="signIn-divider"></div>
-					</div>
+			<!-- ===== 상단 툴바 (영수증 외부, 우측 정렬) ===== -->
+			<div class="receiptPage-toolbar clearfix">
+				<div class="pull-right">
+					<button type="button" class="btn receiptPage-btn receiptPage-btnGhost" id="receiptPage-downloadBtn">
+						<!-- 다운로드 아이콘 -->
+						<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+							<path d="M12 3v10m0 0l4-4m-4 4L8 9M5 21h14" fill="none" stroke="currentColor"
+								stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+						</svg>
+						<span>다운로드</span>
+					</button>
+					<button type="button" class="btn receiptPage-btn receiptPage-btnPrimary" id="receiptPage-printBtn">
+						<!-- 프린터 아이콘 -->
+						<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+							<path d="M7 8V4h10v4M6 17v3h12v-3M6 13h12a2 2 0 0 1 2 2v2H4v-2a2 2 0 0 1 2-2Z" fill="none"
+								stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+								stroke-linejoin="round" />
+						</svg>
+						<span>인쇄하기</span>
+					</button>
 				</div>
+			</div>
+
+			<!-- ===== 가운데 정렬 래퍼 ===== -->
+			<div class="receiptPage-scaleWrap mb-5">
+				<!-- ===== 영수증 본문 (가로 500 고정, 높이 자동) ===== -->
+				<section class="receiptPage-paper card" id="receiptPage-receipt" aria-label="영수증">
+					<div class="card-body receiptPage-cardBody">
+
+						<!-- 헤더 -->
+						<div class="row">
+							<div class="col-xs-7 col-sm-7 col-7">
+								<h4 class="receiptPage-title">구매 영수증</h4>
+								<div class="receiptPage-sub">Receipt</div>
+							</div>
+							<div class="col-xs-5 col-sm-5 col-5 text-right">
+								<div class="receiptPage-kvKey">주문번호</div>
+								<div class="receiptPage-orderNo">2025-0905-000123</div>
+							</div>
+						</div>
+
+						<!-- 주문/구매/판매 정보 -->
+						<div class="row receiptPage-grid">
+							<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-12 col-lg-6">
+								<div class="receiptPage-kvKey">구매일</div>
+								<div class="receiptPage-kvVal">2025-09-05 09:12</div>
+							</div>
+							<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-12 col-lg-6">
+								<div class="receiptPage-kvKey">결제수단</div>
+								<div class="receiptPage-kvVal">신용/체크카드 (KB국민)</div>
+							</div>
+
+							<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-12 col-lg-6">
+								<div class="receiptPage-kvKey">구매자 정보</div>
+								<div class="receiptPage-kvVal fw-bold">홍길동</div>
+								<div class="receiptPage-kvSub">buyer@example.com</div>
+								<div class="receiptPage-kvSub">010-1234-5678</div>
+							</div>
+
+							<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-12 col-lg-6">
+								<div class="receiptPage-kvKey">판매자 정보</div>
+								<div class="receiptPage-kvVal fw-bold">(주) 아이바이오사이언스</div>
+								<div class="receiptPage-kvSub">02-743-7190</div>
+								<div class="receiptPage-kvSub">서울 종로구 돈화문로 11가길 59, 1703호</div>
+							</div>
+						</div>
+
+						<hr class="receiptPage-divider-strong">
+
+						<!-- 상품 목록 -->
+						<div class="receiptPage-sectionTitle">구매 내역</div>
+						<div class="table-responsive">
+							<table class="table table-condensed receiptPage-items">
+								<thead>
+									<tr>
+										<th>제품명</th>
+										<th class="text-center" style="width:70px;">수량</th>
+										<th class="text-right" style="width:120px;">금액</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>Orion Star A211 pH Benchtop Meter</td>
+										<td class="text-center">1</td>
+										<td class="text-right">₩ 59,400</td>
+									</tr>
+									<tr>
+										<td>pH Buffer Solution 4.01, 500mL</td>
+										<td class="text-center">1</td>
+										<td class="text-right">₩ 12,000</td>
+									</tr>
+									<tr>
+										<td>전용 전극 케이블</td>
+										<td class="text-center">2</td>
+										<td class="text-right">₩ 18,000</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
+						<hr class="receiptPage-divider-strong">
+
+						<!-- 할인/적립/쿠폰 -->
+						<div class="row receiptPage-grid">
+							<div class="col-xs-12 col-sm-4 col-md-4 col-lg-4 col-12 col-lg-4">
+								<div class="receiptPage-kvKey">할인금액</div>
+								<div class="receiptPage-kvVal">₩ 5,000</div>
+							</div>
+							<div class="col-xs-12 col-sm-4 col-md-4 col-lg-4 col-12 col-lg-4">
+								<div class="receiptPage-kvKey">적립금</div>
+								<div class="receiptPage-kvVal">₩ 0</div>
+							</div>
+							<div class="col-xs-12 col-sm-4 col-md-4 col-lg-4 col-12 col-lg-4">
+								<div class="receiptPage-kvKey">쿠폰 사용</div>
+								<div class="receiptPage-kvVal">예</div>
+							</div>
+						</div>
+
+						<hr class="receiptPage-divider-strong">
+
+						<!-- 결제/배송 -->
+						<div class="row receiptPage-grid">
+							<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-12 col-lg-6">
+								<div class="receiptPage-kvKey">최종 결제금액</div>
+								<div class="receiptPage-grand">₩ 84,400</div>
+							</div>
+							<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-12 col-lg-6">
+								<div class="receiptPage-kvKey">배송지 주소</div>
+								<div class="receiptPage-kvVal receiptPage-addr">서울 종로구 익선동 59 현대뜨레비앙 1703호</div>
+							</div>
+						</div>
+
+						<!-- 하단 상호 -->
+						<div class="receiptPage-bottomBrand">© (주) 아이바이오사이언스</div>
+
+					</div>
+				</section>
 			</div>
 		</div>
 
@@ -27,7 +158,11 @@
 	</div>
 
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
-	<script src="/front/js/page/cart.js"></script>
-	
+
+	<!-- html2canvas (이미지 다운로드용) -->
+	<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+	<!-- 페이지 전용 JS -->
+	<script src="/front/js/page/receipt.js" defer></script>
 </body>
+
 </html>
