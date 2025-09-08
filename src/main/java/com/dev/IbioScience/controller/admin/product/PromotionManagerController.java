@@ -1,4 +1,4 @@
-package com.dev.IbioScience.controller.coupon;
+package com.dev.IbioScience.controller.admin.product;
 
 import java.time.LocalDate;
 

@@ -2,71 +2,128 @@ package com.dev.IbioScience.model.auth;
 
 import java.time.LocalDateTime;
 
-import com.dev.IbioScience.model.product.enums.DealerGrade;
-import com.dev.IbioScience.model.product.enums.MemberRole;
+import com.dev.IbioScience.model.auth.embedded.Address;
+import com.dev.IbioScience.model.auth.embedded.BaseTimeEntity;
+import com.dev.IbioScience.model.auth.enums.DealerType;
+import com.dev.IbioScience.model.auth.enums.MemberDomain;
+import com.dev.IbioScience.model.auth.enums.MemberRole;
+import com.dev.IbioScience.model.auth.enums.MemberStatus;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+/**
+ * 회원(회사/소비자 공통)
+ */
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "tb_member")
-public class Member {
+@Table(name = "member", uniqueConstraints = {
+		@UniqueConstraint(name = "uk_member_login_id", columnNames = "login_id") }, indexes = {
+				@Index(name = "ix_member_email", columnList = "email"),
+				@Index(name = "ix_member_role", columnList = "role"),
+				@Index(name = "ix_member_status", columnList = "status") })
+public class Member extends BaseTimeEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String username; // 아이디(이메일/고유값)
+	/** 로그인 아이디(유니크) */
+	@Column(name = "login_id", nullable = false, length = 60)
+	private String loginId;
 
-    @Column(nullable = false)
-    private String password;
+	/** 암호(BCrypt) */
+	@Column(nullable = false, length = 100)
+	private String password;
 
-    @Column(nullable = false, length = 30)
-    private String name;
+	/** 이름(담당자명) */
+	@Column(nullable = false, length = 100)
+	private String name;
 
-    @Column(nullable = false, length = 30)
-    private String phone;
+	/** 유선전화 */
+	@Column(length = 30)
+	private String tel;
 
-    @Column(length = 100)
-    private String email;
+	/** 휴대폰 */
+	@Column(length = 30)
+	private String mobile;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private MemberRole role;
+	/** 이메일 */
+	@Column(length = 200)
+	private String email;
 
-    @Enumerated(EnumType.STRING)
-    private DealerGrade dealerGrade; // 딜러일 경우 등급
+	/** 기본 주소 (개인/기업 공통: 홈페이지 제외 모든 주소 포맷) */
+	@Embedded
+	private Address address;
 
-    @Column(length = 15)
-    private String businessNumber; // 사업자번호
+	/** 소비자/회사 구분 */
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private MemberDomain domain;
 
-    @Column(length = 50)
-    private String companyName;
+	/** 딜러 유형(NONE/BUYER/SELLER) */
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private DealerType dealerType;
 
-    @Column(length = 50)
-    private String ceoName;
+	/** 보안 권한 ROLE */
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private MemberRole role;
 
-    @Column(nullable = false)
-    private boolean businessVerified;
+	/** 멤버 상태 */
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private MemberStatus status;
 
-    @Column(nullable = false)
-    private boolean enabled;
+	/** 기업회원인 경우 연결(회사정보 단일 모델) */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "company_profile_id")
+	private CompanyProfile companyProfile;
 
-    @Column
-    private LocalDateTime joinedAt;
+	/** 개인회원인 경우 입력할 수 있는 기관/업체명(간단 문자열) */
+	@Column(length = 200)
+	private String organizationName;
 
-    @Column
-    private LocalDateTime leavedAt;
+	/** 가입일 */
+	private LocalDateTime joinedAt;
 
-    @Column
-    private LocalDateTime updatedAt;
+	/** 탈퇴일 */
+	private LocalDateTime withdrewAt;
 
+	/** 최초 로그인시 비번 변경 강제 여부(관리자 직접 생성 시 true) */
+	@Column(nullable = false)
+	private boolean mustChangePassword;
+
+	/** 마지막 비번 변경 일시 */
+	private LocalDateTime lastPasswordChangedAt;
+
+	/** 직급(회사 내부용 등록 시) */
+	@Column(length = 100)
+	private String position;
+
+	/** 사용여부 (회사 내부 등록폼 대응) */
+	@Column(nullable = false)
+	private boolean useYn;
 }

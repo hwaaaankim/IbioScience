@@ -1,4 +1,4 @@
-package com.dev.IbioScience.controller.productRegister;
+package com.dev.IbioScience.controller.admin.product;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

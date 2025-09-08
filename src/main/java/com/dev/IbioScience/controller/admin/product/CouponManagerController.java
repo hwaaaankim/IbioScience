@@ -1,4 +1,4 @@
-package com.dev.IbioScience.controller.coupon;
+package com.dev.IbioScience.controller.admin.product;
 
 import java.time.LocalDate;
 
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.dev.IbioScience.dto.CouponListRowDTO;
+import com.dev.IbioScience.dto.CouponRegisterRequestDTO;
 import com.dev.IbioScience.dto.CouponUpdateRequestDTO;
 import com.dev.IbioScience.model.product.Coupon;
 import com.dev.IbioScience.model.product.enums.CouponPolicy;
@@ -28,6 +29,20 @@ public class CouponManagerController {
 
     private final CouponService couponService;
 
+    @PostMapping("/couponRegister")
+    public String registerCoupon(
+    		@ModelAttribute CouponRegisterRequestDTO dto, 
+    		RedirectAttributes redirectAttributes) {
+        try {
+            Coupon coupon = couponService.registerCoupon(dto);
+            redirectAttributes.addFlashAttribute("success", "쿠폰이 정상적으로 등록되었습니다. ID: " + coupon.getId());
+            return "redirect:/couponManager";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/couponManager";
+        }
+    }
+    
     /** 리스트 페이지 */
     @GetMapping("/couponManager")
     public String couponManager(

@@ -1,7 +1,7 @@
 # 공통 설정
 spring:
   profiles:
-    active: prod
+    active: test
   application:
     name: IbioScience
   mail:
@@ -36,9 +36,9 @@ spring:
       on-profile: test
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://teriwoo2025.cafe24.com:3306/teriwoo2025?useUnicode=true&characterEncoding=utf8
-    username: teriwoo2025
-    password: ghksrka9274!
+    url: jdbc:mariadb://119.205.220.240:3306/ibio?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: ghksrka3849!
     hikari:
       connectionTimeout: 30000
       maximumPoolSize: 10

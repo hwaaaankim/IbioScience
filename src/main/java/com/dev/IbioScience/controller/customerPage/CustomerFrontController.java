@@ -1,4 +1,4 @@
-package com.dev.IbioScience.controller.front;
+package com.dev.IbioScience.controller.customerPage;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
