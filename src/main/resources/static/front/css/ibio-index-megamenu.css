@@ -341,9 +341,11 @@
 .ibio-index-m-li {
 	border-top: 1px solid #f2f3f5;
 }
-.ibio-index-m-li:last-child{
+
+.ibio-index-m-li:last-child {
 	border-bottom: 1px solid #f2f3f5;
 }
+
 .ibio-index-m-row {
 	display: flex;
 	align-items: center;
@@ -695,70 +697,126 @@
 .ibio-index-search-dd-chip i {
 	color: #a0a4ad;
 }
+
 /* ===========================
    모바일 문의하기 / 상담문의 영역
    =========================== */
 .ibio-index-m-etc {
-  background: #fff;
-  padding: 16px;
-  border-top: 1px solid #eee;
-  font-family: 'Noto Sans KR', sans-serif;
+	background: #fff;
+	padding: 16px;
+	border-top: 1px solid #eee;
+	font-family: 'Noto Sans KR', sans-serif;
 }
-.ibio-index-m-ask{
-	padding-top:10px;
-	padding-bottom:10px;
-	margin-bottom:10px;
+
+.ibio-index-m-ask {
+	padding-top: 10px;
+	padding-bottom: 10px;
+	margin-bottom: 10px;
 }
-.ibio-index-m-call{
-	padding-top:10px;
-	padding-bottom:10px;
+
+.ibio-index-m-call {
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
+
 /* 문의하기 영역 */
 .ibio-index-m-ask-title {
-  font-size: 17px;
-  font-weight: 600;
-  margin-bottom: 10px;
+	font-size: 17px;
+	font-weight: 600;
+	margin-bottom: 10px;
 }
 
 .ibio-index-m-ask-desc {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.4;
-  margin-bottom: 0px;
+	font-size: 14px;
+	color: #666;
+	line-height: 1.4;
+	margin-bottom: 0px;
 }
 
 /* 상담문의 영역 */
 .ibio-index-m-call {
-  border-top: 1px solid #eee;
-  padding-top: 12px;
+	border-top: 1px solid #eee;
+	padding-top: 12px;
 }
 
 .ibio-index-m-call-title {
-  font-size: 17px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+	font-size: 17px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	margin-bottom: 10px;
 }
 
 .ibio-index-m-call-title::before {
-  content: "\f095"; /* FontAwesome 전화 아이콘 */
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  font-size: 16px;
-  color: #ff6600;
-  margin-right: 6px;
+	content: "\f095";
+	/* FontAwesome 전화 아이콘 */
+	font-family: "Font Awesome 5 Free";
+	font-weight: 900;
+	font-size: 16px;
+	color: #ff6600;
+	margin-right: 6px;
 }
 
 /* 전화번호 강조 */
 .ibio-index-m-call-phone {
-  font-size: 18px;
-  font-weight: 700;
-  color: #ff6600;
+	font-size: 18px;
+	font-weight: 700;
+	color: #ff6600;
 }
 
 /* 운영 시간 안내 */
 .ibio-index-m-call-desc {
-  font-size: 12px;
-  color: #999;
+	font-size: 12px;
+	color: #999;
+}
+
+/* 숨김 상태는 이벤트 자체가 발생하지 않도록 */
+#ibio-index-m-overlay[aria-hidden="true"],
+#ibio-index-m-search-overlay[aria-hidden="true"],
+#ibio-index-brand-modal[aria-hidden="true"],
+#ibio-index-search-dropdown[aria-hidden="true"] {
+	display: none !important;
+	pointer-events: none !important;
+}
+
+#ibio-index-m-overlay[aria-hidden="false"],
+#ibio-index-m-search-overlay[aria-hidden="false"],
+#ibio-index-brand-modal[aria-hidden="false"],
+#ibio-index-search-dropdown[aria-hidden="false"] {
+	display: block;
+	pointer-events: auto;
+}
+
+/* 바디 락(모바일 슬라이드 패널 열렸을 때) – 프로젝트에 맞춰 이미 사용 중인 값 유지 */
+.ibio-index-lock {
+	position: fixed;
+	overflow: hidden;
+	width: 100%;
+}
+
+/* 상단 고정된 상태 */
+header.navbar-compact {
+  position: fixed;
+  top: 0;
+  left: 0; right: 0;
+  width: 100%;
+  z-index: 1000;            /* 프로젝트 z-index 체계에 맞춰 조정 */
+  transition: transform .25s ease;
+  will-change: transform;
+}
+
+/* 숨김 상태(스크롤 다운) */
+header.navbar-compact.hidden-menu {
+  transform: translateY(-100%);
+}
+
+/* 기본(보임) 상태 */
+header.navbar-compact:not(.hidden-menu) {
+  transform: translateY(0);
+}
+
+/* 레이아웃 보정용 스페이서 (JS로 높이 자동 세팅) */
+.header-spacer {
+  width: 100%;
+  height: 0;
 }

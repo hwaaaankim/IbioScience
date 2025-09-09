@@ -10,9 +10,10 @@ import com.dev.IbioScience.model.auth.enums.MemberStatus;
 
 /** 회원 리포지토리 */
 public interface MemberRepository extends JpaRepository<Member, Long> {
-	boolean existsByLoginId(String loginId);
 	boolean existsByUsername(String username);
     Optional<Member> findByUsername(String username);
-    Optional<Member> findByLoginId(String loginId);
     List<Member> findByStatus(MemberStatus status);
+    /** 업데이트 시 본인 제외 중복 체크 */
+    boolean existsByUsernameAndIdNot(String username, Long id);
+    boolean existsByEmail(String email);
 }

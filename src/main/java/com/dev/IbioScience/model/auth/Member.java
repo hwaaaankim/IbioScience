@@ -50,8 +50,8 @@ public class Member extends BaseTimeEntity {
 	private Long id;
 
 	/** 로그인 아이디(유니크) */
-	@Column(name = "login_id", nullable = false, length = 60)
-	private String loginId;
+	@Column(name = "username", nullable = false, length = 60)
+	private String username;
 
 	/** 암호(BCrypt) */
 	@Column(nullable = false, length = 100)
@@ -126,4 +126,8 @@ public class Member extends BaseTimeEntity {
 	/** 사용여부 (회사 내부 등록폼 대응) */
 	@Column(nullable = false)
 	private boolean useYn;
+	
+	 /** ✅ 대표여부 (직원 목록에서 우선 표기/검색 용) */
+    @Column(name = "is_primary", nullable = false)
+    private boolean isPrimary; // Lombok이 게터: isPrimary(), 세터: setPrimary(boolean) 생성
 }

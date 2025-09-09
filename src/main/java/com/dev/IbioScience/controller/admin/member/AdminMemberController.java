@@ -1,0 +1,66 @@
+package com.dev.IbioScience.controller.admin.member;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.dev.IbioScience.dto.member.auth.StaffCreateRequest;
+import com.dev.IbioScience.service.auth.AdminUserService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@Controller
+@RequestMapping("/admin/root")
+@RequiredArgsConstructor
+public class AdminMemberController {
+
+	private final AdminUserService adminUserService;
+	
+	@GetMapping("/memberInsertForm")
+	public String memberInsertForm() {
+
+		return "administration/shopManager/memberInsertForm";
+	}
+
+	@GetMapping("/memberManager")
+	public String memberManager() {
+		
+		return "administration/shopManager/memberManager";
+	}
+	
+	@PostMapping("/memberInsert")
+	@ResponseBody
+	public String memberInsert(@Valid @ModelAttribute StaffCreateRequest request, BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
+			return """
+					<script>
+					  alert('입력값을 다시 확인해 주세요.');
+					  history.back();
+					</script>
+					""";
+		}
+		// 서버 측 중복 방어
+		if (adminUserService.existsUsername(request.getUsername())) {
+			return """
+					<script>
+					  alert('이미 사용 중인 아이디입니다.');
+					  history.back();
+					</script>
+					""";
+		}
+		adminUserService.createStaff(request);
+
+		// 저장 완료 후 알럿 -> 목록으로
+		return """
+				<script>
+				  alert('직원 등록이 완료 되었습니다.');
+				  location.href='/admin/root/memberManager';
+				</script>
+				""";
+	}
+}

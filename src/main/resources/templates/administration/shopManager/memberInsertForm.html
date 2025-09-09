@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('회원관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<!-- Title / Breadcrumb -->
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">회원관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">직원등록</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- 안내 Alert -->
+					<div class="row">
+						<div class="col-12">
+							<div class="alert alert-info member-insertForm-guide mb-3" role="alert">
+								<strong>안내</strong> : 초기 비밀번호로 등록되며, <u>최초 로그인 시 비밀번호 변경이 필수</u>입니다.
+								아이디 중복 확인 후 저장해 주세요.
+							</div>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card-body">
+
+							<div sec:authorize="!hasAnyRole('ROOT','MASTER')" class="alert alert-warning mb-4">
+								이 페이지에 접근할 권한이 없습니다. (루트/마스터만 직원 등록 가능)
+							</div>
+
+							<!-- 직원 등록 폼 -->
+							<form id="member-insertForm-form" th:action="@{/admin/root/memberInsert}" method="post"
+								sec:authorize="hasAnyRole('ROOT','MASTER')">
+
+								<!-- 1행: 권한 / 담당자명 -->
+								<div class="row g-3 mb-0 member-insertForm-row">
+									<div class="col-lg-6 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label for="member-insertForm-role" class="form-label">권한 <span
+													class="text-danger">*</span></label>
+											<select id="member-insertForm-role" name="role" class="form-select"
+												required>
+												<option sec:authorize="hasRole('ROOT')" value="MASTER">마스터</option>
+												<option sec:authorize="hasRole('ROOT')" value="OPERATOR">운영관리자</option>
+												<option sec:authorize="hasRole('ROOT')" value="ADMIN">일반관리자</option>
+												<option sec:authorize="hasRole('MASTER')" value="MASTER">마스터
+												</option>
+												<option sec:authorize="hasRole('MASTER')" value="OPERATOR">운영관리자
+												</option>
+												<option sec:authorize="hasRole('MASTER')" value="ADMIN">일반관리자</option>
+											</select>
+											<div class="member-insertForm-help text-muted small">
+												루트는 마스터/운영관리자/일반관리자 생성 가능, 마스터는 운영관리자/일반관리자만 생성 가능합니다.
+											</div>
+											<div class="member-insertForm-help text-muted small">
+												ROOT 계정은 이 폼으로 생성할 수 없습니다.
+											</div>
+										</div>
+									</div>
+									<div class="col-lg-6 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label class="form-label" for="member-insertForm-name">담당자명 <span
+													class="text-danger">*</span></label>
+											<input type="text" id="member-insertForm-name" name="name"
+												class="form-control" required maxlength="50" placeholder="예) 홍길동">
+										</div>
+									</div>
+								</div>
+
+								<!-- 2행: 아이디(username) / 초기 비밀번호 -->
+								<div class="row g-3 member-insertForm-row">
+									<div class="col-lg-6 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label class="form-label" for="member-insertForm-username">아이디 <span
+													class="text-danger">*</span></label>
+											<div class="input-group">
+												<input type="text" id="member-insertForm-username" name="username"
+													class="form-control" required maxlength="30" autocomplete="off"
+													placeholder="영문/숫자 4~30자">
+												<button class="btn btn-outline-primary" type="button"
+													id="member-insertForm-idCheckBtn">중복체크</button>
+											</div>
+											<div class="member-insertForm-help form-text"
+												id="member-insertForm-idCheckResult">
+												아이디 중복여부를 확인해 주세요.
+											</div>
+										</div>
+									</div>
+
+									<div class="col-lg-6 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label class="form-label" for="member-insertForm-password">초기 비밀번호 <span
+													class="text-danger">*</span></label>
+											<input type="password" id="member-insertForm-password" name="password"
+												class="form-control" required minlength="5" maxlength="50"
+												placeholder="최소 8자 이상">
+											<div class="member-insertForm-help text-muted small">최초 로그인 시 비밀번호 변경이
+												필요합니다.</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- 3행: 직급/직책 / 유선번호 -->
+								<div class="row g-3 member-insertForm-row">
+									<div class="col-lg-6 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label class="form-label" for="member-insertForm-position">직급/직책</label>
+											<input type="text" id="member-insertForm-position" name="position"
+												class="form-control" maxlength="50" placeholder="예) 과장, 팀장">
+										</div>
+									</div>
+
+									<div class="col-lg-6 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label class="form-label">유선번호</label>
+											<div class="d-flex align-items-center gap-1">
+												<input type="text" class="form-control text-center" maxlength="4"
+													id="member-insertForm-tel1" placeholder="02">
+												<span class="px-1">-</span>
+												<input type="text" class="form-control text-center" maxlength="4"
+													id="member-insertForm-tel2" placeholder="1234">
+												<span class="px-1">-</span>
+												<input type="text" class="form-control text-center" maxlength="4"
+													id="member-insertForm-tel3" placeholder="5678">
+											</div>
+											<input type="hidden" name="tel" id="member-insertForm-telHidden">
+											<input type="hidden" name="telFormatted"
+												id="member-insertForm-telFormatted">
+										</div>
+									</div>
+								</div>
+
+								<!-- 4행: 휴대폰번호 / 이메일 -->
+								<div class="row g-3 member-insertForm-row">
+									<div class="col-lg-6 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label class="form-label">휴대폰번호</label>
+											<div class="d-flex align-items-center gap-1">
+												<input type="text" class="form-control text-center" maxlength="3"
+													id="member-insertForm-mobile1" placeholder="010">
+												<span class="px-1">-</span>
+												<input type="text" class="form-control text-center" maxlength="4"
+													id="member-insertForm-mobile2" placeholder="1234">
+												<span class="px-1">-</span>
+												<input type="text" class="form-control text-center" maxlength="4"
+													id="member-insertForm-mobile3" placeholder="5678">
+											</div>
+											<input type="hidden" name="mobile" id="member-insertForm-mobileHidden">
+											<input type="hidden" name="mobileFormatted"
+												id="member-insertForm-mobileFormatted">
+										</div>
+									</div>
+
+									<div class="col-lg-6 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label class="form-label">이메일</label>
+											<div class="member-insertForm-emailWrap">
+												<input type="text" class="form-control" id="member-insertForm-emailId"
+													placeholder="아이디">
+												<span>@</span>
+												<select class="form-select" id="member-insertForm-emailDomain"
+													style="max-width:220px;">
+													<option value="">선택</option>
+													<option value="gmail.com">gmail.com</option>
+													<option value="naver.com">naver.com</option>
+													<option value="daum.net">daum.net</option>
+													<option value="kakao.com">kakao.com</option>
+													<option value="_direct">직접입력</option>
+												</select>
+												<input type="text" class="form-control d-none"
+													id="member-insertForm-emailDomainDirect"
+													placeholder="도메인 입력(예: mycorp.com)" style="max-width:260px;">
+											</div>
+											<input type="hidden" name="email" id="member-insertForm-emailHidden">
+											<div class="member-insertForm-help text-muted small">회사 메일 도메인이 있다면 ‘직접입력’을
+												선택해 주세요.</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- 5행: 대표여부 / 사용여부 -->
+								<div class="row g-3 member-insertForm-row">
+									<div class="col-lg-6 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label class="form-label" for="member-insertForm-isPrimary">대표여부</label>
+											<div class="member-insertForm-switchWrap">
+												<div class="form-check form-switch mb-0">
+													<input class="form-check-input" type="checkbox"
+														id="member-insertForm-isPrimary" name="isPrimary">
+													<label class="form-check-label" for="member-insertForm-isPrimary">대표
+														담당자 지정</label>
+												</div>
+											</div>
+											<div class="member-insertForm-help text-muted small">대표 담당자는 목록에서 우선 표시됩니다.
+											</div>
+										</div>
+									</div>
+
+									<div class="col-lg-6 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label class="form-label" for="member-insertForm-useYn">사용여부</label>
+											<div class="member-insertForm-switchWrap">
+												<div class="form-check form-switch mb-0">
+													<input class="form-check-input" type="checkbox"
+														id="member-insertForm-useYn" name="useYn" checked>
+													<label class="form-check-label" for="member-insertForm-useYn">계정
+														사용</label>
+												</div>
+											</div>
+											<div class="member-insertForm-help text-muted small">미사용으로 전환 시 로그인할 수 없습니다.
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- 개인정보 취급방침 -->
+								<div class="row g-3 mt-1 member-insertForm-row">
+									<div class="col-lg-12 member-insertForm-col">
+										<div class="member-insertForm-field">
+											<label class="form-label">개인정보 취급방침</label>
+											<div class="border rounded p-3 member-insertForm-privacy">
+												<!-- … 동일 … -->
+												<p class="mb-0">자세한 내용은 본 정책 전문을 참고해 주십시오.</p>
+											</div>
+											<div class="form-check mt-2">
+												<input class="form-check-input" type="checkbox"
+													id="member-insertForm-privacyAgree" required>
+												<label class="form-check-label" for="member-insertForm-privacyAgree">본인은
+													위 개인정보 취급 관련 주의사항을 이해하고 준수하였습니다.</label>
+											</div>
+											<div class="member-insertForm-help text-muted small">저장 전, 반드시 개인정보 안내를 확인해
+												주세요.</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- 버튼 -->
+								<div class="row mt-3">
+									<div class="col-12 d-flex gap-2">
+										<button type="submit" class="btn btn-primary"
+											id="member-insertForm-submitBtn">저장</button>
+										<a th:href="@{/admin/root/memberInsertForm}" class="btn btn-light">초기화</a>
+									</div>
+								</div>
+
+								<!-- 서버 전송용 hidden -->
+								<input type="hidden" name="mobileFormatted" id="member-insertForm-mobileFormatted">
+								<input type="hidden" name="telFormatted" id="member-insertForm-telFormatted">
+							</form>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/js/page/shopManager/memberInsertForm.js"></script>
+
+</body>
+
+</html>

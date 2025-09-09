@@ -400,9 +400,11 @@
 	min-width: 38px;
 	text-align: center;
 }
-#product-list-filter label{
-	margin-bottom:0px !important;
+
+#product-list-filter label {
+	margin-bottom: 0px !important;
 }
+
 /* ProductManager End */
 
 
@@ -656,3 +658,34 @@
 }
 
 /* Display Manager End */
+
+/* Sign In Start */
+.signIn-auxBtns {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.signIn-btn-outline {
+	display: flex;
+	align-items: center;
+	/* 수직 중앙정렬 */
+	justify-content: center;
+	/* 수평 중앙정렬 */
+	min-height: 48px;
+	/* 두 줄도 안정적으로 */
+	line-height: 1.3;
+	text-align: center;
+	white-space: normal;
+	/* 두 줄 허용 */
+}
+
+/* 반응형: 모바일에서 2열 */
+@media (max-width: 575.98px) {
+	.signIn-auxBtns {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+/* Sign In End*/

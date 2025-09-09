@@ -1,24 +1,35 @@
-/* ===== Company Sign Up (2-step) ===== */
 (function() {
 	"use strict";
 
-	// Utils
 	var $ = function(s, p) { return (p || document).querySelector(s); };
 	var $$ = function(s, p) { return Array.prototype.slice.call((p || document).querySelectorAll(s)); };
-	var digits = function(v) { return v.replace(/\D/g, ''); };
+	var digits = function(v) { return String(v || '').replace(/\D/g, ''); };
 
-	/* ---------- Stepper ---------- */
+	// ✅ 아이디 중복검사 강제용 플래그
+	var idChecked = false;
+	var lastCheckedId = '';
+
+	// ✅ 요소/문자열 모두 안전 처리하는 join
+	var join = function(arr) {
+		return arr
+			.map(function(v) {
+				var val = (typeof v === 'string') ? v : (v && 'value' in v ? v.value : '');
+				return String(val).trim();
+			})
+			.filter(Boolean)
+			.join('-');
+	};
+
 	function showStep(n) {
 		$('#companySignUp-step1').style.display = (n === 1 ? '' : 'none');
 		$('#companySignUp-step2').style.display = (n === 2 ? '' : 'none');
 		$$('#companySignUp-stepper .companySignUp-step').forEach(function(el) {
-			var idx = parseInt(el.getAttribute('data-step'), 10);
-			el.classList.toggle('companySignUp-active', idx === n);
+			el.classList.toggle('companySignUp-active', parseInt(el.getAttribute('data-step'), 10) === n);
 		});
-		window.scrollTo(0, 0);
+		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
-	/* ---------- Terms visual ---------- */
+	// 약관 시각 상태
 	function syncAgreeRowState() {
 		$$('.companySignUp-agree-item').forEach(function(row) {
 			var chk = row.querySelector('.companySignUp-agree-check');
@@ -27,10 +38,15 @@
 	}
 	function bindAgreements() {
 		var all = $('#companySignUp-agree-all');
-		var checks = $$('.companySignUp-agree-check');
-		all.addEventListener('change', function() {
-			checks.forEach(function(c) { c.checked = all.checked; }); syncAgreeRowState();
+		var checks = $$('.companySignUp-agree-check').filter(function(c) {
+			return c.id !== 'companySignUp-agree-all';
 		});
+
+		all.addEventListener('change', function() {
+			checks.forEach(function(c) { c.checked = all.checked; });
+			syncAgreeRowState();
+		});
+
 		checks.forEach(function(c) {
 			c.addEventListener('change', function() {
 				all.checked = checks.every(function(i) { return i.checked; });
@@ -39,14 +55,25 @@
 			var label = c.closest('.companySignUp-agree-item');
 			if (label) {
 				label.addEventListener('click', function(e) {
-					if (e.target.tagName !== 'INPUT') { c.checked = !c.checked; c.dispatchEvent(new Event('change')); }
+					if (e.target.tagName !== 'INPUT') {
+						c.checked = !c.checked;
+						c.dispatchEvent(new Event('change'));
+					}
 				});
 			}
 		});
+		var allLabel = all.closest('.companySignUp-agree-item');
+		if (allLabel) {
+			allLabel.addEventListener('click', function(e) {
+				if (e.target.tagName !== 'INPUT') {
+					all.checked = !all.checked;
+					all.dispatchEvent(new Event('change'));
+				}
+			});
+		}
 		syncAgreeRowState();
 	}
 
-	/* ---------- Email domain select ---------- */
 	function bindEmailDomain(selId, wrapId, inputId) {
 		var sel = $(selId), wrap = $(wrapId), input = $(inputId);
 		if (!sel) return;
@@ -56,7 +83,6 @@
 		});
 	}
 
-	/* ---------- AutoTab groups ---------- */
 	function bindAutoTab(selector) {
 		var arr = $$(selector);
 		arr.forEach(function(input, idx) {
@@ -69,7 +95,6 @@
 		});
 	}
 
-	/* ---------- Password match ---------- */
 	function bindPwMatch() {
 		var p1 = $('#companySignUp-password'), p2 = $('#companySignUp-password2'), msg = $('#companySignUp-pwMsg');
 		function check() {
@@ -83,12 +108,8 @@
 		p1.addEventListener('change', check); p2.addEventListener('change', check);
 	}
 
-	/* ---------- Daum Postcode (step1 & step2) ---------- */
-	function openDaum(onDone) {
-		new daum.Postcode({ oncomplete: onDone }).open();
-	}
+	function openDaum(onDone) { new daum.Postcode({ oncomplete: onDone }).open(); }
 	function bindAddressButtons() {
-		// STEP1: 개인 주소
 		$('#companySignUp-a-addrSearchBtn').addEventListener('click', function() {
 			openDaum(function(data) {
 				$('#companySignUp-a-zipcode').value = data.zonecode || '';
@@ -96,7 +117,6 @@
 				$('#companySignUp-a-detailAddress').focus();
 			});
 		});
-		// STEP2: 회사 주소
 		$('#companySignUp-addrSearchBtn').addEventListener('click', function() {
 			openDaum(function(data) {
 				$('#companySignUp-zipcode').value = data.zonecode || '';
@@ -106,19 +126,18 @@
 		});
 	}
 
-	/* ---------- File upload (preview/remove) ---------- */
+	// 파일 업로드(미리보기)
 	function bindFileUpload() {
 		var fileInput = $('#companySignUp-bizRegFile');
 		var btn = $('#companySignUp-bizRegBtn');
 		var preview = $('#companySignUp-filePreview');
 
-		btn.addEventListener('click', function() { fileInput.click(); });
-
 		function clearPreview() { preview.innerHTML = ''; fileInput.value = ''; }
 
+		btn.addEventListener('click', function() { fileInput.click(); });
 		fileInput.addEventListener('change', function() {
 			preview.innerHTML = '';
-			if (!fileInput.files || fileInput.files.length === 0) return;
+			if (!fileInput.files || !fileInput.files.length) return;
 			var f = fileInput.files[0];
 
 			var removeBtn = document.createElement('span');
@@ -139,141 +158,232 @@
 		});
 	}
 
-	/* ---------- ID check (mock) ---------- */
+	// 아이디 중복조회 API
+	async function apiUsernameExists(username) {
+		const res = await fetch('/api/customer/username-exists?username=' + encodeURIComponent(username));
+		if (!res.ok) throw new Error('중복조회 실패');
+		const data = await res.json();
+		return !!(data && data.exists);
+	}
+
+	// ✅ 아이디 중복검사(버튼 누른 경우에만 통과로 기록)
 	function bindIdCheck() {
-		$('#companySignUp-idCheckBtn').addEventListener('click', function() {
-			var v = $('#companySignUp-userId').value.trim();
-			if (!v) { alert('아이디를 입력하세요.'); return; }
-			// TODO: 실제 API 연동
-			alert('사용 가능한 아이디로 가정합니다. (API 연동 예정)');
+		const $userId = $('#companySignUp-userId');
+
+		// 아이디가 바뀌면 플래그 초기화
+		['input', 'change', 'blur'].forEach(function(evt) {
+			$userId.addEventListener(evt, function() {
+				if ($userId.value.trim() !== lastCheckedId) {
+					idChecked = false;
+				}
+			});
+		});
+
+		$('#companySignUp-idCheckBtn').addEventListener('click', async function() {
+			var v = $userId.value.trim();
+			if (!v) { alert('아이디를 입력하세요.'); $userId.focus(); return; }
+			try {
+				const exists = await apiUsernameExists(v);
+				if (exists) {
+					idChecked = false;
+					lastCheckedId = '';
+					alert('이미 사용 중인 아이디입니다.');
+					$userId.focus();
+				} else {
+					idChecked = true;
+					lastCheckedId = v;
+					alert('사용 가능한 아이디입니다.');
+				}
+			} catch (e) {
+				idChecked = false;
+				lastCheckedId = '';
+				alert('아이디 중복조회 중 오류가 발생했습니다.');
+			}
 		});
 	}
 
-	/* ---------- Step2 validation & submit ---------- */
+	// Step1 검증
+	function validateStep1() {
+		var ok = true, msg = '';
+
+		if (!$('#companySignUp-agree-terms').checked || !$('#companySignUp-agree-privacy').checked) {
+			ok = false; msg = '필수 약관에 동의해 주세요.';
+		}
+
+		var id = $('#companySignUp-userId').value.trim();
+		var pw1 = $('#companySignUp-password').value;
+		var pw2 = $('#companySignUp-password2').value;
+		var name = $('#companySignUp-name').value.trim();
+
+		if (ok && (!id || id.length < 4)) { ok = false; msg = '아이디를 4자 이상 입력해 주세요.'; }
+		// ✅ 8자 기준 고정
+		if (ok && (!pw1 || pw1.length < 5)) { ok = false; msg = '비밀번호는 8자 이상이어야 합니다.'; }
+		if (ok && pw1 !== pw2) { ok = false; msg = '비밀번호가 서로 일치하지 않습니다.'; }
+		if (ok && !name) { ok = false; msg = '이름을 입력해 주세요.'; }
+
+		var mobile = join($$('.companySignUp-mobileStep1').map(function(el) { return digits(el.value); }));
+		if (ok && !/^01[0-9]-[0-9]{3,4}-[0-9]{4}$/.test(mobile)) { ok = false; msg = '휴대폰 번호 형식을 확인해 주세요.'; }
+
+		var emailId = $('#companySignUp-email-id').value.trim();
+		var emailSel = $('#companySignUp-email-domain-select').value;
+		var emailDir = $('#companySignUp-email-domain-direct').value.trim();
+		var emailDomain = (emailSel === 'direct') ? emailDir : emailSel;
+		var email = (emailId && emailDomain) ? (emailId + '@' + emailDomain) : '';
+		if (ok && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { ok = false; msg = '이메일 형식을 확인해 주세요.'; }
+
+		var zip = $('#companySignUp-a-zipcode').value.trim();
+		var road = $('#companySignUp-a-roadAddress').value.trim();
+		if (ok && (!zip || !road)) { ok = false; msg = '개인 주소(우편번호, 도로명주소)를 입력해 주세요.'; }
+
+		if (!ok) alert(msg);
+		return ok;
+	}
+
+	// Step2 검증
 	function validateStep2() {
-		function val(id) { return $(id).value.trim(); }
-		var comp = val('#companySignUp-companyName');
-		var ceo = val('#companySignUp-ceo');
-		var bizType = val('#companySignUp-bizType');
-		var bizItem = val('#companySignUp-bizItem');
-		var zip = val('#companySignUp-zipcode');
-		var road = val('#companySignUp-roadAddress');
-		var detail = val('#companySignUp-detailAddress');
-		var mgr = val('#companySignUp-managerName');
-		var orgType = $('#companySignUp-orgType').value;
+		var ok = true, msg = '';
+		function v(id) { return $(id).value.trim(); }
 
-		var contact = $$('.companySignUp-contact').map(function(i) { return i.value.trim(); });
-		var invId = val('#companySignUp-invoice-email-id');
+		if (!v('#companySignUp-companyName')) { ok = false; msg = '회사명을 입력해 주세요.'; }
+		if (ok && !v('#companySignUp-ceo')) { ok = false; msg = '대표자를 입력해 주세요.'; }
+		if (ok && !v('#companySignUp-bizType')) { ok = false; msg = '업태를 입력해 주세요.'; }
+		if (ok && !v('#companySignUp-bizItem')) { ok = false; msg = '업종을 입력해 주세요.'; }
+		if (ok && (!v('#companySignUp-zipcode') || !v('#companySignUp-roadAddress'))) { ok = false; msg = '회사 주소(우편번호, 도로명주소)를 입력해 주세요.'; }
+
+		if (ok && !v('#companySignUp-managerName')) { ok = false; msg = '담당자명을 입력해 주세요.'; }
+		var contact = join($$('.companySignUp-contact').map(function(el) { return digits(el.value); }));
+		if (ok && !/^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}$/.test(contact)) { ok = false; msg = '담당자 연락처 형식을 확인해 주세요.'; }
+
+		if (ok && !$('#companySignUp-orgType').value) { ok = false; msg = '기관분류를 선택해 주세요.'; }
+		if (ok && !v('#companySignUp-bizNo')) { ok = false; msg = '사업자등록번호를 입력해 주세요.'; }
+
+		var invId = v('#companySignUp-invoice-email-id');
 		var invSel = $('#companySignUp-invoice-email-domain-select').value;
-		var invDirect = val('#companySignUp-invoice-email-domain-direct');
-		var invDomain = (invSel === 'direct') ? invDirect : invSel;
+		var invDir = v('#companySignUp-invoice-email-domain-direct');
+		var invDomain = (invSel === 'direct') ? invDir : invSel;
+		var invEmail = (invId && invDomain) ? (invId + '@' + invDomain) : '';
+		if (ok && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(invEmail)) { ok = false; msg = '계산서 이메일 형식을 확인해 주세요.'; }
 
-		if (!comp || !ceo || !bizType || !bizItem) { alert('회사 기본정보 검증이 필요합니다.'); return false; }
-		if (!zip || !road || !detail) { alert('회사 주소 검증이 필요합니다.'); return false; }
-		if (!mgr) { alert('담당자명 검증이 필요합니다.'); return false; }
-		if (contact.some(function(v) { return !v; })) { alert('담당자 연락처 검증이 필요합니다.'); return false; }
-		if (!orgType) { alert('기관분류 검증이 필요합니다.'); return false; }
-		if (!$('#companySignUp-bizNo').value.trim()) { alert('사업자등록번호 검증이 필요합니다.'); return false; }
-		if (!invId || !invDomain) { alert('계산서 이메일 검증이 필요합니다.'); return false; }
-		return true;
+		if (!ok) alert(msg);
+		return ok;
 	}
 
-	function collectAndSubmit() {
-		// step1 account payload
-		var account = {
-			userId: $('#companySignUp-userId').value.trim(),
-			password: $('#companySignUp-password').value,
-			name: $('#companySignUp-name').value.trim(),
-			tel: $$('.companySignUp-telStep1').map(function(i) { return i.value.trim(); }).join('-'),
-			mobile: $$('.companySignUp-mobileStep1').map(function(i) { return i.value.trim(); }).join('-'),
-			email: (function() {
-				var id = $('#companySignUp-email-id').value.trim();
-				var sel = $('#companySignUp-email-domain-select').value;
-				var dir = $('#companySignUp-email-domain-direct').value.trim();
-				var domain = (sel === 'direct') ? dir : sel;
-				return id && domain ? id + '@' + domain : '';
-			})(),
-			address: {
-				zip: $('#companySignUp-a-zipcode').value.trim(),
-				road: $('#companySignUp-a-roadAddress').value.trim(),
-				detail: $('#companySignUp-a-detailAddress').value.trim()
-			}
-		};
+	// 숨은 필드 매핑 (제출 전 최종)
+	async function mapToHidden() {
+		// 조합값 만들기
+		var tel = join($$('.companySignUp-telStep1').map(function(el) { return digits(el.value); }));
+		var mobile = join($$('.companySignUp-mobileStep1').map(function(el) { return digits(el.value); }));
+		var repTel = join($$('.companySignUp-tel').map(function(el) { return digits(el.value); }));
+		var fax = join($$('.companySignUp-fax').map(function(el) { return digits(el.value); }));
+		var contact = join($$('.companySignUp-contact').map(function(el) { return digits(el.value); }));
 
-		// step2 company/tax payload
-		var payload = {
-			account: account,
-			company: {
-				name: $('#companySignUp-companyName').value.trim(),
-				dept: $('#companySignUp-dept').value.trim(),
-				ceo: $('#companySignUp-ceo').value.trim(),
-				bizType: $('#companySignUp-bizType').value.trim(),
-				bizItem: $('#companySignUp-bizItem').value.trim(),
-				address: {
-					zip: $('#companySignUp-zipcode').value.trim(),
-					road: $('#companySignUp-roadAddress').value.trim(),
-					detail: $('#companySignUp-detailAddress').value.trim()
-				},
-				manager: {
-					name: $('#companySignUp-managerName').value.trim(),
-					phone: $$('.companySignUp-contact').map(function(i) { return i.value.trim(); }).join('-')
-				},
-				orgType: $('#companySignUp-orgType').value
-			},
-			tax: {
-				bizNo: $('#companySignUp-bizNo').value.trim(),
-				mainTel: $$('.companySignUp-tel').map(function(i) { return i.value.trim(); }).join('-'),
-				fax: $$('.companySignUp-fax').map(function(i) { return i.value.trim(); }).join('-'),
-				invoiceEmail: (function() {
-					var id = $('#companySignUp-invoice-email-id').value.trim();
-					var sel = $('#companySignUp-invoice-email-domain-select').value;
-					var dir = $('#companySignUp-invoice-email-domain-direct').value.trim();
-					var domain = (sel === 'direct') ? dir : sel;
-					return id && domain ? id + '@' + domain : '';
-				})(),
-				bizRegFileName: (function() {
-					var f = $('#companySignUp-bizRegFile').files;
-					return (f && f.length) ? f[0].name : '';
-				})()
-			},
-			agree: {
-				terms: $('#companySignUp-agree-terms').checked,
-				privacy: $('#companySignUp-agree-privacy').checked,
-				sms: $('#companySignUp-agree-sms').checked,
-				email: $('#companySignUp-agree-email').checked
-			}
-		};
+		var emailId = $('#companySignUp-email-id').value.trim();
+		var emailSel = $('#companySignUp-email-domain-select').value;
+		var emailDir = $('#companySignUp-email-domain-direct').value.trim();
+		var emailDom = (emailSel === 'direct') ? emailDir : emailSel;
+		var email = (emailId && emailDom) ? (emailId + '@' + emailDom) : '';
 
-		// TODO: 실제 API 연동
-		console.log('companySignUp submit payload', payload);
-		alert('기업회원 가입 데이터가 콘솔에 출력되었습니다. 실제 API와 연동해 주세요.');
+		var invId = $('#companySignUp-invoice-email-id').value.trim();
+		var invSel = $('#companySignUp-invoice-email-domain-select').value;
+		var invDir = $('#companySignUp-invoice-email-domain-direct').value.trim();
+		var invDom = (invSel === 'direct') ? invDir : invSel;
+		var invoiceEmail = (invId && invDom) ? (invId + '@' + invDom) : '';
+
+		// hidden 매핑
+		$('#f-username').value = $('#companySignUp-userId').value.trim();
+		$('#f-password').value = $('#companySignUp-password').value;
+		$('#f-name').value = $('#companySignUp-name').value.trim();
+		$('#f-tel').value = tel;
+		$('#f-mobile').value = mobile;
+		$('#f-email').value = email;
+		$('#f-aPostcode').value = $('#companySignUp-a-zipcode').value.trim();
+		$('#f-aRoadAddress').value = $('#companySignUp-a-roadAddress').value.trim();
+		$('#f-aDetailAddress').value = $('#companySignUp-a-detailAddress').value.trim();
+
+		$('#f-companyName').value = $('#companySignUp-companyName').value.trim();
+		$('#f-department').value = $('#companySignUp-dept').value.trim();
+		$('#f-ceoName').value = $('#companySignUp-ceo').value.trim();
+		$('#f-businessType').value = $('#companySignUp-bizType').value.trim();
+		$('#f-businessItem').value = $('#companySignUp-bizItem').value.trim();
+		$('#f-cPostcode').value = $('#companySignUp-zipcode').value.trim();
+		$('#f-cRoadAddress').value = $('#companySignUp-roadAddress').value.trim();
+		$('#f-cDetailAddress').value = $('#companySignUp-detailAddress').value.trim();
+		$('#f-managerName').value = $('#companySignUp-managerName').value.trim();
+		$('#f-managerPhone').value = contact;
+		$('#f-organizationCategory').value = $('#companySignUp-orgType').value;
+
+		$('#f-businessRegistrationNumber').value = $('#companySignUp-bizNo').value.trim();
+		$('#f-representativeTel').value = repTel;
+		$('#f-fax').value = fax;
+		$('#f-invoiceEmail').value = invoiceEmail;
+
+		$('#f-agreeTerms').value = $('#companySignUp-agree-terms').checked;
+		$('#f-agreePrivacy').value = $('#companySignUp-agree-privacy').checked;
+		$('#f-agreeSms').value = $('#companySignUp-agree-sms').checked;
+		$('#f-agreeEmail').value = $('#companySignUp-agree-email').checked;
 	}
 
-	/* ---------- Init ---------- */
 	document.addEventListener('DOMContentLoaded', function() {
 		bindAgreements();
 		bindEmailDomain('#companySignUp-email-domain-select', '#companySignUp-email-domain-direct-wrap', '#companySignUp-email-domain-direct');
 		bindEmailDomain('#companySignUp-invoice-email-domain-select', '#companySignUp-invoice-email-domain-direct-wrap', '#companySignUp-invoice-email-domain-direct');
 		bindPwMatch();
-		// AutoTab: 1단계 유선/휴대폰, 2단계 담당자연락처
 		bindAutoTab('.companySignUp-telStep1');
 		bindAutoTab('.companySignUp-mobileStep1');
 		bindAutoTab('.companySignUp-contact');
+		bindAutoTab('.companySignUp-tel');
+		bindAutoTab('.companySignUp-fax');
 		bindIdCheck();
 		bindFileUpload();
 		bindAddressButtons();
 
-		// 다음 단계: 지금은 알럿만 보여주고 진행
-		$('#companySignUp-nextBtn').addEventListener('click', function() {
-			alert('검증이 필요합니다. (임시로 다음 단계로 진행합니다)');
+		// ✅ 다음 단계: (1) Step1 검증 통과 (2) 반드시 버튼 중복검사 통과했는지 확인
+		$('#companySignUp-nextBtn').addEventListener('click', async function() {
+			if (!validateStep1()) return;
+
+			// 수동 중복검사 강제: 아이디가 변경되었거나 검사 안했으면 차단
+			const currentId = $('#companySignUp-userId').value.trim();
+			if (!idChecked || currentId !== lastCheckedId) {
+				alert('아이디 중복검사를 진행해 주세요.');
+				$('#companySignUp-userId').focus();
+				return;
+			}
+
+			// 안전망: 서버 재확인
+			try {
+				const exists = await apiUsernameExists(currentId);
+				if (exists) { alert('이미 사용 중인 아이디입니다. 다른 아이디를 입력해 주세요.'); return; }
+			} catch (e) { alert('아이디 중복조회 중 오류가 발생했습니다.'); return; }
+
 			showStep(2);
 		});
 
 		$('#companySignUp-prevBtn').addEventListener('click', function() { showStep(1); });
 
-		$('#companySignUp-submitBtn').addEventListener('click', function() {
+		// ✅ 폼 제출: 반드시 동기적으로 preventDefault → 검증/매핑 → 수동 submit()
+		const form = $('#companySignUpForm');
+		form.addEventListener('submit', async function(e) {
+			e.preventDefault(); // 가장 먼저 막아야 함 (중요)
+
+			// Step2 검증
 			if (!validateStep2()) return;
-			collectAndSubmit();
+
+			// 안전망: 서버 중복확인
+			const username = $('#companySignUp-userId').value.trim();
+			try {
+				const exists = await apiUsernameExists(username);
+				if (exists) {
+					alert('이미 사용 중인 아이디입니다. 다른 아이디를 입력해 주세요.');
+					return;
+				}
+			} catch (err) {
+				alert('아이디 중복조회 중 오류가 발생했습니다.');
+				return;
+			}
+
+			// 숨은 필드 매핑 후 수동 제출
+			await mapToHidden();
+			form.submit();
 		});
 
 		showStep(1);

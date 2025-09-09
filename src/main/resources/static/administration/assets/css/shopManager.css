@@ -1,0 +1,80 @@
+/* Member Insert Form Start */
+/* 행 내 모든 col 을 동일 높이로 늘리기 */
+.member-insertForm-row {
+	align-items: stretch;
+	margin-bottom:30px;
+	/* 같은 줄의 컬럼 높이 동일 */
+}
+.member-insertForm-field label{
+	margin-bottom:0px !important;
+}
+.member-insertForm-col {
+	/* 각 칼럼을 flex 컨테이너로 */
+	display: flex;
+}
+
+.member-insertForm-field {
+	/* 라벨/컨트롤/헬퍼를 세로로 정렬하고 전체 채움 */
+	display: flex;
+	flex-direction: column;
+	gap: .375rem;
+	width: 100%;
+	background: transparent;
+}
+
+/* 입력 컨트롤 높이 통일(부트스트랩 기본과 동일하나 일관성 보장) */
+.member-insertForm-field .form-control,
+.member-insertForm-field .form-select,
+.member-insertForm-field .input-group>.form-control,
+.member-insertForm-field .input-group>.btn {
+	min-height: 38px;
+}
+
+/* 유선/휴대폰 3분할 입력 박스 높이 일치 */
+.member-insertForm-phone .form-control {
+	text-align: center;
+}
+
+/* 헬퍼 문구: 모두 ※ 접두 */
+.member-insertForm-help::before {
+	content: "※ ";
+}
+
+/* 스위치(대표여부/사용여부)도 같은 높이 느낌으로 정렬 */
+.member-insertForm-switchWrap {
+	display: flex;
+	align-items: center;
+	min-height: 38px;
+	padding: .375rem 0;
+}
+
+/* 개인정보 영역 스크롤 박스 */
+.member-insertForm-privacy {
+	max-height: 7.5rem;
+	overflow: auto;
+	background: #fafafa;
+}
+
+/* 이메일 입력 부분 한 줄 고정 */
+.member-insertForm-emailWrap {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	/* 요소 간격 */
+	flex-wrap: nowrap;
+	/* 줄바꿈 방지 */
+}
+
+.member-insertForm-emailWrap input.form-control,
+.member-insertForm-emailWrap select.form-select {
+	flex: 1 1 auto;
+	min-width: 0;
+	/* overflow 방지 */
+}
+
+.member-insertForm-emailWrap span {
+	flex: 0 0 auto;
+	/* @ 기호 고정 */
+}
+
+/* Member Insert Form Start */

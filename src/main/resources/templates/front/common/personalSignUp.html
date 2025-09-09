@@ -17,189 +17,220 @@
 				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 					<div class="personalSignUp-wrap">
 
-						<!-- ===== 약관동의 ===== -->
-						<section class="personalSignUp-section">
-							<h3 class="personalSignUp-title">약관동의</h3>
+						<!-- ★★★ form 시작: action을 /signUpProcess/personal 로 지정 ★★★ -->
+						<form id="personalSignUp-form" action="/signUpProcess/personal" method="post" novalidate>
 
-							<div class="personalSignUp-termsBox">
-								<!-- 전체 동의 -->
-								<label class="personalSignUp-agree-item personalSignUp-agree-all">
-									<input type="checkbox" id="personalSignUp-agree-all"
-										class="personalSignUp-agree-check">
-									<span class="personalSignUp-agree-text"><b>전체 동의</b> <span
-											class="personalSignUp-agree-hint">(선택 정보 포함)</span></span>
-								</label>
+							<!-- (CSRF를 사용 중이면 아래 한 줄 주석 해제)
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            -->
 
-								<!-- [필수] 이용약관 -->
-								<div class="personalSignUp-agree-line">
-									<label class="personalSignUp-agree-item">
-										<input type="checkbox" id="personalSignUp-agree-terms"
-											class="personalSignUp-agree-check personalSignUp-agree-required">
-										<span class="personalSignUp-agree-text">[필수] 이용약관 동의</span>
+							<!-- ===== 약관동의 ===== -->
+							<section class="personalSignUp-section">
+								<h3 class="personalSignUp-title">약관동의</h3>
+								<div class="personalSignUp-termsBox">
+									<!-- 전체 동의 -->
+									<label class="personalSignUp-agree-item personalSignUp-agree-all">
+										<input type="checkbox" id="personalSignUp-agree-all"
+											class="personalSignUp-agree-check">
+										<span class="personalSignUp-agree-text"><b>전체 동의</b> <span
+												class="personalSignUp-agree-hint">(선택 정보 포함)</span></span>
 									</label>
-									<a href="#" class="personalSignUp-more">자세히보기 &gt;</a>
-								</div>
 
-								<!-- [필수] 개인정보 -->
-								<div class="personalSignUp-agree-line">
+									<!-- [필수] 이용약관 -->
+									<div class="personalSignUp-agree-line">
+										<label class="personalSignUp-agree-item">
+											<input type="checkbox" id="personalSignUp-agree-terms"
+												class="personalSignUp-agree-check personalSignUp-agree-required">
+											<span class="personalSignUp-agree-text">[필수] 이용약관 동의</span>
+										</label>
+										<a href="#" class="personalSignUp-more">자세히보기 &gt;</a>
+									</div>
+
+									<!-- [필수] 개인정보 -->
+									<div class="personalSignUp-agree-line">
+										<label class="personalSignUp-agree-item">
+											<input type="checkbox" id="personalSignUp-agree-privacy"
+												class="personalSignUp-agree-check personalSignUp-agree-required">
+											<span class="personalSignUp-agree-text">[필수] 개인정보 수집 및 이용 동의</span>
+										</label>
+										<a href="#" class="personalSignUp-more">자세히보기 &gt;</a>
+									</div>
+
+									<!-- [선택] SMS -->
 									<label class="personalSignUp-agree-item">
-										<input type="checkbox" id="personalSignUp-agree-privacy"
-											class="personalSignUp-agree-check personalSignUp-agree-required">
-										<span class="personalSignUp-agree-text">[필수] 개인정보 수집 및 이용 동의</span>
+										<input type="checkbox" id="personalSignUp-agree-sms"
+											class="personalSignUp-agree-check">
+										<span class="personalSignUp-agree-text">[선택] SMS 수신 동의</span>
 									</label>
-									<a href="#" class="personalSignUp-more">자세히보기 &gt;</a>
+
+									<!-- [선택] 이메일 -->
+									<label class="personalSignUp-agree-item">
+										<input type="checkbox" id="personalSignUp-agree-email"
+											class="personalSignUp-agree-check">
+										<span class="personalSignUp-agree-text">[선택] 이메일 수신 동의</span>
+									</label>
 								</div>
 
-								<!-- [선택] SMS -->
-								<label class="personalSignUp-agree-item">
-									<input type="checkbox" id="personalSignUp-agree-sms"
-										class="personalSignUp-agree-check">
-									<span class="personalSignUp-agree-text">[선택] SMS 수신 동의</span>
-								</label>
+								<!-- 서버 바인딩용 동의 히든필드 -->
+								<input type="hidden" name="termsAgreed" id="personalSignUp-termsAgreed">
+								<input type="hidden" name="privacyAgreed" id="personalSignUp-privacyAgreed">
+								<input type="hidden" name="smsAgreed" id="personalSignUp-smsAgreed">
+								<input type="hidden" name="emailAgreed" id="personalSignUp-emailAgreed">
+							</section>
 
-								<!-- [선택] 이메일 -->
-								<label class="personalSignUp-agree-item">
-									<input type="checkbox" id="personalSignUp-agree-email"
-										class="personalSignUp-agree-check">
-									<span class="personalSignUp-agree-text">[선택] 이메일 수신 동의</span>
-								</label>
-							</div>
-						</section>
+							<!-- ===== 개인정보 입력 ===== -->
+							<section class="personalSignUp-section mt-3">
+								<h3 class="personalSignUp-title">개인정보 입력</h3>
+								<p>* 만약 기업회원 이시라면? <a href="/companySignUp"><i class="fas fa-arrow-circle-right"></i>
+										기업회원가입</a></p>
 
-						<!-- ===== 개인정보 입력 ===== -->
-						<section class="personalSignUp-section mt-3">
-							<h3 class="personalSignUp-title">개인정보 입력</h3>
-							<p>* 만약 기업회원 이시라면? <a href="/companySignUp"> <i class="fas fa-arrow-circle-right"></i> 기업회원가입</a></p>
-							<!-- 아이디 + 중복검사 (플렉스, 간격 10px, 동일 높이 40px) -->
-							<div
-								class="personalSignUp-flex personalSignUp-gap10 personalSignUp-alignEnd personalSignUp-idrowFlex">
-								<div class="personalSignUp-flexItem">
-									<label for="personalSignUp-userId" class="personalSignUp-label required">아이디</label>
+								<!-- 아이디 + 중복검사 -->
+								<div
+									class="personalSignUp-flex personalSignUp-gap10 personalSignUp-alignEnd personalSignUp-idrowFlex">
+									<div class="personalSignUp-flexItem">
+										<label for="personalSignUp-userId"
+											class="personalSignUp-label required">아이디</label>
+										<input type="text" class="form-control personalSignUp-input"
+											id="personalSignUp-userId" name="username" placeholder="아이디를 입력하세요"
+											maxlength="60" required>
+									</div>
+									<div class="personalSignUp-btnWrap">
+										<button type="button"
+											class="btn btn-primary personalSignUp-btn personalSignUp-eqBtn"
+											id="personalSignUp-idCheckBtn">중복검사</button>
+									</div>
+								</div>
+								<!-- 아이디 중복검사 상태 -->
+								<input type="hidden" id="personalSignUp-idChecked" value="false">
+
+								<!-- 비밀번호 / 확인 -->
+								<div class="form-group">
+									<label for="personalSignUp-password"
+										class="personalSignUp-label required">비밀번호</label>
+									<input type="password" class="form-control personalSignUp-input"
+										id="personalSignUp-password" name="password" placeholder="영문/숫자/특수문자 조합 8~16자"
+										minlength="8" maxlength="16" required>
+								</div>
+								<div class="form-group">
+									<label for="personalSignUp-password2" class="personalSignUp-label required">비밀번호
+										확인</label>
+									<input type="password" class="form-control personalSignUp-input"
+										id="personalSignUp-password2" placeholder="비밀번호를 다시 입력" minlength="8"
+										maxlength="16" required>
+									<small id="personalSignUp-pwMsg" class="personalSignUp-pwMsg"></small>
+								</div>
+
+								<!-- 이름 -->
+								<div class="form-group">
+									<label for="personalSignUp-name" class="personalSignUp-label required">이름</label>
 									<input type="text" class="form-control personalSignUp-input"
-										id="personalSignUp-userId" placeholder="아이디를 입력하세요">
+										id="personalSignUp-name" name="name" placeholder="이름" maxlength="100" required>
 								</div>
-								<div class="personalSignUp-btnWrap">
-									<button type="button"
-										class="btn btn-primary personalSignUp-btn personalSignUp-eqBtn"
-										id="personalSignUp-idCheckBtn">중복검사</button>
+
+								<!-- 연락처(유선) -->
+								<div class="form-group">
+									<label class="personalSignUp-label required">연락처(유선)</label>
+									<div class="personalSignUp-inline">
+										<input type="text" inputmode="numeric"
+											class="form-control personalSignUp-input personalSignUp-tel" maxlength="3"
+											placeholder="02" required>
+										<span class="personalSignUp-sep" aria-hidden="true"></span>
+										<input type="text" inputmode="numeric"
+											class="form-control personalSignUp-input personalSignUp-tel" maxlength="4"
+											placeholder="1234" required>
+										<span class="personalSignUp-sep" aria-hidden="true"></span>
+										<input type="text" inputmode="numeric"
+											class="form-control personalSignUp-input personalSignUp-tel" maxlength="4"
+											placeholder="5678" required>
+									</div>
+									<input type="hidden" name="tel" id="personalSignUp-tel-full">
 								</div>
-							</div>
 
-							<!-- 비밀번호 / 확인 -->
-							<div class="form-group">
-								<label for="personalSignUp-password" class="personalSignUp-label required">비밀번호</label>
-								<input type="password" class="form-control personalSignUp-input"
-									id="personalSignUp-password" placeholder="영문/숫자/특수문자 조합 8~16자">
-							</div>
-							<div class="form-group">
-								<label for="personalSignUp-password2" class="personalSignUp-label required">비밀번호
-									확인</label>
-								<input type="password" class="form-control personalSignUp-input"
-									id="personalSignUp-password2" placeholder="비밀번호를 다시 입력">
-								<small id="personalSignUp-pwMsg" class="personalSignUp-pwMsg"></small>
-							</div>
-
-							<!-- 이름 -->
-							<div class="form-group">
-								<label for="personalSignUp-name" class="personalSignUp-label required">이름</label>
-								<input type="text" class="form-control personalSignUp-input" id="personalSignUp-name"
-									placeholder="이름">
-							</div>
-
-							<!-- 연락처(유선) : 플렉스(입력 넓게), 구분자는 굵고 길게 -->
-							<div class="form-group">
-								<label class="personalSignUp-label required">연락처(유선)</label>
-								<div class="personalSignUp-inline">
-									<input type="text" inputmode="numeric"
-										class="form-control personalSignUp-input personalSignUp-tel" maxlength="3"
-										placeholder="02">
-									<span class="personalSignUp-sep" aria-hidden="true"></span>
-									<input type="text" inputmode="numeric"
-										class="form-control personalSignUp-input personalSignUp-tel" maxlength="4"
-										placeholder="1234">
-									<span class="personalSignUp-sep" aria-hidden="true"></span>
-									<input type="text" inputmode="numeric"
-										class="form-control personalSignUp-input personalSignUp-tel" maxlength="4"
-										placeholder="5678">
+								<!-- 핸드폰 -->
+								<div class="form-group">
+									<label class="personalSignUp-label required">핸드폰번호</label>
+									<div class="personalSignUp-inline">
+										<input type="text" inputmode="numeric"
+											class="form-control personalSignUp-input personalSignUp-mobile"
+											maxlength="3" placeholder="010" required>
+										<span class="personalSignUp-sep" aria-hidden="true"></span>
+										<input type="text" inputmode="numeric"
+											class="form-control personalSignUp-input personalSignUp-mobile"
+											maxlength="4" placeholder="1234" required>
+										<span class="personalSignUp-sep" aria-hidden="true"></span>
+										<input type="text" inputmode="numeric"
+											class="form-control personalSignUp-input personalSignUp-mobile"
+											maxlength="4" placeholder="5678" required>
+									</div>
+									<input type="hidden" name="mobile" id="personalSignUp-mobile-full">
 								</div>
-							</div>
 
-							<!-- 핸드폰 -->
-							<div class="form-group">
-								<label class="personalSignUp-label required">핸드폰번호</label>
-								<div class="personalSignUp-inline">
-									<input type="text" inputmode="numeric"
-										class="form-control personalSignUp-input personalSignUp-mobile" maxlength="3"
-										placeholder="010">
-									<span class="personalSignUp-sep" aria-hidden="true"></span>
-									<input type="text" inputmode="numeric"
-										class="form-control personalSignUp-input personalSignUp-mobile" maxlength="4"
-										placeholder="1234">
-									<span class="personalSignUp-sep" aria-hidden="true"></span>
-									<input type="text" inputmode="numeric"
-										class="form-control personalSignUp-input personalSignUp-mobile" maxlength="4"
-										placeholder="5678">
+								<!-- 이메일 -->
+								<div class="form-group">
+									<label class="personalSignUp-label required">이메일</label>
+									<div class="personalSignUp-inline">
+										<input type="text" class="form-control personalSignUp-input"
+											id="personalSignUp-email-id" placeholder="아이디" required>
+										<span class="personalSignUp-atSep" aria-hidden="true">@</span>
+										<select id="personalSignUp-email-domain-select"
+											class="form-control personalSignUp-input" required>
+											<option value="">선택</option>
+											<option value="gmail.com">gmail.com</option>
+											<option value="naver.com">naver.com</option>
+											<option value="hanmail.net">hanmail.net</option>
+											<option value="daum.net">daum.net</option>
+											<option value="nate.com">nate.com</option>
+											<option value="yahoo.com">yahoo.com</option>
+											<option value="direct">직접입력</option>
+										</select>
+									</div>
+									<div id="personalSignUp-email-domain-direct-wrap" class="hidden"
+										style="margin-top:8px;">
+										<input type="text" class="form-control personalSignUp-input"
+											id="personalSignUp-email-domain-direct" placeholder="예: mycompany.co.kr">
+									</div>
+									<input type="hidden" name="email" id="personalSignUp-email-full">
 								</div>
-							</div>
 
-							<!-- 이메일 -->
-							<div class="form-group">
-								<label class="personalSignUp-label required">이메일</label>
-								<div class="personalSignUp-inline">
-									<input type="text" class="form-control personalSignUp-input"
-										id="personalSignUp-email-id" placeholder="아이디">
-									<span class="personalSignUp-atSep" aria-hidden="true">@</span>
-									<select id="personalSignUp-email-domain-select"
-										class="form-control personalSignUp-input">
-										<option value="">선택</option>
-										<option value="gmail.com">gmail.com</option>
-										<option value="naver.com">naver.com</option>
-										<option value="hanmail.net">hanmail.net</option>
-										<option value="daum.net">daum.net</option>
-										<option value="nate.com">nate.com</option>
-										<option value="yahoo.com">yahoo.com</option>
-										<option value="direct">직접입력</option>
-									</select>
+								<!-- 주소 -->
+								<div class="form-group">
+									<label class="personalSignUp-label required">주소</label>
+									<div class="personalSignUp-flex personalSignUp-gap10">
+										<input type="text" readonly class="form-control personalSignUp-input"
+											id="personalSignUp-zipcode" name="address.postcode" placeholder="우편번호"
+											required>
+										<button type="button"
+											class="btn btn-primary personalSignUp-btn personalSignUp-eqBtn"
+											id="personalSignUp-addrSearchBtn">주소 검색</button>
+									</div>
 								</div>
-								<div id="personalSignUp-email-domain-direct-wrap" class="hidden"
-									style="margin-top:8px;">
-									<input type="text" class="form-control personalSignUp-input"
-										id="personalSignUp-email-domain-direct" placeholder="예: mycompany.co.kr">
-								</div>
-							</div>
-
-							<!-- 주소 (플렉스, 간격 10px, 동일 높이 40px) -->
-							<div class="form-group">
-								<label class="personalSignUp-label required">주소</label>
-								<div class="personalSignUp-flex personalSignUp-gap10">
+								<div class="form-group">
 									<input type="text" readonly class="form-control personalSignUp-input"
-										id="personalSignUp-zipcode" placeholder="우편번호">
-									<button type="button"
-										class="btn btn-primary personalSignUp-btn personalSignUp-eqBtn"
-										id="personalSignUp-addrSearchBtn">주소 검색</button>
+										id="personalSignUp-roadAddress" name="address.roadAddress" placeholder="도로명주소"
+										required>
 								</div>
-							</div>
-							<div class="form-group">
-								<input type="text" readonly class="form-control personalSignUp-input"
-									id="personalSignUp-roadAddress" placeholder="도로명주소">
-							</div>
-							<div class="form-group">
-								<input type="text" class="form-control personalSignUp-input"
-									id="personalSignUp-detailAddress" placeholder="상세주소(동/호수)">
-							</div>
+								<div class="form-group">
+									<input type="text" class="form-control personalSignUp-input"
+										id="personalSignUp-detailAddress" name="address.detailAddress"
+										placeholder="상세주소(동/호수)" required>
+								</div>
 
-							<!-- 기관/업체명 -->
-							<div class="form-group">
-								<label for="personalSignUp-company"
-									class="personalSignUp-label required">기관명/업체명</label>
-								<input type="text" class="form-control personalSignUp-input" id="personalSignUp-company"
-									placeholder="기관/업체명을 입력하세요">
-							</div>
+								<!-- 기관/업체명 -->
+								<div class="form-group">
+									<label for="personalSignUp-company"
+										class="personalSignUp-label required">기관명/업체명</label>
+									<input type="text" class="form-control personalSignUp-input"
+										id="personalSignUp-company" name="organizationName" placeholder="기관/업체명을 입력하세요"
+										maxlength="200" required>
+								</div>
 
-							<button type="button"
-								class="btn btn-primary btn-lg btn-block personalSignUp-submit personalSignUp-btn"
-								id="personalSignUp-submitBtn">회원가입</button>
-						</section>
+								<button type="button"
+									class="btn btn-primary btn-lg btn-block personalSignUp-submit personalSignUp-btn"
+									id="personalSignUp-submitBtn">회원가입</button>
+
+							</section>
+						</form>
+						<!-- ★★★ form 끝 ★★★ -->
 
 					</div>
 				</div>
@@ -209,7 +240,6 @@
 		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
 	</div>
 
-	<!-- 공통 스크립트 -->
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 	<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 	<script src="/front/js/page/personalSignUp.js"></script>
