@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.dev.IbioScience.dto.member.auth.StaffCreateRequest;
 import com.dev.IbioScience.model.auth.Member;
+import com.dev.IbioScience.model.auth.enums.CustomerType;
 import com.dev.IbioScience.model.auth.enums.DealerType;
 import com.dev.IbioScience.model.auth.enums.MemberDomain;
 import com.dev.IbioScience.model.auth.enums.MemberRole;
@@ -30,7 +31,6 @@ public class AdminUserService {
 
     @Transactional
     public Long createStaff(StaffCreateRequest req) {
-        // 빈 값은 "-"로
         String position = blankToDash(req.getPosition());
         String tel      = blankToDash(req.getTel());
         String mobile   = blankToDash(req.getMobile());
@@ -46,14 +46,19 @@ public class AdminUserService {
                 .tel(tel)
                 .mobile(mobile)
                 .email(email)
-                .domain(MemberDomain.COMPANY)      // 내부 직원
-                .dealerType(DealerType.NONE)       // 직원은 딜러 아님
+
+                // ✅ 현재 프로젝트 관례 유지(사내직원 표기): domain은 기존대로 COMPANY 사용
+                .domain(MemberDomain.COMPANY)
+
+                // ✅ 신규 기준: 사내직원은 customerType = STAFF 로 고정
+                .customerType(CustomerType.STAFF)
+
+                .dealerType(DealerType.NONE)          // 직원은 딜러 아님
                 .role(role)
                 .status(MemberStatus.ACTIVE)
-                .mustChangePassword(true)          // 최초 로그인 시 변경 강제
+                .mustChangePassword(true)             // 최초 로그인 시 변경 강제
                 .useYn(Boolean.TRUE.equals(req.getUseYn()))
                 .joinedAt(LocalDateTime.now())
-                // ✅ 대표여부 반영 (null → false)
                 .isPrimary(Boolean.TRUE.equals(req.getIsPrimary()))
                 .build();
 

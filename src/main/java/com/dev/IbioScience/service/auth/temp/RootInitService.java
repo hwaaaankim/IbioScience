@@ -45,7 +45,7 @@ public class RootInitService {
                 .mobile(null)
                 .email("root@ibio.local")
                 .address(null) // 운영계정이라 주소 불필요
-                .domain(MemberDomain.PERSONAL)
+                .domain(MemberDomain.COMPANY)
                 .dealerType(DealerType.NONE)
                 .role(MemberRole.ROOT)
                 .status(MemberStatus.ACTIVE)

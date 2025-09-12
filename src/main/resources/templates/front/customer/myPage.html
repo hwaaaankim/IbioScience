@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head th:replace="fragments/front/common :: frontHead"></head>
 
@@ -17,19 +17,7 @@
 				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
 					<div class="producttab">
 						<div class="tabsslider vertical-tabs col-xs-12">
-							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
-								<li class="active"><a href="/myPage">마이페이지</a></li>
-								<li class="item_nonactive"><a href="/orderList">주문배송조회</a></li>
-								<li class="item_nonactive"><a href="/pointList">적립금내역</a></li>
-								<li class="item_nonactive"><a href="/estimateList">견적문의</a></li>
-								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
-								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
-								<li class="item_nonactive"><a href="/reviewList">나의상품후기</a></li>
-								<li class="item_nonactive"><a href="/exchangeReturnList">교환/반품신청</a></li>
-								<li class="item_nonactive"><a href="/inquiryList">1:1문의</a></li>
-								<li class="item_nonactive"><a href="/personalInfoUpdate">개인회원정보수정</a></li>
-								<li class="item_nonactive"><a href="/companyInfoUpdate">기업회원정보수정</a></li>
-							</ul>
+							<th:block th:replace="fragments/front/common :: myPageSideMenu"></th:block>
 							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3"
 								style="border-left:1px solid #ddd;">
 								<h3 class="community-title text-center">마이페이지</h3>
@@ -58,14 +46,34 @@
 
 										<div class="myPage-main-greet">한경애님&nbsp;<span>즐거운 쇼핑 되세요!</span></div>
 
-										<div class="myPage-main-actions">
+										<div class="myPage-main-actions" sec:authorize="isAuthenticated()">
+											<!-- ✅ 탈퇴요청: 항상 노출 -->
 											<a href="#" class="myPage-main-btn myPage-main-btn--green">
-												탈퇴문의 요청 <i class="fas fa-arrow-right" aria-hidden="true"></i>
+												탈퇴요청 <i class="fas fa-arrow-right" aria-hidden="true"></i>
 											</a>
-											<a href="#" class="myPage-main-btn myPage-main-btn--green">
-												입점상담 <i class="fas fa-arrow-right" aria-hidden="true"></i>
+
+											<!-- COMPANY_USER(법인 일반회원)만: 판매 딜러(SELLER) "입점신청" -->
+											<a href="#" id="btn-apply-seller"
+												class="myPage-main-btn myPage-main-btn--green" th:if="${#authentication != null
+           and #authentication.principal != null
+           and #authentication.principal.uiMemberTypeName == 'COMPANY_USER'}"
+												th:attr="data-member-id=${#authentication.principal.member.id}, data-target='SELLER'">
+												입점신청 <i class="fas fa-arrow-right" aria-hidden="true"></i>
 											</a>
+
+											<!-- PERSONAL_USER 또는 COMPANY_USER: 구매 딜러(BUYER) "딜러전환" -->
+											<a href="#" id="btn-apply-buyer"
+												class="myPage-main-btn myPage-main-btn--green" th:if="${#authentication != null
+           and #authentication.principal != null
+           and (#authentication.principal.uiMemberTypeName == 'PERSONAL_USER'
+                or #authentication.principal.uiMemberTypeName == 'COMPANY_USER')}"
+												th:attr="data-member-id=${#authentication.principal.member.id}, data-target='BUYER'">
+												딜러전환 <i class="fas fa-arrow-right" aria-hidden="true"></i>
+											</a>
+
 										</div>
+
+
 									</section>
 
 									<!-- 진행 중인 주문 -->
@@ -215,6 +223,103 @@
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
 	<script src="/front/js/page/opderTable.js"></script>
+	<script>
+		/* eslint-disable */
+		(function () {
+			"use strict";
+
+			// 공통: JSON POST 헬퍼 (비JSON 응답/네트워크 오류 대비)
+			async function postJson(url, body) {
+				const res = await fetch(url, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json;charset=UTF-8',
+						'Accept': 'application/json'
+					},
+					body: JSON.stringify(body)
+				});
+
+				let data = null;
+				try {
+					data = await res.json();
+				} catch (e) {
+					// 비JSON 응답일 경우 data는 null로 둠
+					data = null;
+				}
+
+				return {ok: res.ok, status: res.status, data};
+			}
+
+			// 버튼 바인딩 (BUYER / SELLER)
+			function bindApply(btnId) {
+				const el = document.getElementById(btnId);
+				if (!el) return;
+
+				el.addEventListener('click', async function (e) {
+					e.preventDefault();
+
+					const memberId = Number(this.getAttribute('data-member-id') || '0');
+					const target = String(this.getAttribute('data-target') || '').toUpperCase(); // BUYER / SELLER
+
+					if (!memberId || (target !== 'BUYER' && target !== 'SELLER')) {
+						alert('잘못된 요청입니다.');
+						return;
+					}
+
+					// 최종 확인
+					if (!confirm(`정말로 ${target === 'BUYER' ? '구매딜러' : '판매딜러'} 전환을 신청하시겠습니까?`)) {
+						return;
+					}
+
+					try {
+						const {ok, status, data} = await postJson('/api/customer/apply', {
+							memberId: memberId,
+							targetDealerType: target,
+							note: '' // 필요 시 메모 UI 추가
+						});
+
+						// 서버가 항상 JSON을 주도록 구현되었더라도, 방어적으로 메시지 구성
+						const serverMsg = (data && data.message) ? data.message : null;
+
+						if (ok && data && data.success) {
+							alert(serverMsg || '신청이 접수되었습니다.');
+							// 새로고침으로 최신 상태 반영
+							location.reload();
+							return;
+						}
+
+						// 비정상 케이스 처리(상태코드별 가독성 향상)
+						if (status === 401) {
+							alert(serverMsg || '로그인이 필요합니다.');
+							return;
+						}
+						if (status === 400) {
+							// 비즈니스 룰 위반(중복 대기 등)
+							alert(serverMsg || '요청이 거부되었습니다. 입력값/상태를 확인해 주세요.');
+							return;
+						}
+						if (status >= 500) {
+							alert(serverMsg || '신청 처리 중 서버 오류가 발생했습니다.');
+							return;
+						}
+
+						// 그 외 케이스(비JSON, 예상 밖 응답 등)
+						alert(serverMsg || '신청 처리 중 오류가 발생했습니다.');
+
+					} catch (err) {
+						// 네트워크/기타 예외
+						alert('신청 처리 중 오류가 발생했습니다.');
+					}
+				});
+			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				bindApply('btn-apply-buyer');
+				bindApply('btn-apply-seller');
+			});
+		})();
+	</script>
+
 </body>
 
 </html>

@@ -1303,6 +1303,46 @@ body.myPage-common-modal-open {
 	}
 }
 
+/* 데스크톱 기본 (지금처럼 고정폭 유지) */
+.pointList-table-col-date {
+	width: 120px;
+}
+
+.pointList-table-td-date {
+	white-space: nowrap;
+}
+
+/* 모바일 대응 (991px 이하) */
+@media (max-width: 991px) {
+	.pointList-table colgroup col {
+		width: auto !important;
+		/* 모든 col 고정폭 해제 */
+	}
+
+	/* 날짜, 포인트, 유효기간 열은 최소 폭만 확보 */
+	.pointList-table-col-date {
+		width: 80px !important;
+	}
+
+	.pointList-table td:nth-child(3) {
+		width: 80px !important;
+	}
+
+	/* 포인트 */
+	.pointList-table td:nth-child(4) {
+		width: 100px !important;
+	}
+
+	/* 유효기간 */
+
+	/* 내용 열은 자동으로 남는 공간 다 차지 */
+	.pointList-table td.pointList-table-td-content {
+		width: auto !important;
+		white-space: normal;
+		/* 줄바꿈 허용 */
+	}
+}
+
 /* Point List End */
 
 /* Estimate List Start */
@@ -1605,10 +1645,12 @@ body.myPage-common-modal-open {
 	}
 
 	.inquiryList-control {
+		width: calc(50% - 4px);
 		min-width: 120px
 	}
 
 	#inquiryList-keyword {
+		width: calc(100% - 65px);
 		min-width: 140px
 	}
 }
@@ -1749,11 +1791,13 @@ body.myPage-common-modal-open {
 	}
 
 	.exchangeReturnList-control {
+		width: calc(50% - 4px);
 		min-width: 120px
 	}
 
 	#exchangeReturnList-keyword {
-		min-width: 140px
+		min-width: 140px;
+		width: calc(100% - 65px);
 	}
 }
 
@@ -2841,6 +2885,12 @@ body.myPage-common-modal-open {
 	margin: 0 0 12px;
 }
 
+@media(max-width:991px) {
+	.reviewList-tab {
+		width: calc(50% - 4px);
+	}
+}
+
 .reviewList-tab {
 	height: 42px;
 	line-height: 42px;
@@ -3067,6 +3117,7 @@ body.myPage-common-modal-open {
 
 	/* 필터 간격 */
 	.reviewList-filter {
+		justify-content: center;
 		gap: 6px;
 	}
 
@@ -3083,6 +3134,11 @@ body.myPage-common-modal-open {
 @media (max-width: 575px) {
 	.reviewList-control {
 		min-width: 120px;
+		width: calc(50% - 4px);
+	}
+
+	#reviewList-query {
+		width: calc(100% - 65px);
 	}
 }
 

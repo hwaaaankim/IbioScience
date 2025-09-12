@@ -111,36 +111,61 @@
 				<!-- 오른쪽 아이콘/텍스트 영역 -->
 				<div class="middle-right col-lg-3 col-md-3 col-sm-3">
 					<ul class="front-header-quick hidden-md hidden-sm hidden-xs">
-						<li class="front-header-item">
-							<a href="/login" class="front-header-link" title="로그인 or 회원가입">
-								<i class="fa fa-shopping-bag" aria-hidden="true"></i>
-								<span class="front-header-text">로그인 or 회원가입</span>
+
+						<!-- 비로그인 영역: 로그인 / 회원가입 -->
+						<li class="front-header-item" sec:authorize="!isAuthenticated()">
+							<a href="/signIn" class="front-header-link" title="로그인">
+								<i class="fa fa-sign-in" aria-hidden="true"></i>
+								<span class="front-header-text">로그인</span>
 							</a>
 						</li>
+						<li class="front-header-item" sec:authorize="!isAuthenticated()">
+							<a href="/personalSignUp" class="front-header-link" title="회원가입">
+								<i class="fa fa-user-plus" aria-hidden="true"></i>
+								<span class="front-header-text">회원가입</span>
+							</a>
+						</li>
+
+						<li class="front-header-item" sec:authorize="isAuthenticated()">
+							<!-- 보안상 POST 로그아웃 권장 -->
+							<form id="logoutForm-desktop" th:action="@{/logout}" method="post" style="display:none;">
+							</form>
+							<a href="#" class="front-header-link" title="로그아웃" id="logoutBtn-desktop">
+								<i class="fa fa-sign-out" aria-hidden="true"></i>
+								<span class="front-header-text">로그아웃</span>
+							</a>
+						</li>
+
+						<!-- 이하 메뉴는 로그인 필요 -->
 						<li class="front-header-item">
-							<a href="/cart" class="front-header-link" title="장바구니">
+							<a href="/customer/cart" class="front-header-link require-auth" title="장바구니"
+								data-require-auth="true">
 								<i class="fa fa-shopping-cart" aria-hidden="true"></i>
 								<span class="front-header-text">장바구니</span>
 							</a>
 						</li>
 						<li class="front-header-item">
-							<a href="/wishlist" class="front-header-link" title="찜목록">
+							<a href="/customer/wishList" class="front-header-link require-auth" title="찜목록"
+								data-require-auth="true">
 								<i class="fa fa-heart" aria-hidden="true"></i>
 								<span class="front-header-text">찜목록</span>
 							</a>
 						</li>
 						<li class="front-header-item">
-							<a href="/orders/track" class="front-header-link" title="주문배송조회">
+							<a href="/customer/orderList" class="front-header-link require-auth" title="주문조회"
+								data-require-auth="true">
 								<i class="fa fa-truck" aria-hidden="true"></i>
-								<span class="front-header-text">주문배송조회</span>
+								<span class="front-header-text">주문조회</span>
 							</a>
 						</li>
-						<li class="front-header-item">
-							<a href="/mypage" class="front-header-link" title="마이페이지">
+						<li class="front-header-item" sec:authorize="isAuthenticated()">
+							<a th:href="@{'/customer/myPage/' + ${#authentication.principal.member.id}}"
+								class="front-header-link require-auth" title="마이페이지" data-require-auth="true">
 								<i class="fa fa-user" aria-hidden="true"></i>
 								<span class="front-header-text">마이페이지</span>
 							</a>
 						</li>
+
 					</ul>
 				</div>
 			</div>
@@ -220,7 +245,7 @@
 																		<li><a class="subcategory_item"
 																				href="/paymentEnd">결제완료</a></li>
 																		<li><a class="subcategory_item"
-																				href="/receipt">영수증</a></li>		
+																				href="/receipt">영수증</a></li>
 																	</ul>
 																</div>
 																<div class="col-md-3">
@@ -251,7 +276,7 @@
 																		<li><a class="subcategory_item"
 																				href="/companyInfoUpdate">개인회원정보수정(C)</a>
 																		<li><a class="subcategory_item"
-																				href="/personalInfoUpdate">기업회원정보수정(C)</a>		
+																				href="/personalInfoUpdate">기업회원정보수정(C)</a>
 																		<li><a class="subcategory_item"
 																				href="/personalSignUp">개인회원가입(C)</a>
 																		</li>
@@ -327,68 +352,97 @@
 					<div class="ibio-index-m-header-title">(주)아이바이오사이언스</div>
 					<button id="ibio-index-m-close" class="ibio-index-m-close" aria-label="닫기">×</button>
 				</div>
+
 				<div class="ibio-index-m-card-mid">
-					<div class="ibio-index-m-avatar"><img src="/front/image/sample/100-100.png" alt=""></div>
-					<div class="ibio-index-m-hello">
+					<div class="ibio-index-m-avatar">
+						<img src="/front/image/sample/100-100.png" alt="">
+					</div>
+
+					<!-- 비로그인 메시지 -->
+					<div class="ibio-index-m-hello" sec:authorize="!isAuthenticated()">
 						<div>비회원입니다.</div>
 						<div>로그인을 해주세요.</div>
 					</div>
-					<div class="ibio-index-m-login">
-						<button class="ibio-index-m-btn ibio-index-m-btn-primary">로그인</button>
-						<button class="ibio-index-m-btn">회원가입</button>
+
+					<!-- 로그인 환영 메시지 (표시명은 필요 시 Principal 커스터마이즈) -->
+					<div class="ibio-index-m-hello" sec:authorize="isAuthenticated()">
+						<div><strong sec:authentication="name">회원</strong>님 반갑습니다.</div>
+						<div>즐거운 쇼핑 되세요!</div>
 					</div>
+
+					<!-- 비로그인: 로그인/회원가입 버튼 -->
+					<div class="ibio-index-m-login" sec:authorize="!isAuthenticated()">
+						<a class="ibio-index-m-btn ibio-index-m-btn-primary" href="/signIn">로그인</a>
+						<a class="ibio-index-m-btn" href="/personalSignUp">회원가입</a>
+					</div>
+
+					<!-- 로그인: 로그아웃 버튼 -->
+					<div class="ibio-index-m-login" sec:authorize="isAuthenticated()">
+						<form id="logoutForm-mobile" th:action="@{/logout}" method="post" style="display:none;"></form>
+						<button class="ibio-index-m-btn ibio-index-m-btn-primary" id="logoutBtn-mobile">로그아웃</button>
+					</div>
+
 				</div>
+
+				<!-- 빠른 메뉴: 장바구니/주문/관심상품 (로그인 필요) -->
 				<div class="ibio-index-m-quick">
-					<div class="ibio-index-m-qitem">
+					<a class="ibio-index-m-qitem require-auth" href="/customer/cart" data-require-auth="true"
+						title="장바구니">
 						<div class="ibio-index-m-qnum">0건</div>
 						<div>장바구니</div>
-					</div>
-					<div class="ibio-index-m-qitem">
+					</a>
+					<a class="ibio-index-m-qitem require-auth" href="/customer/orderList" data-require-auth="true"
+						title="주문리스트">
 						<div class="ibio-index-m-qnum">0건</div>
-						<div>주문내역</div>
-					</div>
-					<div class="ibio-index-m-qitem">
+						<div>주문리스트</div>
+					</a>
+					<a class="ibio-index-m-qitem require-auth" href="/customer/wishList" data-require-auth="true"
+						title="관심상품">
 						<div class="ibio-index-m-qnum">0건</div>
 						<div>관심상품</div>
-					</div>
-				</div>
-				<div class="ibio-index-m-quick">
-					<div class="ibio-index-m-qitem">
-						<div class="ibio-index-m-qnum"><i class="fas fa-user-circle"></i></div>
-						<div>마이페이지</div>
-					</div>
-					<div class="ibio-index-m-qitem">
-						<div class="ibio-index-m-qnum"><i class="fas fa-file-invoice-dollar"></i></div>
-						<div>견적문의</div>
-					</div>
-					<div class="ibio-index-m-qitem">
-						<div class="ibio-index-m-qnum"><i class="fas fa-headset"></i></div>
-						<div>1:1문의</div>
-					</div>
+					</a>
 				</div>
 
 				<div class="ibio-index-m-quick">
-					<div class="ibio-index-m-qitem">
+					<a class="ibio-index-m-qitem require-auth" href="/customer/myPage" data-require-auth="true"
+						title="마이페이지">
+						<div class="ibio-index-m-qnum"><i class="fas fa-user-circle"></i></div>
+						<div>마이페이지</div>
+					</a>
+					<a class="ibio-index-m-qitem require-auth" href="/customer/estimate" data-require-auth="true"
+						title="견적문의">
+						<div class="ibio-index-m-qnum"><i class="fas fa-file-invoice-dollar"></i></div>
+						<div>견적문의</div>
+					</a>
+					<a class="ibio-index-m-qitem require-auth" href="/customer/inquiry" data-require-auth="true"
+						title="1:1문의">
+						<div class="ibio-index-m-qnum"><i class="fas fa-headset"></i></div>
+						<div>1:1문의</div>
+					</a>
+				</div>
+
+				<div class="ibio-index-m-quick">
+					<!-- 이벤트는 전체 접근 허용이라면 require-auth 제거 가능. 여기선 로그인 불필요로 가정 -->
+					<a class="ibio-index-m-qitem" href="/eventList" title="이벤트">
 						<div class="ibio-index-m-qnum"><i class="fas fa-gift"></i></div>
 						<div>이벤트</div>
-					</div>
-					<div class="ibio-index-m-qitem">
+					</a>
+					<a class="ibio-index-m-qitem" href="/dealerShop" title="딜러샾">
 						<div class="ibio-index-m-qnum"><i class="fas fa-store"></i></div>
 						<div>딜러샾</div>
-					</div>
-					<div class="ibio-index-m-qitem">
+					</a>
+					<a class="ibio-index-m-qitem" href="/dealerShop" title="브랜드">
 						<div class="ibio-index-m-qnum"><i class="fas fa-tags"></i></div>
 						<div>브랜드</div>
-					</div>
+					</a>
 				</div>
 			</div>
 
-			<!-- 카테고리 아코디언 -->
+			<!-- 카테고리/기타 섹션은 기존 동일 -->
 			<div class="ibio-index-m-section">
 				<ul id="ibio-index-m-large" class="ibio-index-m-list"></ul>
 			</div>
 
-			<!-- 문의/고객센터 섹션 -->
 			<div class="ibio-index-m-etc">
 				<div class="ibio-index-m-ask">
 					<div class="ibio-index-m-ask-title">문의하기</div>
@@ -400,25 +454,24 @@
 					<div class="ibio-index-m-call-phone">02-743-7190</div>
 					<div class="ibio-index-m-call-desc">평일 : 10:00 ~ 17:00 / 토요일, 일요일, 공휴일 휴무</div>
 				</div>
+				<button id="ibio-index-brand-fab" class="ibio-index-brand-fab" title="브랜드 선택" disabled>
+					<i class="fa fa-tags"></i>
+				</button>
 			</div>
 
-			<!-- 모바일: 브랜드 FAB -->
-			<button id="ibio-index-brand-fab" class="ibio-index-brand-fab" title="브랜드 선택" disabled>
-				<i class="fa fa-tags"></i>
-			</button>
-		</div>
-
-		<!-- 모바일: 브랜드 모달 -->
-		<div id="ibio-index-brand-modal" class="ibio-index-brand-modal" aria-hidden="true">
-			<div class="ibio-index-brand-modal-dialog">
-				<div class="ibio-index-brand-modal-head">
-					<strong>브랜드 선택</strong>
-					<button id="ibio-index-brand-modal-close" class="ibio-index-close" aria-label="닫기">×</button>
+			<!-- 모바일: 브랜드 모달 기존 동일 -->
+			<div id="ibio-index-brand-modal" class="ibio-index-brand-modal" aria-hidden="true">
+				<div class="ibio-index-brand-modal-dialog">
+					<div class="ibio-index-brand-modal-head">
+						<strong>브랜드 선택</strong>
+						<button id="ibio-index-brand-modal-close" class="ibio-index-close" aria-label="닫기">×</button>
+					</div>
+					<div class="ibio-index-brand-modal-body" id="ibio-index-brand-modal-body"></div>
 				</div>
-				<div class="ibio-index-brand-modal-body" id="ibio-index-brand-modal-body"></div>
 			</div>
 		</div>
 	</div>
+
 
 	<!-- ===== 모바일: 전체폭 검색 모달 ===== -->
 	<div id="ibio-index-m-search-overlay" class="ibio-index-m-search-overlay" aria-hidden="true">
@@ -554,7 +607,7 @@
 			<div class="col-12 col-md-8">
 				<div class="front-footer-company">
 					<div>상호명 : (주)아이바이오사이언스</div>
-					<div>대표자명 : 고종희 | 사업자등록번호 : 000-00-00000 | 통신판매업신고번호 : 제20240-서울종로-000호</div>
+					<div>대표자명 : 고창욱 | 사업자등록번호 : 000-00-00000 | 통신판매업신고번호 : 제20240-서울종로-000호</div>
 					<div>주소 : 서울 종로구 돈화문로 11가길 59, 1703호(익선동, 현대뜨레비앙) | 전화번호 : 02-743-7190 | 팩스 : 02-743-7191</div>
 					<div>이메일 : ibiosci@naver.com</div>
 					<div class="front-footer-copy">Copyrights ⓒ2025 All Rights Reserved by (주)아이바이오</div>
@@ -567,7 +620,6 @@
 </footer>
 
 <th:block th:fragment="communityBtnGroup">
-	<!-- 모바일 전용 커뮤니티 메뉴 버튼 -->
 	<!-- 모바일 전용 커뮤니티 메뉴 버튼 -->
 	<button type="button" class="community-common-fab" aria-controls="community-common-modal" aria-expanded="false"
 		aria-label="커뮤니티 메뉴 열기">
@@ -649,7 +701,11 @@
 		})();
 	</script>
 </th:block>
-<th:block th:fragment="myPageBtnGroup">
+
+<!-- ========================= 2) 버튼 그룹: myPageBtnGroup ========================= -->
+<th:block th:fragment="myPageBtnGroup" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 	<!-- 모바일 전용 마이페이지 메뉴 버튼 -->
 	<button type="button" class="myPage-common-fab" aria-controls="myPage-common-modal" aria-expanded="false"
 		aria-label="마이페이지 메뉴 열기">
@@ -667,46 +723,77 @@
 
 			<h3 id="myPage-common-modal-title" class="myPage-common-title">마이페이지</h3>
 
-			<nav class="myPage-common-menu" aria-label="마이페이지 메뉴">
-				<!-- TODO: href 경로는 실제 서비스 URL에 맞게 교체하세요 -->
-				<a href="#" class="myPage-common-item">
+			<!-- ⚠️ active 미적용: data-basepath/JS 없음 -->
+			<nav class="myPage-common-menu" aria-label="마이페이지 메뉴" xmlns:th="http://www.thymeleaf.org"
+				xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:with="
+             mem=${#authentication != null ? #authentication?.principal?.member : null},
+             memId=${mem != null ? mem.id : 0},
+             memTypeName=${#authentication != null ? #authentication?.principal?.uiMemberTypeName : ''}">
+
+				<a th:href="@{|/customer/myPage/${memId}|}" class="myPage-common-item">
 					<i class="fas fa-user-circle" aria-hidden="true"></i><span>마이페이지</span>
 				</a>
-				<a href="#" class="myPage-common-item">
+
+				<a th:href="@{|/customer/orderList/${memId}|}" class="myPage-common-item">
 					<i class="fas fa-shipping-fast" aria-hidden="true"></i><span>주문배송조회</span>
 				</a>
-				<a href="#" class="myPage-common-item">
+
+				<a th:href="@{|/customer/pointList/${memId}|}" class="myPage-common-item">
 					<i class="fas fa-coins" aria-hidden="true"></i><span>적립금내역</span>
 				</a>
-				<a href="#" class="myPage-common-item">
+
+				<a th:href="@{|/customer/estimateList/${memId}|}" class="myPage-common-item">
 					<i class="fas fa-file-invoice-dollar" aria-hidden="true"></i><span>견적문의</span>
 				</a>
-				<a href="#" class="myPage-common-item">
+
+				<a th:href="@{|/customer/couponList/${memId}|}" class="myPage-common-item">
 					<i class="fas fa-ticket-alt" aria-hidden="true"></i><span>마이쿠폰</span>
 				</a>
-				<a href="#" class="myPage-common-item">
+
+				<a th:href="@{|/customer/wishList/${memId}|}" class="myPage-common-item">
 					<i class="fas fa-heart" aria-hidden="true"></i><span>관심상품</span>
 				</a>
-				<a href="#" class="myPage-common-item">
+
+				<a th:href="@{|/customer/reviewList/${memId}|}" class="myPage-common-item">
 					<i class="fas fa-star" aria-hidden="true"></i><span>나의상품후기</span>
 				</a>
-				<a href="#" class="myPage-common-item">
+
+				<a th:href="@{|/customer/exchangeReturnList/${memId}|}" class="myPage-common-item">
 					<i class="fas fa-exchange-alt" aria-hidden="true"></i><span>교환-반품신청</span>
 				</a>
-				<a href="#" class="myPage-common-item">
+
+				<a th:href="@{|/customer/inquiryList/${memId}|}" class="myPage-common-item">
 					<i class="fas fa-headset" aria-hidden="true"></i><span>1:1문의</span>
 				</a>
-				<a href="#" class="myPage-common-item">
-					<i class="fas fa-user-cog" aria-hidden="true"></i><span>회원정보수정</span>
+
+				<!-- 직원 -->
+				<a th:if="${memTypeName == 'STAFF'}" th:href="@{|/admin/common/memberDetail/${memId}|}"
+					class="myPage-common-item">
+					<i class="fas fa-user-cog" aria-hidden="true"></i><span>직원정보수정</span>
+				</a>
+
+				<!-- 개인 -->
+				<a th:if="${memTypeName == 'PERSONAL_USER' or memTypeName == 'PERSONAL_BUYER_DEALER'}"
+					th:href="@{|/customer/personalInfoUpdate/${memId}|}" class="myPage-common-item">
+					<i class="fas fa-user-cog" aria-hidden="true"></i><span>일반회원정보수정</span>
+				</a>
+
+				<!-- 기업 -->
+				<a th:if="${memTypeName == 'COMPANY_USER' or memTypeName == 'COMPANY_BUYER_DEALER' or memTypeName == 'COMPANY_SELLER_DEALER'}"
+					th:href="@{|/customer/companyInfoUpdate/${memId}|}" class="myPage-common-item">
+					<i class="fas fa-user-cog" aria-hidden="true"></i><span>기업회원정보수정</span>
 				</a>
 			</nav>
 		</div>
 	</div>
 
+	<!-- 모달 열고닫기만 처리 (active 스크립트 없음) -->
 	<script>
 		(function () {
 			var fab = document.querySelector('.myPage-common-fab');
 			var modal = document.getElementById('myPage-common-modal');
+			if (!fab || !modal) return;
+
 			var overlay = modal.querySelector('.myPage-common-overlay');
 			var closeBtns = modal.querySelectorAll('[data-myPage-common-close]');
 			var dialog = modal.querySelector('.myPage-common-dialog');
@@ -715,13 +802,13 @@
 				modal.setAttribute('aria-hidden', 'false');
 				fab.setAttribute('aria-expanded', 'true');
 				document.body.classList.add('myPage-common-modal-open');
-				setTimeout(function () {dialog.focus && dialog.focus();}, 0);
+				setTimeout(function () {dialog && dialog.focus && dialog.focus();}, 0);
 			}
 			function closeModal() {
 				modal.setAttribute('aria-hidden', 'true');
 				fab.setAttribute('aria-expanded', 'false');
 				document.body.classList.remove('myPage-common-modal-open');
-				setTimeout(function () {fab.focus && fab.focus();}, 0);
+				setTimeout(function () {fab && fab.focus && fab.focus();}, 0);
 			}
 
 			// FAB 클릭 -> 열기 (991px 이하에서만)
@@ -730,7 +817,7 @@
 			});
 
 			// 오버레이 & X 버튼 -> 닫기
-			overlay.addEventListener('click', closeModal);
+			overlay && overlay.addEventListener('click', closeModal);
 			closeBtns.forEach(function (btn) {btn.addEventListener('click', closeModal);});
 
 			// ESC 닫기
@@ -746,6 +833,88 @@
 			});
 		})();
 	</script>
+</th:block>
+
+<!-- ========================= 1) 사이드 탭: myPageSideMenu ========================= -->
+<th:block th:fragment="myPageSideMenu" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+	<th:block th:with="
+      mem=${#authentication != null ? #authentication?.principal?.member : null},
+      memId=${mem != null ? mem.id : 0},
+      memTypeName=${#authentication != null ? #authentication?.principal?.uiMemberTypeName : ''}">
+
+		<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n" sec:authorize="isAuthenticated()">
+			<li class="item_nonactive">
+				<a th:href="@{|/customer/myPage/${memId}|}" data-basepath="/customer/myPage">마이페이지</a>
+			</li>
+			<li class="item_nonactive">
+				<a th:href="@{|/customer/orderList/${memId}|}" data-basepath="/customer/orderList">주문배송조회</a>
+			</li>
+			<li class="item_nonactive">
+				<a th:href="@{|/customer/pointList/${memId}|}" data-basepath="/customer/pointList">적립금내역</a>
+			</li>
+			<li class="item_nonactive">
+				<a th:href="@{|/customer/estimateList/${memId}|}" data-basepath="/customer/estimateList">견적문의</a>
+			</li>
+			<li class="item_nonactive">
+				<a th:href="@{|/customer/couponList/${memId}|}" data-basepath="/customer/couponList">마이쿠폰</a>
+			</li>
+			<li class="item_nonactive">
+				<a th:href="@{|/customer/wishList/${memId}|}" data-basepath="/customer/wishList">관심상품</a>
+			</li>
+			<li class="item_nonactive">
+				<a th:href="@{|/customer/reviewList/${memId}|}" data-basepath="/customer/reviewList">나의상품후기</a>
+			</li>
+			<li class="item_nonactive">
+				<a th:href="@{|/customer/exchangeReturnList/${memId}|}"
+					data-basepath="/customer/exchangeReturnList">교환/반품신청</a>
+			</li>
+			<li class="item_nonactive">
+				<a th:href="@{|/customer/inquiryList/${memId}|}" data-basepath="/customer/inquiryList">1:1문의</a>
+			</li>
+
+			<!-- 직원(사내) → /admin/common/memberDetail/{id} -->
+			<li class="item_nonactive" th:if="${memTypeName == 'STAFF'}">
+				<a th:href="@{|/admin/common/memberDetail/${memId}|}"
+					data-basepath="/admin/common/memberDetail">직원정보수정</a>
+			</li>
+
+			<!-- 개인 (개인 일반/개인 구매딜러) -->
+			<li class="item_nonactive"
+				th:if="${memTypeName == 'PERSONAL_USER' or memTypeName == 'PERSONAL_BUYER_DEALER'}">
+				<a th:href="@{|/customer/personalInfoUpdate/${memId}|}"
+					data-basepath="/customer/personalInfoUpdate">개인회원정보수정</a>
+			</li>
+
+			<!-- 기업 (법인 일반/법인 구매딜러/법인 판매+구매딜러) -->
+			<li class="item_nonactive"
+				th:if="${memTypeName == 'COMPANY_USER' or memTypeName == 'COMPANY_BUYER_DEALER' or memTypeName == 'COMPANY_SELLER_DEALER'}">
+				<a th:href="@{|/customer/companyInfoUpdate/${memId}|}"
+					data-basepath="/customer/companyInfoUpdate">기업회원정보수정</a>
+			</li>
+		</ul>
+
+		<!-- ✅ active 처리: 사이드 탭(m-d-n)만 대상 -->
+		<script>
+			document.addEventListener('DOMContentLoaded', function () {
+				var path = window.location.pathname;
+				document.querySelectorAll('.m-d-n a[data-basepath]').forEach(function (a) {
+					var base = a.getAttribute('data-basepath');
+					if (!base) return;
+					if (path.indexOf(base) !== -1) {
+						a.classList.add('active');
+						var li = a.closest('li');
+						if (li) {
+							li.classList.remove('item_nonactive');
+							li.classList.add('active');
+						}
+					}
+				});
+			});
+		</script>
+
+	</th:block>
 </th:block>
 
 <th:block th:fragment="frontScript">
@@ -770,6 +939,45 @@
 	<script type="text/javascript" src="/front/js/themejs/addtocart.js"></script>
 	<script type="text/javascript" src="/front/js/ibio-index-megamenu.js"></script>
 	<script type="text/javascript" src="/front/js/page/footer.js"></script>
+	<script th:inline="javascript">
+		// 전역: 로그인 여부 주입
+		window.__isAuthenticated = /*[[${#authorization.expression('isAuthenticated()')}]]*/ false;
+	</script>
+
+	<script>
+		(function () {
+			"use strict";
+			// 로그아웃 버튼 처리(데스크톱/모바일)
+			var logoutBtnDesktop = document.getElementById('logoutBtn-desktop');
+			var logoutFormDesktop = document.getElementById('logoutForm-desktop');
+			if (logoutBtnDesktop && logoutFormDesktop) {
+				logoutBtnDesktop.addEventListener('click', function (e) {
+					e.preventDefault();
+					logoutFormDesktop.submit();
+				});
+			}
+			var logoutBtnMobile = document.getElementById('logoutBtn-mobile');
+			var logoutFormMobile = document.getElementById('logoutForm-mobile');
+			if (logoutBtnMobile && logoutFormMobile) {
+				logoutBtnMobile.addEventListener('click', function (e) {
+					e.preventDefault();
+					logoutFormMobile.submit();
+				});
+			}
+
+			// 로그인 필요 메뉴 클릭 차단 공통 처리
+			function onRequireAuthClick(e) {
+				if (!window.__isAuthenticated) {
+					e.preventDefault();
+					alert('로그인 후 이용해 주세요.');
+					window.location.href = '/signIn';
+				}
+			}
+			document.querySelectorAll('.require-auth,[data-require-auth="true"]').forEach(function (el) {
+				el.addEventListener('click', onRequireAuthClick);
+			});
+		})();
+	</script>
 
 </th:block>
 </body>

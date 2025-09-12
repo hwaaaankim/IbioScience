@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.dev.IbioScience.model.auth.embedded.Address;
 import com.dev.IbioScience.model.auth.embedded.BaseTimeEntity;
+import com.dev.IbioScience.model.auth.enums.CustomerType;
 import com.dev.IbioScience.model.auth.enums.DealerType;
 import com.dev.IbioScience.model.auth.enums.MemberDomain;
 import com.dev.IbioScience.model.auth.enums.MemberRole;
@@ -39,7 +40,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "member", uniqueConstraints = {
-		@UniqueConstraint(name = "uk_member_login_id", columnNames = "login_id") }, indexes = {
+		@UniqueConstraint(name = "uk_member_login_id", columnNames = "usename") }, indexes = {
 				@Index(name = "ix_member_email", columnList = "email"),
 				@Index(name = "ix_member_role", columnList = "role"),
 				@Index(name = "ix_member_status", columnList = "status") })
@@ -82,6 +83,15 @@ public class Member extends BaseTimeEntity {
 	@Column(nullable = false, length = 20)
 	private MemberDomain domain;
 
+	 /**
+     * 소비자 유형: 개인/기업
+     * - domain == CUSTOMER 일 때만 유효
+     * - STAFF인 경우 STAFF
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "customer_type", length = 20)
+    private CustomerType customerType; // ✅ 신규
+	
 	/** 딜러 유형(NONE/BUYER/SELLER) */
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)

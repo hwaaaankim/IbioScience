@@ -151,6 +151,24 @@ xmlns:th="http://www.thymeleaf.org">
 						<li class="nav-item">
 							<a 
 								class="nav-link menu-link" 
+								href="#sidebarCustomerDashboard" 
+								data-bs-toggle="collapse"
+								role="button" 
+								aria-expanded="false" 
+								aria-controls="sidebarCustomerDashboard">
+								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[고객관리]</span>
+							</a>
+							<div class="collapse menu-dropdown" id="sidebarCustomerDashboard">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item">
+										<a href="/admin/root/memberManager" class="nav-link" data-key="t-ecommerce"> [고객리스트] </a>
+									</li>
+								</ul>
+							</div>
+						</li>
+						<li class="nav-item">
+							<a 
+								class="nav-link menu-link" 
 								href="#sidebarUserDashboard" 
 								data-bs-toggle="collapse"
 								role="button" 

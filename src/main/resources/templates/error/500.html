@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/front/common :: frontHead"></head>
+
+<body class="common-home res layout-1">
+	<div class="main-container container" style="padding:40px 0;">
+		<h2>서버 에러가 발생하였습니다. (500)</h2>
+		<p th:text="${message}">접근 권한이 없습니다.</p>
+		<p><small th:text="'경로: ' + ${path}"></small></p>
+		<div style="margin-top:16px;">
+			<a href="/" class="btn btn-primary">홈으로</a>
+			<a href="javascript:history.back();" class="btn btn-default">이전 페이지</a>
+		</div>
+	</div>
+</body>
+
+</html>

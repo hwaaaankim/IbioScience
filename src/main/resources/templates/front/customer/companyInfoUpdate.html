@@ -4,12 +4,12 @@
 <head th:replace="fragments/front/common :: frontHead"></head>
 
 <body class="common-home res layout-1">
-
 	<div id="wrapper" class="wrapper-fluid banners-effect-3">
-		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<header id="header" class="typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+
 		<div class="main-container container">
 			<ul class="breadcrumb">
-				<li><a href="#"><i class="fa fa-home"></i></a></li>
+				<li><a href="/"><i class="fa fa-home"></i></a></li>
 				<li><a href="#">마이페이지</a></li>
 			</ul>
 
@@ -17,25 +17,26 @@
 				<div id="content" class="col-md-12 col-sm-12 col-xs-12">
 					<div class="producttab">
 						<div class="tabsslider vertical-tabs col-xs-12">
-							<ul class="nav nav-tabs col-lg-2 col-md-2 col-sm-2 m-d-n">
-								<li class="item_nonactive"><a href="/myPage">마이페이지</a></li>
-								<li class="item_nonactive"><a href="/qna">주문배송조회</a></li>
-								<li class="item_nonactive"><a href="/pointList">적립금내역</a></li>
-								<li class="item_nonactive"><a href="/estimateList">견적문의</a></li>
-								<li class="item_nonactive"><a href="/couponList">마이쿠폰</a></li>
-								<li class="item_nonactive"><a href="/wishList">관심상품</a></li>
-								<li class="item_nonactive"><a href="/reviewList">나의상품후기</a></li>
-								<li class="item_nonactive"><a href="/exchangeReturnList">교환/반품신청</a></li>
-								<li class="item_nonactive"><a href="/inquiryList">1:1문의</a></li>
-								<li class="item_nonactive"><a href="/personalInfoUpdate">개인회원정보수정</a></li>
-								<li class="active"><a href="/companyInfoUpdate">기업회원정보수정</a></li>
-							</ul>
+							<th:block th:replace="fragments/front/common :: myPageSideMenu"></th:block>
+
 							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3"
 								style="border-left:1px solid #ddd;">
 								<h3 class="community-title text-center">기업회원정보수정</h3>
+
 								<div class="myPage-main-area">
 									<section class="companyInfoUpdate-section">
-										<form id="companyInfoUpdate-form" novalidate>
+										<!-- ✅ 폼: 서버 처리 URL + 멀티파트 -->
+										<form id="companyInfoUpdate-form"
+											th:action="@{'/customer/companyInfoUpdate/' + ${memberId}}" method="post"
+											enctype="multipart/form-data" novalidate>
+
+											<!-- ===== hidden 기본값 ===== -->
+											<input type="hidden" name="memberId" th:value="${memberId}">
+											<input type="hidden" name="deleteExistingBizReg" id="__deleteExistingBizReg"
+												value="false">
+											<input type="hidden" name="usernameDupChecked" id="__usernameDupChecked"
+												value="false">
+
 											<!-- ===== 회원 정보 ===== -->
 											<div class="companyInfoUpdate-fieldset">
 												<h4 class="companyInfoUpdate-legend">회원 정보</h4>
@@ -50,7 +51,9 @@
 														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
 														<div class="companyInfoUpdate-inline">
 															<input type="text" id="companyInfoUpdate-username"
-																class="form-control companyInfoUpdate-input" required>
+																name="username"
+																class="form-control companyInfoUpdate-input"
+																th:value="${init.username}" required>
 															<button type="button"
 																class="btn companyInfoUpdate-btn secondary"
 																id="companyInfoUpdate-dupCheckBtn">중복검색</button>
@@ -66,39 +69,43 @@
 													</label>
 													<div
 														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
-														<input type="text" id="companyInfoUpdate-name"
-															class="form-control companyInfoUpdate-input" required>
+														<input type="text" id="companyInfoUpdate-name" name="name"
+															class="form-control companyInfoUpdate-input"
+															th:value="${init.name}" required>
 													</div>
 												</div>
 
-												<!-- 비밀번호 -->
+												<!-- 비밀번호 (선택) -->
 												<div class="row companyInfoUpdate-row">
 													<label
 														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
-														비밀번호 <span class="companyInfoUpdate-required">*</span>
+														비밀번호
 													</label>
 													<div
 														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
 														<input type="password" id="companyInfoUpdate-password"
-															class="form-control companyInfoUpdate-input" required>
+															name="password"
+															class="form-control companyInfoUpdate-input">
 													</div>
 												</div>
 
-												<!-- 비밀번호 확인 -->
+												<!-- 비밀번호 확인 (선택) -->
 												<div class="row companyInfoUpdate-row">
 													<label
 														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
-														비밀번호 확인 <span class="companyInfoUpdate-required">*</span>
+														비밀번호 확인
 													</label>
 													<div
 														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
 														<input type="password" id="companyInfoUpdate-password2"
-															class="form-control companyInfoUpdate-input" required>
+															name="passwordCheck"
+															class="form-control companyInfoUpdate-input">
 														<div id="companyInfoUpdate-pwMessage"
 															class="companyInfoUpdate-msg"></div>
 													</div>
 												</div>
 
+												<!-- 휴대폰 -->
 												<!-- 휴대폰 -->
 												<div class="row companyInfoUpdate-row">
 													<label
@@ -110,20 +117,24 @@
 														<div class="companyInfoUpdate-phonewrap">
 															<input type="text" maxlength="3"
 																class="form-control companyInfoUpdate-input companyInfoUpdate-phone"
-																id="companyInfoUpdate-m1" required>
+																id="companyInfoUpdate-m1" name="mobile1"
+																th:value="${init.mobile1}" required>
 															<span class="companyInfoUpdate-dash">-</span>
 															<input type="text" maxlength="4"
 																class="form-control companyInfoUpdate-input companyInfoUpdate-phone"
-																id="companyInfoUpdate-m2" required>
+																id="companyInfoUpdate-m2" name="mobile2"
+																th:value="${init.mobile2}" required>
 															<span class="companyInfoUpdate-dash">-</span>
 															<input type="text" maxlength="4"
 																class="form-control companyInfoUpdate-input companyInfoUpdate-phone"
-																id="companyInfoUpdate-m3" required>
+																id="companyInfoUpdate-m3" name="mobile3"
+																th:value="${init.mobile3}" required>
 														</div>
 													</div>
 												</div>
 
-												<!-- 주소 -->
+
+												<!-- 주소(기본) -->
 												<div class="row companyInfoUpdate-row">
 													<label
 														class="col-lg-3 col-md-3 col-sm-4 col-xs-12 companyInfoUpdate-label">
@@ -132,21 +143,25 @@
 													<div
 														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
 														<div class="companyInfoUpdate-inline">
-															<input type="text" id="companyInfoUpdate-zip"
-																class="form-control companyInfoUpdate-input" readonly
-																required>
+															<input type="text" id="companyInfoUpdate-zip" name="zip"
+																class="form-control companyInfoUpdate-input"
+																th:value="${init.zip}" readonly required>
 															<button type="button" class="btn companyInfoUpdate-btn"
 																id="companyInfoUpdate-addrSearchBtn">주소 검색</button>
 														</div>
-														<input type="text" id="companyInfoUpdate-road"
-															class="form-control companyInfoUpdate-input mt-6" readonly
-															required>
-														<input type="text" id="companyInfoUpdate-jibun"
-															class="form-control companyInfoUpdate-input mt-6" readonly
-															required>
-														<input type="text" id="companyInfoUpdate-detail"
+
+														<input type="text" id="companyInfoUpdate-road" name="road"
 															class="form-control companyInfoUpdate-input mt-6"
-															placeholder="상세주소">
+															th:value="${init.road}" readonly required>
+
+														<!-- 지번: 선택 (required 제거) -->
+														<input type="text" id="companyInfoUpdate-jibun" name="jibun"
+															class="form-control companyInfoUpdate-input mt-6"
+															th:value="${init.jibun}" readonly>
+
+														<input type="text" id="companyInfoUpdate-detail" name="detail"
+															class="form-control companyInfoUpdate-input mt-6"
+															th:value="${init.detail}" placeholder="상세주소" required>
 													</div>
 												</div>
 
@@ -158,8 +173,9 @@
 													</label>
 													<div
 														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
-														<input type="email" id="companyInfoUpdate-email"
-															class="form-control companyInfoUpdate-input" required>
+														<input type="email" id="companyInfoUpdate-email" name="email"
+															class="form-control companyInfoUpdate-input"
+															th:value="${init.email}" required>
 														<div id="companyInfoUpdate-emailMsg"
 															class="companyInfoUpdate-msg"></div>
 													</div>
@@ -168,7 +184,7 @@
 
 											<hr class="companyInfoUpdate-divider">
 
-											<!-- ===== 수신동의 ===== -->
+											<!-- ===== 수신동의 (동의함 고정/변경불가) ===== -->
 											<div class="companyInfoUpdate-fieldset">
 												<h4 class="companyInfoUpdate-legend">수신동의</h4>
 												<div class="row companyInfoUpdate-row">
@@ -179,9 +195,9 @@
 													<div
 														class="col-lg-9 col-md-9 col-sm-8 col-xs-12 companyInfoUpdate-controlwrap">
 														<p class="companyInfoUpdate-desc">행사안내, 상품정보 등 수신 동의</p>
-														<label><input type="radio" name="agree" value="Y" required>
-															동의함</label>
-														<label><input type="radio" name="agree" value="N" required>
+														<label><input type="radio" name="agree" value="Y" checked
+																disabled> 동의함</label>
+														<label><input type="radio" name="agree" value="N" disabled>
 															동의안함</label>
 													</div>
 												</div>
@@ -193,37 +209,47 @@
 											<div class="companyInfoUpdate-fieldset">
 												<h4 class="companyInfoUpdate-legend">기업 정보</h4>
 
+												<!-- 기업명 -->
 												<div class="row companyInfoUpdate-row">
 													<label class="col-lg-3 companyInfoUpdate-label">기업명 <span
 															class="companyInfoUpdate-required">*</span></label>
 													<div class="col-lg-9 companyInfoUpdate-controlwrap">
 														<input type="text" id="companyInfoUpdate-companyName"
-															class="form-control companyInfoUpdate-input" required>
+															name="companyName"
+															class="form-control companyInfoUpdate-input"
+															th:value="${init.companyName}" required>
 													</div>
 												</div>
 
+												<!-- 대표자 -->
 												<div class="row companyInfoUpdate-row">
 													<label class="col-lg-3 companyInfoUpdate-label">대표자 <span
 															class="companyInfoUpdate-required">*</span></label>
 													<div class="col-lg-9 companyInfoUpdate-controlwrap">
-														<input type="text" id="companyInfoUpdate-ceo"
-															class="form-control companyInfoUpdate-input" required>
+														<input type="text" id="companyInfoUpdate-ceo" name="ceoName"
+															class="form-control companyInfoUpdate-input"
+															th:value="${init.ceoName}" required>
 													</div>
 												</div>
 
+												<!-- 소속기관(부서) -->
 												<div class="row companyInfoUpdate-row">
 													<label class="col-lg-3 companyInfoUpdate-label">소속기관</label>
 													<div class="col-lg-9 companyInfoUpdate-controlwrap">
-														<input type="text" id="companyInfoUpdate-org"
-															class="form-control companyInfoUpdate-input">
+														<input type="text" id="companyInfoUpdate-org" name="department"
+															class="form-control companyInfoUpdate-input"
+															th:value="${init.department}">
 													</div>
 												</div>
 
+												<!-- 회사 이메일(계산서용 등) -->
 												<div class="row companyInfoUpdate-row">
 													<label class="col-lg-3 companyInfoUpdate-label">이메일</label>
 													<div class="col-lg-9 companyInfoUpdate-controlwrap">
 														<input type="email" id="companyInfoUpdate-companyEmail"
-															class="form-control companyInfoUpdate-input">
+															name="companyEmail"
+															class="form-control companyInfoUpdate-input"
+															th:value="${init.companyEmail}">
 													</div>
 												</div>
 
@@ -233,16 +259,20 @@
 													<div class="col-lg-9 companyInfoUpdate-controlwrap">
 														<div class="companyInfoUpdate-phonewrap">
 															<input type="text" maxlength="3"
-																class="form-control companyInfoUpdate-input companyInfoUpdate-phone">
+																class="form-control companyInfoUpdate-input companyInfoUpdate-phone"
+																name="bizTel1" th:value="${init.bizTel1}">
 															<span class="companyInfoUpdate-dash">-</span>
 															<input type="text" maxlength="4"
-																class="form-control companyInfoUpdate-input companyInfoUpdate-phone">
+																class="form-control companyInfoUpdate-input companyInfoUpdate-phone"
+																name="bizTel2" th:value="${init.bizTel2}">
 															<span class="companyInfoUpdate-dash">-</span>
 															<input type="text" maxlength="4"
-																class="form-control companyInfoUpdate-input companyInfoUpdate-phone">
+																class="form-control companyInfoUpdate-input companyInfoUpdate-phone"
+																name="bizTel3" th:value="${init.bizTel3}">
 														</div>
 													</div>
 												</div>
+
 
 												<!-- 팩스번호 -->
 												<div class="row companyInfoUpdate-row">
@@ -250,53 +280,51 @@
 													<div class="col-lg-9 companyInfoUpdate-controlwrap">
 														<div class="companyInfoUpdate-phonewrap">
 															<input type="text" maxlength="3"
-																class="form-control companyInfoUpdate-input companyInfoUpdate-fax">
+																class="form-control companyInfoUpdate-input companyInfoUpdate-fax"
+																name="fax1" th:value="${init.fax1}">
 															<span class="companyInfoUpdate-dash">-</span>
 															<input type="text" maxlength="4"
-																class="form-control companyInfoUpdate-input companyInfoUpdate-fax">
+																class="form-control companyInfoUpdate-input companyInfoUpdate-fax"
+																name="fax2" th:value="${init.fax2}">
 															<span class="companyInfoUpdate-dash">-</span>
 															<input type="text" maxlength="4"
-																class="form-control companyInfoUpdate-input companyInfoUpdate-fax">
+																class="form-control companyInfoUpdate-input companyInfoUpdate-fax"
+																name="fax3" th:value="${init.fax3}">
 														</div>
 													</div>
 												</div>
 
+
 												<!-- 사업자등록번호 -->
 												<div class="row companyInfoUpdate-row">
-													<label class="col-lg-3 companyInfoUpdate-label">사업자등록번호 <span
-															class="companyInfoUpdate-required">*</span></label>
+													<label class="col-lg-3 companyInfoUpdate-label">
+														사업자등록번호 <span class="companyInfoUpdate-required">*</span>
+													</label>
 													<div class="col-lg-9 companyInfoUpdate-controlwrap">
 														<div class="companyInfoUpdate-phonewrap">
 															<input type="text" maxlength="3"
 																class="form-control companyInfoUpdate-input companyInfoUpdate-biznum"
-																required>
+																name="bizNo1" th:value="${init.bizNo1}" required>
 															<span class="companyInfoUpdate-dash">-</span>
 															<input type="text" maxlength="2"
 																class="form-control companyInfoUpdate-input companyInfoUpdate-biznum"
-																required>
+																name="bizNo2" th:value="${init.bizNo2}" required>
 															<span class="companyInfoUpdate-dash">-</span>
 															<input type="text" maxlength="5"
 																class="form-control companyInfoUpdate-input companyInfoUpdate-biznum"
-																required>
+																name="bizNo3" th:value="${init.bizNo3}" required>
 														</div>
 													</div>
 												</div>
 
-												<!-- 사업장 주소 -->
-												<div class="row companyInfoUpdate-row">
-													<label class="col-lg-3 companyInfoUpdate-label">사업장 주소</label>
-													<div class="col-lg-9 companyInfoUpdate-controlwrap">
-														<input type="text" id="companyInfoUpdate-bizAddr"
-															class="form-control companyInfoUpdate-input">
-													</div>
-												</div>
 
 												<!-- 업태 -->
 												<div class="row companyInfoUpdate-row">
 													<label class="col-lg-3 companyInfoUpdate-label">업태</label>
 													<div class="col-lg-9 companyInfoUpdate-controlwrap">
-														<input type="text" id="companyInfoUpdate-bizType"
-															class="form-control companyInfoUpdate-input">
+														<input type="text" id="companyInfoUpdate-bizType" name="bizType"
+															class="form-control companyInfoUpdate-input"
+															th:value="${init.bizType}">
 													</div>
 												</div>
 
@@ -305,20 +333,54 @@
 													<label class="col-lg-3 companyInfoUpdate-label">업종</label>
 													<div class="col-lg-9 companyInfoUpdate-controlwrap">
 														<input type="text" id="companyInfoUpdate-bizCategory"
-															class="form-control companyInfoUpdate-input">
+															name="bizItem" class="form-control companyInfoUpdate-input"
+															th:value="${init.bizItem}">
 													</div>
 												</div>
 
-												<!-- 사업자등록증 업로드 -->
+												<!-- ===== 사업장 주소 (기본 주소와 동일 UI / 지번 선택) ===== -->
+												<div class="row companyInfoUpdate-row">
+													<label class="col-lg-3 companyInfoUpdate-label">사업장 주소 <span
+															class="companyInfoUpdate-required">*</span></label>
+													<div class="col-lg-9 companyInfoUpdate-controlwrap">
+														<div class="companyInfoUpdate-inline">
+															<input type="text" id="companyInfoUpdate-w-zip"
+																name="workplaceZip"
+																class="form-control companyInfoUpdate-input"
+																th:value="${init.workplaceZip}" readonly required>
+															<button type="button" class="btn companyInfoUpdate-btn"
+																id="companyInfoUpdate-w-addrSearchBtn">주소 검색</button>
+														</div>
+
+														<input type="text" id="companyInfoUpdate-w-road"
+															name="workplaceRoad"
+															class="form-control companyInfoUpdate-input mt-6"
+															th:value="${init.workplaceRoad}" readonly required>
+
+														<!-- 지번: 선택 -->
+														<input type="text" id="companyInfoUpdate-w-jibun"
+															name="workplaceJibun"
+															class="form-control companyInfoUpdate-input mt-6"
+															th:value="${init.workplaceJibun}" readonly>
+
+														<input type="text" id="companyInfoUpdate-w-detail"
+															name="workplaceDetail"
+															class="form-control companyInfoUpdate-input mt-6"
+															th:value="${init.workplaceDetail}" placeholder="상세주소"
+															required>
+													</div>
+												</div>
+
+												<!-- 사업자등록증 업로드/프리뷰 -->
 												<div class="row companyInfoUpdate-row">
 													<label class="col-lg-3 companyInfoUpdate-label">사업자등록증 <span
 															class="companyInfoUpdate-required">*</span></label>
 													<div class="col-lg-9 companyInfoUpdate-controlwrap">
-														<!-- 숨긴 실제 input -->
+														<!-- 실제 input -->
 														<input type="file" id="companyInfoUpdate-bizFile"
-															class="companyInfoUpdate-fileInput"
-															accept="image/*,.pdf,.doc,.docx" required>
-														<!-- 커스텀 버튼 -->
+															name="bizRegFile" class="companyInfoUpdate-fileInput"
+															accept="image/*,.pdf,.doc,.docx">
+														<!-- 커스텀 버튼/프리뷰 -->
 														<label for="companyInfoUpdate-bizFile"
 															class="companyInfoUpdate-fileBtn">📎 파일 선택</label>
 														<span id="companyInfoUpdate-fileName"
@@ -327,28 +389,37 @@
 															class="companyInfoUpdate-filePreview"></div>
 													</div>
 												</div>
-
 											</div>
 
 											<!-- 액션 -->
 											<div class="companyInfoUpdate-actions">
-												<button type="submit" class="btn companyInfoUpdate-btn">수정</button>
+												<button type="submit" class="btn companyInfoUpdate-btn"
+													disabled>수정</button>
 												<a href="/myPage" class="btn companyInfoUpdate-btn outline">취소</a>
 											</div>
 										</form>
 									</section>
-
 								</div>
 							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+
+						</div> <!-- /.tabsslider -->
+					</div> <!-- /.producttab -->
+				</div> <!-- /#content -->
+			</div> <!-- /.row -->
+		</div> <!-- /.main-container -->
+
 		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
-	</div>
+	</div> <!-- /#wrapper -->
+
+	<!-- 공통 스크립트 -->
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+
+	<!-- 초기 데이터 주입 -->
+	<script th:inline="javascript">
+		window.__companyInfoInit = /*[[${init}]]*/ {};
+	</script>
+	<!-- 페이지 전용 스크립트 -->
 	<script src="/front/js/page/companyInfoUpdate.js"></script>
 </body>
 
