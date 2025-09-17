@@ -1,4 +1,3 @@
-
 /* eslint-disable */
 (function() {
 	// ===== 상태 =====
@@ -44,6 +43,14 @@
 	const byId = id => document.getElementById(id);
 	const el = (t, c, h) => { const n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
 	const clear = n => { if (n) n.innerHTML = ''; };
+	const todayStr = () => {
+		// YYYY-MM-DD 형식(시간 제외)
+		const d = new Date();
+		const y = d.getFullYear();
+		const m = String(d.getMonth() + 1).padStart(2, '0');
+		const day = String(d.getDate()).padStart(2, '0');
+		return `${y}-${m}-${day}`;
+	};
 
 	function flatProductsOfLarge(id) { const L = st.data.large.find(x => x.id === id); return L ? L.medium.flatMap(m => m.small).flatMap(s => s.products) : []; }
 	function flatProductsOfMedium(id) { const M = st.data.large.flatMap(l => l.medium).find(x => x.id === id); return M ? M.small.flatMap(s => s.products) : []; }
@@ -53,10 +60,92 @@
 	function enableBrand(on) {
 		st.brandEnabled = on;
 		const box = byId('ibio-index-brand-list');
-		if (on) box.classList.remove('ibio-index-disabled'); else box.classList.add('ibio-index-disabled');
+		if (on) box?.classList.remove('ibio-index-disabled'); else box?.classList.add('ibio-index-disabled');
 	}
 	function resetBrand() {
 		st.brandId = null; enableBrand(false); renderBrands();
+	}
+
+	// ====== 최근검색어 저장/표시 로직 (PC/모바일 공통) ======
+	const RECENT_KEY = 'ibio-index-recent-search-v2'; // 구조 변경에 대비해 키 버전업
+	const MAX_STORE = 100; // 저장 최대 100개
+	const MAX_PC_VIEW = 10; // PC 표시 최대 10개
+	const MAX_M_VIEW = 7;   // 모바일 표시 최대 7개
+
+	function loadRecent() {
+		try {
+			const r = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+			// [{q, date}] 형식만 허용
+			if (Array.isArray(r)) return r.filter(x => x && typeof x.q === 'string' && typeof x.date === 'string');
+			return [];
+		} catch (_) { return []; }
+	}
+	function saveRecent(list) {
+		// 보관용은 최대 MAX_STORE 유지
+		const trimmed = list.slice(0, MAX_STORE);
+		localStorage.setItem(RECENT_KEY, JSON.stringify(trimmed));
+	}
+	function upsertRecent(term) {
+		const q = String(term || '').trim();
+		if (!q) return;
+		let list = loadRecent();
+		// 동일 키워드 제거 후 맨앞에 삽입(최신)
+		list = list.filter(x => x.q !== q);
+		list.unshift({ q, date: todayStr() });
+		// 100개 초과 시 뒤에서 자름
+		if (list.length > MAX_STORE) list = list.slice(0, MAX_STORE);
+		saveRecent(list);
+	}
+	function removeRecentItem(q) {
+		const list = loadRecent().filter(x => x.q !== q);
+		saveRecent(list);
+	}
+	function clearAllRecent() {
+		saveRecent([]);
+	}
+	function filterRecent(list, keyword) {
+		const k = String(keyword || '').trim().toLowerCase();
+		if (!k) return list;
+		return list.filter(x => x.q.toLowerCase().includes(k));
+	}
+
+	// PC/모바일 공통 렌더링 함수
+	function renderRecentList(container, options) {
+		// options: { maxView: number, currentQuery: string, onClickKeyword: fn, onDelete: fn }
+		const { maxView, currentQuery, onClickKeyword, onDelete } = options;
+		let list = loadRecent();
+		list = filterRecent(list, currentQuery);
+		clear(container);
+
+		if (!list.length) {
+			container.appendChild(el('div', 'ibio-index-empty-recent', '최근 검색어가 없습니다.'));
+			return;
+		}
+
+		const toShow = list.slice(0, maxView);
+		toShow.forEach(item => {
+			const row = el('div', 'ibio-index-recent-row');
+			const left = el('div', 'ibio-index-recent-left');
+			const kw = el('span', 'ibio-index-recent-keyword', item.q);
+			const date = el('span', 'ibio-index-recent-date', `(${item.date})`);
+
+			// 키워드 클릭 → 인풋에 채우고 즉시 검색 제출
+			kw.addEventListener('click', () => onClickKeyword && onClickKeyword(item.q));
+
+			left.appendChild(kw);
+			left.appendChild(date);
+
+			const del = el('button', 'ibio-index-recent-del', '삭제');
+			del.type = 'button';
+			del.addEventListener('click', (e) => {
+				e.stopPropagation();
+				onDelete && onDelete(item.q);
+			});
+
+			row.appendChild(left);
+			row.appendChild(del);
+			container.appendChild(row);
+		});
 	}
 
 	// ===== PC/Tablet 메가메뉴 =====
@@ -72,22 +161,21 @@
 	function openMega(e) {
 		if (e) e.preventDefault();
 		if (window.matchMedia('(max-width: 991.98px)').matches) return;
-		if (mega.getAttribute('aria-hidden') === 'false') { closeMega(); return; }
-		mega.setAttribute('aria-hidden', 'false');
+		if (mega?.getAttribute('aria-hidden') === 'false') { closeMega(); return; }
+		mega?.setAttribute('aria-hidden', 'false');
 		st.largeId = st.mediumId = st.smallId = null; resetBrand();
 		renderLarge();
 		setEmpty(ulMedium, '중분류가 없습니다.');
 		setEmpty(ulSmall, '소분류가 없습니다.');
 		setEmpty(ulProd, '제품이 여기에 표시됩니다.');
-		// ▼▼▼ 추가: 메가메뉴 위 페이지 스크롤 잠금
+		// 페이지 스크롤 잠금
 		enableScrollLockOverMega(true);
 		setTimeout(() => document.addEventListener('click', outsideClose), 0);
 	}
 
 	function closeMega() {
-		if (mega.getAttribute('aria-hidden') === 'true') return;
-		mega.setAttribute('aria-hidden', 'true');
-		// ▼▼▼ 추가: 잠금 해제
+		if (mega?.getAttribute('aria-hidden') === 'true') return;
+		mega?.setAttribute('aria-hidden', 'true');
 		enableScrollLockOverMega(false);
 		document.removeEventListener('click', outsideClose);
 	}
@@ -98,33 +186,23 @@
 	openBtn?.addEventListener('click', openMega);
 	closeBtn?.addEventListener('click', closeMega);
 
-	// 스크롤 시 메가메뉴 자동 닫힘
-	/* ===== 스크롤 시 메가메뉴 자동 닫힘: 메뉴 밖에서만 닫힘 ===== */
-	// 보호 영역(메뉴 위)을 마우스/터치가 지나고 있는지 추적
+	// 스크롤 시 메가메뉴 자동 닫힘 (보호영역 위에서는 닫지 않음)
 	const guardZones = [
-		document.querySelector('.main-menu-w'), // 상단 메뉴 바 래퍼
-		document.getElementById('ibio-index-mega') // 실제 펼쳐진 메가메뉴
+		document.querySelector('.main-menu-w'),
+		document.getElementById('ibio-index-mega')
 	];
-
 	let isPointerOverMenu = false;
-
-	// 마우스 진입/이탈
 	guardZones.forEach(z => {
 		if (!z) return;
 		z.addEventListener('mouseenter', () => { isPointerOverMenu = true; });
 		z.addEventListener('mouseleave', () => { isPointerOverMenu = false; });
 	});
-
-	// 터치(모바일/트랙패드) – 터치 시작 지점이 보호영역이면 스크롤 중에도 보호
-	function isInGuard(target) {
-		return guardZones.some(z => z && z.contains(target));
-	}
+	function isInGuard(target) { return guardZones.some(z => z && z.contains(target)); }
 	let touchGuard = false;
 	document.addEventListener('touchstart', (e) => { touchGuard = isInGuard(e.target); }, { passive: true });
 	document.addEventListener('touchend', () => { touchGuard = false; }, { passive: true });
 	document.addEventListener('touchcancel', () => { touchGuard = false; }, { passive: true });
 
-	// 디바운스 스크롤 핸들러
 	let lastY = window.scrollY;
 	let scrollTimer = null;
 	window.addEventListener('scroll', () => {
@@ -132,26 +210,15 @@
 		scrollTimer = setTimeout(() => {
 			const now = window.scrollY;
 			const moved = Math.abs(now - lastY) > 5;
-
-			// 992 미만은 PC 메가메뉴를 사용하지 않으므로 무시
 			const isMobile = window.matchMedia('(max-width: 991.98px)').matches;
-
-			// 메뉴가 열려 있고, 실제로 스크롤 되었고, 모바일이 아니며,
-			// 포인터/터치가 "메뉴 위"가 아닐 때만 닫기
-			if (
-				mega.getAttribute('aria-hidden') === 'false' &&
-				moved && !isMobile &&
-				!isPointerOverMenu && !touchGuard
-			) {
+			if (mega?.getAttribute('aria-hidden') === 'false' && moved && !isMobile && !isPointerOverMenu && !touchGuard) {
 				closeMega();
 			}
-
 			lastY = now;
 			scrollTimer = null;
 		}, 80);
 	}, { passive: true });
 
-	// 빈 상태도 동일 높이
 	function setEmpty(list, text) {
 		clear(list);
 		list.classList.add('ibio-index-empty');
@@ -257,7 +324,7 @@
 		renderProducts(applyBrandFilter(list), '제품');
 	}
 
-	// ===== 모바일 패널 =====
+	// ===== 모바일 패널 (원본 유지) =====
 	const mOverlay = byId('ibio-index-m-overlay');
 	const mPanel = byId('ibio-index-m-panel');
 	const mOpenBtn = byId('ibio-index-hamburger');
@@ -273,27 +340,34 @@
 	function unlockBody() { document.body.classList.remove('ibio-index-lock'); document.body.style.top = ''; window.scrollTo(0, bodyScrollTop); }
 
 	function openMobile() {
-		if (mOverlay.getAttribute('aria-hidden') === 'false') return;
+		if (mOverlay?.getAttribute('aria-hidden') === 'false') return;
 		lockBody();
 		renderMobileLarge();
-		fab.disabled = true;
-		mOverlay.setAttribute('aria-hidden', 'false');
-		mPanel.dataset.state = 'showing';
-		mPanel.addEventListener('animationend', function onEnd() { mPanel.dataset.state = 'visible'; mPanel.removeEventListener('animationend', onEnd); });
+		fab && (fab.disabled = true);
+		mOverlay?.setAttribute('aria-hidden', 'false');
+		if (mPanel) {
+			mPanel.dataset.state = 'showing';
+			mPanel.addEventListener('animationend', function onEnd() { mPanel.dataset.state = 'visible'; mPanel.removeEventListener('animationend', onEnd); });
+		}
 	}
 	function closeMobile() {
-		if (mOverlay.getAttribute('aria-hidden') === 'true') return;
-		mPanel.dataset.state = 'hiding';
-		mPanel.addEventListener('animationend', function onEnd() {
-			mPanel.dataset.state = 'hidden'; mOverlay.setAttribute('aria-hidden', 'true'); unlockBody(); mPanel.removeEventListener('animationend', onEnd);
-		});
+		if (mOverlay?.getAttribute('aria-hidden') === 'true') return;
+		if (mPanel) {
+			mPanel.dataset.state = 'hiding';
+			mPanel.addEventListener('animationend', function onEnd() {
+				mPanel.dataset.state = 'hidden'; mOverlay?.setAttribute('aria-hidden', 'true'); unlockBody(); mPanel.removeEventListener('animationend', onEnd);
+			});
+		} else {
+			mOverlay?.setAttribute('aria-hidden', 'true');
+			unlockBody();
+		}
 	}
 	mOpenBtn?.addEventListener('click', openMobile);
 	mCloseBtn?.addEventListener('click', closeMobile);
 	mOverlay?.addEventListener('click', (e) => { if (e.target === mOverlay) closeMobile(); });
-	['touchmove', 'wheel'].forEach(ev => { mOverlay.addEventListener(ev, e => { if (!mPanel.contains(e.target)) e.preventDefault(); }, { passive: false }); });
+	['touchmove', 'wheel'].forEach(ev => { mOverlay?.addEventListener(ev, e => { if (!mPanel?.contains(e.target)) e.preventDefault(); }, { passive: false }); });
 
-	// 모바일 아코디언
+	// 모바일 아코디언 (원본 유지)
 	function slideOpen(elem) {
 		if (elem.dataset.state === 'open') return;
 		elem.style.display = 'block'; elem.style.overflow = 'hidden'; elem.style.height = '0px'; elem.classList.add('open');
@@ -339,7 +413,7 @@
 			const row = el('div', 'ibio-index-m-row', `<span>${S.name}</span>`);
 			const sub = el('div', 'ibio-index-m-sub'); sub.style.display = 'none';
 			row.addEventListener('click', () => {
-				fab.disabled = false;
+				fab && (fab.disabled = false);
 				if (sub.childElementCount === 0) {
 					const list = applyBrandFilter(productsOfSmall(S.id));
 					list.forEach(p => { const pd = el('div', 'ibio-index-m-prod', p.name + ` (BRAND ${String(p.brandId).padStart(2, '0')})`); sub.appendChild(pd); });
@@ -356,62 +430,35 @@
 		st.data.brands.forEach(b => {
 			const btn = el('button', 'ibio-index-brand-btn' + (cur === b.id ? ' active' : ''), `<div class="ibio-index-brand-badge">150×30</div><span>${b.name}</span>`);
 			btn.type = 'button';
-			btn.addEventListener('click', () => { st.brandId = (st.brandId === b.id) ? null : b.id; renderBrandModal(); if (st.smallId) renderMobileLarge(); bModal.setAttribute('aria-hidden', 'true'); });
+			btn.addEventListener('click', () => { st.brandId = (st.brandId === b.id) ? null : b.id; renderBrandModal(); if (st.smallId) renderMobileLarge(); bModal?.setAttribute('aria-hidden', 'true'); });
 			bModalBody.appendChild(btn);
 		});
 	}
-	byId('ibio-index-brand-fab')?.addEventListener('click', () => { if (fab.disabled) return; renderBrandModal(); bModal.setAttribute('aria-hidden', 'true') === false; bModal.setAttribute('aria-hidden', 'false'); });
-	bModalClose?.addEventListener('click', () => bModal.setAttribute('aria-hidden', 'true'));
-	bModal?.addEventListener('click', (e) => { if (e.target === bModal) bModal.setAttribute('aria-hidden', 'true'); });
+	byId('ibio-index-brand-fab')?.addEventListener('click', () => { if (fab?.disabled) return; renderBrandModal(); bModal?.setAttribute('aria-hidden', 'false'); });
+	bModalClose?.addEventListener('click', () => bModal?.setAttribute('aria-hidden', 'true'));
+	bModal?.addEventListener('click', (e) => { if (e.target === bModal) bModal?.setAttribute('aria-hidden', 'true'); });
 
 	/* =========================================================
 	   반응형 전환: 992 미만 시 즉시 모바일 UX (메가메뉴 사용 금지)
 	========================================================= */
 	const mqMobile = window.matchMedia('(max-width: 991.98px)');
 	function onBreakpointChange(e) {
-		// PC→모바일 전환 시, 열린 메가메뉴 강제 닫기
 		if (e.matches) { closeMega(); }
 	}
 	mqMobile.addEventListener('change', onBreakpointChange);
-	onBreakpointChange(mqMobile); // 초기 1회 평가
+	onBreakpointChange(mqMobile);
 
 	/* =========================================================
-	   검색 UX (모바일 전체폭 모달 + PC 최근검색어 드롭다운)
+	   검색 UX (모바일 전체폭 모달 + PC 최근검색어 드롭다운) — 보완
 	========================================================= */
-	const RECENT_KEY = 'ibio-index-recent-search';
-	function loadRecent() {
-		try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch (_) { return []; }
-	}
-	function saveRecent(list) { localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 10))); }
-	function pushRecent(term) {
-		const t = (term || '').trim(); if (!t) return;
-		const list = loadRecent().filter(x => x !== t); list.unshift(t); saveRecent(list);
-	}
-	function renderRecentChips(container, chipClass) {
-		const list = loadRecent();
-		clear(container);
-		if (!list.length) {
-			container.appendChild(el('div', 'ibio-index-empty-recent', '최근 검색어가 없습니다.'));
-			return;
-		}
-		list.forEach(q => {
-			const chip = el('button', chipClass, `<i class="fa fa-clock-o"></i><span>${q}</span>`);
-			chip.type = 'button';
-			chip.addEventListener('click', () => {
-				// 칩 클릭 → 해당 검색어로 즉시 검색 제출
-				if (container.id === 'ibio-index-m-search-recent-list') {
-					byId('ibio-index-m-search-input').value = q;
-					byId('ibio-index-m-search-form').requestSubmit();
-				} else {
-					byId('ibio-index-pc-search-input').value = q;
-					byId('ibio-index-pc-search-form').requestSubmit();
-				}
-			});
-			container.appendChild(chip);
-		});
-	}
+	// PC 요소
+	const pcInput = byId('ibio-index-pc-search-input');
+	const pcForm = byId('ibio-index-pc-search-form');
+	const dd = byId('ibio-index-search-dropdown');
+	const ddList = byId('ibio-index-search-dd-list');
+	const ddClear = byId('ibio-index-search-dd-clear');
 
-	/* --- 모바일: 돋보기 버튼 → 전체폭 모달 --- */
+	// 모바일 요소
 	const mSearchOverlay = byId('ibio-index-m-search-overlay');
 	const mSearchOpenBtn = byId('ibio-index-mobile-search');
 	const mSearchCloseBtn = byId('ibio-index-m-search-close');
@@ -420,53 +467,117 @@
 	const mRecentWrap = byId('ibio-index-m-search-recent-list');
 	const mClearBtn = byId('ibio-index-m-search-clear');
 
-	function openMobileSearch() {
-		mSearchOverlay.setAttribute('aria-hidden', 'false');
-		renderRecentChips(mRecentWrap, 'ibio-index-m-search-chip');
-		setTimeout(() => mSearchInput.focus(), 0);
+	// --- 공통 핸들러
+	function submitSearchFromPC(q) {
+		// 실제 검색은 추후 연결: 현재는 저장만
+		upsertRecent(q);
+		// 기존 폼으로 예시 제출(페이지 이동 시나리오 그대로 유지)
+		pcForm?.requestSubmit();
+		closeDropdown();
 	}
-	function closeMobileSearch() {
-		mSearchOverlay.setAttribute('aria-hidden', 'true');
-	}
-	mSearchOpenBtn?.addEventListener('click', openMobileSearch);
-	mSearchCloseBtn?.addEventListener('click', closeMobileSearch);
-	mSearchOverlay?.addEventListener('click', (e) => { if (e.target === mSearchOverlay) closeMobileSearch(); });
-	mClearBtn?.addEventListener('click', () => { saveRecent([]); renderRecentChips(mRecentWrap, 'ibio-index-m-search-chip'); });
-
-	mSearchForm?.addEventListener('submit', (e) => {
-		e.preventDefault();
-		const q = mSearchInput.value;
-		pushRecent(q);
-		// TODO: 실제 검색 엔드포인트 연결
+	function submitSearchFromMobile(q) {
+		upsertRecent(q);
+		mSearchForm?.requestSubmit();
 		closeMobileSearch();
-	});
+	}
 
-	/* --- PC: 입력 클릭 → 최근검색어 드롭다운 --- */
-	const pcInput = byId('ibio-index-pc-search-input');
-	const pcForm = byId('ibio-index-pc-search-form');
-	const dd = byId('ibio-index-search-dropdown');
-	const ddList = byId('ibio-index-search-dd-list');
-	const ddClear = byId('ibio-index-search-dd-clear');
-
+	// --- PC: 드롭다운 열기/닫기/렌더/필터링
 	function openDropdown() {
-		if (window.matchMedia('(max-width: 991.98px)').matches) return; // 모바일에서는 미사용
-		renderRecentChips(ddList, 'ibio-index-search-dd-chip');
-		dd.setAttribute('aria-hidden', 'false');
+		if (window.matchMedia('(max-width: 991.98px)').matches) return;
+		renderRecentList(ddList, {
+			maxView: MAX_PC_VIEW,
+			currentQuery: pcInput?.value || '',
+			onClickKeyword: (kw) => { if (pcInput) pcInput.value = kw; submitSearchFromPC(kw); },
+			onDelete: (kw) => {
+				removeRecentItem(kw); renderRecentList(ddList, {
+					maxView: MAX_PC_VIEW, currentQuery: pcInput?.value || '',
+					onClickKeyword: (k) => { if (pcInput) pcInput.value = k; submitSearchFromPC(k); },
+					onDelete: (k) => { removeRecentItem(k); openDropdown(); }
+				});
+			}
+		});
+		dd?.setAttribute('aria-hidden', 'false');
 	}
-	function closeDropdown() { dd.setAttribute('aria-hidden', 'true'); }
+	function closeDropdown() { dd?.setAttribute('aria-hidden', 'true'); }
 	function outsideCloseForDD(e) {
-		if (!dd.contains(e.target) && e.target !== pcInput) closeDropdown();
+		if (!dd?.contains(e.target) && e.target !== pcInput) closeDropdown();
 	}
+
 	pcInput?.addEventListener('focus', openDropdown);
 	pcInput?.addEventListener('click', openDropdown);
 	document.addEventListener('click', outsideCloseForDD);
-	ddClear?.addEventListener('click', () => { saveRecent([]); renderRecentChips(ddList, 'ibio-index-search-dd-chip'); });
 
+	// PC 입력 실시간 필터링
+	pcInput?.addEventListener('input', () => {
+		if (dd?.getAttribute('aria-hidden') === 'true') return;
+		renderRecentList(ddList, {
+			maxView: MAX_PC_VIEW,
+			currentQuery: pcInput.value,
+			onClickKeyword: (kw) => { pcInput.value = kw; submitSearchFromPC(kw); },
+			onDelete: (kw) => { removeRecentItem(kw); openDropdown(); }
+		});
+	});
+
+	// PC clear-all
+	ddClear?.addEventListener('click', () => {
+		clearAllRecent();
+		renderRecentList(ddList, {
+			maxView: MAX_PC_VIEW, currentQuery: pcInput?.value || '',
+			onClickKeyword: (k) => { pcInput.value = k; submitSearchFromPC(k); },
+			onDelete: (k) => { removeRecentItem(k); openDropdown(); }
+		});
+	});
+
+	// PC 제출
 	pcForm?.addEventListener('submit', (e) => {
-		// 실제 전송 전에 최근검색 저장
-		pushRecent(pcInput.value);
-		// TODO: 실제 검색 엔드포인트 연결
+		// 실제 검색 연결 전: 저장만 수행
+		const q = pcInput?.value || '';
+		upsertRecent(q);
+		// 드롭다운 닫기
 		closeDropdown();
+	});
+
+	// --- 모바일: 모달 열기/닫기/렌더/필터링
+	function openMobileSearch() {
+		mSearchOverlay?.setAttribute('aria-hidden', 'false');
+		renderRecentList(mRecentWrap, {
+			maxView: MAX_M_VIEW,
+			currentQuery: mSearchInput?.value || '',
+			onClickKeyword: (kw) => { if (mSearchInput) mSearchInput.value = kw; submitSearchFromMobile(kw); },
+			onDelete: (kw) => { removeRecentItem(kw); openMobileSearch(); }
+		});
+		setTimeout(() => mSearchInput?.focus(), 0);
+	}
+	function closeMobileSearch() { mSearchOverlay?.setAttribute('aria-hidden', 'true'); }
+
+	mSearchOpenBtn?.addEventListener('click', openMobileSearch);
+	mSearchCloseBtn?.addEventListener('click', closeMobileSearch);
+	mSearchOverlay?.addEventListener('click', (e) => { if (e.target === mSearchOverlay) closeMobileSearch(); });
+
+	mClearBtn?.addEventListener('click', () => {
+		clearAllRecent();
+		renderRecentList(mRecentWrap, {
+			maxView: MAX_M_VIEW, currentQuery: mSearchInput?.value || '',
+			onClickKeyword: (k) => { mSearchInput.value = k; submitSearchFromMobile(k); },
+			onDelete: (k) => { removeRecentItem(k); openMobileSearch(); }
+		});
+	});
+
+	// 모바일 입력 실시간 필터링
+	mSearchInput?.addEventListener('input', () => {
+		renderRecentList(mRecentWrap, {
+			maxView: MAX_M_VIEW,
+			currentQuery: mSearchInput.value,
+			onClickKeyword: (kw) => { mSearchInput.value = kw; submitSearchFromMobile(kw); },
+			onDelete: (kw) => { removeRecentItem(kw); openMobileSearch(); }
+		});
+	});
+
+	// 모바일 제출
+	mSearchForm?.addEventListener('submit', (e) => {
+		const q = mSearchInput?.value || '';
+		upsertRecent(q);
+		closeMobileSearch();
 	});
 
 	// ESC로 드롭다운/모바일 검색 닫기
@@ -476,6 +587,7 @@
 			closeMobileSearch();
 		}
 	});
+
 	/* ===== 메가메뉴 위에서는 페이지 스크롤 금지 (PC 전용) ===== */
 	(function() {
 		const root = document;
@@ -483,45 +595,43 @@
 		let touchStartY = 0;
 		let lockEnabled = false;
 
-		// 대상 내에서 스크롤 가능한 가장 가까운 컨테이너 찾기
 		function findScrollableAncestor(start, scopeRoot) {
-			let el = start;
-			while (el && el !== scopeRoot.parentElement) {
-				if (el === scopeRoot) break;
-				const st = getComputedStyle(el);
-				const can = /(auto|scroll)/.test(st.overflowY) && (el.scrollHeight > el.clientHeight + 1);
-				if (can) return el;
-				el = el.parentElement;
+			let elx = start;
+			while (elx && elx !== scopeRoot.parentElement) {
+				if (elx === scopeRoot) break;
+				const stx = getComputedStyle(elx);
+				const can = /(auto|scroll)/.test(stx.overflowY) && (elx.scrollHeight > elx.clientHeight + 1);
+				if (can) return elx;
+				elx = elx.parentElement;
 			}
 			return scopeRoot.querySelector('.ibio-index-col-list') || scopeRoot;
 		}
 
-		function clampScroll(el, deltaY) {
-			const prev = el.scrollTop;
-			el.scrollTop = prev + deltaY;
+		function clampScroll(elx, dy) {
+			const prev = elx.scrollTop;
+			elx.scrollTop = prev + dy;
 		}
 
 		function onWheel(e) {
 			if (!lockEnabled) return;
 			if (window.matchMedia('(max-width: 991.98px)').matches) return;
-			if (mega.getAttribute('aria-hidden') === 'true') return;
-			if (!mega.contains(e.target)) return;
-
+			if (mega?.getAttribute('aria-hidden') === 'true') return;
+			if (!mega?.contains(e.target)) return;
 			const scroller = findScrollableAncestor(e.target, mega);
 			clampScroll(scroller, e.deltaY);
 			e.preventDefault();
 		}
 
 		function onTouchStart(e) {
-			if (!mega.contains(e.target)) return;
+			if (!mega?.contains(e.target)) return;
 			touchStartY = e.touches[0]?.clientY || 0;
 		}
 
 		function onTouchMove(e) {
 			if (!lockEnabled) return;
 			if (window.matchMedia('(max-width: 991.98px)').matches) return;
-			if (mega.getAttribute('aria-hidden') === 'true') return;
-			if (!mega.contains(e.target)) return;
+			if (mega?.getAttribute('aria-hidden') === 'true') return;
+			if (!mega?.contains(e.target)) return;
 
 			const curY = e.touches[0]?.clientY || 0;
 			const deltaY = touchStartY - curY;
@@ -535,10 +645,10 @@
 		function onKeydown(e) {
 			if (!lockEnabled) return;
 			if (window.matchMedia('(max-width: 991.98px)').matches) return;
-			if (mega.getAttribute('aria-hidden') === 'true') return;
+			if (mega?.getAttribute('aria-hidden') === 'true') return;
 
 			const focusEl = root.activeElement || root.body;
-			if (!mega.contains(focusEl)) return;
+			if (!mega?.contains(focusEl)) return;
 
 			const keys = ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '];
 			if (!keys.includes(e.key)) return;
@@ -577,6 +687,4 @@
 			}
 		};
 	})();
-
 })();
-

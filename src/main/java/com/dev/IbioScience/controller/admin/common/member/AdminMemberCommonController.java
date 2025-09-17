@@ -1,4 +1,4 @@
-package com.dev.IbioScience.controller.admin.member.common;
+package com.dev.IbioScience.controller.admin.common.member;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

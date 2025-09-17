@@ -3,7 +3,7 @@
 
 <head th:fragment="frontHead">
 
-	<title>HOME</title>
+	<title>아이바이오</title>
 	<meta charset="utf-8">
 	<meta name="keywords" content="" />
 	<meta name="description" content="" />
@@ -44,6 +44,7 @@
 </head>
 
 <header id="header" class="typeheader-1" th:fragment="frontHeader">
+
 	<div class="header-top">
 		<div class="container">
 			<div class="row">
@@ -79,12 +80,12 @@
 							</button>
 						</div>
 
-						<!-- PC 기본 검색 폼 (기존 구조 그대로) -->
+						<!-- PC 기본 검색 폼 -->
 						<div id="sosearchpro" class="sosearchpro-wrapper so-search">
 							<form id="ibio-index-pc-search-form" method="GET" action="#">
 								<div id="search0" class="search input-group form-group ibio-index-pc-searchbox">
 									<input id="ibio-index-pc-search-input" class="autosearch-input form-control"
-										type="text" value="" autocomplete="off" placeholder="Keyword here..."
+										type="text" value="" autocomplete="off" placeholder="검색어를 입력 해 주세요."
 										name="search" />
 									<button type="submit" class="button-search btn btn-primary" name="submit_search"
 										aria-label="검색">
@@ -93,26 +94,26 @@
 								</div>
 							</form>
 
-							<!-- PC: 최근검색어 드롭다운 (클릭 시 노출) -->
+							<!-- PC: 최근검색어 드롭다운 -->
 							<div id="ibio-index-search-dropdown" class="ibio-index-search-dropdown" aria-hidden="true">
 								<div class="ibio-index-search-dd-head">
 									<span>최근 검색어</span>
 									<button type="button" id="ibio-index-search-dd-clear"
 										class="ibio-index-search-dd-clear">모두 지우기</button>
 								</div>
+								<!-- ▼ 내부 스크롤/필터링 대상 컨테이너 -->
 								<div id="ibio-index-search-dd-list" class="ibio-index-search-dd-list">
 									<!-- JS로 채움 -->
 								</div>
 							</div>
 						</div>
+						<!-- // PC 검색 -->
 					</div>
 				</div>
 
-				<!-- 오른쪽 아이콘/텍스트 영역 -->
+				<!-- 오른쪽 아이콘/텍스트 영역 (원본 유지) -->
 				<div class="middle-right col-lg-3 col-md-3 col-sm-3">
 					<ul class="front-header-quick hidden-md hidden-sm hidden-xs">
-
-						<!-- 비로그인 영역: 로그인 / 회원가입 -->
 						<li class="front-header-item" sec:authorize="!isAuthenticated()">
 							<a href="/signIn" class="front-header-link" title="로그인">
 								<i class="fa fa-sign-in" aria-hidden="true"></i>
@@ -125,9 +126,14 @@
 								<span class="front-header-text">회원가입</span>
 							</a>
 						</li>
-
+						<li class="front-header-item"
+							sec:authorize="isAuthenticated() and authentication.principal.uiMemberTypeName == 'STAFF'">
+							<a href="/admin" class="front-header-link" title="관리자">
+								<i class="fa fa-shield" aria-hidden="true"></i>
+								<span class="front-header-text">관리자</span>
+							</a>
+						</li>
 						<li class="front-header-item" sec:authorize="isAuthenticated()">
-							<!-- 보안상 POST 로그아웃 권장 -->
 							<form id="logoutForm-desktop" th:action="@{/logout}" method="post" style="display:none;">
 							</form>
 							<a href="#" class="front-header-link" title="로그아웃" id="logoutBtn-desktop">
@@ -135,23 +141,22 @@
 								<span class="front-header-text">로그아웃</span>
 							</a>
 						</li>
-
-						<!-- 이하 메뉴는 로그인 필요 -->
-						<li class="front-header-item">
+						<!-- 장바구니/찜/주문 (원본 유지) -->
+						<li class="front-header-item" sec:authorize="!isAuthenticated()">
 							<a href="/customer/cart" class="front-header-link require-auth" title="장바구니"
 								data-require-auth="true">
 								<i class="fa fa-shopping-cart" aria-hidden="true"></i>
 								<span class="front-header-text">장바구니</span>
 							</a>
 						</li>
-						<li class="front-header-item">
+						<li class="front-header-item" sec:authorize="!isAuthenticated()">
 							<a href="/customer/wishList" class="front-header-link require-auth" title="찜목록"
 								data-require-auth="true">
 								<i class="fa fa-heart" aria-hidden="true"></i>
 								<span class="front-header-text">찜목록</span>
 							</a>
 						</li>
-						<li class="front-header-item">
+						<li class="front-header-item" sec:authorize="!isAuthenticated()">
 							<a href="/customer/orderList" class="front-header-link require-auth" title="주문조회"
 								data-require-auth="true">
 								<i class="fa fa-truck" aria-hidden="true"></i>
@@ -159,15 +164,36 @@
 							</a>
 						</li>
 						<li class="front-header-item" sec:authorize="isAuthenticated()">
+							<a th:href="@{'/customer/cart/' + ${#authentication.principal.member.id}}"
+								class="front-header-link" title="장바구니">
+								<i class="fa fa-shopping-cart" aria-hidden="true"></i>
+								<span class="front-header-text">장바구니</span>
+							</a>
+						</li>
+						<li class="front-header-item" sec:authorize="isAuthenticated()">
+							<a th:href="@{'/customer/wishList/' + ${#authentication.principal.member.id}}"
+								class="front-header-link" title="찜목록">
+								<i class="fa fa-heart" aria-hidden="true"></i>
+								<span class="front-header-text">찜목록</span>
+							</a>
+						</li>
+						<li class="front-header-item" sec:authorize="isAuthenticated()">
+							<a th:href="@{'/customer/orderList/' + ${#authentication.principal.member.id}}"
+								class="front-header-link" title="주문조회">
+								<i class="fa fa-truck" aria-hidden="true"></i>
+								<span class="front-header-text">주문조회</span>
+							</a>
+						</li>
+						<li class="front-header-item" sec:authorize="isAuthenticated()">
 							<a th:href="@{'/customer/myPage/' + ${#authentication.principal.member.id}}"
-								class="front-header-link require-auth" title="마이페이지" data-require-auth="true">
+								class="front-header-link" title="마이페이지">
 								<i class="fa fa-user" aria-hidden="true"></i>
 								<span class="front-header-text">마이페이지</span>
 							</a>
 						</li>
-
 					</ul>
 				</div>
+				<!-- // 오른쪽 -->
 			</div>
 		</div>
 	</div>
@@ -364,7 +390,7 @@
 						<div>로그인을 해주세요.</div>
 					</div>
 
-					<!-- 로그인 환영 메시지 (표시명은 필요 시 Principal 커스터마이즈) -->
+					<!-- 로그인 환영 메시지 -->
 					<div class="ibio-index-m-hello" sec:authorize="isAuthenticated()">
 						<div><strong sec:authentication="name">회원</strong>님 반갑습니다.</div>
 						<div>즐거운 쇼핑 되세요!</div>
@@ -376,16 +402,24 @@
 						<a class="ibio-index-m-btn" href="/personalSignUp">회원가입</a>
 					</div>
 
-					<!-- 로그인: 로그아웃 버튼 -->
+					<!-- 로그인: 로그아웃 + (관리자 전용) 관리자 버튼 -->
 					<div class="ibio-index-m-login" sec:authorize="isAuthenticated()">
 						<form id="logoutForm-mobile" th:action="@{/logout}" method="post" style="display:none;"></form>
 						<button class="ibio-index-m-btn ibio-index-m-btn-primary" id="logoutBtn-mobile">로그아웃</button>
-					</div>
 
+						<!-- ① 관리자 전용 버튼: 우리회사 직원(STAFF)일 때만 노출 -->
+						<a class="ibio-index-m-btn" href="/admin"
+							sec:authorize="authentication.principal.uiMemberTypeName == 'STAFF'">
+							<i class="fas fa-user-shield" aria-hidden="true"></i>
+							관리자
+						</a>
+					</div>
 				</div>
 
-				<!-- 빠른 메뉴: 장바구니/주문/관심상품 (로그인 필요) -->
-				<div class="ibio-index-m-quick">
+				<!-- ========== 빠른 메뉴 1줄: 장바구니/주문리스트/관심상품 ========== -->
+
+				<!-- 비로그인 버전 (원래 경로 + require-auth) -->
+				<div class="ibio-index-m-quick" sec:authorize="!isAuthenticated()">
 					<a class="ibio-index-m-qitem require-auth" href="/customer/cart" data-require-auth="true"
 						title="장바구니">
 						<div class="ibio-index-m-qnum">0건</div>
@@ -403,7 +437,29 @@
 					</a>
 				</div>
 
-				<div class="ibio-index-m-quick">
+				<!-- 로그인 버전 (② 회원 ID 포함 경로) -->
+				<div class="ibio-index-m-quick" sec:authorize="isAuthenticated()">
+					<a class="ibio-index-m-qitem"
+						th:href="@{'/customer/cart/' + ${#authentication.principal.member.id}}" title="장바구니">
+						<div class="ibio-index-m-qnum">0건</div>
+						<div>장바구니</div>
+					</a>
+					<a class="ibio-index-m-qitem"
+						th:href="@{'/customer/orderList/' + ${#authentication.principal.member.id}}" title="주문리스트">
+						<div class="ibio-index-m-qnum">0건</div>
+						<div>주문리스트</div>
+					</a>
+					<a class="ibio-index-m-qitem"
+						th:href="@{'/customer/wishList/' + ${#authentication.principal.member.id}}" title="관심상품">
+						<div class="ibio-index-m-qnum">0건</div>
+						<div>관심상품</div>
+					</a>
+				</div>
+
+				<!-- ========== 빠른 메뉴 2줄: 마이페이지/견적문의/1:1문의 ========== -->
+
+				<!-- 비로그인 버전 (원래 경로 + require-auth) -->
+				<div class="ibio-index-m-quick" sec:authorize="!isAuthenticated()">
 					<a class="ibio-index-m-qitem require-auth" href="/customer/myPage" data-require-auth="true"
 						title="마이페이지">
 						<div class="ibio-index-m-qnum"><i class="fas fa-user-circle"></i></div>
@@ -420,6 +476,26 @@
 						<div>1:1문의</div>
 					</a>
 				</div>
+
+				<!-- 로그인 버전 (② 회원 ID 포함 경로) -->
+				<div class="ibio-index-m-quick" sec:authorize="isAuthenticated()">
+					<a class="ibio-index-m-qitem"
+						th:href="@{'/customer/myPage/' + ${#authentication.principal.member.id}}" title="마이페이지">
+						<div class="ibio-index-m-qnum"><i class="fas fa-user-circle"></i></div>
+						<div>마이페이지</div>
+					</a>
+					<a class="ibio-index-m-qitem"
+						th:href="@{'/customer/estimate/' + ${#authentication.principal.member.id}}" title="견적문의">
+						<div class="ibio-index-m-qnum"><i class="fas fa-file-invoice-dollar"></i></div>
+						<div>견적문의</div>
+					</a>
+					<a class="ibio-index-m-qitem"
+						th:href="@{'/customer/inquiry/' + ${#authentication.principal.member.id}}" title="1:1문의">
+						<div class="ibio-index-m-qnum"><i class="fas fa-headset"></i></div>
+						<div>1:1문의</div>
+					</a>
+				</div>
+
 
 				<div class="ibio-index-m-quick">
 					<!-- 이벤트는 전체 접근 허용이라면 require-auth 제거 가능. 여기선 로그인 불필요로 가정 -->
@@ -481,11 +557,11 @@
 				<button id="ibio-index-m-search-close" class="ibio-index-m-search-close" aria-label="닫기">×</button>
 			</div>
 			<form id="ibio-index-m-search-form" class="ibio-index-m-search-form" action="#" method="GET">
-				<select id="ibio-index-m-search-select" class="ibio-index-m-search-select" aria-label="검색 분류">
+				<!--<select id="ibio-index-m-search-select" class="ibio-index-m-search-select" aria-label="검색 분류">
 					<option value="">전체</option>
 					<option value="product">제품</option>
 					<option value="brand">브랜드</option>
-				</select>
+				</select>-->
 				<input id="ibio-index-m-search-input" class="ibio-index-m-search-input" type="text"
 					placeholder="검색어를 입력하세요" name="search" autocomplete="off">
 				<button type="submit" class="ibio-index-m-search-btn"><i class="fa fa-search"></i></button>
@@ -496,6 +572,7 @@
 					<button id="ibio-index-m-search-clear" type="button" class="ibio-index-m-search-clear">모두
 						지우기</button>
 				</div>
+				<!-- ▼ 내부 스크롤/필터링 대상 컨테이너 -->
 				<div id="ibio-index-m-search-recent-list" class="ibio-index-m-search-recent-list">
 					<!-- JS로 채움 -->
 				</div>
@@ -937,7 +1014,7 @@
 	<script type="text/javascript" src="/front/js/themejs/toppanel.js"></script>
 	<script type="text/javascript" src="/front/js/themejs/so_megamenu.js"></script>
 	<script type="text/javascript" src="/front/js/themejs/addtocart.js"></script>
-	<script type="text/javascript" src="/front/js/ibio-index-megamenu.js"></script>
+	<script type="text/javascript" src="/front/js/page/ibio-index-megamenu.js"></script>
 	<script type="text/javascript" src="/front/js/page/footer.js"></script>
 	<script th:inline="javascript">
 		// 전역: 로그인 여부 주입

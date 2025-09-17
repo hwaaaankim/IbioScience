@@ -2593,7 +2593,6 @@ body.myPage-common-modal-open {
 }
 
 /* Coupon List End */
-
 /* Wish List Start */
 /* ===== FILTER ===== */
 .wishList-filter {
@@ -2617,12 +2616,15 @@ body.myPage-common-modal-open {
 	height: 40px;
 	line-height: 40px;
 	padding: 0 16px;
+	margin-right:10px;
 	border-radius: 2px;
 	background: #0b2540;
 	color: #fff;
 	border: 1px solid #0b2540;
 	display: inline-block;
 	text-decoration: none;
+	text-align: center;
+	/* 버튼 텍스트 중앙 정렬 보강 */
 }
 
 .wishList-btn:hover {
@@ -2671,7 +2673,6 @@ body.myPage-common-modal-open {
 	text-align: left;
 }
 
-/* 기본 좌측정렬 */
 .wishList-product {
 	display: flex;
 	align-items: center;
@@ -2700,7 +2701,6 @@ body.myPage-common-modal-open {
 	min-width: 0;
 }
 
-/* 줄바꿈 시 넓이 확보 */
 .wishList-pname {
 	font-weight: 600;
 	color: #111;
@@ -2757,7 +2757,6 @@ body.myPage-common-modal-open {
 	border: 1px solid #cfd4da;
 }
 
-/* 모바일 전용 number 입력(기본 스피너 유지: 상/하 화살표) */
 .wishList-qty-mobile {
 	display: none;
 	width: 100%;
@@ -2783,45 +2782,78 @@ body.myPage-common-modal-open {
 	margin: 10px 0 12px;
 }
 
-/* ====== RESPONSIVE (<= 991px) ======
-   - 표시 컬럼: 체크박스 / 상품명 / 수량 / 상품가
-   - 숨김: 옵션(3), 비고(6)
-   - 상품명: 좌측정렬 + 줄바꿈, 이미지 숨김
-   - 칸 너비: 상품명 넓게, 수량/가격 좁게
+/* ====== ★ 1200px 반응형: 상품명 너비 축소 + 버튼 축소 ====== */
+@media (max-width: 1200px) {
+
+	/* 테이블 최소 가로 유지 */
+	.wishList-table {
+		min-width: 960px;
+	}
+
+	/* 상품명(2열) 너비를 줄이고, 옵션(3열)은 유지하여 옵션 줄바꿈 과도 방지 */
+	.wishList-table col:nth-child(2) {
+		width: 280px !important;
+	}
+
+	/* 옵션(3열) */
+	.wishList-table col:nth-child(3) {
+		width: 220px !important;
+	}
+
+	/* 비고 버튼 작게 */
+	.wishList-td-actions .wishList-btn {
+		height: 34px;
+		line-height: 34px;
+		padding: 0 12px;
+		font-size: 13px;
+	}
+}
+
+/* ====== 991px 이하 반응형 ======
+   - 옵션(3열)만 숨김 유지
+   - 상품명 더 좁게
+   - 비고 버튼 더 작게
 */
 @media (max-width: 991px) {
 
-	/* 숨김: 옵션(3), 비고(6) */
+	/* 숨김: 옵션(3)만 */
 	.wishList-table col:nth-child(3),
-	.wishList-table col:nth-child(6),
 	.wishList-table th:nth-child(3),
-	.wishList-table th:nth-child(6),
-	.wishList-table td:nth-child(3),
-	.wishList-table td:nth-child(6) {
+	.wishList-table td:nth-child(3) {
 		display: none;
 	}
 
-	/* --- 칸 너비 재배치(모바일) --- */
+	/* --- 가로 스크롤 시 보기 좋은 최소 폭 설정 --- */
+	.wishList-table {
+		min-width: 720px;
+	}
+
+	/* 칼럼 너비 재배치 */
 	.wishList-table col:nth-child(1) {
 		width: 42px;
 	}
 
-	/* 체크 박스 */
+	/* 체크 */
 	.wishList-table col:nth-child(2) {
-		width: auto;
+		width: 80px !important;
 	}
 
-	/* 상품명: 가장 넓게 */
+	/* 상품명 */
 	.wishList-table col:nth-child(4) {
-		width: 90px !important;
+		width: 80px !important;
 	}
 
-	/* 수량: 더 좁게 */
+	/* 수량 */
 	.wishList-table col:nth-child(5) {
-		width: 96px !important;
+		width: 80px !important;
 	}
 
-	/* 가격: 더 좁게 */
+	/* 가격 */
+	.wishList-table col:nth-child(6) {
+		width: 80px !important;
+	}
+
+	/* 비고 */
 
 	/* 상품명: 이미지 숨기고 텍스트 좌측정렬 + 줄바꿈 */
 	.wishList-thumb {
@@ -2838,13 +2870,12 @@ body.myPage-common-modal-open {
 
 	.wishList-pname {
 		white-space: normal;
-		/* 줄바꿈 허용 */
 		overflow: visible;
 		text-overflow: clip;
 		line-height: 1.45;
 	}
 
-	/* 수량: PC 컨트롤 숨기고 number 스피너 표시(상/하 화살표) */
+	/* 수량: PC 컨트롤 숨기고 number 스피너 표시 */
 	.wishList-qty-pc {
 		display: none;
 	}
@@ -2866,6 +2897,14 @@ body.myPage-common-modal-open {
 	.wishList-control {
 		min-width: 120px;
 	}
+
+	/* 비고 버튼 크기/글자 더 축소 */
+	.wishList-td-actions .wishList-btn {
+		height: 32px;
+		line-height: 32px;
+		padding: 0 10px;
+		font-size: 13px;
+	}
 }
 
 /* 더 좁은 모바일(<=575px) */
@@ -2875,7 +2914,186 @@ body.myPage-common-modal-open {
 	}
 }
 
+/* ====== 추가 전용 (옵션 패널/토글) ====== */
+
+/* 옵션보기 버튼(화살표 포함) */
+.wishList-add-toggle-btn {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding-right: 14px;
+	height: 36px;
+	/* 고정 높이 */
+	line-height: 1;
+	/* 회전 시 베이스라인 영향 제거 */
+}
+
+/* ▼ 새 캐럿: 아래▼ → 위▲ 방향 */
+.wishList-add-caret {
+	position: relative;
+	display: inline-block;
+	width: 12px;
+	/* 아이콘 크기 */
+	height: 20px;
+	margin-left: 6px;
+	vertical-align: middle;
+	transform-origin: 50% 50%;
+}
+
+.wishList-add-caret::before {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 100%;
+	height: 100%;
+	transform: translate(-50%, -50%) rotate(0deg);
+	/* ▼ 기본 */
+	transform-origin: 50% 50%;
+	background: currentColor;
+
+	/* ▼ 모양: 아래쪽 삼각형 */
+	clip-path: polygon(20% 35%, 80% 35%, 50% 75%);
+
+	transition: transform .2s ease;
+}
+
+/* 열림 시 ▲ 위쪽 화살표 */
+.wishList-add-toggle-btn.is-open .wishList-add-caret::before {
+	transform: translate(-50%, -50%) rotate(180deg);
+}
+
+
+/* 옵션 패널 행 */
+.wishList-add-optrow {
+	background: #fff;
+}
+
+.wishList-add-optrow>td {
+	padding: 0;
+}
+
+/* 슬라이드 패널 (기본: 닫힘) */
+.wishList-add-optpanel {
+	overflow: hidden;
+	max-height: 0;
+	opacity: 0;
+	transition: max-height .25s ease, opacity .25s ease, padding .25s ease;
+	padding: 0 16px;
+}
+
+/* 열림 상태: 내용 보이기 (JS에서 max-height 해제 처리) */
+.wishList-add-optpanel.is-open {
+	opacity: 1;
+	padding: 16px;
+	overflow: visible;
+	/* 열림 시 잘림 방지 */
+}
+
+/* 991 미만에서 가로 스크롤로 전체 컬럼 노출 */
+.wishList-add-scroll {
+	width: 100%;
+}
+
+@media (max-width: 991px) {
+	.wishList-add-scroll {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.wishList-add-option-table,
+	.wishList-add-optpanel-footer {
+		min-width: 960px;
+	}
+}
+
+/* 옵션 테이블 */
+.wishList-add-option-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: #fff;
+}
+
+.wishList-add-option-table th,
+.wishList-add-option-table td {
+	border: 1px solid #e6e6e6;
+	padding: 10px;
+	font-size: 14px;
+	vertical-align: middle;
+}
+
+.wishList-add-option-table thead th {
+	background: #f1f4f7;
+}
+
+.wishList-add-option-table .text-right {
+	text-align: right;
+}
+
+.wishList-add-optqty {
+	width: 70px;
+}
+
+/* 옵션 테이블 반응형 보완 */
+@media (max-width: 1200px) {
+
+	/* 품명 칼럼 폭 다소 축소 */
+	.wishList-add-option-table col:nth-child(3) {
+		width: 420px !important;
+	}
+}
+
+@media (max-width: 991px) {
+
+	/* 모바일에서는 체크/품명/수량 중심 */
+	.wishList-add-option-table col:nth-child(1) {
+		width: 70px !important;
+	}
+
+	/* 선택 */
+	.wishList-add-option-table col:nth-child(2) {
+		width: 140px !important;
+	}
+
+	/* CAT */
+	.wishList-add-option-table col:nth-child(3) {
+		width: 360px !important;
+	}
+
+	/* 품명 */
+	.wishList-add-option-table col:nth-child(6) {
+		width: 100px !important;
+	}
+
+	/* 수량 */
+}
+
+/* 패널 푸터 */
+.wishList-add-optpanel-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-top: 14px;
+}
+
+.wishList-add-note {
+	font-size: 12px;
+	color: #666;
+	margin: 0;
+	line-height: 1.5;
+}
+
+.wishList-add-optpanel-right {
+	display: inline-flex;
+	gap: 8px;
+}
+
 /* Wish List End */
+
+
 
 /* Review List Start */
 /* ===== TABS ===== */
