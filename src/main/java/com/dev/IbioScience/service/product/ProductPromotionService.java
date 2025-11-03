@@ -17,11 +17,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.dev.IbioScience.dto.PromotionRegisterRequest;
+import com.dev.IbioScience.enums.product.PromotionTerm;
+import com.dev.IbioScience.enums.product.PromotionType;
 import com.dev.IbioScience.model.product.Coupon;
 import com.dev.IbioScience.model.product.Product;
 import com.dev.IbioScience.model.product.Promotion;
-import com.dev.IbioScience.model.product.enums.PromotionTerm;
-import com.dev.IbioScience.model.product.enums.PromotionType;
 import com.dev.IbioScience.repository.product.CouponRepository;
 import com.dev.IbioScience.repository.product.ProductPromotionMappingRepository;
 import com.dev.IbioScience.repository.product.ProductPromotionRepository;

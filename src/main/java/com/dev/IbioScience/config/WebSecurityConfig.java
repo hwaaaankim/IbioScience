@@ -41,7 +41,8 @@ public class WebSecurityConfig {
     private static final String[] AUTH_WHITELIST = {
             "/", "/index", "/signIn", "/signup",
             "/companySignUp", "/personalSignUp", "/error", "/signUpSuccess/**", "/upload/**",
-            "/temp/api/**", "/api/customer/**", "/signUpProcess/personal", "/signUpProcess/company"
+            "/temp/api/**", "/api/customer/**", "/signUpProcess/personal", "/signUpProcess/company",
+            "/api/v1/productSelect/**","/api/v1/**" 
     };
 
     // 고객/내부 구간
@@ -58,7 +59,7 @@ public class WebSecurityConfig {
     // ✅ 관리자 엔트리(URL): 헤더에서 사용하는 /admin/main 및 /admin → 동일 권한으로 허용
     private static final String[] ADMIN_ENTRY_URLS   = { "/admin", "/admin/", "/admin/main" };
 
-    private static final String[] INTERNAL_API_URLS  = { "/api/v1/**" };
+    private static final String[] INTERNAL_API_URLS  = { };
 
     @Bean
     HttpSessionEventPublisher httpSessionEventPublisher() {

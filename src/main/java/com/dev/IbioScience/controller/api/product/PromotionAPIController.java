@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.IbioScience.dto.PromotionRegisterRequest;
 import com.dev.IbioScience.dto.PromotionSearchDTO;
+import com.dev.IbioScience.enums.product.PromotionType;
 import com.dev.IbioScience.model.product.Promotion;
-import com.dev.IbioScience.model.product.enums.PromotionType;
 import com.dev.IbioScience.service.product.ProductPromotionService;
 
 import lombok.RequiredArgsConstructor;

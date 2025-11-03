@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.dev.IbioScience.dto.ProductQuestionApiDTO;
 import com.dev.IbioScience.dto.ProductQuestionDTO;
+import com.dev.IbioScience.enums.product.QuestionType;
 import com.dev.IbioScience.model.product.ProductQuestion;
 import com.dev.IbioScience.model.product.ProductQuestionOption;
-import com.dev.IbioScience.model.product.enums.QuestionType;
 import com.dev.IbioScience.repository.product.ProductQuestionOptionRepository;
 import com.dev.IbioScience.repository.product.ProductQuestionRepository;
 import com.dev.IbioScience.repository.product.register.ProductAnswerRepository;

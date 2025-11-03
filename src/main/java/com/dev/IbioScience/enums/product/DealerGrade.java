@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.product;
 
 public enum DealerGrade {
     A("A등급"),

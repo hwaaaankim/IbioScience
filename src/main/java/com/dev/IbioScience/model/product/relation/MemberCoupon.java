@@ -2,9 +2,9 @@ package com.dev.IbioScience.model.product.relation;
 
 import java.time.LocalDateTime;
 
+import com.dev.IbioScience.enums.product.CouponStatus;
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.product.Coupon;
-import com.dev.IbioScience.model.product.enums.CouponStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

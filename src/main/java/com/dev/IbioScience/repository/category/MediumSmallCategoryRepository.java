@@ -40,4 +40,6 @@ public interface MediumSmallCategoryRepository extends JpaRepository<MediumSmall
             "where msc.small.id = :smallId " +
             "order by coalesce(msc.sortOrder, 0) asc, m.id asc")
      List<MediumSmallCategory> findPathsBySmall(@Param("smallId") Long smallId);
+    
+    List<MediumSmallCategory> findByMedium_IdOrderBySortOrderAsc(Long mediumId);
 }

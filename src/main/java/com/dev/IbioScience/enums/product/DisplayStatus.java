@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.product;
 
 //진열상태 - ON/OFF
 public enum DisplayStatus {

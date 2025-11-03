@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.auth;
 
 public enum MemberRole {
     ROOT, // 최종관리자

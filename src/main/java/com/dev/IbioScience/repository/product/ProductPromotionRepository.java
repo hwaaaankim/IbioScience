@@ -9,9 +9,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.dev.IbioScience.enums.product.PromotionTerm;
+import com.dev.IbioScience.enums.product.PromotionType;
 import com.dev.IbioScience.model.product.Promotion;
-import com.dev.IbioScience.model.product.enums.PromotionTerm;
-import com.dev.IbioScience.model.product.enums.PromotionType;
 
 public interface ProductPromotionRepository extends JpaRepository<Promotion, Long> {
 	@Query("""
@@ -42,7 +42,7 @@ public interface ProductPromotionRepository extends JpaRepository<Promotion, Lon
            AND (
                  (:startDate IS NULL AND :endDate IS NULL)
               OR (
-                   p.term = com.dev.IbioScience.model.product.enums.PromotionTerm.PERIOD
+                   p.term = com.dev.IbioScience.enums.product.PromotionTerm.PERIOD
                AND (:startDate IS NULL OR p.endDate   >= :startDate)
                AND (:endDate   IS NULL OR p.startDate <= :endDate)
                  )
@@ -59,7 +59,7 @@ public interface ProductPromotionRepository extends JpaRepository<Promotion, Lon
            AND (
                  (:startDate IS NULL AND :endDate IS NULL)
               OR (
-                   p.term = com.dev.IbioScience.model.product.enums.PromotionTerm.PERIOD
+                   p.term = com.dev.IbioScience.enums.product.PromotionTerm.PERIOD
                AND (:startDate IS NULL OR p.endDate   >= :startDate)
                AND (:endDate   IS NULL OR p.startDate <= :endDate)
                  )

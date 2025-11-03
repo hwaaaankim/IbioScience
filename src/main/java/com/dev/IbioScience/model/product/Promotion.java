@@ -3,9 +3,9 @@ package com.dev.IbioScience.model.product;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.dev.IbioScience.model.product.enums.PromotionTarget;
-import com.dev.IbioScience.model.product.enums.PromotionTerm;
-import com.dev.IbioScience.model.product.enums.PromotionType;
+import com.dev.IbioScience.enums.product.PromotionTarget;
+import com.dev.IbioScience.enums.product.PromotionTerm;
+import com.dev.IbioScience.enums.product.PromotionType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

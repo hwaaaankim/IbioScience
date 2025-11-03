@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.product;
 
 //가격 노출 정책 - 누구에게 가격을 보여줄지
 public enum PriceExposure {

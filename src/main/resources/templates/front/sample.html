@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+	<meta charset="utf-8" />
+	<title>ProductSelect API 테스트</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<style>
+		:root {
+			font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+		}
+
+		body {
+			padding: 24px;
+		}
+
+		h1 {
+			font-size: 20px;
+			margin: 0 0 16px;
+		}
+
+		.card {
+			border: 1px solid #ddd;
+			border-radius: 10px;
+			padding: 16px;
+			margin-bottom: 16px;
+		}
+
+		.row {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+			align-items: center;
+		}
+
+		label {
+			font-size: 13px;
+			color: #333;
+		}
+
+		input,
+		select {
+			padding: 8px 10px;
+			border: 1px solid #ccc;
+			border-radius: 8px;
+		}
+
+		button {
+			padding: 10px 14px;
+			border-radius: 10px;
+			border: 1px solid #999;
+			background: #fff;
+			cursor: pointer;
+		}
+
+		button.primary {
+			background: #0a7df2;
+			color: #fff;
+			border-color: #0a7df2;
+		}
+
+		.hint {
+			font-size: 12px;
+			color: #666;
+		}
+
+		.mt8 {
+			margin-top: 8px;
+		}
+
+		.mt12 {
+			margin-top: 12px;
+		}
+
+		.mt16 {
+			margin-top: 16px;
+		}
+
+		.w120 {
+			width: 120px;
+		}
+
+		.w200 {
+			width: 200px;
+		}
+
+		.w300 {
+			width: 300px;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>ProductSelect API 테스트</h1>
+
+	<div class="card">
+		<div class="row">
+			<label>API Base</label>
+			<input id="apiBase" class="w300" type="text" value="/api/v1/productSelect" />
+			<span class="hint">※ 기본값 그대로 사용(동일 도메인). 프록시/서브컨텍스트라면 조정하세요.</span>
+		</div>
+
+		<div class="row mt12">
+			<button id="btnRunAll" class="primary">전체 테스트 실행</button>
+			<button id="btnTestList">제품 리스트 테스트</button>
+			<button id="btnTestDetail">제품 상세 테스트</button>
+			<button id="btnTestReviews">제품 리뷰 테스트</button>
+			<button id="btnTestCategories">카테고리(일반) 테스트</button>
+			<button id="btnTestInternalCategories">카테고리(내부) 테스트</button>
+		</div>
+
+		<div class="row mt16">
+			<label for="inpProductId">제품ID</label>
+			<input id="inpProductId" type="number" class="w120" placeholder="ex) 1" />
+			<label for="inpPage">page</label>
+			<input id="inpPage" type="number" class="w120" value="0" />
+			<label for="inpSize">size</label>
+			<input id="inpSize" type="number" class="w120" value="10" />
+			<label for="inpSort">sort</label>
+			<input id="inpSort" type="text" class="w200" value="createdAt,desc" />
+			<label for="inpKeyword">keyword</label>
+			<input id="inpKeyword" type="text" class="w200" placeholder="제품명/코드 검색" />
+		</div>
+		<div class="row mt8">
+			<label for="inpBrandId">brandId</label>
+			<input id="inpBrandId" type="number" class="w120" />
+			<label for="selDisplay">displayStatus</label>
+			<select id="selDisplay" class="w120">
+				<option value="">(전체)</option>
+				<option>ON</option>
+				<option>OFF</option>
+			</select>
+			<label for="selSale">saleStatus</label>
+			<select id="selSale" class="w120">
+				<option value="">(전체)</option>
+				<option>ON</option>
+				<option>OFF</option>
+			</select>
+			<label for="inpMinPrice">minPrice</label>
+			<input id="inpMinPrice" type="number" class="w120" />
+			<label for="inpMaxPrice">maxPrice</label>
+			<input id="inpMaxPrice" type="number" class="w120" />
+			<label for="inpValidOn">validOn</label>
+			<input id="inpValidOn" type="date" class="w200" />
+		</div>
+
+		<p class="hint mt12">
+			▶ 콘솔을 열어(F12) <b>Console</b> 탭에서 <code>console.group</code> / <code>console.table</code> 출력 결과를 확인하세요.
+		</p>
+	</div>
+
+	<script>
+		// ===== 공통 유틸 =====
+		const $ = (sel) => document.querySelector(sel);
+
+		function buildQuery(params = {}) {
+			const search = new URLSearchParams();
+			Object.entries(params).forEach(([k, v]) => {
+				if (v === undefined || v === null || v === '') return;
+				search.set(k, v);
+			});
+			const qs = search.toString();
+			return qs ? `?${qs}` : '';
+		}
+
+		async function fetchJSON(url, options = {}) {
+			const opt = {
+				method: options.method || 'GET',
+				headers: Object.assign({'Accept': 'application/json'}, options.headers || {}),
+				body: options.body ? JSON.stringify(options.body) : undefined,
+				credentials: 'same-origin' // 동일 도메인 기준
+			};
+			if (opt.body) opt.headers['Content-Type'] = 'application/json';
+
+			const resp = await fetch(url, opt);
+			if (!resp.ok) {
+				const text = await resp.text().catch(() => '');
+				throw new Error(`HTTP ${resp.status} ${resp.statusText} :: ${text}`);
+			}
+			const ct = resp.headers.get('content-type') || '';
+			if (!ct.includes('application/json')) {
+				// Page 응답일 수 있으므로 그냥 텍스트 출력
+				return resp.text();
+			}
+			return resp.json();
+		}
+
+		function logGroup(title, fn) {
+			console.groupCollapsed(title);
+			try {fn();} finally {console.groupEnd();}
+		}
+
+		// ===== API 호출 함수들 =====
+		async function apiGetProductList() {
+			const base = $('#apiBase').value || '/api/v1/productSelect';
+			const params = {
+				brandId: $('#inpBrandId').value || undefined,
+				displayStatus: $('#selDisplay').value || undefined,
+				saleStatus: $('#selSale').value || undefined,
+				keyword: $('#inpKeyword').value || undefined,
+				minPrice: $('#inpMinPrice').value || undefined,
+				maxPrice: $('#inpMaxPrice').value || undefined,
+				validOn: $('#inpValidOn').value || undefined,
+				page: $('#inpPage').value || 0,
+				size: $('#inpSize').value || 10,
+				sort: $('#inpSort').value || 'createdAt,desc'
+			};
+			const url = `${base}/products${buildQuery(params)}`;
+			const json = await fetchJSON(url);
+			logGroup(`제품 리스트 (${url})`, () => {
+				console.log('raw:', json);
+				if (json && json.content) {
+					const rows = json.content.map(it => ({
+						id: it.id,
+						name: it.name,
+						code: it.code,
+						salePrice: it.salePrice,
+						brandName: it.brandName,
+						avgRating: it.averageRating,
+						reviewCount: it.reviewCount
+					}));
+					console.table(rows);
+					console.log(`page ${json.number + 1} / ${json.totalPages}, total ${json.totalElements}`);
+				}
+			});
+			return json;
+		}
+
+		async function apiGetProductDetail(productId) {
+			const base = $('#apiBase').value || '/api/v1/productSelect';
+			const url = `${base}/products/${productId}`;
+			const json = await fetchJSON(url);
+			logGroup(`제품 상세 (${url})`, () => {
+				console.log('raw:', json);
+				console.table([{id: json.id, name: json.name, code: json.code, brandName: json.brandName, salePrice: json.salePrice}], ['id', 'name', 'code', 'brandName', 'salePrice']);
+				console.groupCollapsed('대표/추가 이미지');
+				console.table((json.images || []).map(i => ({sortOrder: i.sortOrder, fileName: i.fileName, url: i.url})));
+				console.groupEnd();
+				console.groupCollapsed('상세 이미지');
+				console.table((json.detailImages || []).map(i => ({sortOrder: i.sortOrder, fileName: i.fileName, url: i.url})));
+				console.groupEnd();
+				console.groupCollapsed('옵션 그룹');
+				(json.optionGroups || []).forEach(g => {
+					console.groupCollapsed(`Group: ${g.name} (#${g.sortOrder})`);
+					console.table((g.options || []).map(o => ({name: o.name, sign: o.sign, extraPrice: o.extraPrice, sortOrder: o.sortOrder})));
+					console.groupEnd();
+				});
+				console.groupEnd();
+				console.groupCollapsed('추가 입력 필드');
+				console.table((json.extraFields || []));
+				console.groupEnd();
+				console.groupCollapsed('번들 아이템');
+				console.table((json.bundleItems || []));
+				console.groupEnd();
+				console.groupCollapsed('연관상품');
+				console.table((json.relatedProducts || []));
+				console.groupEnd();
+				console.groupCollapsed('기타 정보');
+				console.table([{averageRating: json.averageRating, reviewCount: json.reviewCount, iconUrl: json.iconUrl, iconPeriod: json.useIconPeriod}]);
+				console.groupEnd();
+			});
+			return json;
+		}
+
+		async function apiGetProductReviews(productId) {
+			const base = $('#apiBase').value || '/api/v1/productSelect';
+			const page = $('#inpPage').value || 0;
+			const size = $('#inpSize').value || 10;
+			const sort = $('#inpSort').value || 'createdAt,desc';
+			const url = `${base}/products/${productId}/reviews${buildQuery({page, size, sort})}`;
+			const json = await fetchJSON(url);
+			logGroup(`제품 리뷰 (${url})`, () => {
+				console.log('raw:', json);
+				if (json && json.content) {
+					const rows = json.content.map(r => ({
+						id: r.id,
+						memberId: r.memberId,
+						memberDisplayName: r.memberDisplayName,
+						rating: r.rating,
+						createdAt: r.createdAt
+					}));
+					console.table(rows);
+				}
+			});
+			return json;
+		}
+
+		// 일반 카테고리
+		async function apiListLargeCategories() {
+			const base = $('#apiBase').value || '/api/v1/productSelect';
+			const url = `${base}/categories/large`;
+			const json = await fetchJSON(url);
+			logGroup(`대분류 목록 (${url})`, () => {
+				console.table(json);
+			});
+			return json;
+		}
+		async function apiListMediumsByLarge(largeId) {
+			const base = $('#apiBase').value || '/api/v1/productSelect';
+			const url = `${base}/categories/large/${largeId}/mediums`;
+			const json = await fetchJSON(url);
+			logGroup(`중분류 목록 (${url})`, () => {
+				console.table(json);
+			});
+			return json;
+		}
+		async function apiListSmallsByMedium(mediumId) {
+			const base = $('#apiBase').value || '/api/v1/productSelect';
+			const url = `${base}/categories/medium/${mediumId}/smalls`;
+			const json = await fetchJSON(url);
+			logGroup(`소분류 목록 (${url})`, () => {
+				console.table(json);
+			});
+			return json;
+		}
+
+		// 내부 카테고리
+		async function apiListInternalLarge() {
+			const base = $('#apiBase').value || '/api/v1/productSelect';
+			const url = `${base}/categories/internal/large`;
+			const json = await fetchJSON(url);
+			logGroup(`내부 대분류 목록 (${url})`, () => {console.table(json);});
+			return json;
+		}
+		async function apiListInternalMediums(largeId) {
+			const base = $('#apiBase').value || '/api/v1/productSelect';
+			const url = `${base}/categories/internal/large/${largeId}/mediums`;
+			const json = await fetchJSON(url);
+			logGroup(`내부 중분류 목록 (${url})`, () => {console.table(json);});
+			return json;
+		}
+		async function apiListInternalSmalls(mediumId) {
+			const base = $('#apiBase').value || '/api/v1/productSelect';
+			const url = `${base}/categories/internal/medium/${mediumId}/smalls`;
+			const json = await fetchJSON(url);
+			logGroup(`내부 소분류 목록 (${url})`, () => {console.table(json);});
+			return json;
+		}
+
+		// ===== 시나리오 =====
+		async function runProductListScenario() {
+			try {
+				const list = await apiGetProductList();
+				// 첫 제품으로 상세/리뷰 연쇄 테스트
+				const firstId = list && list.content && list.content.length ? list.content[0].id : null;
+				if (firstId) {
+					$('#inpProductId').value = firstId;
+					await apiGetProductDetail(firstId);
+					await apiGetProductReviews(firstId);
+				} else {
+					console.warn('제품 리스트가 비어 있어 상세/리뷰 연쇄 테스트를 건너뜁니다.');
+				}
+			} catch (err) {
+				console.error('runProductListScenario error:', err);
+			}
+		}
+
+		async function runCategoryScenario() {
+			try {
+				const large = await apiListLargeCategories();
+				if (large && large.length) {
+					const largeId = large[0].id;
+					const meds = await apiListMediumsByLarge(largeId);
+					if (meds && meds.length) {
+						const mediumId = meds[0].id;
+						await apiListSmallsByMedium(mediumId);
+					}
+				}
+			} catch (err) {
+				console.error('runCategoryScenario error:', err);
+			}
+		}
+
+		async function runInternalCategoryScenario() {
+			try {
+				const large = await apiListInternalLarge();
+				if (large && large.length) {
+					const largeId = large[0].id;
+					const meds = await apiListInternalMediums(largeId);
+					if (meds && meds.length) {
+						const mediumId = meds[0].id;
+						await apiListInternalSmalls(mediumId);
+					}
+				}
+			} catch (err) {
+				console.error('runInternalCategoryScenario error:', err);
+			}
+		}
+
+		async function runAll() {
+			console.clear();
+			console.info('=== ProductSelect API 전체 테스트 시작 ===');
+			await runProductListScenario();
+			await runCategoryScenario();
+			await runInternalCategoryScenario();
+			console.info('=== ProductSelect API 전체 테스트 종료 ===');
+		}
+
+		// ===== 개별 버튼 핸들러 =====
+		async function onClickList() {
+			try {await apiGetProductList();} catch (e) {console.error(e);}
+		}
+		async function onClickDetail() {
+			const id = $('#inpProductId').value;
+			if (!id) return alert('제품ID를 입력해 주세요.');
+			try {await apiGetProductDetail(id);} catch (e) {console.error(e);}
+		}
+		async function onClickReviews() {
+			const id = $('#inpProductId').value;
+			if (!id) return alert('제품ID를 입력해 주세요.');
+			try {await apiGetProductReviews(id);} catch (e) {console.error(e);}
+		}
+		async function onClickCategories() {
+			try {await runCategoryScenario();} catch (e) {console.error(e);}
+		}
+		async function onClickInternalCategories() {
+			try {await runInternalCategoryScenario();} catch (e) {console.error(e);}
+		}
+
+		// ===== 이벤트 바인딩 =====
+		window.addEventListener('DOMContentLoaded', () => {
+			$('#btnRunAll').addEventListener('click', runAll);
+			$('#btnTestList').addEventListener('click', onClickList);
+			$('#btnTestDetail').addEventListener('click', onClickDetail);
+			$('#btnTestReviews').addEventListener('click', onClickReviews);
+			$('#btnTestCategories').addEventListener('click', onClickCategories);
+			$('#btnTestInternalCategories').addEventListener('click', onClickInternalCategories);
+
+			// 초기 1회 자동 테스트를 원하면 주석 해제
+			// runAll();
+		});
+	</script>
+</body>
+
+</html>

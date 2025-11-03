@@ -17,9 +17,9 @@ import com.dev.IbioScience.dto.CouponDTO;
 import com.dev.IbioScience.dto.CouponListRowDTO;
 import com.dev.IbioScience.dto.CouponRegisterRequestDTO;
 import com.dev.IbioScience.dto.CouponUpdateRequestDTO;
+import com.dev.IbioScience.enums.product.CouponPolicy;
+import com.dev.IbioScience.enums.product.CouponStatus;
 import com.dev.IbioScience.model.product.Coupon;
-import com.dev.IbioScience.model.product.enums.CouponPolicy;
-import com.dev.IbioScience.model.product.enums.CouponStatus;
 import com.dev.IbioScience.repository.product.CouponRepository;
 
 import lombok.RequiredArgsConstructor;

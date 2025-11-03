@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.product;
 
 public enum CouponStatus {
     ISSUED("발급됨"),

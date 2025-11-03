@@ -5,11 +5,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dev.IbioScience.model.product.enums.DisplayStatus;
-import com.dev.IbioScience.model.product.enums.PriceExposeTarget;
-import com.dev.IbioScience.model.product.enums.ProductNewState;
-import com.dev.IbioScience.model.product.enums.ProductState;
-import com.dev.IbioScience.model.product.enums.SaleStatus;
+import com.dev.IbioScience.enums.product.DisplayStatus;
+import com.dev.IbioScience.enums.product.PriceExposeTarget;
+import com.dev.IbioScience.enums.product.ProductNewState;
+import com.dev.IbioScience.enums.product.ProductState;
+import com.dev.IbioScience.enums.product.SaleStatus;
 import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 

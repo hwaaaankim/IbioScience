@@ -3,8 +3,8 @@ package com.dev.IbioScience.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.dev.IbioScience.model.product.enums.CouponPolicy;
-import com.dev.IbioScience.model.product.enums.CouponStatus;
+import com.dev.IbioScience.enums.product.CouponPolicy;
+import com.dev.IbioScience.enums.product.CouponStatus;
 
 import lombok.Data;
 

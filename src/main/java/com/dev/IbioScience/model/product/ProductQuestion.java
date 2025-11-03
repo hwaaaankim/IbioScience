@@ -3,7 +3,7 @@ package com.dev.IbioScience.model.product;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dev.IbioScience.model.product.enums.QuestionType;
+import com.dev.IbioScience.enums.product.QuestionType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;

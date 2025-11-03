@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.product;
 
 //할인기간 정책 - 한정/상시
 public enum PromotionTerm {

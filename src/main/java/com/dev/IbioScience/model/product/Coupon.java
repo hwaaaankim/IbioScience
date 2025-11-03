@@ -5,8 +5,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dev.IbioScience.model.product.enums.CouponPolicy;
-import com.dev.IbioScience.model.product.enums.CouponStatus;
+import com.dev.IbioScience.enums.product.CouponPolicy;
+import com.dev.IbioScience.enums.product.CouponStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

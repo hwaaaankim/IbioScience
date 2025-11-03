@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.product;
 
 //할인/증정 정책 타입 - 할인인지 증정인지
 public enum PromotionType {

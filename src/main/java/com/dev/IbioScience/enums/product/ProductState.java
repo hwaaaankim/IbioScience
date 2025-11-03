@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.product;
 
 //상품상태 - 정상/삭제대기/삭제됨
 public enum ProductState {

@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.product;
 
 //상품 이미지에서 사용 - 대표/추가
 public enum ProductImageType {

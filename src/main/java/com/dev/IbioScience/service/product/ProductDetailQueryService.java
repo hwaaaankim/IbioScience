@@ -27,6 +27,7 @@ import com.dev.IbioScience.dto.productDetail.ProductDetailReadResponseDTO.PriceP
 import com.dev.IbioScience.dto.productDetail.ProductDetailReadResponseDTO.ProductAnswerReadDTO;
 import com.dev.IbioScience.dto.productDetail.ProductDetailReadResponseDTO.PromotionReadDTO;
 import com.dev.IbioScience.dto.productDetail.ProductDetailReadResponseDTO.RelatedProductReadDTO;
+import com.dev.IbioScience.enums.product.ProductImageType;
 import com.dev.IbioScience.model.product.InternalCategoryLarge;
 import com.dev.IbioScience.model.product.InternalCategoryMedium;
 import com.dev.IbioScience.model.product.InternalCategorySmall;
@@ -38,7 +39,6 @@ import com.dev.IbioScience.model.product.ProductImage;
 import com.dev.IbioScience.model.product.ProductOption;
 import com.dev.IbioScience.model.product.ProductQuestionOption;
 import com.dev.IbioScience.model.product.category.CategorySmall;
-import com.dev.IbioScience.model.product.enums.ProductImageType;
 import com.dev.IbioScience.model.product.relation.MediumSmallCategory;
 import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
 import com.dev.IbioScience.model.product.relation.SmallProductCategory;

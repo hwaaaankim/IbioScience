@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.auth;
 
 //회원 등급 구분
 public enum MemberGrade {

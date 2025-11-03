@@ -3,7 +3,7 @@ package com.dev.IbioScience.dto.productList;
 import java.util.Map;
 import java.util.Set;
 
-import com.dev.IbioScience.model.product.enums.PromotionType;
+import com.dev.IbioScience.enums.product.PromotionType;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

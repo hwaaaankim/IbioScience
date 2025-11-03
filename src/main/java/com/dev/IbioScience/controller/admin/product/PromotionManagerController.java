@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.dev.IbioScience.dto.PromotionRegisterRequest;
+import com.dev.IbioScience.enums.product.PromotionTerm;
+import com.dev.IbioScience.enums.product.PromotionType;
 import com.dev.IbioScience.model.product.Promotion;
-import com.dev.IbioScience.model.product.enums.PromotionTerm;
-import com.dev.IbioScience.model.product.enums.PromotionType;
 import com.dev.IbioScience.service.product.ProductPromotionService;
 
 import lombok.RequiredArgsConstructor;

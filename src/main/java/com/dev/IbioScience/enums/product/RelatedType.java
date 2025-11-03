@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.product;
 
 //연관상품 타입 - 단방향/쌍방향
 public enum RelatedType {

@@ -24,4 +24,6 @@ public interface InternalCategorySmallRepository extends JpaRepository<InternalC
         order by s.name asc
     """)
     List<Object[]> findByMediumIdWithProductCount(Long mediumId);
+    
+    List<InternalCategorySmall> findByMedium_IdOrderByNameAsc(Long mediumId);
 }

@@ -10,9 +10,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.dev.IbioScience.dto.CouponListRowDTO;
+import com.dev.IbioScience.enums.product.CouponPolicy;
+import com.dev.IbioScience.enums.product.CouponStatus;
 import com.dev.IbioScience.model.product.Coupon;
-import com.dev.IbioScience.model.product.enums.CouponPolicy;
-import com.dev.IbioScience.model.product.enums.CouponStatus;
 
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
     boolean existsByCouponCode(String couponCode);

@@ -1,6 +1,6 @@
 package com.dev.IbioScience.model.product;
 
-import com.dev.IbioScience.model.product.enums.ProductImageType;
+import com.dev.IbioScience.enums.product.ProductImageType;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

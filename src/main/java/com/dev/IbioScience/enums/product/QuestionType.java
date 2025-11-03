@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product.enums;
+package com.dev.IbioScience.enums.product;
 
 //공통질문 입력타입 - 입력형태 구분
 public enum QuestionType {

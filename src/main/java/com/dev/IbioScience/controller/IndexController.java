@@ -11,4 +11,10 @@ public class IndexController {
 		
 		return "front/index";
 	}
+	
+	@GetMapping("/sample")
+	public String sample() {
+		
+		return "front/sample";
+	}
 }
