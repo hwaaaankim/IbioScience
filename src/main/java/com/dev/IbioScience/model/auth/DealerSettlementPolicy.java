@@ -3,9 +3,9 @@ package com.dev.IbioScience.model.auth;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.dev.IbioScience.enums.product.SettlementBasis;
+import com.dev.IbioScience.enums.product.SettlementCycle;
 import com.dev.IbioScience.model.auth.embedded.BaseTimeEntity;
-import com.dev.IbioScience.model.auth.enums.SettlementBasis;
-import com.dev.IbioScience.model.auth.enums.SettlementCycle;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

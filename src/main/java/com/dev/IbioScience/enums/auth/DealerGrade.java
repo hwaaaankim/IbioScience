@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.auth.enums;
+package com.dev.IbioScience.enums.auth;
 
 /** 구매딜러 등급 */
 public enum DealerGrade {

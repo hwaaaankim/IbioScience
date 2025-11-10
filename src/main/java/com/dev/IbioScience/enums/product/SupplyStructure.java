@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.auth.enums;
+package com.dev.IbioScience.enums.product;
 
 /** 공급구조 */
 public enum SupplyStructure {

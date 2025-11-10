@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.auth.enums;
+package com.dev.IbioScience.enums.auth;
 
 public enum CustomerType {
     PERSONAL,   // 개인 소비자

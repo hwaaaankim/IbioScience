@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.dev.IbioScience.dto.member.auth.StaffUpdateRequest;
+import com.dev.IbioScience.enums.auth.MemberRole;
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.auth.PrincipalDetails;
-import com.dev.IbioScience.model.auth.enums.MemberRole;
 import com.dev.IbioScience.service.auth.admin.common.AdminMemberCommonService;
 
 import lombok.RequiredArgsConstructor;

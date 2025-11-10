@@ -42,4 +42,21 @@ public interface MediumSmallCategoryRepository extends JpaRepository<MediumSmall
      List<MediumSmallCategory> findPathsBySmall(@Param("smallId") Long smallId);
     
     List<MediumSmallCategory> findByMedium_IdOrderBySortOrderAsc(Long mediumId);
+    
+    /** 특정 중분류에 연결된 소분류들(정렬 우선: 매핑 sortOrder, 보조: 소분류명) */
+    @Query("select msc.small from MediumSmallCategory msc " +
+           "join msc.small s " +
+           "where msc.medium.id = :mediumId " +
+           "order by coalesce(msc.sortOrder, 999999), s.name asc")
+    List<CategorySmall> findSmallsByMediumId(@Param("mediumId") Long mediumId);
+
+    /** 특정 대분류의 모든 중분류에 연결된 소분류 ID 목록 */
+    @Query("select distinct msc.small.id from MediumSmallCategory msc " +
+           "where msc.medium.large.id = :largeId")
+    List<Long> findSmallIdsByLargeId(@Param("largeId") Long largeId);
+
+    /** 다수 중분류 -> 연결 소분류 ID들 */
+    @Query("select distinct msc.small.id from MediumSmallCategory msc " +
+           "where msc.medium.id in :mediumIds")
+    List<Long> findSmallIdsByMediumIds(@Param("mediumIds") List<Long> mediumIds);
 }

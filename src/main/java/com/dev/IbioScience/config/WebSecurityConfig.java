@@ -42,7 +42,7 @@ public class WebSecurityConfig {
             "/", "/index", "/signIn", "/signup",
             "/companySignUp", "/personalSignUp", "/error", "/signUpSuccess/**", "/upload/**",
             "/temp/api/**", "/api/customer/**", "/signUpProcess/personal", "/signUpProcess/company",
-            "/api/v1/productSelect/**","/api/v1/**" 
+            "/api/v1/productSelect/**","/api/v1/**", "/api/menu/**"
     };
 
     // 고객/내부 구간

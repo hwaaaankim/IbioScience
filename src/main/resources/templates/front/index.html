@@ -1,21 +1,20 @@
 <!DOCTYPE html>
-<html lang="ko" 
-xmlns:th="http://www.thymeleaf.org"
-xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head th:replace="fragments/front/common :: frontHead"></head>
 
-<body class="common-home res layout-1">
+<body class="common-home res layout-1" th:with="productDetailBase='/product'">
 
 	<div id="wrapper" class="wrapper-fluid banners-effect-3">
-		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+		<header id="header" class="typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+
 		<div class="main-container container">
 			<div id="content">
-				<div class="content-top-w">
 
+				<!-- ===== 상단 슬라이더(기존 유지) ===== -->
+				<div class="content-top-w">
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 						<div class="slider-container row">
-
 							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 p-l-n p-r-n">
 								<div class="module sohomepage-slider ">
 									<div class="yt-content-slider" data-rtl="yes" data-autoplay="no"
@@ -37,45 +36,41 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 													class="img-responsive m-l-n m-r-n"></a>
 										</div>
 									</div>
-
 									<div class="loadeding"></div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
+
+				<!-- ===== 본문 ===== -->
 				<div class="row content-main-w">
+					<!-- 좌 10 -->
 					<div class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
+
+						<!-- 카테고리 배너(유지) -->
 						<div class="static-cates">
 							<ul>
-								<li>
-									<a href="#"><img src="/front/image/sample/250-250.png" alt="image"></a>
-								</li>
-								<li>
-									<a href="#"><img src="/front/image/sample/250-250.png" alt="image"></a>
-								</li>
-								<li>
-									<a href="#"><img src="/front/image/sample/250-250.png" alt="image"></a>
-								</li>
-								<li>
-									<a href="#"><img src="/front/image/sample/250-250.png" alt="image"></a>
-								</li>
-								<li>
-									<a href="#"><img src="/front/image/sample/250-250.png" alt="image"></a>
-								</li>
+								<li><a href="#"><img src="/front/image/sample/250-250.png" alt="image"></a></li>
+								<li><a href="#"><img src="/front/image/sample/250-250.png" alt="image"></a></li>
+								<li><a href="#"><img src="/front/image/sample/250-250.png" alt="image"></a></li>
+								<li><a href="#"><img src="/front/image/sample/250-250.png" alt="image"></a></li>
+								<li><a href="#"><img src="/front/image/sample/250-250.png" alt="image"></a></li>
 							</ul>
 						</div>
 
-						<!-- Deals -->
-						<div class="module deals-layout1">
+						<!-- ===== 이벤트 상품: idxPromoOldest ===== -->
+						<div class="module deals-layout1"
+							th:if="${idxPromoOldest != null and #lists.size(idxPromoOldest) > 0}">
 							<div class="head-title">
 								<h3 class="text-center text-bolder">이벤트 상품</h3>
 								<div class="modtitle">
 									<a class="viewall" href="">이벤트 SHOP 바로가기</a>
 								</div>
 							</div>
+
 							<div class="modcontent">
-								<div id="so_deal_1" class="so-deal style1">
+								<div class="so-deal style1">
 									<div class="extraslider-inner products-list yt-content-slider" data-rtl="yes"
 										data-autoplay="no" data-autoheight="no" data-delay="4" data-speed="0.6"
 										data-margin="30" data-items_column00="6" data-items_column0="5"
@@ -83,445 +78,126 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 										data-items_column4="1" data-arrows="yes" data-pagination="no"
 										data-lazyload="yes" data-loop="yes" data-hoverpause="yes">
 
-										<div class="item">
+										<div class="item" th:each="p : ${idxPromoOldest}">
 											<div class="item-inner product-layout transition product-grid">
 												<div class="product-item-container">
+
 													<div class="left-block left-b">
 														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
+															<span class="label-product label-sale"
+																th:if="${p.discountRate != null}"
+																th:text="${'-' + p.discountRate + '%'}">-0%</span>
+															<span class="label-product"
+																th:each="lbl : ${p.promotionLabels}"
+																th:text="${lbl}">LABEL</span>
 														</div>
+
 														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
+															<a th:href="@{${productDetailBase}+'/'+${p.id}}"
+																th:title="${p.name}" class="rvp-link" th:with="
+                                                                priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+                                                                priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
+                                                           " th:attr="data-rvp-id=${p.id},
+                                                                    data-rvp-name=${p.name},
+                                                                    data-rvp-image=${p.mainImageUrl},
+                                                                    data-rvp-pricenew=${priceNew},
+                                                                    data-rvp-priceold=${priceOld},
+                                                                    data-rvp-rating=${p.averageRating},
+                                                                    data-rvp-review=${p.reviewCount}">
+																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
+																	class="img-1 img-responsive" th:alt="${p.name}">
+																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
+																	class="img-2 img-responsive" th:alt="${p.name}">
 															</a>
 														</div>
 													</div>
+
 													<div class="right-block">
 														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
+															<button type="button" class="addToCart"
+																title="장바구니 담기"><span>장바구니 담기</span></button>
+															<button type="button" class="wishlist btn-button"><i
+																	class="fa fa-heart-o"></i><span>Add to
+																	WishList</span></button>
 														</div>
+
 														<div class="caption hide-cont">
 															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
+																<div class="rating-box">
+																	<span class="fa fa-stack"
+																		th:each="i : ${#numbers.sequence(1,5)}">
+																		<i class="fa fa-star fa-stack-2x"
+																			th:if="${i <= T(java.lang.Math).round(p.averageRating != null ? p.averageRating : 0)}"></i>
+																		<i class="fa fa-star-o fa-stack-2x"
+																			th:if="${i >  T(java.lang.Math).round(p.averageRating != null ? p.averageRating : 0)}"></i>
+																	</span>
 																</div>
-																<span class="rating-num">( 2 )</span>
+																<span class="rating-num"
+																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">(
+																	0 )</span>
 															</div>
-															<h4><a href="#">제품명</a></h4>
 
+															<h4>
+																<a th:href="@{${productDetailBase}+'/'+${p.id}}"
+																	th:title="${p.name}" th:text="${p.name}"
+																	class="rvp-link" th:with="
+                                                                    priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+                                                                    priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
+                                                               " th:attr="data-rvp-id=${p.id},
+                                                                        data-rvp-name=${p.name},
+                                                                        data-rvp-image=${p.mainImageUrl},
+                                                                        data-rvp-pricenew=${priceNew},
+                                                                        data-rvp-priceold=${priceOld},
+                                                                        data-rvp-rating=${p.averageRating},
+                                                                        data-rvp-review=${p.reviewCount}">제품명</a>
+															</h4>
 														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
+
+														<p class="price" th:with="
+                                                            priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+                                                            priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
+                                                       ">
+															<span class="price-new"
+																th:text="${#numbers.formatInteger(priceNew, 0, 'COMMA') + '원'}">0원</span>
+															<span class="price-old"
+																th:text="${#numbers.formatInteger(priceOld, 0, 'COMMA') + '원'}">0원</span>
 														</p>
 													</div>
 
 													<div class="item-available">
 														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
+															<span class="color_width" data-title="progress"
+																data-toggle="tooltip"
+																th:style="${'width:' + (p.salesCount != null ? (p.salesCount % 100) : 0) + '%'}"></span>
 														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
+														<p class="a2">판매수 : <b
+																th:text="${p.salesCount != null ? p.salesCount : 0}">0</b>
 														</p>
 													</div>
 
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
 												</div>
 											</div>
 										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
 
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
 									</div>
 								</div>
 							</div>
 						</div>
+						<!-- /이벤트 상품 -->
 
+						<!-- 중간 배너(유지) -->
 						<div class="banners3 banners">
-							<div class="item1">
-								<a href="#"><img src="/front/image/sample/350-310.png" alt="image"></a>
+							<div class="item1"><a href="#"><img src="/front/image/sample/350-310.png" alt="image"></a>
 							</div>
-							<div class="item2">
-								<a href="#"><img src="/front/image/sample/650-310.png" alt="image"></a>
+							<div class="item2"><a href="#"><img src="/front/image/sample/650-310.png" alt="image"></a>
 							</div>
-							<div class="item3">
-								<a href="#"><img src="/front/image/sample/350-310.png" alt="image"></a>
+							<div class="item3"><a href="#"><img src="/front/image/sample/350-310.png" alt="image"></a>
 							</div>
 						</div>
 
-						<div class="module deals-layout1">
+						<!-- ===== 인기상품: idxTopViewed ===== -->
+						<div class="module deals-layout1"
+							th:if="${idxTopViewed != null and #lists.size(idxTopViewed) > 0}">
 							<div class="head-title">
 								<h3 class="text-center text-bolder">인기상품</h3>
 								<div class="modtitle">
@@ -529,7 +205,7 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 								</div>
 							</div>
 							<div class="modcontent">
-								<div id="so_deal_1" class="so-deal style1">
+								<div class="so-deal style1">
 									<div class="extraslider-inner products-list yt-content-slider" data-rtl="yes"
 										data-autoplay="no" data-autoheight="no" data-delay="4" data-speed="0.6"
 										data-margin="30" data-items_column00="5" data-items_column0="5"
@@ -537,440 +213,123 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 										data-items_column4="1" data-arrows="yes" data-pagination="no"
 										data-lazyload="yes" data-loop="yes" data-hoverpause="yes">
 
-										<div class="item">
+										<div class="item" th:each="p : ${idxTopViewed}">
 											<div class="item-inner product-layout transition product-grid">
 												<div class="product-item-container">
+
 													<div class="left-block left-b">
 														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
+															<span class="label-product label-sale"
+																th:if="${p.discountRate != null}"
+																th:text="${'-' + p.discountRate + '%'}">-0%</span>
+															<span class="label-product"
+																th:each="lbl : ${p.promotionLabels}"
+																th:text="${lbl}">LABEL</span>
 														</div>
 														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
+															<a th:href="@{${productDetailBase}+'/'+${p.id}}"
+																th:title="${p.name}" class="rvp-link" th:with="
+                                                                priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+                                                                priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
+                                                           " th:attr="data-rvp-id=${p.id},
+                                                                    data-rvp-name=${p.name},
+                                                                    data-rvp-image=${p.mainImageUrl},
+                                                                    data-rvp-pricenew=${priceNew},
+                                                                    data-rvp-priceold=${priceOld},
+                                                                    data-rvp-rating=${p.averageRating},
+                                                                    data-rvp-review=${p.reviewCount}">
+																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
+																	class="img-1 img-responsive" th:alt="${p.name}">
+																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
+																	class="img-2 img-responsive" th:alt="${p.name}">
 															</a>
 														</div>
 													</div>
+
 													<div class="right-block">
 														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
+															<button type="button" class="addToCart"
+																title="장바구니 담기"><span>장바구니 담기</span></button>
+															<button type="button" class="wishlist btn-button"><i
+																	class="fa fa-heart-o"></i><span>Add to
+																	WishList</span></button>
 														</div>
+
 														<div class="caption hide-cont">
 															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
+																<div class="rating-box">
+																	<span class="fa fa-stack"
+																		th:each="i : ${#numbers.sequence(1,5)}">
+																		<i class="fa fa-star fa-stack-2x"
+																			th:if="${i <= T(java.lang.Math).round(p.averageRating != null ? p.averageRating : 0)}"></i>
+																		<i class="fa fa-star-o fa-stack-2x"
+																			th:if="${i >  T(java.lang.Math).round(p.averageRating != null ? p.averageRating : 0)}"></i>
+																	</span>
 																</div>
-																<span class="rating-num">( 2 )</span>
+																<span class="rating-num"
+																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">(
+																	0 )</span>
 															</div>
-															<h4><a href="#">제품명</a></h4>
-
+															<h4>
+																<a th:href="@{${productDetailBase}+'/'+${p.id}}"
+																	th:title="${p.name}" th:text="${p.name}"
+																	class="rvp-link" th:with="
+                                                                    priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+                                                                    priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
+                                                               " th:attr="data-rvp-id=${p.id},
+                                                                        data-rvp-name=${p.name},
+                                                                        data-rvp-image=${p.mainImageUrl},
+                                                                        data-rvp-pricenew=${priceNew},
+                                                                        data-rvp-priceold=${priceOld},
+                                                                        data-rvp-rating=${p.averageRating},
+                                                                        data-rvp-review=${p.reviewCount}">제품명</a>
+															</h4>
 														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
+
+														<p class="price" th:with="
+                                                            priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+                                                            priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
+                                                       ">
+															<span class="price-new"
+																th:text="${#numbers.formatInteger(priceNew, 0, 'COMMA') + '원'}">0원</span>
+															<span class="price-old"
+																th:text="${#numbers.formatInteger(priceOld, 0, 'COMMA') + '원'}">0원</span>
 														</p>
 													</div>
 
 													<div class="item-available">
 														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
+															<span class="color_width" data-title="progress"
+																data-toggle="tooltip"
+																th:style="${'width:' + (p.viewCount != null ? (p.viewCount % 100) : 0) + '%'}"></span>
 														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
+														<p class="a2">조회수 : <b
+																th:text="${p.viewCount != null ? p.viewCount : 0}">0</b>
 														</p>
 													</div>
 
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
 												</div>
 											</div>
 										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
 
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-						<div class="module deals-layout1 mt-5">
+						<!-- /인기상품 -->
+
+						<!-- ===== 베스트 할인상품: idxTopSales ===== -->
+						<div class="module deals-layout1 mt-5"
+							th:if="${idxTopSales != null and #lists.size(idxTopSales) > 0}">
 							<div class="head-title">
 								<h3 class="text-center text-bolder">베스트 할인상품</h3>
 								<div class="modtitle">
 									<a class="viewall" href="">베스트 SHOP 바로가기</a>
 								</div>
 							</div>
+
 							<div class="modcontent">
-								<div id="so_deal_1" class="so-deal style1">
+								<div class="so-deal style1">
 									<div class="extraslider-inner products-list yt-content-slider" data-rtl="yes"
 										data-autoplay="no" data-autoheight="no" data-delay="4" data-speed="0.6"
 										data-margin="30" data-items_column00="5" data-items_column0="5"
@@ -978,726 +337,134 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 										data-items_column4="1" data-arrows="yes" data-pagination="no"
 										data-lazyload="yes" data-loop="yes" data-hoverpause="yes">
 
-										<div class="item">
+										<div class="item" th:each="p : ${idxTopSales}">
 											<div class="item-inner product-layout transition product-grid">
 												<div class="product-item-container">
+
 													<div class="left-block left-b">
 														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
+															<span class="label-product label-sale"
+																th:if="${p.discountRate != null}"
+																th:text="${'-' + p.discountRate + '%'}">-0%</span>
+															<span class="label-product"
+																th:each="lbl : ${p.promotionLabels}"
+																th:text="${lbl}">LABEL</span>
 														</div>
 														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
+															<a th:href="@{${productDetailBase}+'/'+${p.id}}"
+																th:title="${p.name}" class="rvp-link" th:with="
+                                                                priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+                                                                priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
+                                                           " th:attr="data-rvp-id=${p.id},
+                                                                    data-rvp-name=${p.name},
+                                                                    data-rvp-image=${p.mainImageUrl},
+                                                                    data-rvp-pricenew=${priceNew},
+                                                                    data-rvp-priceold=${priceOld},
+                                                                    data-rvp-rating=${p.averageRating},
+                                                                    data-rvp-review=${p.reviewCount}">
+																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
+																	class="img-1 img-responsive" th:alt="${p.name}">
+																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
+																	class="img-2 img-responsive" th:alt="${p.name}">
 															</a>
 														</div>
 													</div>
+
 													<div class="right-block">
 														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
+															<button type="button" class="addToCart"
+																title="장바구니 담기"><span>장바구니 담기</span></button>
+															<button type="button" class="wishlist btn-button"><i
+																	class="fa fa-heart-o"></i><span>Add to
+																	WishList</span></button>
 														</div>
+
 														<div class="caption hide-cont">
 															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
+																<div class="rating-box">
+																	<span class="fa fa-stack"
+																		th:each="i : ${#numbers.sequence(1,5)}">
+																		<i class="fa fa-star fa-stack-2x"
+																			th:if="${i <= T(java.lang.Math).round(p.averageRating != null ? p.averageRating : 0)}"></i>
+																		<i class="fa fa-star-o fa-stack-2x"
+																			th:if="${i >  T(java.lang.Math).round(p.averageRating != null ? p.averageRating : 0)}"></i>
+																	</span>
 																</div>
-																<span class="rating-num">( 2 )</span>
+																<span class="rating-num"
+																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">(
+																	0 )</span>
 															</div>
-															<h4><a href="#">제품명</a></h4>
-
+															<h4>
+																<a th:href="@{${productDetailBase}+'/'+${p.id}}"
+																	th:title="${p.name}" th:text="${p.name}"
+																	class="rvp-link" th:with="
+                                                                    priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+                                                                    priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
+                                                               " th:attr="data-rvp-id=${p.id},
+                                                                        data-rvp-name=${p.name},
+                                                                        data-rvp-image=${p.mainImageUrl},
+                                                                        data-rvp-pricenew=${priceNew},
+                                                                        data-rvp-priceold=${priceOld},
+                                                                        data-rvp-rating=${p.averageRating},
+                                                                        data-rvp-review=${p.reviewCount}">제품명</a>
+															</h4>
 														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
+
+														<p class="price" th:with="
+                                                            priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+                                                            priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
+                                                       ">
+															<span class="price-new"
+																th:text="${#numbers.formatInteger(priceNew, 0, 'COMMA') + '원'}">0원</span>
+															<span class="price-old"
+																th:text="${#numbers.formatInteger(priceOld, 0, 'COMMA') + '원'}">0원</span>
 														</p>
 													</div>
 
 													<div class="item-available">
 														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
+															<span class="color_width" data-title="progress"
+																data-toggle="tooltip"
+																th:style="${'width:' + (p.salesCount != null ? (p.salesCount % 100) : 0) + '%'}"></span>
 														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
+														<p class="a2">판매수 : <b
+																th:text="${p.salesCount != null ? p.salesCount : 0}">0</b>
 														</p>
 													</div>
 
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
 												</div>
 											</div>
 										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
 
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item">
-											<div class="item-inner product-layout transition product-grid">
-												<div class="product-item-container">
-													<div class="left-block left-b">
-														<div class="box-label">
-															<span class="label-product label-sale">-11%</span>
-														</div>
-														<div class="product-image-container second_img">
-															<a href="#" title="#">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-1 img-responsive" alt="image1">
-																<img src="/front/image/sample/270-270.png"
-																	class="img-2 img-responsive" alt="image2">
-															</a>
-														</div>
-													</div>
-													<div class="right-block">
-														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="#">
-																<span>장바구니 담기</span>
-															</button>
-															<button type="button" class="wishlist btn-button">
-																<i class="fa fa-heart-o"></i><span>Add to
-																	WishList</span>
-															</button>
-														</div>
-														<div class="caption hide-cont">
-															<div class="ratings">
-																<div class="rating-box"> <span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-2x"></i></span>
-																</div>
-																<span class="rating-num">( 2 )</span>
-															</div>
-															<h4><a href="#">제품명</a></h4>
-
-														</div>
-														<p class="price">
-															<span class="price-new">할인 후 가격</span>
-															<span class="price-old">할인 전 가격</span>
-														</p>
-													</div>
-
-													<div class="item-available">
-														<div class="available">
-															<span class="color_width" data-title="77%"
-																data-toggle='tooltip' style="width: 77%"></span>
-														</div>
-														<p class="a2">판매수 : <b>51</b> </p>
-													</div>
-												</div>
-											</div>
-										</div>
 									</div>
 								</div>
 							</div>
 						</div>
+						<!-- /베스트 할인상품 -->
+
 					</div>
+					<!-- /좌 10 -->
+
+					<!-- 우 2 : 최근 본 제품 -->
 					<div class="col-lg-2 t-d-n">
-						<div class="module product-simple extra-layout1 mt-20">
-							<h3 class="modtitle">
-								<span>최근 본 제품</span>
-							</h3>
+						<div id="recentViewModule" class="module product-simple extra-layout1 mt-20"
+							style="display:none;">
+							<h3 class="modtitle"><span>최근 본 제품</span></h3>
 							<div class="modcontent">
-								<div id="so_extra_slider_1" class="so-extraslider">
-									<!-- Begin extraslider-inner -->
+								<div class="so-extraslider">
 									<div class="yt-content-slider extraslider-inner" data-rtl="yes"
 										data-pagination="yes" data-autoplay="no" data-delay="4" data-speed="0.6"
 										data-margin="0" data-items_column00="1" data-items_column0="1"
 										data-items_column1="1" data-items_column2="1" data-items_column3="1"
 										data-items_column4="1" data-arrows="no" data-lazyload="yes" data-loop="no"
 										data-buttonpage="top">
-										<div class="item ">
-											<div class="product-layout item-inner style1 ">
-												<div class="item-image">
-													<div class="item-img-info">
-														<a href="#" title="# ">
-															<img src="/front/image/sample/80-80.png" alt="#">
-														</a>
-													</div>
-
-												</div>
-												<div class="item-info">
-													<div class="item-title">
-														<a href="#" target="_self" title="Mandouille short">제품명</a>
-													</div>
-													<div class="rating">
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star-o fa-stack-2x"></i></span>
-													</div>
-													<div class="content_price price">
-														<p class="price-new product-price">할인 후 금액
-														</p>
-
-														<p class="price-old">할인 전 금액 </p>
-
-													</div>
-												</div>
-											</div>
-											<div class="product-layout item-inner style1 ">
-												<div class="item-image">
-													<div class="item-img-info">
-														<a href="#" title="# ">
-															<img src="/front/image/sample/80-80.png" alt="#">
-														</a>
-													</div>
-
-												</div>
-												<div class="item-info">
-													<div class="item-title">
-														<a href="#" target="_self" title="Mandouille short">제품명</a>
-													</div>
-													<div class="rating">
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star-o fa-stack-2x"></i></span>
-													</div>
-													<div class="content_price price">
-														<p class="price-new product-price">할인 후 금액
-														</p>
-
-														<p class="price-old">할인 전 금액 </p>
-
-													</div>
-												</div>
-											</div>
-											<div class="product-layout item-inner style1 ">
-												<div class="item-image">
-													<div class="item-img-info">
-														<a href="#" title="# ">
-															<img src="/front/image/sample/80-80.png" alt="#">
-														</a>
-													</div>
-
-												</div>
-												<div class="item-info">
-													<div class="item-title">
-														<a href="#" target="_self" title="Mandouille short">제품명</a>
-													</div>
-													<div class="rating">
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star-o fa-stack-2x"></i></span>
-													</div>
-													<div class="content_price price">
-														<p class="price-new product-price">할인 후 금액
-														</p>
-
-														<p class="price-old">할인 전 금액 </p>
-
-													</div>
-												</div>
-											</div>
-											<div class="product-layout item-inner style1 ">
-												<div class="item-image">
-													<div class="item-img-info">
-														<a href="#" title="# ">
-															<img src="/front/image/sample/80-80.png" alt="#">
-														</a>
-													</div>
-
-												</div>
-												<div class="item-info">
-													<div class="item-title">
-														<a href="#" target="_self" title="Mandouille short">제품명</a>
-													</div>
-													<div class="rating">
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star-o fa-stack-2x"></i></span>
-													</div>
-													<div class="content_price price">
-														<p class="price-new product-price">할인 후 금액
-														</p>
-
-														<p class="price-old">할인 전 금액 </p>
-
-													</div>
-												</div>
-											</div>
-										</div>
-										<div class="item ">
-											<div class="product-layout item-inner style1 ">
-												<div class="item-image">
-													<div class="item-img-info">
-														<a href="#" title="# ">
-															<img src="/front/image/sample/80-80.png" alt="#">
-														</a>
-													</div>
-
-												</div>
-												<div class="item-info">
-													<div class="item-title">
-														<a href="#" target="_self" title="Mandouille short">제품명</a>
-													</div>
-													<div class="rating">
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star-o fa-stack-2x"></i></span>
-													</div>
-													<div class="content_price price">
-														<p class="price-new product-price">할인 후 금액
-														</p>
-
-														<p class="price-old">할인 전 금액 </p>
-
-													</div>
-												</div>
-											</div>
-											<div class="product-layout item-inner style1 ">
-												<div class="item-image">
-													<div class="item-img-info">
-														<a href="#" title="# ">
-															<img src="/front/image/sample/80-80.png" alt="#">
-														</a>
-													</div>
-
-												</div>
-												<div class="item-info">
-													<div class="item-title">
-														<a href="#" target="_self" title="Mandouille short">제품명</a>
-													</div>
-													<div class="rating">
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star-o fa-stack-2x"></i></span>
-													</div>
-													<div class="content_price price">
-														<p class="price-new product-price">할인 후 금액
-														</p>
-
-														<p class="price-old">할인 전 금액 </p>
-
-													</div>
-												</div>
-											</div>
-											<div class="product-layout item-inner style1 ">
-												<div class="item-image">
-													<div class="item-img-info">
-														<a href="#" title="# ">
-															<img src="/front/image/sample/80-80.png" alt="#">
-														</a>
-													</div>
-
-												</div>
-												<div class="item-info">
-													<div class="item-title">
-														<a href="#" target="_self" title="Mandouille short">제품명</a>
-													</div>
-													<div class="rating">
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star-o fa-stack-2x"></i></span>
-													</div>
-													<div class="content_price price">
-														<p class="price-new product-price">할인 후 금액
-														</p>
-
-														<p class="price-old">할인 전 금액 </p>
-
-													</div>
-												</div>
-											</div>
-											<div class="product-layout item-inner style1 ">
-												<div class="item-image">
-													<div class="item-img-info">
-														<a href="#" title="# ">
-															<img src="/front/image/sample/80-80.png" alt="#">
-														</a>
-													</div>
-
-												</div>
-												<div class="item-info">
-													<div class="item-title">
-														<a href="#" target="_self" title="Mandouille short">제품명</a>
-													</div>
-													<div class="rating">
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star-o fa-stack-2x"></i></span>
-													</div>
-													<div class="content_price price">
-														<p class="price-new product-price">할인 후 금액
-														</p>
-
-														<p class="price-old">할인 전 금액 </p>
-
-													</div>
-												</div>
-											</div>
-										</div>
+										<!-- recent-view-product.js 가 렌더링 -->
 									</div>
 								</div>
 							</div>
 						</div>
+
+						<!-- 정책/배너(유지) -->
 						<div class="module">
 							<div class="policy-w">
 								<a href="#"><img src="/front/image/sample/250-140.png" alt="#"></a>
@@ -1741,14 +508,42 @@ xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 								</ul>
 							</div>
 						</div>
+
 					</div>
+					<!-- /우 2 -->
+
 				</div>
+				<!-- /본문 -->
 			</div>
 		</div>
+
 		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
 	</div>
 
+	<!-- 공통 스크립트 -->
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
+	<script src="/front/js/page/recent-view-product.js"></script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			// 카드/타이틀 공통 저장 훅
+			document.querySelectorAll('.rvp-link').forEach(function (a) {
+				a.addEventListener('click', function () {
+					if (!window.RecentView) return;
+					window.RecentView.addFromDataset(a.dataset);
+				});
+			});
+
+			// 사이드 최근 본 제품 렌더
+			if (window.RecentView) {
+				window.RecentView.render('#recentViewModule .extraslider-inner', {
+					onEmptyHide: '#recentViewModule',
+					productDetailBase: document.body.getAttribute('data-product-detail-base') || '/product'
+				});
+			}
+		});
+	</script>
+
 </body>
 
 </html>

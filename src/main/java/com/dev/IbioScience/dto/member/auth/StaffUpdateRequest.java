@@ -1,6 +1,6 @@
 package com.dev.IbioScience.dto.member.auth;
 
-import com.dev.IbioScience.model.auth.enums.MemberRole;
+import com.dev.IbioScience.enums.auth.MemberRole;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;

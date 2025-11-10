@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.dev.IbioScience.enums.auth.MemberStatus;
 import com.dev.IbioScience.model.auth.Member;
-import com.dev.IbioScience.model.auth.enums.MemberStatus;
 
 /** 회원 리포지토리 */
 public interface MemberRepository extends JpaRepository<Member, Long> {

@@ -2,7 +2,7 @@ package com.dev.IbioScience.model.product;
 
 import java.math.BigDecimal;
 
-import com.dev.IbioScience.enums.product.DealerGrade;
+import com.dev.IbioScience.enums.auth.DealerGrade;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -6,11 +6,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dev.IbioScience.dto.member.auth.RootInitResponse;
+import com.dev.IbioScience.enums.auth.DealerType;
+import com.dev.IbioScience.enums.auth.MemberDomain;
+import com.dev.IbioScience.enums.auth.MemberRole;
+import com.dev.IbioScience.enums.auth.MemberStatus;
 import com.dev.IbioScience.model.auth.Member;
-import com.dev.IbioScience.model.auth.enums.DealerType;
-import com.dev.IbioScience.model.auth.enums.MemberDomain;
-import com.dev.IbioScience.model.auth.enums.MemberRole;
-import com.dev.IbioScience.model.auth.enums.MemberStatus;
 import com.dev.IbioScience.repository.auth.MemberRepository;
 
 import jakarta.transaction.Transactional;

@@ -2,13 +2,13 @@ package com.dev.IbioScience.model.auth;
 
 import java.time.LocalDateTime;
 
+import com.dev.IbioScience.enums.auth.CustomerType;
+import com.dev.IbioScience.enums.auth.DealerType;
+import com.dev.IbioScience.enums.auth.MemberDomain;
+import com.dev.IbioScience.enums.auth.MemberRole;
+import com.dev.IbioScience.enums.auth.MemberStatus;
 import com.dev.IbioScience.model.auth.embedded.Address;
 import com.dev.IbioScience.model.auth.embedded.BaseTimeEntity;
-import com.dev.IbioScience.model.auth.enums.CustomerType;
-import com.dev.IbioScience.model.auth.enums.DealerType;
-import com.dev.IbioScience.model.auth.enums.MemberDomain;
-import com.dev.IbioScience.model.auth.enums.MemberRole;
-import com.dev.IbioScience.model.auth.enums.MemberStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;

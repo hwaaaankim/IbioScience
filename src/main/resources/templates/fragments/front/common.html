@@ -995,7 +995,13 @@
 </th:block>
 
 <th:block th:fragment="frontScript">
-
+	<script th:inline="javascript">
+		// 전역: 대분류 목록 주입 (초기 메가메뉴용)
+		window.__IBIO_LARGE_CATEGORIES__ = /*[[${globalLargeCategories}]]*/[];
+		
+		// 전역: 로그인 여부 주입
+		window.__isAuthenticated = /*[[${#authorization.expression('isAuthenticated()')}]]*/ false;
+	</script>
 	<script type="text/javascript" src="/front/js/jquery-2.2.4.min.js"></script>
 	<script type="text/javascript" src="/front/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="/front/js/owl-carousel/owl.carousel.js"></script>
@@ -1014,13 +1020,9 @@
 	<script type="text/javascript" src="/front/js/themejs/toppanel.js"></script>
 	<script type="text/javascript" src="/front/js/themejs/so_megamenu.js"></script>
 	<script type="text/javascript" src="/front/js/themejs/addtocart.js"></script>
+	<script type="text/javascript" src="/front/js/page/ibio-menu-adapter.js"></script>
 	<script type="text/javascript" src="/front/js/page/ibio-index-megamenu.js"></script>
 	<script type="text/javascript" src="/front/js/page/footer.js"></script>
-	<script th:inline="javascript">
-		// 전역: 로그인 여부 주입
-		window.__isAuthenticated = /*[[${#authorization.expression('isAuthenticated()')}]]*/ false;
-	</script>
-
 	<script>
 		(function () {
 			"use strict";

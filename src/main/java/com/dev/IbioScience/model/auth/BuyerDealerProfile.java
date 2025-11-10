@@ -3,8 +3,8 @@ package com.dev.IbioScience.model.auth;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.dev.IbioScience.enums.auth.DealerGrade;
 import com.dev.IbioScience.model.auth.embedded.BaseTimeEntity;
-import com.dev.IbioScience.model.auth.enums.DealerGrade;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

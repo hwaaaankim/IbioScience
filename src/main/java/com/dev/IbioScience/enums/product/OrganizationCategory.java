@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.auth.enums;
+package com.dev.IbioScience.enums.product;
 
 /** 기관 분류(임시 3개) */
 public enum OrganizationCategory {

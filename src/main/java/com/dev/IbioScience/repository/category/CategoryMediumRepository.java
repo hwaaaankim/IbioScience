@@ -28,6 +28,6 @@ public interface CategoryMediumRepository extends JpaRepository<CategoryMedium, 
     List<CategoryMedium> findByIdIn(Collection<Long> ids);
     
     List<CategoryMedium> findByLarge_IdOrderByNameAsc(Long largeId);
-
+    
 }
 

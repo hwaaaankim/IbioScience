@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 
 import com.dev.IbioScience.dto.productList.ProductListFilter;
 import com.dev.IbioScience.dto.productList.ProductListRowDTO;
-import com.dev.IbioScience.enums.product.DealerGrade;
+import com.dev.IbioScience.enums.auth.DealerGrade;
 import com.dev.IbioScience.enums.product.DisplayStatus;
 import com.dev.IbioScience.enums.product.ProductImageType;
 import com.dev.IbioScience.enums.product.PromotionType;

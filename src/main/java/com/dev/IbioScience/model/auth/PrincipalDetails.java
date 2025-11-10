@@ -8,8 +8,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.dev.IbioScience.dto.view.UiMemberType;
-import com.dev.IbioScience.model.auth.enums.CustomerType;
-import com.dev.IbioScience.model.auth.enums.DealerType;
+import com.dev.IbioScience.enums.auth.CustomerType;
+import com.dev.IbioScience.enums.auth.DealerType;
 
 import lombok.RequiredArgsConstructor;
 

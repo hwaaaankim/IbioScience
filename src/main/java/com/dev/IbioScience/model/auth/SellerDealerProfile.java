@@ -2,11 +2,11 @@ package com.dev.IbioScience.model.auth;
 
 import java.time.LocalDate;
 
+import com.dev.IbioScience.enums.product.SupplyStructure;
+import com.dev.IbioScience.enums.product.SupplyType;
+import com.dev.IbioScience.enums.product.TradingStatus;
 import com.dev.IbioScience.model.auth.embedded.Address;
 import com.dev.IbioScience.model.auth.embedded.BaseTimeEntity;
-import com.dev.IbioScience.model.auth.enums.SupplyStructure;
-import com.dev.IbioScience.model.auth.enums.SupplyType;
-import com.dev.IbioScience.model.auth.enums.TradingStatus;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;

@@ -1,6 +1,6 @@
 package com.dev.IbioScience.model.auth.utils;
 
-import com.dev.IbioScience.model.auth.enums.DealerType;
+import com.dev.IbioScience.enums.auth.DealerType;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

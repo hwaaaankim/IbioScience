@@ -7,12 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dev.IbioScience.dto.member.auth.StaffCreateRequest;
+import com.dev.IbioScience.enums.auth.CustomerType;
+import com.dev.IbioScience.enums.auth.DealerType;
+import com.dev.IbioScience.enums.auth.MemberDomain;
+import com.dev.IbioScience.enums.auth.MemberRole;
+import com.dev.IbioScience.enums.auth.MemberStatus;
 import com.dev.IbioScience.model.auth.Member;
-import com.dev.IbioScience.model.auth.enums.CustomerType;
-import com.dev.IbioScience.model.auth.enums.DealerType;
-import com.dev.IbioScience.model.auth.enums.MemberDomain;
-import com.dev.IbioScience.model.auth.enums.MemberRole;
-import com.dev.IbioScience.model.auth.enums.MemberStatus;
 import com.dev.IbioScience.repository.auth.MemberRepository;
 
 import lombok.RequiredArgsConstructor;

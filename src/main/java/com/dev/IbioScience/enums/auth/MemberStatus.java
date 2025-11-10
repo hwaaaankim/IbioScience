@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.auth.enums;
+package com.dev.IbioScience.enums.auth;
 
 /** 멤버 상태 */
 public enum MemberStatus {

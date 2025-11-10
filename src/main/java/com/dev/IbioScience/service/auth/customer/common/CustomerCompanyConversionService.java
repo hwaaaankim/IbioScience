@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.dev.IbioScience.dto.customer.auth.ConversionToCompanyRequest;
+import com.dev.IbioScience.enums.auth.CustomerType;
+import com.dev.IbioScience.enums.auth.MemberDomain;
 import com.dev.IbioScience.model.auth.CompanyProfile;
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.auth.embedded.Address;
-import com.dev.IbioScience.model.auth.enums.CustomerType;
-import com.dev.IbioScience.model.auth.enums.MemberDomain;
 import com.dev.IbioScience.repository.auth.CompanyProfileRepository;
 import com.dev.IbioScience.repository.auth.MemberRepository;
 

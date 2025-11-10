@@ -1,4 +1,5 @@
 package com.dev.IbioScience.enums.product;
+
 // 상품 신상상태 ENUM
 public enum ProductNewState {
     NEW,      // 신상품

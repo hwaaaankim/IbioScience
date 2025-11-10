@@ -2,9 +2,9 @@ package com.dev.IbioScience.model.auth.utils;
 
 import java.time.LocalDateTime;
 
+import com.dev.IbioScience.enums.auth.CustomerType;
+import com.dev.IbioScience.enums.auth.DealerType;
 import com.dev.IbioScience.model.auth.Member;
-import com.dev.IbioScience.model.auth.enums.CustomerType;
-import com.dev.IbioScience.model.auth.enums.DealerType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

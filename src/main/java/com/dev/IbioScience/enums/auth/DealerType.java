@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.auth.enums;
+package com.dev.IbioScience.enums.auth;
 
 /** 딜러 유형 */
 public enum DealerType {

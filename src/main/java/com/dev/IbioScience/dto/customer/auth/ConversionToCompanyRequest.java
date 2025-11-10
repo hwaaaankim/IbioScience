@@ -1,6 +1,6 @@
 package com.dev.IbioScience.dto.customer.auth;
 
-import com.dev.IbioScience.model.auth.enums.OrganizationCategory;
+import com.dev.IbioScience.enums.product.OrganizationCategory;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -5,11 +5,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.dev.IbioScience.enums.auth.MemberStatus;
 import com.dev.IbioScience.exception.InactiveMemberException;
 import com.dev.IbioScience.exception.UseYnDisabledException;
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.auth.PrincipalDetails;
-import com.dev.IbioScience.model.auth.enums.MemberStatus;
 import com.dev.IbioScience.repository.auth.MemberRepository;
 
 import lombok.RequiredArgsConstructor;

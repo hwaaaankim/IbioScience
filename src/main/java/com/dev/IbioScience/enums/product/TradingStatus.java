@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.auth.enums;
+package com.dev.IbioScience.enums.product;
 
 /** 거래상태 */
 public enum TradingStatus {

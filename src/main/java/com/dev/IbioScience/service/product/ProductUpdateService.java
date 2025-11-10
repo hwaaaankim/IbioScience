@@ -19,7 +19,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.dev.IbioScience.dto.productDetail.ProductUpdateRequestDTO;
-import com.dev.IbioScience.enums.product.DealerGrade;
+import com.dev.IbioScience.enums.auth.DealerGrade;
 import com.dev.IbioScience.enums.product.DisplayStatus;
 import com.dev.IbioScience.enums.product.PriceExposeTarget;
 import com.dev.IbioScience.enums.product.PriceSign;

@@ -30,4 +30,5 @@ public interface CategorySmallRepository extends JpaRepository<CategorySmall, Lo
     boolean existsProductInSmall(@Param("small") CategorySmall small);
     
     List<CategorySmall> findByIdIn(Collection<Long> ids);
+    List<CategorySmall> findByNameContainingIgnoreCaseOrderByNameAsc(String name);
 }

@@ -1,8 +1,8 @@
 package com.dev.IbioScience.model.auth;
 
+import com.dev.IbioScience.enums.product.OrganizationCategory;
 import com.dev.IbioScience.model.auth.embedded.Address;
 import com.dev.IbioScience.model.auth.embedded.BaseTimeEntity;
-import com.dev.IbioScience.model.auth.enums.OrganizationCategory;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
