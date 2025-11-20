@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.dev.IbioScience.dto.page.productList.ProductSortOption;
 
@@ -15,6 +16,13 @@ import com.dev.IbioScience.dto.page.productList.ProductSortOption;
 public class ProductFrontController {
 
 
+	@GetMapping("/testControllerMapping")
+	@ResponseBody
+	public String testControllerMapping() {
+		
+		return "success";
+	}
+	
 	 /**
      * 제품 리스트 페이지 진입
      *
