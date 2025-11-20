@@ -528,6 +528,7 @@
 		});
 	}
 
+	// ★★★ 수정된 부분: PC용 소분류 클릭 로직 분리 ★★★
 	async function renderSmall(mediumId) {
 		clear(ulSmall);
 		ulSmall.classList.remove("ibio-index-empty");
@@ -540,6 +541,7 @@
 			const txt = el("span", "ibio-index-text", S.name);
 			const arr = el("span", "ibio-index-arrow", "›");
 
+			// PC: 소분류 텍스트/화살표 클릭 시, 해당 소분류 제품을 우측 제품 리스트에 렌더
 			const show = async () => {
 				st.smallId = S.id;
 				ulSmall.querySelectorAll("li").forEach((x) => x.classList.remove("active"));
@@ -547,8 +549,22 @@
 
 				updateProductListLinkState();
 
-				// 데이터 선로딩 후 슬라이드 오픈
-				await openSmallAfterLoad(S);
+				// 소분류 하위 제품 선로딩
+				if (!S.products) {
+					S.products = await window.ibioMenu.fetchProductsByScope({
+						largeId: st.largeId,
+						mediumId: st.mediumId,
+						smallId: S.id,
+						brandId: null,
+					});
+				}
+
+				enableBrand(true);
+				// 우측 제품 리스트 영역(PC) 렌더링
+				renderProducts(
+					applyBrandFilter(productsOfSmall(S.id)),
+					`${S.name} 제품`
+				);
 			};
 
 			txt.addEventListener("click", show);
@@ -870,8 +886,6 @@
 				st.mobileCtx.mediumId = st.mediumId;
 				st.mobileCtx.smallId = S.id;
 
-				// 브랜드 FAB는 이미 대분류 선택 시 활성화되기 때문에 여기서는 그대로 둠
-
 				// 데이터 로드 → DOM 빌드 → 슬라이드 오픈
 				await slideToggleAsync(sub, async () => {
 					await openSmallAfterLoad(S, sub);
@@ -901,9 +915,13 @@
 		});
 	}
 
+	// ★★★ 수정된 부분: 모바일 전용 소분류 데이터 로드 함수 ★★★
 	// 소분류 클릭 시, 데이터 선로딩 후 제품 목록 구성 → 그 다음 슬라이드 오픈
 	async function openSmallAfterLoad(S, subEl) {
 		const container = subEl || st.mobileCtx.prodContainer;
+		// PC에서 잘못 호출되는 경우를 방지하기 위한 안전장치
+		if (!container) return;
+
 		if (!S.products) {
 			S.products = await window.ibioMenu.fetchProductsByScope({
 				largeId: st.largeId,
@@ -912,7 +930,7 @@
 				brandId: null,
 			});
 		}
-		await renderMobileProductsInto(container || subEl, S.id);
+		await renderMobileProductsInto(container, S.id);
 	}
 
 	async function renderMobileProductsInto(container, smallId) {
