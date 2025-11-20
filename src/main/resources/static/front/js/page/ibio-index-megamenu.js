@@ -239,6 +239,7 @@
 	const ulSmall = byId("ibio-index-small-list");
 	const ulProd = byId("ibio-index-product-list");
 	const brandList = byId("ibio-index-brand-list");
+	const productListLink = byId("ibio-index-product-list-link");
 
 	async function ensureMediumLoaded(largeId) {
 		const L = st.data.large.find((x) => x.id === largeId);
@@ -257,6 +258,43 @@
 		return M;
 	}
 
+	function setEmpty(list, text) {
+		clear(list);
+		list.classList.add("ibio-index-empty");
+		list.innerHTML =
+			'<li style="height:var(--ibio-item-h);display:flex;align-items:center;padding:0 12px;border-bottom:1px solid #f3f4f6;color:#9aa3ae;">' +
+			text +
+			"</li>";
+	}
+
+	function hasCategoryScope() {
+		// 최소 대분류가 선택되어 있어야 제품리스트 링크 활성화
+		return !!st.largeId;
+	}
+
+	function buildProductListUrl({ largeId, mediumId, smallId, brandId, page, size, sort }) {
+		const params = [];
+		if (largeId) params.push(`largeId=${encodeURIComponent(largeId)}`);
+		if (mediumId) params.push(`mediumId=${encodeURIComponent(mediumId)}`);
+		if (smallId) params.push(`smallId=${encodeURIComponent(smallId)}`);
+		if (brandId) params.push(`brandId=${encodeURIComponent(brandId)}`);
+		if (page != null) params.push(`page=${encodeURIComponent(page)}`);
+		if (size != null) params.push(`size=${encodeURIComponent(size)}`);
+		if (sort) params.push(`sort=${encodeURIComponent(sort)}`);
+		return `/productList${params.length ? `?${params.join("&")}` : ""}`;
+	}
+
+	function updateProductListLinkState() {
+		if (!productListLink) return;
+		if (hasCategoryScope()) {
+			productListLink.classList.remove("disabled");
+			productListLink.setAttribute("aria-disabled", "false");
+		} else {
+			productListLink.classList.add("disabled");
+			productListLink.setAttribute("aria-disabled", "true");
+		}
+	}
+
 	function openMega(e) {
 		if (e) e.preventDefault();
 		if (window.matchMedia("(max-width: 991.98px)").matches) return;
@@ -267,6 +305,7 @@
 		mega?.setAttribute("aria-hidden", "false");
 		st.largeId = st.mediumId = st.smallId = null;
 		resetBrand();
+		updateProductListLinkState();
 		renderLarge();
 		setEmpty(ulMedium, "중분류가 없습니다.");
 		setEmpty(ulSmall, "소분류가 없습니다.");
@@ -287,6 +326,22 @@
 	}
 	openBtn?.addEventListener("click", openMega);
 	closeBtn?.addEventListener("click", closeMega);
+
+	// 제품리스트페이지 링크 클릭 → 현재 선택된 범위 & 브랜드 정보로 /productList 이동
+	productListLink?.addEventListener("click", (e) => {
+		e.preventDefault();
+		if (!hasCategoryScope()) return; // 대분류 미선택 시 무시
+		const url = buildProductListUrl({
+			largeId: st.largeId,
+			mediumId: st.mediumId,
+			smallId: st.smallId,
+			brandId: st.brandId,
+			page: 0,
+			size: 15, // 기본 15개씩 보기
+			sort: "CREATED_AT_DESC", // 기본 등록일순(최신)
+		});
+		window.location.href = url;
+	});
 
 	const guardZones = [document.querySelector(".main-menu-w"), document.getElementById("ibio-index-mega")];
 	let isPointerOverMenu = false;
@@ -351,15 +406,6 @@
 		{ passive: true }
 	);
 
-	function setEmpty(list, text) {
-		clear(list);
-		list.classList.add("ibio-index-empty");
-		list.innerHTML =
-			'<li style="height:var(--ibio-item-h);display:flex;align-items:center;padding:0 12px;border-bottom:1px solid #f3f4f6;color:#9aa3ae;">' +
-			text +
-			"</li>";
-	}
-
 	function renderLarge() {
 		clear(ulLarge);
 		st.data.large.forEach((L) => {
@@ -373,6 +419,8 @@
 				st.mediumId = st.smallId = null;
 				ulLarge.querySelectorAll("li").forEach((x) => x.classList.remove("active"));
 				li.classList.add("active");
+
+				updateProductListLinkState();
 
 				await ensureMediumLoaded(L.id);
 				// medium들의 small 로드 및 제품 로딩
@@ -399,13 +447,15 @@
 				setEmpty(ulSmall, "소분류가 없습니다.");
 			});
 
-			// 화살표 클릭: 중분류 목록 펼치기
+			// 화살표 클릭: 중분류 목록 펼치기 (이 경우도 대분류 선택으로 간주)
 			arr.addEventListener("click", async (e) => {
 				e.stopPropagation();
 				st.largeId = L.id;
 				st.mediumId = st.smallId = null;
 				ulLarge.querySelectorAll("li").forEach((x) => x.classList.remove("active"));
 				li.classList.add("active");
+
+				updateProductListLinkState();
 
 				await renderMedium(L.id);
 				setEmpty(ulProd, "제품이 여기에 표시됩니다.");
@@ -436,6 +486,8 @@
 				ulMedium.querySelectorAll("li").forEach((x) => x.classList.remove("active"));
 				li.classList.add("active");
 
+				updateProductListLinkState();
+
 				await ensureSmallLoaded(M.id);
 				const mm = L.medium.find((x) => x.id === M.id);
 				if (mm && Array.isArray(mm.small)) {
@@ -464,6 +516,8 @@
 				ulMedium.querySelectorAll("li").forEach((x) => x.classList.remove("active"));
 				li.classList.add("active");
 
+				updateProductListLinkState();
+
 				await renderSmall(M.id);
 				setEmpty(ulProd, "제품이 여기에 표시됩니다.");
 				resetBrand();
@@ -490,6 +544,8 @@
 				st.smallId = S.id;
 				ulSmall.querySelectorAll("li").forEach((x) => x.classList.remove("active"));
 				li.classList.add("active");
+
+				updateProductListLinkState();
 
 				// 데이터 선로딩 후 슬라이드 오픈
 				await openSmallAfterLoad(S);
@@ -560,9 +616,9 @@
 
 	/* =========================================================
 	   4) 모바일 패널/브랜드 모달
-	   - 변경 포인트:
-		 (A) slideOpenAsync/slideToggleAsync 추가 (콘텐츠 로드 후 오픈)
-		 (B) 빈 목록 문구도 .ibio-index-m-prod 로 렌더링
+	   - (A) slideOpenAsync/slideToggleAsync: 콘텐츠 로드 후 오픈
+	   - (B) 각 단계의 '>' 버튼 → /productList 이동
+	   - (C) 대분류 선택 시부터 브랜드 FAB 활성화
 	========================================================== */
 	const mOverlay = byId("ibio-index-m-overlay");
 	const mPanel = byId("ibio-index-m-panel");
@@ -590,7 +646,7 @@
 		if (mOverlay?.getAttribute("aria-hidden") === "false") return;
 		lockBody();
 		renderMobileLarge();
-		fab && (fab.disabled = true);
+		fab && (fab.disabled = true); // 처음엔 비활성화
 		mOverlay?.setAttribute("aria-hidden", "false");
 		if (mPanel) {
 			mPanel.dataset.state = "showing";
@@ -703,19 +759,43 @@
 		clear(mLarge);
 		st.data.large.forEach((L) => {
 			const li = el("li", "ibio-index-m-li");
-			const row = el(
-				"div",
-				"ibio-index-m-row",
-				`<span>${L.name}</span><span class="ibio-index-m-arrow">›</span>`
-			);
+
+			const row = el("div", "ibio-index-m-row");
+			row.innerHTML = `<span>${L.name}</span><span class="ibio-index-m-arrow">›</span>`;
 			const sub = el("div", "ibio-index-m-sub");
 			sub.style.display = "none";
+
+			const arrow = row.querySelector(".ibio-index-m-arrow");
+
+			// 텍스트/행 클릭: 하위 중분류 아코디언
 			row.addEventListener("click", () => {
 				st.largeId = L.id;
+				// 모바일에서도 대분류 선택 시점부터 브랜드 FAB 활성화
+				if (fab) fab.disabled = false;
+
 				slideToggleAsync(sub, async () => {
 					await renderMobileMedium(sub, L.id);
 				});
 			});
+
+			// '>' 클릭: 현재 대분류 + (선택된 브랜드) 기준 제품리스트 페이지로 이동
+			arrow.addEventListener("click", (ev) => {
+				ev.stopPropagation();
+				st.largeId = L.id;
+				st.mediumId = null;
+				st.smallId = null;
+				const url = buildProductListUrl({
+					largeId: L.id,
+					mediumId: null,
+					smallId: null,
+					brandId: st.brandId,
+					page: 0,
+					size: 15,
+					sort: "CREATED_AT_DESC",
+				});
+				window.location.href = url;
+			});
+
 			li.append(row, sub);
 			mLarge.appendChild(li);
 		});
@@ -727,19 +807,39 @@
 		clear(container);
 		(L.medium || []).forEach((M) => {
 			const li = el("div", "ibio-index-m-li");
-			const row = el(
-				"div",
-				"ibio-index-m-row",
-				`<span>${M.name}</span><span class="ibio-index-m-arrow">›</span>`
-			);
+
+			const row = el("div", "ibio-index-m-row");
+			row.innerHTML = `<span>${M.name}</span><span class="ibio-index-m-arrow">›</span>`;
 			const sub = el("div", "ibio-index-m-sub");
 			sub.style.display = "none";
+
+			const arrow = row.querySelector(".ibio-index-m-arrow");
+
+			// 텍스트/행 클릭: 하위 소분류 아코디언
 			row.addEventListener("click", () => {
 				st.mediumId = M.id;
 				slideToggleAsync(sub, async () => {
 					await renderMobileSmall(sub, M.id);
 				});
 			});
+
+			// '>' 클릭: 대+중+브랜드 기준 제품리스트 페이지로 이동
+			arrow.addEventListener("click", (ev) => {
+				ev.stopPropagation();
+				st.mediumId = M.id;
+				st.smallId = null;
+				const url = buildProductListUrl({
+					largeId: largeId,
+					mediumId: M.id,
+					smallId: null,
+					brandId: st.brandId,
+					page: 0,
+					size: 15,
+					sort: "CREATED_AT_DESC",
+				});
+				window.location.href = url;
+			});
+
 			li.append(row, sub);
 			container.appendChild(li);
 		});
@@ -751,10 +851,18 @@
 		clear(container);
 		(M.small || []).forEach((S) => {
 			const li = el("div", "ibio-index-m-li");
-			const row = el("div", "ibio-index-m-row", `<span>${S.name}</span>`);
+
+			const row = el(
+				"div",
+				"ibio-index-m-row",
+				`<span>${S.name}</span><span class="ibio-index-m-arrow">›</span>`
+			);
 			const sub = el("div", "ibio-index-m-sub");
 			sub.style.display = "none";
 
+			const arrow = row.querySelector(".ibio-index-m-arrow");
+
+			// 행 클릭: 소분류 제품 리스트(아코디언) 오픈
 			row.addEventListener("click", async () => {
 				st.smallId = S.id;
 				st.mobileCtx.prodContainer = sub;
@@ -762,14 +870,30 @@
 				st.mobileCtx.mediumId = st.mediumId;
 				st.mobileCtx.smallId = S.id;
 
-				fab && (fab.disabled = false);
+				// 브랜드 FAB는 이미 대분류 선택 시 활성화되기 때문에 여기서는 그대로 둠
 
-				// 핵심: 데이터 로드 → DOM 빌드 → 슬라이드 오픈
+				// 데이터 로드 → DOM 빌드 → 슬라이드 오픈
 				await slideToggleAsync(sub, async () => {
 					await openSmallAfterLoad(S, sub);
 				});
 
 				enableBrand(true);
+			});
+
+			// '>' 클릭: 대+중+소+브랜드 기준으로 제품리스트 페이지 이동
+			arrow.addEventListener("click", (ev) => {
+				ev.stopPropagation();
+				st.smallId = S.id;
+				const url = buildProductListUrl({
+					largeId: st.largeId,
+					mediumId: st.mediumId,
+					smallId: S.id,
+					brandId: st.brandId,
+					page: 0,
+					size: 15,
+					sort: "CREATED_AT_DESC",
+				});
+				window.location.href = url;
 			});
 
 			li.append(row, sub);
@@ -795,11 +919,10 @@
 		clear(container);
 		const list = applyBrandFilter(productsOfSmall(smallId));
 		if (!list.length) {
-			// (개선 1) 동일한 스타일 적용: 제품 앵커와 같은 클래스 사용
 			const empty = el("a", "ibio-index-m-prod");
 			empty.href = "javascript:void(0)";
 			empty.setAttribute("aria-disabled", "true");
-			empty.classList.add("is-empty"); // 필요 시 CSS에서 pointer-events:none 등 처리
+			empty.classList.add("is-empty");
 			empty.textContent = "해당 조건의 제품이 없습니다.";
 			container.appendChild(empty);
 			return;
@@ -1152,10 +1275,12 @@
 			const boot = await window.ibioMenu.bootstrap();
 			st.data = boot;
 			renderBrands(); // 초기 브랜드 패널
+			updateProductListLinkState(); // 처음에는 비활성
 			// (PC 메가 메뉴는 사용자가 열 때 동적 로딩/렌더링)
 		} catch (e) {
 			console.error("메뉴 부트스트랩 실패", e);
 			renderBrands();
+			updateProductListLinkState();
 		}
 	})();
 })();

@@ -223,7 +223,7 @@
           <td>${r.internalProductCode ?? '-'}</td>
           <td>${categoryText}</td>
           <td>${img}</td>
-          <td><a th:href="@{/productDetail/${r.id}}" href="/productDetail/${r.id}" class="text-decoration-underline">${r.name}</a></td>
+          <td><a th:href="@{/admin/productDetail/${r.id}}" href="/admin/productDetail/${r.id}" class="text-decoration-underline">${r.name}</a></td>
           <td class="text-end">${fmt(r.consumerPrice)}</td>
           <td class="text-end">${fmt(r.salePrice)}</td>
           <td>${dealer}</td>
