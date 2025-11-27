@@ -41,4 +41,11 @@ public class ProductListItemDto {
 
     // 옵션 그룹 + 옵션
     private List<ProductOptionGroupDto> optionGroups;
+
+    // ✅ 리스트/그리드에서 최종 노출할 기준 가격 (일반회원 기준)
+    private Integer displayPrice;        // 숫자(원 단위)
+    private String displayPriceText;     // "10,000원" / "견적문의" 등
+
+    // ✅ 판매수 (CATEGORY BEST 정렬에 사용)
+    private Integer salesCount;
 }

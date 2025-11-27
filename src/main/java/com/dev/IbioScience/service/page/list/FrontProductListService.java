@@ -27,6 +27,7 @@ import com.dev.IbioScience.dto.page.productList.ProductRatingSummaryDto;
 import com.dev.IbioScience.dto.page.productList.PromotionSummaryDto;
 import com.dev.IbioScience.enums.page.list.ProductSortOption;
 import com.dev.IbioScience.enums.product.DisplayStatus;
+import com.dev.IbioScience.enums.product.PriceSign;
 import com.dev.IbioScience.enums.product.ProductImageType;
 import com.dev.IbioScience.enums.product.ProductState;
 import com.dev.IbioScience.enums.product.PromotionTarget;
@@ -51,6 +52,9 @@ public class FrontProductListService {
     private final ProductRepository productRepository;
     private final ProductReviewRepository productReviewRepository;
 
+    /**
+     * 제품 리스트 검색 (페이지)
+     */
     public Page<ProductListItemDto> searchProducts(
             Long largeId,
             Long mediumId,
@@ -61,7 +65,6 @@ public class FrontProductListService {
             int page,
             int size
     ) {
-        // 페이지/정렬 구성
         Pageable pageableForDbSort = buildPageable(sortOption, page, size);
 
         Page<Product> productPage;
@@ -102,16 +105,54 @@ public class FrontProductListService {
             return new PageImpl<>(Collections.emptyList(), pageableForDbSort, productPage.getTotalElements());
         }
 
-        // 평점/리뷰 집계
         Map<Long, ProductRatingSummaryDto> ratingMap = loadRatingSummary(products);
 
-        // Product → DTO 매핑
         List<ProductListItemDto> dtoList = products.stream()
                 .map(p -> toDto(p, ratingMap.get(p.getId())))
                 .collect(Collectors.toList());
 
         return new PageImpl<>(dtoList, productPage.getPageable(), productPage.getTotalElements());
     }
+
+    /**
+     * CATEGORY BEST (판매수 상위 10개)
+     * - 현재 조회 조건(분류/브랜드/키워드)을 그대로 적용
+     * - 판매수(salesCount) 기준 내림차순
+     */
+    public List<ProductListItemDto> findCategoryBestProducts(
+            Long largeId,
+            Long mediumId,
+            Long smallId,
+            Long brandId,
+            String keyword
+    ) {
+        Pageable topPage = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "salesCount"));
+
+        Page<Product> productPage = productRepository.searchProducts(
+                largeId,
+                mediumId,
+                smallId,
+                brandId,
+                keyword,
+                DisplayStatus.ON,
+                SaleStatus.ON,
+                ProductState.NORMAL,
+                topPage
+        );
+
+        List<Product> products = productPage.getContent();
+        if (products.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, ProductRatingSummaryDto> ratingMap = loadRatingSummary(products);
+
+        return products.stream()
+                .map(p -> toDto(p, ratingMap.get(p.getId())))
+                .collect(Collectors.toList());
+    }
+
+    // ================== 내부 메서드 ==================
 
     private Pageable buildPageable(ProductSortOption sortOption, int page, int size) {
         Sort sort;
@@ -150,6 +191,9 @@ public class FrontProductListService {
                 ));
     }
 
+    /**
+     * Product → DTO 매핑 (가격/프로모션/옵션까지)
+     */
     private ProductListItemDto toDto(Product product, ProductRatingSummaryDto rating) {
         ProductListItemDto dto = new ProductListItemDto();
 
@@ -160,6 +204,7 @@ public class FrontProductListService {
         dto.setConsumerPrice(product.getConsumerPrice());
         dto.setSalePrice(product.getSalePrice());
         dto.setNewState(product.getNewState());
+        dto.setSalesCount(product.getSalesCount());
 
         // 브랜드명
         if (product.getBrand() != null) {
@@ -187,10 +232,30 @@ public class FrontProductListService {
         dto.setDealerDiscounts(buildDealerDiscounts(product));
 
         // 프로모션 요약 (일반회원 기준)
-        dto.setPromotionSummary(buildPromotionSummary(product));
+        PromotionSummaryDto promotionSummary = buildPromotionSummary(product);
+        dto.setPromotionSummary(promotionSummary);
 
-        // 옵션
-        dto.setOptionGroups(buildOptionGroups(product));
+        // ✅ 일반회원 기준 기준가 계산
+        Integer basePriceForNormal = calculateBasePriceForNormal(product, promotionSummary);
+
+        // ✅ 화면 노출용 가격/문구 결정
+        if (Boolean.TRUE.equals(product.getUsePriceReplacementText())
+                && product.getPriceReplacementText() != null
+                && !product.getPriceReplacementText().isBlank()) {
+
+            dto.setDisplayPrice(null);
+            dto.setDisplayPriceText(product.getPriceReplacementText());
+        } else {
+            dto.setDisplayPrice(basePriceForNormal);
+            if (basePriceForNormal != null) {
+                dto.setDisplayPriceText(String.format("%,d원", basePriceForNormal));
+            } else {
+                dto.setDisplayPriceText("-");
+            }
+        }
+
+        // ✅ 옵션 그룹 + 옵션 (옵션별 최종 가격 계산까지)
+        dto.setOptionGroups(buildOptionGroups(product, basePriceForNormal));
 
         return dto;
     }
@@ -253,7 +318,7 @@ public class FrontProductListService {
             if (promo == null) continue;
             if (promo.getActive() != null && !promo.getActive()) continue;
 
-            // 기간 체크 (PromotionTerm + start/endDate)
+            // 기간 체크
             if (!isPromotionActiveForDate(promo, today)) {
                 continue;
             }
@@ -272,7 +337,7 @@ public class FrontProductListService {
                 hasOnePlusOnePromotion = true;
             }
 
-            // 일반회원 대상(또는 전체 대상) 할인율
+            // 일반회원 대상 할인율
             if (promo.getTarget() == PromotionTarget.NORMAL) {
                 hasNormalPromotion = true;
                 if (promo.getDiscountPercent() != null) {
@@ -309,12 +374,10 @@ public class FrontProductListService {
     }
 
     private boolean isPromotionActiveForDate(Promotion promo, LocalDate today) {
-        // term = ALWAYS 인 경우: active만 true면 통과
         if (promo.getTerm() == PromotionTerm.ALWAYS) {
             return true;
         }
 
-        // 기간 한정: startDate ~ endDate 사이
         LocalDate start = promo.getStartDate();
         LocalDate end = promo.getEndDate();
 
@@ -327,7 +390,26 @@ public class FrontProductListService {
         return true;
     }
 
-    private List<ProductOptionGroupDto> buildOptionGroups(Product product) {
+    /**
+     * 일반회원 기준 기준가 계산
+     */
+    private Integer calculateBasePriceForNormal(Product product, PromotionSummaryDto summary) {
+        if (summary != null && summary.getDiscountedPriceForNormal() != null) {
+            return summary.getDiscountedPriceForNormal();
+        }
+        if (product.getSalePrice() != null) {
+            return product.getSalePrice();
+        }
+        if (product.getConsumerPrice() != null) {
+            return product.getConsumerPrice();
+        }
+        return null;
+    }
+
+    /**
+     * 옵션 그룹 + 옵션 DTO 구성 (옵션별 최종 가격 계산 포함)
+     */
+    private List<ProductOptionGroupDto> buildOptionGroups(Product product, Integer basePriceForNormal) {
         if (product.getOptionGroups() == null) {
             return Collections.emptyList();
         }
@@ -356,6 +438,24 @@ public class FrontProductListService {
                                 od.setExtraPrice(opt.getExtraPrice());
                                 od.setSign(opt.getSign() != null ? opt.getSign().name() : null);
                                 od.setSortOrder(opt.getSortOrder());
+
+                                // ✅ 옵션별 최종 가격 계산
+                                if (basePriceForNormal != null && opt.getExtraPrice() != null && opt.getSign() != null) {
+                                    BigDecimal base = BigDecimal.valueOf(basePriceForNormal);
+                                    BigDecimal extra = opt.getExtraPrice();
+
+                                    if (opt.getSign() == PriceSign.PLUS) {
+                                        base = base.add(extra);
+                                    } else if (opt.getSign() == PriceSign.MINUS) {
+                                        base = base.subtract(extra);
+                                    }
+                                    od.setFinalPrice(base.setScale(0, RoundingMode.HALF_UP).intValue());
+                                } else if (basePriceForNormal != null) {
+                                    od.setFinalPrice(basePriceForNormal);
+                                } else {
+                                    od.setFinalPrice(null);
+                                }
+
                                 return od;
                             })
                             .collect(Collectors.toList());
