@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+// 공통질문 답변 중 에디터 타입 이미지 저장용
 @Data
 @Entity
 @Table(name = "tb_product_answer_detail_image")

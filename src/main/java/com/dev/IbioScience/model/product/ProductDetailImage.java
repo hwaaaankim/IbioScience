@@ -11,7 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
-//상품 상세이미지(업로드용)
+//상품 상세이미지(에디터 업로드용)
 @Data
 @Entity
 @Table(name = "tb_product_detail_image")

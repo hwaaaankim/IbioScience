@@ -126,25 +126,12 @@
 												th:text="${#temporals.format(productDetail.expiredAt,'yyyy-MM-dd')}">2025-12-31</span>
 										</div>
 
-										<!-- 추가필드 (ProductExtraField) : [추가필드] 사인 -->
+										<!-- 추가필드 -->
 										<div class="price-tax"
 											th:each="field : ${productDetail != null ? productDetail.extraFields : null}"
 											th:if="${field != null}">
-											<span th:text="${'[추가필드] ' + field.label}">제품공통표시사항 :</span>
+											<span th:text="${field.label}">제품공통표시사항 :</span>
 											<span th:text="${field.value}">공통표시사항답변</span>
-										</div>
-
-										<!-- 공통질문/답변 중 INPUT / SELECT 타입 : [공통-입력], [공통-선택] 사인 -->
-										<div class="price-tax"
-											th:each="q : ${productDetail != null and productDetail.questions != null ? productDetail.questions : null}"
-											th:if="${q != null and q.type != null and (q.type == 'INPUT' or q.type == 'SELECT')}"
-											th:with="ansList=${q.answers},
-													 firstAns=${ansList != null and !#lists.isEmpty(ansList) ? ansList[0] : null}">
-											<span
-												th:text="${(q.type == 'INPUT' ? '[공통-입력] ' : '[공통-선택] ') + q.label}">제품공통표시사항
-												:</span>
-											<span
-												th:text="${firstAns != null and firstAns.value != null ? firstAns.value : '-'}">공통표시사항답변</span>
 										</div>
 									</div>
 								</div>
@@ -174,18 +161,6 @@
 										<span th:if="${productDetail.saleStatusLabel != null}"
 											class="label label-warning"
 											th:text="${productDetail.saleStatusLabel}">판매상태</span>
-									</div>
-								</div>
-
-								<!-- TEXTAREA 타입 공통질문/답변 영역 -->
-								<div class="product-box-decs"
-									th:if="${productDetail != null and productDetail.questions != null}">
-									<div class="form-group" th:each="q : ${productDetail.questions}"
-										th:if="${q != null and q.type != null and q.type == 'TEXTAREA'}" th:with="ansList=${q.answers},
-												 firstAns=${ansList != null and !#lists.isEmpty(ansList) ? ansList[0] : null}">
-										<label th:text="${q.label}">추가 설명</label>
-										<textarea class="form-control" rows="3" readonly
-											th:text="${firstAns != null and firstAns.value != null ? firstAns.value : ''}">내용</textarea>
 									</div>
 								</div>
 
@@ -233,15 +208,6 @@
 								<li class="item_nonactive"><a data-toggle="tab" href="#tab-file">첨부파일</a></li>
 								<li class="item_nonactive"><a data-toggle="tab" href="#tab-delivery">배송안내</a></li>
 								<li class="item_nonactive"><a data-toggle="tab" href="#tab-review">리뷰</a></li>
-
-								<!-- HTML(에디터) 타입 공통질문용 탭 추가 -->
-								<li class="item_nonactive"
-									th:each="q : ${productDetail != null and productDetail.questions != null ? productDetail.questions : null}"
-									th:if="${q != null and q.type != null and q.type == 'CKEDITOR'}">
-									<a data-toggle="tab" th:href="${'#tab-editor-' + q.questionId}"
-										th:text="${q.label}">추가정보</a>
-								</li>
-
 							</ul>
 							<div class="tab-content col-lg-10 col-sm-9 col-xs-12">
 
@@ -355,7 +321,7 @@
 								<!-- 첨부파일 탭 : QuestionBlock/Answer 파일 유형 -->
 								<div id="tab-file" class="tab-pane fade">
 									<ul class="product-detail-file-list">
-										<!-- 첨부파일 없을 때 (질문 자체가 없을 때만) -->
+										<!-- 첨부파일 없을 때 -->
 										<li class="product-detail-file-item" th:if="${productDetail == null
            or productDetail.questions == null
            or #lists.isEmpty(productDetail.questions)}">
@@ -505,24 +471,6 @@
 													class="btn buttonGray">리뷰작성</a></div>
 										</div>
 									</form>
-								</div>
-
-								<!-- HTML(에디터) 타입 공통질문 탭 컨텐츠 -->
-								<div class="tab-pane fade"
-									th:each="q : ${productDetail != null and productDetail.questions != null ? productDetail.questions : null}"
-									th:if="${q != null and q.type != null and q.type == 'CKEDITOR'}"
-									th:attr="id=${'tab-editor-' + q.questionId}">
-									<div th:with="ansList=${q.answers},
-                  firstAns=${ansList != null and !#lists.isEmpty(ansList) ? ansList[0] : null}">
-										<h4 th:text="${q.label}">추가 정보</h4>
-										<div th:if="${firstAns != null and firstAns.value != null}"
-											th:utext="${firstAns.value}">
-											<!-- HTML 내용 -->
-										</div>
-										<p th:if="${firstAns == null or firstAns.value == null}">
-											등록된 내용이 없습니다.
-										</p>
-									</div>
 								</div>
 							</div> <!-- .tab-content -->
 						</div>
