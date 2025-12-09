@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dev.IbioScience.dto.front.productList.ProductSearchCondition;
 import com.dev.IbioScience.dto.product.select.CategoryDto;
 import com.dev.IbioScience.dto.product.select.ProductDetailDto;
 import com.dev.IbioScience.dto.product.select.ProductListItemDto;
 import com.dev.IbioScience.dto.product.select.ProductReviewDto;
-import com.dev.IbioScience.dto.productList.ProductSearchCondition;
 import com.dev.IbioScience.enums.product.DisplayStatus;
 import com.dev.IbioScience.enums.product.SaleStatus;
 import com.dev.IbioScience.service.product.ProductSelectService;
@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/productSelect")
 @RequiredArgsConstructor
-public class ProductSelectAPIController {
+public class ProductSimpleSelectAPIController {
 
     private final ProductSelectService productSelectService;
 

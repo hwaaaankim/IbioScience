@@ -1,4 +1,4 @@
-package com.dev.IbioScience.service.product;
+package com.dev.IbioScience.service.product.front;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,8 +24,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import com.dev.IbioScience.dto.productList.ProductListFilter;
-import com.dev.IbioScience.dto.productList.ProductListRowDTO;
+import com.dev.IbioScience.dto.front.productList.ProductListFilter;
+import com.dev.IbioScience.dto.front.productList.ProductListRowDTO;
 import com.dev.IbioScience.enums.auth.DealerGrade;
 import com.dev.IbioScience.enums.product.DisplayStatus;
 import com.dev.IbioScience.enums.product.ProductImageType;

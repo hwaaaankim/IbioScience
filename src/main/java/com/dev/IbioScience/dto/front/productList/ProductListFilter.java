@@ -1,4 +1,4 @@
-package com.dev.IbioScience.dto.productList;
+package com.dev.IbioScience.dto.front.productList;
 
 import java.time.LocalDate;
 

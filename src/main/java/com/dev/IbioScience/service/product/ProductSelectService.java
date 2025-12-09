@@ -14,11 +14,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dev.IbioScience.dto.front.productList.ProductSearchCondition;
 import com.dev.IbioScience.dto.product.select.CategoryDto;
 import com.dev.IbioScience.dto.product.select.ProductDetailDto;
 import com.dev.IbioScience.dto.product.select.ProductListItemDto;
 import com.dev.IbioScience.dto.product.select.ProductReviewDto;
-import com.dev.IbioScience.dto.productList.ProductSearchCondition;
 import com.dev.IbioScience.enums.product.ProductImageType;
 import com.dev.IbioScience.model.product.InternalCategorySmall;
 import com.dev.IbioScience.model.product.Product;

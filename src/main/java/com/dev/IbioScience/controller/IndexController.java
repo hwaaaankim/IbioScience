@@ -7,7 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import com.dev.IbioScience.dto.page.index.ProductCardDTO;
-import com.dev.IbioScience.service.product.ProductIndexService;
+import com.dev.IbioScience.service.product.front.ProductIndexService;
 
 import lombok.RequiredArgsConstructor;
 

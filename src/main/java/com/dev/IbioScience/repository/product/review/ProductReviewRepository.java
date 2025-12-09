@@ -37,4 +37,20 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
     List<ProductRatingSummaryDto> findRatingSummaryByProductIds(
             @Param("productIds") Collection<Long> productIds
     );
+	
+	@Query("""
+        select 
+            avg(r.rating) as averageRating,
+            count(r)      as reviewCount
+        from ProductReview r
+        where r.product.id = :productId
+        """)
+    ProductReviewSummaryProjection findSummaryByProductId(@Param("productId") Long productId);
+
+    List<ProductReview> findTop5ByProductIdOrderByCreatedAtDesc(Long productId);
+
+    interface ProductReviewSummaryProjection {
+        Double getAverageRating();
+        Long getReviewCount();
+    }
 }

@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.product;
+package com.dev.IbioScience.model.product.util;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

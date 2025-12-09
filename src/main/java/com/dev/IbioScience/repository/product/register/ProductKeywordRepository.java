@@ -12,4 +12,12 @@ public interface ProductKeywordRepository extends JpaRepository<ProductKeyword, 
 	
 	@Query("select pk from ProductKeyword pk join fetch pk.keyword k where pk.product.id = :pid order by pk.id asc")
     List<ProductKeyword> findByProductWithKeyword(@Param("pid") Long productId);
+	
+	@Query("""
+        select pk
+        from ProductKeyword pk
+        join fetch pk.keyword k
+        where pk.product.id = :productId
+        """)
+    List<ProductKeyword> findByProductId(@Param("productId") Long productId);
 }

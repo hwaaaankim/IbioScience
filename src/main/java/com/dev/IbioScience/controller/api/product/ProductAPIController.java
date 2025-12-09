@@ -19,18 +19,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.dev.IbioScience.dto.front.productList.ProductListFilter;
+import com.dev.IbioScience.dto.front.productList.ProductListRowDTO;
 import com.dev.IbioScience.dto.productDetail.ProductDetailReadResponseDTO;
 import com.dev.IbioScience.dto.productDetail.ProductUpdateRequestDTO;
-import com.dev.IbioScience.dto.productList.ProductListFilter;
-import com.dev.IbioScience.dto.productList.ProductListRowDTO;
 import com.dev.IbioScience.dto.productRegister.ProductRegisterMoveEditorImageRequestDTO;
 import com.dev.IbioScience.dto.productRegister.ProductRegisterRequestDTO;
 import com.dev.IbioScience.dto.productRegister.ProductSimpleDTO;
 import com.dev.IbioScience.service.category.ProductService;
 import com.dev.IbioScience.service.product.ProductDetailQueryService;
-import com.dev.IbioScience.service.product.ProductListService;
 import com.dev.IbioScience.service.product.ProductRegisterService;
 import com.dev.IbioScience.service.product.ProductUpdateService;
+import com.dev.IbioScience.service.product.front.ProductListService;
 
 import lombok.RequiredArgsConstructor;
 

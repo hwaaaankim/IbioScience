@@ -9,21 +9,29 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.dev.IbioScience.dto.front.productDetail.ProductDetailResponseDto;
 import com.dev.IbioScience.dto.page.productList.ProductListItemDto;
 import com.dev.IbioScience.enums.page.list.ProductSortOption;
+import com.dev.IbioScience.exception.ProductNotDisplayableException;
+import com.dev.IbioScience.exception.ProductNotFoundException;
 import com.dev.IbioScience.service.page.list.FrontProductListService;
+import com.dev.IbioScience.service.product.front.ProductDetailService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class ProductFrontController {
 
 	private final FrontProductListService productListService;
 	private final ObjectMapper objectMapper;
+	private final ProductDetailService productDetailService;
 
 	@GetMapping("/productList")
 	public String productList(@RequestParam(required = false) Long largeId,
@@ -117,25 +125,62 @@ public class ProductFrontController {
 		return "브랜드:" + brandId;
 	}
 
-	@GetMapping({ "/productDetail", "/productDetail/{id}" })
-	public String productDetail(@PathVariable(required = false) Long id, Model model) {
+	 /**
+     * 제품 상세 페이지
+     *
+     * - /productDetail/{id} 필수 사용 권장
+     * - 잘못된 접근( id 없음 / 존재하지 않는 상품 / 진열 불가 상품 )은
+     *   메시지 출력 후 메인으로 redirect
+     */
+    @GetMapping({"/productDetail", "/productDetail/{id}"})
+    public String productDetail(@PathVariable(required = false) Long id,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
 
-		// id 가 있는 경우 → 상세 조회용으로 model에 추가
-		if (id != null) {
-			model.addAttribute("productId", id);
-			// TODO: 여기서 서비스 호출해서 상세 데이터 조회 가능
-			// Product product = productService.getDetail(id);
-			// model.addAttribute("product", product);
-		}
+        // 0) id 없이 직접 /productDetail 접근한 경우
+        if (id == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "상품 정보가 존재하지 않습니다.");
+            return "redirect:/";
+        }
 
-		// id 가 없어도 그냥 상세 페이지 템플릿으로 이동 가능
-		return "front/product/productDetail";
-	}
+        try {
+            // 1) 서비스에서 상세 DTO 조회 + 진열/상태 검사
+            ProductDetailResponseDto detail = productDetailService.getProductDetail(id);
+
+            // 2) 뷰에서 사용할 데이터 model 에 세팅
+            model.addAttribute("productId", id);        // 필요시 JS 등에서 사용
+            model.addAttribute("productDetail", detail); // 타임리프에서 모든 상세 필드 직접 사용
+
+            // 3) 상세 템플릿으로 이동
+            return "front/product/productDetail";
+
+        } catch (ProductNotDisplayableException e) {
+            // 진열하지 않는 상품 / 판매중지 / 삭제대기/삭제 등
+            log.warn("상품 상세 진입 차단 - 진열 불가 상품. id={}, message={}", id, e.getMessage());
+            // 예외에 메시지를 넣어두었으니 그대로 노출하거나, 고정 문구로 노출 가능
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    e.getMessage() != null ? e.getMessage() : "진열하지 않는 상품입니다."
+            );
+            return "redirect:/";
+
+        } catch (ProductNotFoundException e) {
+            // 존재하지 않는 상품
+            log.warn("상품 상세 진입 실패 - 상품 미존재. id={}", id);
+            redirectAttributes.addFlashAttribute("errorMessage", "존재하지 않는 상품입니다.");
+            return "redirect:/";
+
+        } catch (Exception e) {
+            // 그 외 예기치 못한 오류 (템플릿/서비스/DB 등)
+            log.error("상품 상세 진입 중 알 수 없는 오류 발생. id={}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "상품 상세 정보를 불러오는 중 오류가 발생했습니다.");
+            return "redirect:/";
+        }
+    }
 
 	@GetMapping("/dealerProductList")
 	public String dealerProductList() {
 
 		return "front/product/dealerProductList";
 	}
-
 }

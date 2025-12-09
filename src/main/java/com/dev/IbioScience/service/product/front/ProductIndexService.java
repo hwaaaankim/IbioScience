@@ -1,4 +1,4 @@
-package com.dev.IbioScience.service.product;
+package com.dev.IbioScience.service.product.front;
 
 import java.util.Arrays;
 import java.util.Collections;

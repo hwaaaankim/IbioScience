@@ -171,5 +171,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             @Param("state") ProductState state,
             Pageable pageable
     );
+    
+    Optional<Product> findByIdAndState(Long id, ProductState state);
 }
 

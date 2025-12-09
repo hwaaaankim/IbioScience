@@ -59,4 +59,6 @@ public interface MediumSmallCategoryRepository extends JpaRepository<MediumSmall
     @Query("select distinct msc.small.id from MediumSmallCategory msc " +
            "where msc.medium.id in :mediumIds")
     List<Long> findSmallIdsByMediumIds(@Param("mediumIds") List<Long> mediumIds);
+    
+    List<MediumSmallCategory> findBySmallIn(Collection<CategorySmall> smalls);
 }

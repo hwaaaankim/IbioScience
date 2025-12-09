@@ -1,5 +1,7 @@
 package com.dev.IbioScience.model.product;
 
+import com.dev.IbioScience.model.product.util.Keyword;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;

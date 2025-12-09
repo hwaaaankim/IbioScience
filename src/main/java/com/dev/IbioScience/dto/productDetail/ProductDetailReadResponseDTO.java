@@ -54,7 +54,7 @@ public class ProductDetailReadResponseDTO {
     private List<String> keywords;
 
     // 공통질문 정의 + 답변(분리)
-    private List<ProductQuestionApiDTO> displayQuestions; // 주신 포맷 그대로
+    private List<ProductQuestionApiDTO> displayQuestions; // 포맷 그대로
     private List<ProductAnswerReadDTO> answers;
 
     // 상세설명 HTML

@@ -8,12 +8,21 @@
 	<div id="wrapper" class="wrapper-fluid banners-effect-3">
 		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
 		<div class="main-container container">
-			<ul class="breadcrumb">
-				<li><a href="#"><i class="fa fa-home"></i></a></li>
-				<li><a href="#">분류</a></li>
-				<li><a href="#">분류</a></li>
-				<li><a href="#">분류</a></li>
-
+			<ul class="breadcrumb"
+				th:with="cat=${productDetail != null and productDetail.categories != null and !#lists.isEmpty(productDetail.categories) ? productDetail.categories[0] : null}">
+				<li><a th:href="@{/}"><i class="fa fa-home"></i></a></li>
+				<li th:if="${cat != null and cat.largeName != null}">
+					<a href="#" th:text="${cat.largeName}">분류</a>
+				</li>
+				<li th:if="${cat != null and cat.mediumName != null}">
+					<a href="#" th:text="${cat.mediumName}">분류</a>
+				</li>
+				<li th:if="${cat != null and cat.smallName != null}">
+					<a href="#" th:text="${cat.smallName}">분류</a>
+				</li>
+				<li th:if="${cat == null}">
+					<a href="#">분류</a>
+				</li>
 			</ul>
 
 			<div class="row justify-content-center d-flex">
@@ -22,10 +31,14 @@
 					<div class="product-view row">
 						<div class="left-content-product">
 
-							<div class="content-product-left class-honizol col-md-5 col-sm-12 col-xs-12">
+							<!-- 대표이미지 / 슬라이드 -->
+							<div class="content-product-left class-honizol col-md-5 col-sm-12 col-xs-12" th:with="mainImage=${productDetail != null and productDetail.images != null and !#lists.isEmpty(productDetail.images) ?
+								            ( !#lists.isEmpty(productDetail.images.?[type=='MAIN']) ? productDetail.images.?[type=='MAIN'][0] : productDetail.images[0] )
+								            : null}">
 								<div class="large-image m-d-n">
 									<img itemprop="image" class="product-image-zoom"
-										src="/front/image/sample/600-600.png">
+										src="/front/image/sample/600-600.png"
+										th:src="${mainImage != null and mainImage.url != null ? mainImage.url : '/front/image/sample/600-600.png'}">
 								</div>
 
 								<div id="thumb-slider" class="yt-content-slider full_slider owl-drag" data-rtl="yes"
@@ -33,71 +46,132 @@
 									data-margin="10" data-items_column00="4" data-items_column0="4"
 									data-items_column1="3" data-items_column2="4" data-items_column3="1"
 									data-items_column4="1" data-arrows="yes" data-pagination="no" data-lazyload="yes"
-									data-loop="no" data-hoverpause="yes">
-									<a data-index="0" class="img thumbnail "
-										data-image="/front/image/sample/600-600.png">
-										<img src="/front/image/sample/600-600.png">
-									</a>
-									<a data-index="1" class="img thumbnail "
-										data-image="/front/image/sample/600-600.png">
-										<img src="/front/image/sample/600-600.png">
-									</a>
-									<a data-index="2" class="img thumbnail "
-										data-image="/front/image/sample/600-600.png">
-										<img src="/front/image/sample/600-600.png">
-									</a>
-									<a data-index="3" class="img thumbnail "
-										data-image="/front/image/sample/600-600.png">
-										<img src="/front/image/sample/600-600.png">
-									</a>
-									<a data-index="4" class="img thumbnail "
-										data-image="/front/image/sample/600-600.png">
-										<img src="/front/image/sample/600-600.png">
+									data-loop="no" data-hoverpause="yes"
+									th:if="${productDetail != null and productDetail.images != null and !#lists.isEmpty(productDetail.images)}">
+									<a data-index="0" class="img thumbnail" data-image="/front/image/sample/600-600.png"
+										th:each="img,iter : ${productDetail.images}"
+										th:attr="data-index=${iter.index},data-image=${img.url != null ? img.url : '/front/image/sample/600-600.png'}">
+										<img src="/front/image/sample/600-600.png"
+											th:src="${img.url != null ? img.url : '/front/image/sample/600-600.png'}">
 									</a>
 								</div>
+
+								<!-- 이미지가 하나도 없을 때 썸네일 영역 숨김 / 위에서 th:if 처리 -->
 							</div>
 
 							<div class="content-product-right col-md-7 col-sm-12 col-xs-12">
+								<!-- 상품명 / 요약설명 -->
 								<div class="title-product">
-									<h1>제품명</h1>
-									<p>제품의 간략한 설명</p>
+									<h1 th:text="${productDetail != null ? productDetail.name : '제품명'}">제품명</h1>
+									<p
+										th:text="${productDetail != null and productDetail.summaryDescription != null and !#strings.isEmpty(productDetail.summaryDescription) ?
+													productDetail.summaryDescription :
+													(productDetail != null and productDetail.shortDescription != null ? productDetail.shortDescription : '제품의 간략한 설명')}">
+										제품의 간략한 설명
+									</p>
 								</div>
-								<div class="box-review form-group">
+
+								<!-- 리뷰 요약 (평점/개수) -->
+								<div class="box-review form-group"
+									th:with="avg=${productDetail != null and productDetail.reviewSummary != null and productDetail.reviewSummary.averageRating != null ? productDetail.reviewSummary.averageRating : 0},
+											 reviewCnt=${productDetail != null and productDetail.reviewSummary != null and productDetail.reviewSummary.reviewCount != null ? productDetail.reviewSummary.reviewCount : 0}">
 									<div class="ratings">
 										<div class="rating-box">
-											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-1x"></i></span>
-											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-1x"></i></span>
-											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-1x"></i></span>
-											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-1x"></i></span>
-											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-1x"></i></span>
+											<span class="fa fa-stack" th:each="i : ${#numbers.sequence(1,5)}">
+												<i class="fa fa-star fa-stack-1x" th:if="${i <= avg}"></i>
+												<i class="fa fa-star-o fa-stack-1x" th:if="${i > avg}"></i>
+											</span>
 										</div>
 									</div>
-									<a class="reviews_button" href="#">0
-									</a> 개의 리뷰 보기
+									<a class="reviews_button" href="#tab-review" th:text="${reviewCnt}">0</a> 개의 리뷰 보기
 								</div>
 
+								<!-- 제품 공통 표시 + 추가필드 -->
 								<div class="product-box-desc">
 									<div class="inner-box-desc">
-										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
-										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
-										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
-										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
-										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
-										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
-										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
-										<div class="price-tax"><span>제품공통표시사항 : </span> 공통표시사항답변</div>
+										<!-- 제품코드 -->
+										<div class="price-tax"
+											th:if="${productDetail != null and productDetail.code != null}">
+											<span>제품코드 : </span>
+											<span th:text="${productDetail.code}">PRD-0001</span>
+										</div>
+										<!-- 브랜드 -->
+										<div class="price-tax"
+											th:if="${productDetail != null and productDetail.brand != null}">
+											<span>브랜드 : </span>
+											<span th:text="${productDetail.brand.name}">브랜드명</span>
+										</div>
+										<!-- 제조사 / 공급사 -->
+										<div class="price-tax"
+											th:if="${productDetail != null and productDetail.manufacturerText != null}">
+											<span>제조사 : </span>
+											<span th:text="${productDetail.manufacturerText}">제조사</span>
+										</div>
+										<div class="price-tax"
+											th:if="${productDetail != null and productDetail.supplierText != null}">
+											<span>공급사 : </span>
+											<span th:text="${productDetail.supplierText}">공급사</span>
+										</div>
+										<!-- 제조일 / 유통기한 -->
+										<div class="price-tax"
+											th:if="${productDetail != null and productDetail.manufacturedAt != null}">
+											<span>제조일자 : </span>
+											<span
+												th:text="${#temporals.format(productDetail.manufacturedAt,'yyyy-MM-dd')}">2025-01-01</span>
+										</div>
+										<div class="price-tax"
+											th:if="${productDetail != null and productDetail.expiredAt != null}">
+											<span>유통기한 : </span>
+											<span
+												th:text="${#temporals.format(productDetail.expiredAt,'yyyy-MM-dd')}">2025-12-31</span>
+										</div>
+
+										<!-- 추가필드 -->
+										<div class="price-tax"
+											th:each="field : ${productDetail != null ? productDetail.extraFields : null}"
+											th:if="${field != null}">
+											<span th:text="${field.label}">제품공통표시사항 :</span>
+											<span th:text="${field.value}">공통표시사항답변</span>
+										</div>
 									</div>
 								</div>
 
+								<!-- 가격 / 상태 / 뱃지 정도 (예시) -->
+								<div class="product-status-box" th:if="${productDetail != null}">
+									<div class="price" th:if="${productDetail.salePrice != null}">
+										<b>판매가 :</b>
+										<span
+											th:text="${#numbers.formatInteger(productDetail.salePrice, 3, 'COMMA')}">0</span>
+										<span>원</span>
+										<span class="price-old"
+											th:if="${productDetail.consumerPrice != null and productDetail.consumerPrice &gt; productDetail.salePrice}"
+											style="margin-left:8px; text-decoration:line-through;"
+											th:text="${#numbers.formatInteger(productDetail.consumerPrice, 3, 'COMMA')}">
+											0</span>
+									</div>
+									<div class="product-state">
+										<span th:if="${productDetail.newStateLabel != null}" class="label label-success"
+											th:text="${productDetail.newStateLabel}">신상품</span>
+										<span th:if="${productDetail.productStateLabel != null}"
+											class="label label-default"
+											th:text="${productDetail.productStateLabel}">정상</span>
+										<span th:if="${productDetail.displayStatusLabel != null}"
+											class="label label-info"
+											th:text="${productDetail.displayStatusLabel}">진열상태</span>
+										<span th:if="${productDetail.saleStatusLabel != null}"
+											class="label label-warning"
+											th:text="${productDetail.saleStatusLabel}">판매상태</span>
+									</div>
+								</div>
 
 								<div id="product">
-
 									<div class="form-group box-info-product">
 										<div class="option quantity">
 											<div class="input-group quantity-control">
 												<label>수량</label>
 												<input class="form-control" type="text" name="quantity" value="1">
-												<input type="hidden" name="product_id" value="50">
+												<input type="hidden" name="product_id"
+													th:value="${productDetail != null ? productDetail.id : 0}">
 												<span class="input-group-addon product_quantity_down">−</span>
 												<span class="input-group-addon product_quantity_up">+</span>
 											</div>
@@ -120,10 +194,11 @@
 											</ul>
 										</div>
 									</div>
-								</div>
+								</div> <!-- #product -->
 							</div>
 						</div>
 					</div>
+
 					<!-- Product Tabs -->
 					<div class="producttab">
 						<div class="tabsslider vertical-tabs col-xs-12">
@@ -135,9 +210,31 @@
 								<li class="item_nonactive"><a data-toggle="tab" href="#tab-review">리뷰</a></li>
 							</ul>
 							<div class="tab-content col-lg-10 col-sm-9 col-xs-12">
+
+								<!-- 상세페이지 탭 : detailHtml / detailImages -->
 								<div id="tab-detail" class="tab-pane fade active in">
-									<img src="/front/image/sample/1130-1600.png" class="img-responsive">
+									<!-- 상세 HTML이 있을 경우 우선 사용 -->
+									<div th:if="${productDetail != null and productDetail.detailHtml != null}"
+										th:utext="${productDetail.detailHtml}">
+										<img src="/front/image/sample/1130-1600.png" class="img-responsive">
+									</div>
+
+									<!-- 상세이미지 리스트 -->
+									<div
+										th:if="${productDetail != null and (productDetail.detailHtml == null or #strings.isEmpty(productDetail.detailHtml))}">
+										<div
+											th:if="${productDetail.detailImages != null and !#lists.isEmpty(productDetail.detailImages)}">
+											<img class="img-responsive" th:each="dimg : ${productDetail.detailImages}"
+												src="/front/image/sample/1130-1600.png"
+												th:src="${dimg.url != null ? dimg.url : '/front/image/sample/1130-1600.png'}"
+												th:alt="${dimg.originalFilename != null ? dimg.originalFilename : '상세이미지'}">
+										</div>
+										<img th:if="${productDetail.detailImages == null or #lists.isEmpty(productDetail.detailImages)}"
+											src="/front/image/sample/1130-1600.png" class="img-responsive">
+									</div>
 								</div>
+
+								<!-- 옵션 탭 : optionGroups / options -->
 								<div id="tab-option" class="tab-pane fade">
 									<div class="product-list-option-panel">
 										<div class="product-list-option-inner">
@@ -154,51 +251,45 @@
 														</tr>
 													</thead>
 													<tbody>
-														<tr data-price="72405">
-															<td>357531</td>
-															<td>10mL Serological Pipet, PS, Individually Paper-Plastic
-																wrap
-															</td>
-															<td class="text-right">72,405</td>
-															<td>50Bag/200CS</td>
-															<td class="product-list-qty">
-																<input type="number"
-																	class="form-control input-sm product-list-qty-input"
-																	value="1" min="1">
-															</td>
-															<td class="text-center"><input type="checkbox"
-																	class="product-list-row-check"></td>
+														<!-- 옵션이 없을 때 -->
+														<tr
+															th:if="${productDetail == null or productDetail.optionGroups == null or #lists.isEmpty(productDetail.optionGroups)}">
+															<td colspan="6" class="text-center">등록된 옵션이 없습니다.</td>
 														</tr>
-														<tr data-price="67400">
-															<td>357550</td>
-															<td>50mL Serological Pipet, PS, Individually Paper-Plastic
-																wrap
-															</td>
-															<td class="text-right">67,400</td>
-															<td>50Bag/200CS</td>
-															<td class="product-list-qty">
-																<input type="number"
-																	class="form-control input-sm product-list-qty-input"
-																	value="1" min="1">
-															</td>
-															<td class="text-center"><input type="checkbox"
-																	class="product-list-row-check"></td>
-														</tr>
-														<tr data-price="59400">
-															<td>357543</td>
-															<td>5mL Serological Pipet, PS, Individually Paper-Plastic
-																wrap
-															</td>
-															<td class="text-right">59,400</td>
-															<td>50Bag/200CS</td>
-															<td class="product-list-qty">
-																<input type="number"
-																	class="form-control input-sm product-list-qty-input"
-																	value="1" min="1">
-															</td>
-															<td class="text-center"><input type="checkbox"
-																	class="product-list-row-check"></td>
-														</tr>
+
+														<!-- 옵션 그룹별 헤더 + 옵션 행 -->
+														<th:block
+															th:each="group : ${productDetail != null ? productDetail.optionGroups : null}"
+															th:if="${group != null}">
+															<tr>
+																<td colspan="6" class="product-list-option-group"
+																	th:text="${group.name}">옵션 그룹명</td>
+															</tr>
+															<tr th:each="opt : ${group.options}" th:if="${opt != null}"
+																th:with="basePrice=${productDetail.salePrice},
+																		  extraInt=${opt.extraPrice != null ? opt.extraPrice.intValue() : 0},
+																		  signMul=${opt.sign != null and opt.sign == 'MINUS' ? -1 : 1},
+																		  finalPrice=${basePrice != null ? basePrice + (extraInt * signMul) : null}">
+																<td th:text="${opt.value != null ? opt.value : '-'}">
+																	357531</td>
+																<td th:text="${opt.name != null ? opt.name : '-'}">
+																	옵션명</td>
+																<td class="text-right"
+																	th:text="${finalPrice != null ? #numbers.formatInteger(finalPrice,3,'COMMA') : '가격문의'}">
+																	72,405</td>
+																<td>-
+																</td>
+																<td class="product-list-qty">
+																	<input type="number"
+																		class="form-control input-sm product-list-qty-input"
+																		value="1" min="1">
+																</td>
+																<td class="text-center"><input type="checkbox"
+																		class="product-list-row-check"
+																		th:attr="data-price=${finalPrice != null ? finalPrice : 0}">
+																</td>
+															</tr>
+														</th:block>
 													</tbody>
 												</table>
 											</div>
@@ -206,7 +297,7 @@
 											<!-- 총금액 -->
 											<div class="product-list-total">
 												<span class="product-list-total-label">Total.</span>
-												<span class="product-list-total-price">59,400</span><span
+												<span class="product-list-total-price">0</span><span
 													class="product-list-won"> 원</span>
 											</div>
 
@@ -226,85 +317,65 @@
 										</div>
 									</div>
 								</div>
+
+								<!-- 첨부파일 탭 : QuestionBlock/Answer 파일 유형 -->
 								<div id="tab-file" class="tab-pane fade">
 									<ul class="product-detail-file-list">
-										<!-- data-ext에 확장자(소문자)를 넣으면 아이콘 색 자동 적용 -->
-										<li class="product-detail-file-item" data-ext="pdf">
+										<!-- 첨부파일 없을 때 -->
+										<li class="product-detail-file-item" th:if="${productDetail == null
+           or productDetail.questions == null
+           or #lists.isEmpty(productDetail.questions)}">
 											<div class="product-detail-file-left">
-												<div class="product-detail-file-icon" aria-hidden="true"><i
-														class="fas fa-file-pdf"></i></div>
+												<div class="product-detail-file-icon" aria-hidden="true">
+													<i class="fas fa-file"></i>
+												</div>
 												<div class="product-detail-file-info">
-													<span class="product-detail-file-name"
-														title="제품설명서_v2.1_한글.pdf">제품설명서_v2.1_한글</span>
-													<span class="product-detail-file-meta">
-														<span class="product-detail-file-ext"
-															aria-label="확장자">PDF</span>
-														<span class="product-detail-file-dot"
-															aria-hidden="true">•</span>
-														<span class="product-detail-file-size" aria-label="파일 크기">2.3
-															MB</span>
-													</span>
+													<span class="product-detail-file-name">등록된 첨부파일이 없습니다.</span>
 												</div>
 											</div>
-											<a href="/download/manual.pdf" class="product-detail-file-download"
-												download>
-												<i class="fas fa-download" aria-hidden="true"></i>
-												<span class="product-detail-sr-only">제품설명서_v2.1_한글 PDF 다운로드</span>
-												<span class="product-detail-download-text">다운로드</span>
-											</a>
 										</li>
 
-										<li class="product-detail-file-item" data-ext="docx">
-											<div class="product-detail-file-left">
-												<div class="product-detail-file-icon" aria-hidden="true"><i
-														class="fas fa-file-word"></i></div>
-												<div class="product-detail-file-info">
-													<span class="product-detail-file-name"
-														title="견적양식_회사공용.docx">견적양식_회사공용</span>
-													<span class="product-detail-file-meta">
-														<span class="product-detail-file-ext">DOCX</span>
-														<span class="product-detail-file-dot"
-															aria-hidden="true">•</span>
-														<span class="product-detail-file-size">850 KB</span>
-													</span>
+										<!-- QuestionBlock.answers 중 fileUrl 이 있는 항목만 표시 -->
+										<th:block
+											th:each="q : ${productDetail != null ? productDetail.questions : null}"
+											th:if="${q != null and q.answers != null}">
+											<li class="product-detail-file-item" th:each="ans : ${q.answers}"
+												th:if="${ans != null and ans.fileUrl != null}" th:with="fileName=${ans.fileName != null ? ans.fileName : (ans.value != null ? ans.value : '파일')},
+														 ext=${#strings.toUpperCase(#strings.substringAfterLast(fileName,'.'))},
+														 extLower=${#strings.toLowerCase(ext)}" th:attr="data-ext=${extLower}">
+												<div class="product-detail-file-left">
+													<div class="product-detail-file-icon" aria-hidden="true">
+														<i class="fas fa-file"
+															th:classappend="${extLower == 'pdf' ? ' fa-file-pdf' : (extLower == 'docx' || extLower == 'doc' ? ' fa-file-word' : (extLower == 'xlsx' || extLower == 'xls' ? ' fa-file-excel' : ' fa-file'))}"></i>
+													</div>
+													<div class="product-detail-file-info">
+														<span class="product-detail-file-name" th:title="${fileName}"
+															th:text="${fileName}">파일명</span>
+														<span class="product-detail-file-meta">
+															<span class="product-detail-file-ext"
+																th:text="${ext}">PDF</span>
+														</span>
+													</div>
 												</div>
-											</div>
-											<a href="/download/estimate.docx" class="product-detail-file-download"
-												download>
-												<i class="fas fa-download" aria-hidden="true"></i>
-												<span class="product-detail-sr-only">견적양식_회사공용 DOCX 다운로드</span>
-												<span class="product-detail-download-text">다운로드</span>
-											</a>
-										</li>
-
-										<li class="product-detail-file-item" data-ext="xlsx">
-											<div class="product-detail-file-left">
-												<div class="product-detail-file-icon" aria-hidden="true"><i
-														class="fas fa-file-excel"></i></div>
-												<div class="product-detail-file-info">
-													<span class="product-detail-file-name"
-														title="제품리스트_2025Q3.xlsx">제품리스트_2025Q3</span>
-													<span class="product-detail-file-meta">
-														<span class="product-detail-file-ext">XLSX</span>
-														<span class="product-detail-file-dot"
-															aria-hidden="true">•</span>
-														<span class="product-detail-file-size">1.1 MB</span>
-													</span>
-												</div>
-											</div>
-											<a href="/download/products.xlsx" class="product-detail-file-download"
-												download>
-												<i class="fas fa-download" aria-hidden="true"></i>
-												<span class="product-detail-sr-only">제품리스트_2025Q3 XLSX 다운로드</span>
-												<span class="product-detail-download-text">다운로드</span>
-											</a>
-										</li>
+												<a th:href="${ans.fileUrl}" class="product-detail-file-download"
+													download>
+													<i class="fas fa-download" aria-hidden="true"></i>
+													<span class="product-detail-sr-only"
+														th:text="${fileName + ' ' + ext + ' 다운로드'}">파일
+														다운로드</span>
+													<span class="product-detail-download-text">다운로드</span>
+												</a>
+											</li>
+										</th:block>
 									</ul>
 								</div>
 
+								<!-- 배송안내 탭 (정적 이미지 유지) -->
 								<div id="tab-delivery" class="tab-pane fade">
 									<img src="/front/image/sample/1130-900.png" class="img-responsive">
 								</div>
+
+								<!-- 리뷰 탭 -->
 								<div id="tab-review" class="tab-pane fade">
 									<form>
 										<div id="review">
@@ -319,19 +390,28 @@
 													</tr>
 												</thead>
 												<tbody>
+													<!-- 리뷰 없을 때 -->
+													<tr
+														th:if="${productDetail == null or productDetail.reviews == null or #lists.isEmpty(productDetail.reviews)}">
+														<td colspan="5" class="text-center">등록된 리뷰가 없습니다.</td>
+													</tr>
 
-													<tr>
-														<td class="m-d-n">1</td>
+													<tr
+														th:each="rv,stat : ${productDetail != null ? productDetail.reviews : null}">
+														<td class="m-d-n" th:text="${stat.index + 1}">1</td>
 														<td class="m-d-n">
 															<div class="row review-content">
 																<div class="col-lg-4">
 																	<img width="80px;" height="auto;"
 																		class="img-responsive"
-																		src="/front/image/sample/270-270.png">
+																		src="/front/image/sample/270-270.png" th:src="${rv.images != null and !#lists.isEmpty(rv.images) and rv.images[0].url != null ?
+																				 rv.images[0].url : '/front/image/sample/270-270.png'}">
 																</div>
 																<div class="col-lg-8">
-																	<h3>제품명</h3>
-																	<p>제품에 대한 리뷰 의견.</p>
+																	<h3
+																		th:text="${productDetail != null ? productDetail.name : '제품명'}">
+																		제품명</h3>
+																	<p th:text="${rv.content}">제품에 대한 리뷰 의견.</p>
 																</div>
 															</div>
 														</td>
@@ -339,27 +419,25 @@
 														<td>
 															<div class="ratings">
 																<div class="rating-box">
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-1x"></i><i
-																			class="fa fa-star-o fa-stack-1x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-1x"></i><i
-																			class="fa fa-star-o fa-stack-1x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-1x"></i><i
-																			class="fa fa-star-o fa-stack-1x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star fa-stack-1x"></i><i
-																			class="fa fa-star-o fa-stack-1x"></i></span>
-																	<span class="fa fa-stack"><i
-																			class="fa fa-star-o fa-stack-1x"></i></span>
+																	<span class="fa fa-stack"
+																		th:each="i : ${#numbers.sequence(1,5)}">
+																		<i class="fa fa-star fa-stack-1x"
+																			th:if="${rv.rating != null and i &lt;= rv.rating}"></i>
+																		<i class="fa fa-star-o fa-stack-1x"
+																			th:if="${rv.rating == null or i &gt; rv.rating}"></i>
+																	</span>
 																</div>
 															</div>
 														</td>
-														<td>이름/날짜</td>
+														<td th:with="name=${rv.memberDisplayName != null ? rv.memberDisplayName : '비회원'},
+																	 dateStr=${rv.createdAt != null ? #temporals.format(rv.createdAt,'yyyy-MM-dd') : ''}"
+															th:text="${name + ' / ' + dateStr}">
+															이름/날짜
+														</td>
 													</tr>
 												</tbody>
 											</table>
+											<!-- 기존 페이징 영역은 그대로 유지 (추후 서버/JS 연동 시 교체 가능) -->
 											<nav class="justify-content-center d-flex">
 												<ul class="pagination">
 													<li class="page-item"><a class="page-link" href="#">Previous</a>
@@ -371,10 +449,13 @@
 												</ul>
 											</nav>
 										</div>
+
+										<!-- 리뷰 작성 폼은 이후 실제 로직 연동 시 수정 -->
 										<h2 id="review-title">리뷰작성</h2>
 										<div class="contacts-form">
 											<div class="form-group"> <span class="icon icon-bubbles-2"></span>
-												<textarea class="form-control">제품을 구매한 경우 리뷰를 작성할 수 있습니다.</textarea>
+												<textarea class="form-control"
+													placeholder="제품을 구매한 경우에만 리뷰를 작성하실 수 있습니다.">제품을 구매한 경우 리뷰를 작성할 수 있습니다.</textarea>
 											</div>
 
 											<div class="form-group">
@@ -391,10 +472,11 @@
 										</div>
 									</form>
 								</div>
-							</div>
+							</div> <!-- .tab-content -->
 						</div>
 					</div>
 
+					<!-- 연관제품 / 번들상품 슬라이더 -->
 					<div class="related titleLine products-list grid module ">
 						<h3 class="modtitle">연관제품</h3>
 
@@ -403,13 +485,16 @@
 							data-margin="30" data-items_column00="5" data-items_column0="5" data-items_column1="3"
 							data-items_column2="3" data-items_column3="2" data-items_column4="1" data-arrows="yes"
 							data-pagination="no" data-lazyload="yes" data-hoverpause="yes">
-							<div class="item">
+
+							<!-- 연관상품 -->
+							<div class="item"
+								th:each="rp : ${productDetail != null ? productDetail.relatedProducts : null}"
+								th:if="${rp != null}">
 								<div class="item-inner product-layout transition product-grid">
 									<div class="product-item-container">
 										<div class="left-block left-b">
-
 											<div class="product-image-container">
-												<a href="#">
+												<a th:href="@{/productDetail/{id}(id=${rp.relatedProductId})}">
 													<img src="/front/image/sample/270-270.png" class="img-responsive">
 												</a>
 											</div>
@@ -419,13 +504,15 @@
 												<button type="button" class="addToCart">
 													<span>관심상품등록</span>
 												</button>
-												<button type="button" class="addToCart">
+												<button type="button" class="addToCart"
+													th:onclick="'location.href=\'' + @{/productDetail/{id}(id=${rp.relatedProductId})} + '\';'">
 													<span>상세사항확인</span>
 												</button>
 											</div>
 											<div class="caption hide-cont">
 												<div class="ratings">
-													<div class="rating-box"> <span class="fa fa-stack"><i
+													<div class="rating-box">
+														<span class="fa fa-stack"><i
 																class="fa fa-star fa-stack-2x"></i></span>
 														<span class="fa fa-stack"><i
 																class="fa fa-star fa-stack-2x"></i></span>
@@ -436,26 +523,29 @@
 														<span class="fa fa-stack"><i
 																class="fa fa-star fa-stack-2x"></i></span>
 													</div>
-													<span class="rating-num">( 2 )</span>
+													<span class="rating-num">( 0 )</span>
 												</div>
-												<h4><a href="#">제품명</a></h4>
-
+												<h4>
+													<a th:href="@{/productDetail/{id}(id=${rp.relatedProductId})}"
+														th:text="${rp.relatedProductName}">제품명</a>
+												</h4>
 											</div>
 											<p class="price">
-												<span class="price-new">할인 후 가격</span>
-												<span class="price-old">할인 전 가격</span>
+												<span class="price-new">가격정보 없음</span>
 											</p>
 										</div>
 									</div>
 								</div>
 							</div>
-							<div class="item">
+
+							<!-- 번들상품 -->
+							<div class="item" th:each="bd : ${productDetail != null ? productDetail.bundleItems : null}"
+								th:if="${bd != null}">
 								<div class="item-inner product-layout transition product-grid">
 									<div class="product-item-container">
 										<div class="left-block left-b">
-
 											<div class="product-image-container">
-												<a href="#">
+												<a th:href="@{/productDetail/{id}(id=${bd.bundleProductId})}">
 													<img src="/front/image/sample/270-270.png" class="img-responsive">
 												</a>
 											</div>
@@ -465,13 +555,15 @@
 												<button type="button" class="addToCart">
 													<span>관심상품등록</span>
 												</button>
-												<button type="button" class="addToCart">
+												<button type="button" class="addToCart"
+													th:onclick="'location.href=\'' + @{/productDetail/{id}(id=${bd.bundleProductId})} + '\';'">
 													<span>상세사항확인</span>
 												</button>
 											</div>
 											<div class="caption hide-cont">
 												<div class="ratings">
-													<div class="rating-box"> <span class="fa fa-stack"><i
+													<div class="rating-box">
+														<span class="fa fa-stack"><i
 																class="fa fa-star fa-stack-2x"></i></span>
 														<span class="fa fa-stack"><i
 																class="fa fa-star fa-stack-2x"></i></span>
@@ -482,159 +574,38 @@
 														<span class="fa fa-stack"><i
 																class="fa fa-star fa-stack-2x"></i></span>
 													</div>
-													<span class="rating-num">( 2 )</span>
+													<span class="rating-num">( 0 )</span>
 												</div>
-												<h4><a href="#">제품명</a></h4>
-
+												<h4>
+													<a th:href="@{/productDetail/{id}(id=${bd.bundleProductId})}"
+														th:text="${bd.bundleProductName}">제품명</a>
+												</h4>
 											</div>
 											<p class="price">
-												<span class="price-new">할인 후 가격</span>
-												<span class="price-old">할인 전 가격</span>
+												<span class="price-new">번들 구성상품</span>
 											</p>
 										</div>
 									</div>
 								</div>
 							</div>
-							<div class="item">
+
+							<!-- 둘 다 없을 때 -->
+							<div class="item" th:if="${productDetail == null
+									   or ((productDetail.relatedProducts == null or #lists.isEmpty(productDetail.relatedProducts))
+									   and (productDetail.bundleItems == null or #lists.isEmpty(productDetail.bundleItems)))}">
 								<div class="item-inner product-layout transition product-grid">
 									<div class="product-item-container">
-										<div class="left-block left-b">
-
-											<div class="product-image-container">
-												<a href="#">
-													<img src="/front/image/sample/270-270.png" class="img-responsive">
-												</a>
-											</div>
-										</div>
 										<div class="right-block">
-											<div class="button-group so-quickview cartinfo--left">
-												<button type="button" class="addToCart">
-													<span>관심상품등록</span>
-												</button>
-												<button type="button" class="addToCart">
-													<span>상세사항확인</span>
-												</button>
-											</div>
 											<div class="caption hide-cont">
-												<div class="ratings">
-													<div class="rating-box"> <span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-													</div>
-													<span class="rating-num">( 2 )</span>
-												</div>
-												<h4><a href="#">제품명</a></h4>
-
+												<h4><a href="#">연관/번들 상품이 없습니다.</a></h4>
 											</div>
-											<p class="price">
-												<span class="price-new">할인 후 가격</span>
-												<span class="price-old">할인 전 가격</span>
-											</p>
 										</div>
 									</div>
 								</div>
 							</div>
-							<div class="item">
-								<div class="item-inner product-layout transition product-grid">
-									<div class="product-item-container">
-										<div class="left-block left-b">
 
-											<div class="product-image-container">
-												<a href="#">
-													<img src="/front/image/sample/270-270.png" class="img-responsive">
-												</a>
-											</div>
-										</div>
-										<div class="right-block">
-											<div class="button-group so-quickview cartinfo--left">
-												<button type="button" class="addToCart">
-													<span>관심상품등록</span>
-												</button>
-												<button type="button" class="addToCart">
-													<span>상세사항확인</span>
-												</button>
-											</div>
-											<div class="caption hide-cont">
-												<div class="ratings">
-													<div class="rating-box"> <span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-													</div>
-													<span class="rating-num">( 2 )</span>
-												</div>
-												<h4><a href="#">제품명</a></h4>
-
-											</div>
-											<p class="price">
-												<span class="price-new">할인 후 가격</span>
-												<span class="price-old">할인 전 가격</span>
-											</p>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="item">
-								<div class="item-inner product-layout transition product-grid">
-									<div class="product-item-container">
-										<div class="left-block left-b">
-
-											<div class="product-image-container">
-												<a href="#">
-													<img src="/front/image/sample/270-270.png" class="img-responsive">
-												</a>
-											</div>
-										</div>
-										<div class="right-block">
-											<div class="button-group so-quickview cartinfo--left">
-												<button type="button" class="addToCart" title="#">
-													<span>장바구니 담기</span>
-												</button>
-												<button type="button" class="wishlist btn-button">
-													><span></span>
-												</button>
-											</div>
-											<div class="caption hide-cont">
-												<div class="ratings">
-													<div class="rating-box"> <span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-														<span class="fa fa-stack"><i
-																class="fa fa-star fa-stack-2x"></i></span>
-													</div>
-													<span class="rating-num">( 2 )</span>
-												</div>
-												<h4><a href="#">제품명</a></h4>
-
-											</div>
-											<p class="price">
-												<span class="price-new">할인 후 가격</span>
-												<span class="price-old">할인 전 가격</span>
-											</p>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
+						</div> <!-- .releate-products -->
+					</div> <!-- .related -->
 				</div>
 			</div>
 		</div>
@@ -648,6 +619,7 @@
 			"use strict";
 
 			$(function () {
+				// ====== 옵션보기 버튼 클릭 시 옵션탭으로 이동 + 스크롤 ======
 				var $optBtn = $("#btn-go-option");
 				var $tabLink = $('.tabsslider .nav.nav-tabs a[href="#tab-option"]');
 				var $scrollBlock = $("#tab-option");
@@ -655,14 +627,12 @@
 
 				function scrollToOption() {
 					if (!$scrollBlock.length) return;
-					// 약간의 지연 후 계산(탭 전환으로 DOM 높이 변동 고려)
 					setTimeout(function () {
 						var top = $scrollBlock.offset().top - 200; // 200px 여백
 						$("html, body").stop().animate({scrollTop: top}, 450, "swing");
 					}, 0);
 				}
 
-				// 탭 전환 완료 시(옵션보기 버튼으로 연 경우에만) 스크롤
 				$tabLink.on("shown.bs.tab.optScroll", function () {
 					if (shouldScroll) {
 						shouldScroll = false;
@@ -670,22 +640,45 @@
 					}
 				});
 
-				// "옵션보기" 버튼 클릭 시: 탭 활성화 + 스크롤
 				$optBtn.on("click", function (e) {
 					e.preventDefault();
 
-					// 이미 해당 탭이 활성화라면 즉시 스크롤
 					var isActive =
 						$tabLink.attr("aria-selected") === "true" ||
-						$tabLink.parent().hasClass("active"); // (Bootstrap 3 대응)
+						$tabLink.parent().hasClass("active");
 
 					if (isActive) {
 						scrollToOption();
 					} else {
-						shouldScroll = true;     // 버튼을 통해 열었음을 표시
-						$tabLink.tab("show");    // 전환 -> shown 이벤트에서 스크롤
+						shouldScroll = true;
+						$tabLink.tab("show");
 					}
 				});
+
+				// ====== 옵션 총합 계산 ======
+				function recalcOptionTotal() {
+					var total = 0;
+					$(".product-list-option-table tbody tr").each(function () {
+						var $row = $(this);
+						var $check = $row.find(".product-list-row-check");
+						if (!$check.length || !$check.is(":checked")) {
+							return;
+						}
+						var price = parseInt($check.data("price"), 10);
+						if (isNaN(price)) {
+							price = 0;
+						}
+						var qty = parseInt($row.find(".product-list-qty-input").val(), 10);
+						if (isNaN(qty) || qty < 1) {
+							qty = 1;
+						}
+						total += price * qty;
+					});
+					$(".product-list-total-price").text(total.toLocaleString("ko-KR"));
+				}
+
+				$(document).on("change", ".product-list-row-check", recalcOptionTotal);
+				$(document).on("change keyup", ".product-list-qty-input", recalcOptionTotal);
 			});
 		})(jQuery);
 	</script>

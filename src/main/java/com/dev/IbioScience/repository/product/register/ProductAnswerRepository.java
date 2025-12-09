@@ -3,6 +3,7 @@ package com.dev.IbioScience.repository.product.register;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,6 +25,29 @@ public interface ProductAnswerRepository extends JpaRepository<ProductAnswer, Lo
            "where a.product.id = :pid " +
            "order by q.sortOrder asc, q.id asc, a.id asc")
     List<ProductAnswer> findByProductWithQuestion(@Param("pid") Long productId);
+    
+    /**
+     * 제품별 공통질문/답변 조회
+     *
+     * - ProductAnswer.question            : 즉시 로딩
+     * - ProductAnswer.detailImages        : 즉시 로딩 (bag 1개)
+     * - ProductQuestion.options           : LAZY 로딩 (필요 시 트랜잭션 내에서 사용)
+     *
+     * ⇒ MultipleBagFetchException 회피:
+     *    detailImages, options 두 개를 동시에 fetch 하지 않고,
+     *    detailImages만 fetch, options는 나중에 Lazy 로딩.
+     */
+    @EntityGraph(attributePaths = {
+        "question",
+        "detailImages"
+    })
+    @Query("""
+        select pa
+        from ProductAnswer pa
+        where pa.product.id = :productId
+        order by pa.question.sortOrder asc, pa.id asc
+        """)
+    List<ProductAnswer> findAllWithQuestionAndImagesByProductId(@Param("productId") Long productId);
 }
 
 
