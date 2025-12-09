@@ -15,8 +15,11 @@ import com.dev.IbioScience.model.auth.PrincipalDetails;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
 
     private final HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
@@ -41,7 +44,6 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
                 out.println("<body>");
                 out.println("<script>");
                 out.println("alert('최초 로그인 시 계정정보를 변경해야 합니다.');");
-                // ✅ id 포함 상세 페이지로 이동
                 out.println("window.location.replace('/admin/common/memberDetail/" + m.getId() + "');");
                 out.println("</script>");
                 out.println("</body></html>");
@@ -50,14 +52,26 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        // 2) 저장된 이동 경로가 있으면 그리로
+        // 2) Security 가 저장해 둔 요청(SavedRequest)이 있는 경우 → 그쪽으로 우선 이동
         SavedRequest savedRequest = requestCache.getRequest(request, response);
         if (savedRequest != null) {
-            response.sendRedirect(savedRequest.getRedirectUrl());
+            String targetUrl = savedRequest.getRedirectUrl();
+            response.sendRedirect(targetUrl);
             return;
         }
 
-        // 3) 기본
+        // 3) SavedRequest 가 없으면, 우리가 세션에 저장해 둔 prevPage 로 이동
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            String prevPage = (String) session.getAttribute("prevPage");
+            if (prevPage != null && !prevPage.isBlank()) {
+                session.removeAttribute("prevPage");
+                response.sendRedirect(prevPage);
+                return;
+            }
+        }
+
+        // 4) 그 외에는 기본적으로 메인으로 이동
         response.sendRedirect("/");
     }
 }

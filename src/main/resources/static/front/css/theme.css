@@ -9332,7 +9332,7 @@ p.price-old{
 	position: absolute;
 	right: 14px;
 	top: 4px;
-	height: 16.5px;
+	height: 24px;
 	width: 14px;
 }
 
@@ -9344,7 +9344,7 @@ p.price-old{
 	right: 14px;
 	top: 21px;
 	width: 14px;
-	height: 15.5px;
+	height: 24px;
 	line-height: 15px;
 }
 
@@ -9375,6 +9375,7 @@ p.price-old{
 	font-size: 13px;
 	font-weight: bold;
 	padding: 12px 16px;
+	height:48px;
 }
 
 .left-content-product .content-product-right .box-info-product .cart input:hover {
@@ -9388,6 +9389,7 @@ p.price-old{
 	color: #666;
 	border: 1px solid #e6e6e6;
 	cursor: pointer;
+	height:48px;
 }
 
 .left-content-product .content-product-right .box-info-product .add-to-links ul li a.text {

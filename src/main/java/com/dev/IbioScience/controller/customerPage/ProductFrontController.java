@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import com.dev.IbioScience.dto.page.productList.ProductListItemDto;
 import com.dev.IbioScience.enums.page.list.ProductSortOption;
 import com.dev.IbioScience.exception.ProductNotDisplayableException;
 import com.dev.IbioScience.exception.ProductNotFoundException;
+import com.dev.IbioScience.model.auth.PrincipalDetails;
 import com.dev.IbioScience.service.page.list.FrontProductListService;
 import com.dev.IbioScience.service.product.front.ProductDetailService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -142,7 +144,8 @@ public class ProductFrontController {
 	@GetMapping({"/productDetail", "/productDetail/{id}"})
 	public String productDetail(@PathVariable(required = false) Long id,
 	                            Model model,
-	                            RedirectAttributes redirectAttributes) {
+	                            RedirectAttributes redirectAttributes,
+	                            @AuthenticationPrincipal PrincipalDetails principal) {
 
 	    // 0) id 없이 직접 /productDetail 접근한 경우
 	    if (id == null) {
@@ -157,15 +160,21 @@ public class ProductFrontController {
 	        // *** 여기서 디버깅용 전체 출력 ***
 	        debugProductDetail(detail);
 
-	        // 2) 뷰에서 사용할 데이터 model 에 세팅
-	        model.addAttribute("productId", id);         // 필요시 JS 등에서 사용
-	        model.addAttribute("productDetail", detail); // 타임리프에서 모든 상세 필드 직접 사용
+	        // 2) 로그인 회원 ID (리뷰 영역에서 "내 리뷰" 판단용)
+	        Long loginMemberId = null;
+	        if (principal != null && principal.getMember() != null) {
+	            loginMemberId = principal.getMember().getId();
+	        }
 
-	        // 3) 상세 템플릿으로 이동
+	        // 3) 뷰에서 사용할 데이터 model 에 세팅
+	        model.addAttribute("productId", id);          // JS 등에서 사용
+	        model.addAttribute("productDetail", detail);  // 상세 필드
+	        model.addAttribute("loginMemberId", loginMemberId); // 내 리뷰 판단용
+
+	        // 4) 상세 템플릿으로 이동
 	        return "front/product/productDetail";
 
 	    } catch (ProductNotDisplayableException e) {
-	        // 진열하지 않는 상품 / 판매중지 / 삭제대기/삭제 등
 	        log.warn("상품 상세 진입 차단 - 진열 불가 상품. id={}, message={}", id, e.getMessage());
 	        redirectAttributes.addFlashAttribute(
 	                "errorMessage",
@@ -174,13 +183,11 @@ public class ProductFrontController {
 	        return "redirect:/";
 
 	    } catch (ProductNotFoundException e) {
-	        // 존재하지 않는 상품
 	        log.warn("상품 상세 진입 실패 - 상품 미존재. id={}", id);
 	        redirectAttributes.addFlashAttribute("errorMessage", "존재하지 않는 상품입니다.");
 	        return "redirect:/";
 
 	    } catch (Exception e) {
-	        // 그 외 예기치 못한 오류 (템플릿/서비스/DB 등)
 	        log.error("상품 상세 진입 중 알 수 없는 오류 발생. id={}", id, e);
 	        redirectAttributes.addFlashAttribute("errorMessage", "상품 상세 정보를 불러오는 중 오류가 발생했습니다.");
 	        return "redirect:/";

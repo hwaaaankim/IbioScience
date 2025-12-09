@@ -17,6 +17,7 @@ import com.dev.IbioScience.dto.customer.auth.PersonalSignUpRequest;
 import com.dev.IbioScience.service.auth.customer.common.CustomerSignUpService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -28,10 +29,22 @@ public class CommonFrontController {
 	private static final Logger log = LoggerFactory.getLogger(CommonFrontController.class);
 
 	@GetMapping("/signIn")
-	public String signIn() {
+    public String signIn(HttpServletRequest request) {
 
-		return "front/common/signIn";
-	}
+        HttpSession session = request.getSession();
+
+        // 로그인 페이지로 들어오기 직전 페이지 (Referer) 저장
+        String referrer = request.getHeader("Referer");
+        if (referrer != null &&
+                !referrer.contains("/signIn") &&
+                !referrer.contains("/signOut") &&
+                !referrer.contains("/logout")) {
+
+            session.setAttribute("prevPage", referrer);
+        }
+
+        return "front/common/signIn";
+    }
 
 	@GetMapping("/personalSignUp")
 	public String personalSignUp() {

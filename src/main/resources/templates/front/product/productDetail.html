@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head th:replace="fragments/front/common :: frontHead"></head>
 
@@ -278,7 +278,7 @@
 														<tr>
 															<th>Cat. No</th>
 															<th>품명</th>
-															<th class="text-right">판매가</th>
+															<th>판매가</th>
 															<th>단위</th>
 															<th class="product-list-qty">수량</th>
 															<th>선택</th>
@@ -286,8 +286,9 @@
 													</thead>
 													<tbody>
 														<!-- 옵션이 없을 때 -->
-														<tr
-															th:if="${productDetail == null or productDetail.optionGroups == null or #lists.isEmpty(productDetail.optionGroups)}">
+														<tr th:if="${productDetail == null
+                                   or productDetail.optionGroups == null
+                                   or #lists.isEmpty(productDetail.optionGroups)}">
 															<td colspan="6" class="text-center">등록된 옵션이 없습니다.</td>
 														</tr>
 
@@ -295,30 +296,43 @@
 														<th:block
 															th:each="group : ${productDetail != null ? productDetail.optionGroups : null}"
 															th:if="${group != null}">
+															<!-- 그룹 헤더 -->
 															<tr>
 																<td colspan="6" class="product-list-option-group"
 																	th:text="${group.name}">옵션 그룹명</td>
 															</tr>
+
+															<!-- 옵션 행 -->
 															<tr th:each="opt : ${group.options}" th:if="${opt != null}"
-																th:with="basePrice=${productDetail.salePrice},
-																		  extraInt=${opt.extraPrice != null ? opt.extraPrice.intValue() : 0},
-																		  signMul=${opt.sign != null and opt.sign == 'MINUS' ? -1 : 1},
-																		  finalPrice=${basePrice != null ? basePrice + (extraInt * signMul) : null}">
+																th:with="
+                                    basePrice=${productDetail.salePrice},
+                                    extraInt=${opt.extraPrice != null ? opt.extraPrice.intValue() : 0},
+                                    signMul=${opt.sign != null and opt.sign == 'MINUS' ? -1 : 1},
+                                    finalPrice=${basePrice != null ? basePrice + (extraInt * signMul) : null}
+                                ">
+																<!-- Cat. No -->
 																<td th:text="${opt.value != null ? opt.value : '-'}">
 																	357531</td>
-																<td th:text="${opt.name != null ? opt.name : '-'}">
-																	옵션명</td>
-																<td class="text-right"
-																	th:text="${finalPrice != null ? #numbers.formatInteger(finalPrice,3,'COMMA') : '가격문의'}">
-																	72,405</td>
-																<td>-
+																<!-- 품명 -->
+																<td th:text="${opt.name != null ? opt.name : '-'}">옵션명
 																</td>
+																<!-- 판매가 -->
+																<td class="text-right" th:text="${finalPrice != null
+                                              ? #numbers.formatInteger(finalPrice,3,'COMMA')
+                                              : '가격문의'}">
+																	72,405
+																</td>
+																<!-- 단위 (필요시 opt.unit 등으로 교체 가능) -->
+																<td>-</td>
+																<!-- 수량 -->
 																<td class="product-list-qty">
 																	<input type="number"
 																		class="form-control input-sm product-list-qty-input"
 																		value="1" min="1">
 																</td>
-																<td class="text-center"><input type="checkbox"
+																<!-- 선택 체크박스 -->
+																<td class="text-center">
+																	<input type="checkbox"
 																		class="product-list-row-check"
 																		th:attr="data-price=${finalPrice != null ? finalPrice : 0}">
 																</td>
@@ -331,8 +345,8 @@
 											<!-- 총금액 -->
 											<div class="product-list-total">
 												<span class="product-list-total-label">Total.</span>
-												<span class="product-list-total-price">0</span><span
-													class="product-list-won"> 원</span>
+												<span class="product-list-total-price">0</span>
+												<span class="product-list-won"> 원</span>
 											</div>
 
 											<!-- 안내 문구 -->
@@ -351,6 +365,7 @@
 										</div>
 									</div>
 								</div>
+
 
 								<!-- 첨부파일 탭 : QuestionBlock/Answer 파일 유형 -->
 								<div id="tab-file" class="tab-pane fade">
@@ -430,79 +445,143 @@
 														<td colspan="5" class="text-center">등록된 리뷰가 없습니다.</td>
 													</tr>
 
-													<tr
-														th:each="rv,stat : ${productDetail != null ? productDetail.reviews : null}">
-														<td class="m-d-n" th:text="${stat.index + 1}">1</td>
-														<td class="m-d-n">
-															<div class="row review-content">
-																<div class="col-lg-4">
-																	<img width="80px;" height="auto;"
-																		class="img-responsive"
-																		src="/front/image/sample/270-270.png" th:src="${rv.images != null and !#lists.isEmpty(rv.images) and rv.images[0].url != null ?
-																				 rv.images[0].url : '/front/image/sample/270-270.png'}">
+													<!-- 1) 로그인 회원의 리뷰(내 리뷰) 먼저 노출 -->
+													<th:block th:if="${loginMemberId != null}">
+														<tr th:each="rv, stat : ${productDetail.reviews}"
+															th:if="${rv != null and rv.memberId != null and rv.memberId == loginMemberId}"
+															th:attr="data-review-id=${rv.id},data-rating=${rv.rating},data-content=${rv.content}">
+															<td class="m-d-n">내 리뷰</td>
+															<td class="m-d-n">
+																<div class="row review-content">
+																	<div class="col-lg-4">
+																		<img width="80px;" height="auto;"
+																			class="img-responsive"
+																			src="/front/image/sample/270-270.png"
+																			th:src="${rv.images != null and !#lists.isEmpty(rv.images) and rv.images[0].url != null ?
+                                      rv.images[0].url : '/front/image/sample/270-270.png'}">
+																	</div>
+																	<div class="col-lg-8">
+																		<h3
+																			th:text="${productDetail != null ? productDetail.name : '제품명'}">
+																			제품명</h3>
+																		<p th:text="${rv.content}">제품에 대한 리뷰 의견.</p>
+																	</div>
 																</div>
-																<div class="col-lg-8">
-																	<h3
-																		th:text="${productDetail != null ? productDetail.name : '제품명'}">
-																		제품명</h3>
-																	<p th:text="${rv.content}">제품에 대한 리뷰 의견.</p>
+															</td>
+															<td></td>
+															<!-- 별점 칸 (4번째 컬럼) - 내 리뷰도 별점 그대로 표시 -->
+															<td>
+																<div class="ratings">
+																	<div class="rating-box">
+																		<span class="fa fa-stack"
+																			th:each="i : ${#numbers.sequence(1,5)}">
+																			<i class="fa fa-star fa-stack-1x"
+																				th:if="${rv.rating != null and i &lt;= rv.rating}"></i>
+																			<i class="fa fa-star-o fa-stack-1x"
+																				th:if="${rv.rating == null or i &gt; rv.rating}"></i>
+																		</span>
+																	</div>
 																</div>
-															</div>
-														</td>
-														<td></td>
-														<td>
-															<div class="ratings">
-																<div class="rating-box">
-																	<span class="fa fa-stack"
-																		th:each="i : ${#numbers.sequence(1,5)}">
-																		<i class="fa fa-star fa-stack-1x"
-																			th:if="${rv.rating != null and i &lt;= rv.rating}"></i>
-																		<i class="fa fa-star-o fa-stack-1x"
-																			th:if="${rv.rating == null or i &gt; rv.rating}"></i>
-																	</span>
+															</td>
+															<!-- 작성자/작성일 칸 (5번째 컬럼) - Spring Security principal 사용 -->
+															<td
+																th:with="dateStr=${rv.createdAt != null ? #temporals.format(rv.createdAt,'yyyy-MM-dd') : ''}">
+																<div>
+																	<span
+																		sec:authentication="principal.username">회원아이디</span>
+																	<span th:text="${' / ' + dateStr}"> / 날짜</span>
 																</div>
-															</div>
-														</td>
-														<td th:with="name=${rv.memberDisplayName != null ? rv.memberDisplayName : '비회원'},
-																	 dateStr=${rv.createdAt != null ? #temporals.format(rv.createdAt,'yyyy-MM-dd') : ''}"
-															th:text="${name + ' / ' + dateStr}">
-															이름/날짜
-														</td>
-													</tr>
+																<!-- 내 리뷰일 때만 수정/삭제 -->
+																<div class="review-my-actions">
+																	<a href="#" class="review-edit-link"
+																		th:attr="data-review-id=${rv.id}">수정</a>
+																	<span> | </span>
+																	<a href="#" class="review-delete-link"
+																		th:attr="data-review-id=${rv.id}">삭제</a>
+																</div>
+															</td>
+														</tr>
+													</th:block>
+
+													<!-- 2) 나머지 리뷰(다른 사람 리뷰) -->
+													<th:block th:each="rv, stat : ${productDetail.reviews}">
+														<tr th:if="${rv != null and (loginMemberId == null or rv.memberId == null or rv.memberId != loginMemberId)}"
+															th:attr="data-review-id=${rv.id},data-rating=${rv.rating},data-content=${rv.content}">
+															<td class="m-d-n" th:text="${stat.index + 1}">1</td>
+															<td class="m-d-n">
+																<div class="row review-content">
+																	<div class="col-lg-4">
+																		<img width="80px;" height="auto;"
+																			class="img-responsive"
+																			src="/front/image/sample/270-270.png"
+																			th:src="${rv.images != null and !#lists.isEmpty(rv.images) and rv.images[0].url != null ?
+                                      rv.images[0].url : '/front/image/sample/270-270.png'}">
+																	</div>
+																	<div class="col-lg-8">
+																		<h3
+																			th:text="${productDetail != null ? productDetail.name : '제품명'}">
+																			제품명</h3>
+																		<p th:text="${rv.content}">제품에 대한 리뷰 의견.</p>
+																	</div>
+																</div>
+															</td>
+															<td></td>
+															<td>
+																<div class="ratings">
+																	<div class="rating-box">
+																		<span class="fa fa-stack"
+																			th:each="i : ${#numbers.sequence(1,5)}">
+																			<i class="fa fa-star fa-stack-1x"
+																				th:if="${rv.rating != null and i &lt;= rv.rating}"></i>
+																			<i class="fa fa-star-o fa-stack-1x"
+																				th:if="${rv.rating == null or i &gt; rv.rating}"></i>
+																		</span>
+																	</div>
+																</div>
+															</td>
+															<td th:with="name=${rv.memberDisplayName != null ? rv.memberDisplayName : '비회원'},
+                         dateStr=${rv.createdAt != null ? #temporals.format(rv.createdAt,'yyyy-MM-dd') : ''}"
+																th:text="${name + ' / ' + dateStr}">
+																이름/날짜
+															</td>
+														</tr>
+													</th:block>
 												</tbody>
 											</table>
-											<!-- 기존 페이징 영역은 그대로 유지 (추후 서버/JS 연동 시 교체 가능) -->
-											<nav class="justify-content-center d-flex">
-												<ul class="pagination">
-													<li class="page-item"><a class="page-link" href="#">Previous</a>
-													</li>
-													<li class="page-item"><a class="page-link" href="#">1</a></li>
-													<li class="page-item"><a class="page-link" href="#">2</a></li>
-													<li class="page-item"><a class="page-link" href="#">3</a></li>
-													<li class="page-item"><a class="page-link" href="#">Next</a></li>
-												</ul>
-											</nav>
 										</div>
 
-										<!-- 리뷰 작성 폼은 이후 실제 로직 연동 시 수정 -->
 										<h2 id="review-title">리뷰작성</h2>
 										<div class="contacts-form">
-											<div class="form-group"> <span class="icon icon-bubbles-2"></span>
-												<textarea class="form-control"
-													placeholder="제품을 구매한 경우에만 리뷰를 작성하실 수 있습니다.">제품을 구매한 경우 리뷰를 작성할 수 있습니다.</textarea>
+											<!-- 내용 -->
+											<div class="form-group">
+												<span class="icon icon-bubbles-2"></span>
+												<textarea id="review-content" class="form-control"
+													placeholder="리뷰를 작성 해 주세요."></textarea>
 											</div>
 
+											<!-- 이미지 업로드 -->
+											<div class="form-group">
+												<label for="review-images">이미지 첨부 (선택, 여러 장 가능)</label>
+												<input type="file" id="review-images" name="images" class="form-control"
+													multiple>
+											</div>
+
+											<!-- 별점 -->
 											<div class="form-group">
 												<b>별점</b> <span>BAD</span>&nbsp;
 												<input type="radio" name="rating" value="1"> &nbsp;
 												<input type="radio" name="rating" value="2"> &nbsp;
 												<input type="radio" name="rating" value="3"> &nbsp;
 												<input type="radio" name="rating" value="4"> &nbsp;
-												<input type="radio" name="rating" value="5"> &nbsp;<span>GOOD</span>
-
+												<input type="radio" name="rating" value="5"> &nbsp;
+												<span>GOOD</span>
 											</div>
-											<div class="buttons clearfix"><a id="button-review"
-													class="btn buttonGray">리뷰작성</a></div>
+
+											<!-- 하단 안내 small 제거 (placeholder 로만 안내) -->
+
+											<div class="buttons clearfix">
+												<a id="button-review" class="btn buttonGray">리뷰작성</a>
+											</div>
 										</div>
 									</form>
 								</div>
@@ -671,7 +750,9 @@
 			"use strict";
 
 			$(function () {
-				// ====== 옵션보기 버튼 클릭 시 옵션탭으로 이동 + 스크롤 ======
+				// ============================
+				// ====== 옵션보기 스크롤 ======
+				// ============================
 				var $optBtn = $("#btn-go-option");
 				var $tabLink = $('.tabsslider .nav.nav-tabs a[href="#tab-option"]');
 				var $scrollBlock = $("#tab-option");
@@ -707,7 +788,9 @@
 					}
 				});
 
+				// ==============================
 				// ====== 옵션 총합 계산 ======
+				// ==============================
 				function recalcOptionTotal() {
 					var total = 0;
 					$(".product-list-option-table tbody tr").each(function () {
@@ -731,10 +814,264 @@
 
 				$(document).on("change", ".product-list-row-check", recalcOptionTotal);
 				$(document).on("change keyup", ".product-list-qty-input", recalcOptionTotal);
+
+				// ============================
+				// ====== 리뷰 관련 로직 ======
+				// ============================
+
+				var $reviewContent = $("#review-content");
+				var $reviewImages = $("#review-images");
+				var $reviewButton = $("#button-review");
+
+				// 안내 문구 기본값
+				var defaultReviewPlaceholder = "리뷰를 작성 해 주세요.";
+
+				// product_id hidden input 은 이미 상단에 있음
+				var productId = $("input[name='product_id']").val();
+
+				// 권한 정보 캐시 (작성/수정/취소 시 사용)
+				var reviewPermission = null;
+
+				// 현재 수정 중인 리뷰 ID (null 이면 "새 리뷰 작성")
+				var editingReviewId = null;
+				var $currentEditLink = null;
+
+				// 안내는 textarea placeholder 하나로만 사용
+				function updateReviewFormState(canWrite, placeholderText) {
+					if (!placeholderText) {
+						if (reviewPermission && reviewPermission.message) {
+							// 서버에서 내려준 안내 메시지(4가지 중 하나라고 가정)
+							placeholderText = reviewPermission.message;
+						} else {
+							placeholderText = defaultReviewPlaceholder;
+						}
+					}
+					$reviewContent.attr("placeholder", placeholderText);
+
+					if (canWrite) {
+						$reviewContent.prop("readonly", false);
+						$reviewImages.prop("disabled", false);
+						$reviewButton.removeClass("disabled").prop("disabled", false);
+					} else {
+						$reviewContent.prop("readonly", true);
+						$reviewImages.prop("disabled", true);
+						$reviewButton.addClass("disabled").prop("disabled", true);
+					}
+				}
+
+				// ============================
+				// ====== 권한 체크 호출 ======
+				// ============================
+				function loadReviewPermission() {
+					if (!productId) {
+						updateReviewFormState(false, "상품 정보가 없어 리뷰를 작성할 수 없습니다.");
+						return;
+					}
+
+					$.ajax({
+						url: "/api/front/product/" + productId + "/review/permission",
+						method: "GET"
+					}).done(function (res) {
+						if (!res) {
+							// 서버 응답이 비어있는 경우 - 로그인 안내로 통일
+							reviewPermission = {canWrite: false, message: "로그인 후 이용 가능합니다"};
+							updateReviewFormState(false, reviewPermission.message);
+							return;
+						}
+						// res.message 는 아래 4가지 중 하나라고 가정
+						// 1) "이미 리뷰를 작성하였습니다"
+						// 2) "로그인 후 이용 가능합니다"
+						// 3) "구매자만 작성하실 수 있습니다"
+						// 4) "리뷰를 작성 해 주세요."
+						reviewPermission = res;
+
+						// 아직 수정 모드가 아니면 권한대로 세팅
+						if (!editingReviewId) {
+							var ph = res.message;
+							if (!ph) {
+								ph = res.canWrite ? defaultReviewPlaceholder : "";
+							}
+							updateReviewFormState(res.canWrite, ph);
+						}
+					}).fail(function () {
+						// 네트워크 등 예외 상황
+						reviewPermission = {canWrite: false, message: "리뷰를 작성할 수 없습니다."};
+						updateReviewFormState(false, reviewPermission.message);
+					});
+				}
+
+				loadReviewPermission();
+
+				// ============================
+				// ====== 수정 모드 진입 ======
+				// ============================
+				$(document).on("click", ".review-edit-link", function (e) {
+					e.preventDefault();
+
+					var $link = $(this);
+					var $row = $link.closest("tr");
+					var reviewId = $link.data("review-id");
+
+					if (!reviewId) {
+						alert("리뷰 정보를 찾을 수 없습니다.");
+						return;
+					}
+
+					// 이미 이 링크가 '수정취소' 상태라면 → 수정 취소
+					if ($link.hasClass("editing")) {
+						// 폼 초기화
+						editingReviewId = null;
+						if ($currentEditLink) {
+							$currentEditLink.removeClass("editing").text("수정");
+							$currentEditLink = null;
+						}
+
+						$reviewContent.val("");
+						$("input[name='rating']").prop("checked", false);
+						$reviewImages.val("");
+
+						// 다시 원래 권한 상태로
+						if (reviewPermission) {
+							updateReviewFormState(reviewPermission.canWrite, reviewPermission.message);
+						} else {
+							updateReviewFormState(false, "로그인 후 이용 가능합니다");
+						}
+
+						$reviewButton.text("리뷰작성");
+						return;
+					}
+
+					// 다른 리뷰 수정 중이었다면 해제
+					if ($currentEditLink && $currentEditLink.get(0) !== $link.get(0)) {
+						$currentEditLink.removeClass("editing").text("수정");
+					}
+
+					// 이 리뷰를 수정 모드로
+					editingReviewId = reviewId;
+					$currentEditLink = $link;
+					$link.addClass("editing").text("수정취소");
+
+					var rating = $row.data("rating");
+					var content = $row.data("content");
+
+					// 폼에 값 채우기
+					$reviewContent.val(content);
+					$("input[name='rating']").prop("checked", false);
+					if (rating) {
+						$("input[name='rating'][value='" + rating + "']").prop("checked", true);
+					}
+
+					// 이미지 input 은 기존 이미지가 있어도 비워둔다.
+					// → 수정 시 파일을 선택하지 않으면 "이미지 전체 삭제"로 처리 (서비스 로직에서 구현)
+					$reviewImages.val("");
+
+					// 수정 모드에서는 무조건 입력 가능하도록 enable
+					updateReviewFormState(true, defaultReviewPlaceholder);
+					$reviewButton.text("리뷰 수정 저장");
+				});
+
+				// ============================
+				// ====== 리뷰 삭제 요청 ======
+				// ============================
+				$(document).on("click", ".review-delete-link", function (e) {
+					e.preventDefault();
+
+					var reviewId = $(this).data("review-id");
+					if (!productId || !reviewId) {
+						alert("리뷰 정보를 찾을 수 없습니다.");
+						return;
+					}
+
+					if (!confirm("해당 리뷰를 삭제하시겠습니까?")) {
+						return;
+					}
+
+					$.ajax({
+						url: "/api/front/product/" + productId + "/review/" + reviewId,
+						method: "DELETE"
+					}).done(function () {
+						alert("리뷰가 삭제되었습니다.");
+						location.reload();
+					}).fail(function (xhr) {
+						var msg = xhr.responseText || "리뷰 삭제 중 오류가 발생했습니다.";
+						alert(msg);
+					});
+				});
+
+				// ============================
+				// ====== 리뷰 작성/수정 ======
+				// ============================
+				$reviewButton.on("click", function (e) {
+					e.preventDefault();
+
+					if ($reviewButton.prop("disabled")) {
+						// 비활성화 상태에서는 placeholder 내용을 그대로 안내로 사용
+						var msg = $reviewContent.attr("placeholder") || "리뷰를 작성할 수 없습니다.";
+						alert(msg);
+						return;
+					}
+
+					var rating = $("input[name='rating']:checked").val();
+					var content = $reviewContent.val();
+
+					if (!rating) {
+						alert("별점을 선택해 주세요.");
+						return;
+					}
+					if (!content || $.trim(content).length === 0) {
+						alert("리뷰 내용을 입력해 주세요.");
+						return;
+					}
+					if (!productId) {
+						alert("상품 정보가 없어 리뷰를 작성할 수 없습니다.");
+						return;
+					}
+
+					var formData = new FormData();
+					formData.append("rating", rating);
+					formData.append("content", content);
+
+					var files = $reviewImages[0].files;
+					if (files && files.length > 0) {
+						for (var i = 0; i < files.length; i++) {
+							formData.append("images", files[i]);
+						}
+					}
+
+					var url;
+					var method;
+
+					if (editingReviewId) {
+						// 수정
+						url = "/api/front/product/" + productId + "/review/" + editingReviewId;
+						method = "PUT";
+					} else {
+						// 신규 작성
+						url = "/api/front/product/" + productId + "/review";
+						method = "POST";
+					}
+
+					$.ajax({
+						url: url,
+						method: method,
+						processData: false,
+						contentType: false,
+						data: formData
+					}).done(function () {
+						if (editingReviewId) {
+							alert("리뷰가 정상적으로 수정되었습니다.");
+						} else {
+							alert("리뷰가 정상적으로 등록되었습니다.");
+						}
+						location.reload();
+					}).fail(function (xhr) {
+						var msg = xhr.responseText || "리뷰 처리 중 오류가 발생했습니다.";
+						alert(msg);
+					});
+				});
 			});
 		})(jQuery);
 	</script>
-
 </body>
 
 </html>
