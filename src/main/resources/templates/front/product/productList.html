@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head th:replace="fragments/front/common :: frontHead"></head>
 
@@ -141,8 +141,7 @@
 									<div class="short-by-show form-inline text-right col-md-12 col-sm-12 col-xs-12">
 										<h3 class="title-category text-left">
 											<span th:text="${categoryPathText}">대/중/소분류</span>
-											<span th:if="${brandLabel != null}" th:text="' - ' + ${brandLabel}"> -
-												브랜드</span>
+											<span th:if="${brandLabel != null}" th:text="' - ' + ${brandLabel}"> -브랜드</span>
 											<span
 												th:text="' [총 : ' + ${#numbers.formatInteger(totalCount, 0, 'COMMA')} + ' 개 상품 검색]'">
 												[총 : ___개 상품 검색]
@@ -299,7 +298,9 @@
 														제품 판매가격
 													</span>
 													<span class="product-list-list-pipe"> | </span>
+													<!-- ✅ 모바일 견적/문의 링크: 로그인 회원에게만 노출 -->
 													<a href="#" class="product-list-grid-quote"
+														sec:authorize="isAuthenticated()"
 														th:text="${p.displayPrice == null ? '문의' : '견적 문의'}">
 														견적 문의
 													</a>
@@ -365,17 +366,23 @@
 														<th:block
 															th:if="${p.optionGroups != null and !#lists.isEmpty(p.optionGroups)}">
 															<th:block th:each="g : ${p.optionGroups}">
-																<tr th:each="opt : ${g.options}"
-																	th:attr="data-price=${opt.finalPrice}">
-																	<!-- Cat.No: value, 품명: 그룹명 + 옵션명 -->
+																<tr th:each="opt : ${g.options}" th:attr="
+														                data-option-id=${opt.id},
+														                data-option-group-id=${g.id},
+														                data-option-group-name=${g.name},
+														                data-option-name=${opt.name},
+														                data-option-code=${opt.value},
+														                data-price=${opt.finalPrice}
+														            ">
+																	<!-- Cat.No -->
 																	<td th:text="${opt.value}">357531</td>
+																	<!-- 품명 -->
 																	<td th:text="${g.name + ' - ' + opt.name}">
 																		10mL Serological Pipet, PS, Individually
 																		Paper-Plastic wrap
 																	</td>
 																	<td class="text-right"
-																		th:text="${opt.finalPrice != null ?
-                                                                    #numbers.formatInteger(opt.finalPrice,0,'COMMA') : '-'}">
+																		th:text="${opt.finalPrice != null ? #numbers.formatInteger(opt.finalPrice,0,'COMMA') : '-'}">
 																		72,405
 																	</td>
 																	<td>-</td>
@@ -391,6 +398,7 @@
 																</tr>
 															</th:block>
 														</th:block>
+
 
 														<!-- 옵션이 없는 경우 -->
 														<tr
@@ -417,11 +425,13 @@
 											</ul>
 
 											<!-- 하단 버튼 -->
-											<div class="product-list-bottom-btns">
+											<!-- ✅ 견적내기/바로구매 버튼: 로그인 회원에게만 노출 -->
+											<div class="product-list-bottom-btns" sec:authorize="isAuthenticated()">
 												<button type="button"
 													class="product-list-btn product-list-btn-quote">견적내기
 												</button>
-												<button type="button" class="product-list-btn product-list-btn-buy">바로구매
+												<button type="button"
+													class="product-list-btn product-list-btn-buy">바로구매
 												</button>
 											</div>
 										</div>
