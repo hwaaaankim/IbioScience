@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 
-//소분류-제품 N:N 관계 (중간 테이블)
+// 소분류-제품 N:N 관계 (중간 테이블)
 @Data
 @Entity
 @Table(name = "tb_small_product_category", 

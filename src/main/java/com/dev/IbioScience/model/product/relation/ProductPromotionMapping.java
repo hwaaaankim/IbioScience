@@ -18,6 +18,7 @@ import lombok.Data;
 @Entity
 @Table(name = "tb_product_promotion_mapping", uniqueConstraints = @UniqueConstraint(name = "uk_product_promotion", columnNames = {
 		"product_id", "promotion_id" }))
+// 할인 혜택과 제품의 N:N 연결하기위한 ENTITY
 public class ProductPromotionMapping {
 
 	@Id

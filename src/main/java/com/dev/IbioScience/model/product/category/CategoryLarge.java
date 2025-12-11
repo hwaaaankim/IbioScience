@@ -18,8 +18,9 @@ import lombok.Data;
 @Entity
 @Table(
     name = "tb_category_large",
-    uniqueConstraints = @UniqueConstraint(columnNames = "name") // 대분류명 유니크
+    uniqueConstraints = @UniqueConstraint(columnNames = "name") 
 )
+//대분류명 유니크
 public class CategoryLarge {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +30,7 @@ public class CategoryLarge {
     @Column(nullable = false, unique = true)
     private String name;
 
+    // @JsonIgnore
     @OneToMany(mappedBy = "large", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CategoryMedium> mediums = new ArrayList<>();
 }

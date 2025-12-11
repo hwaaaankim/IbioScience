@@ -12,6 +12,7 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "tb_product_bundle_item")
+// 추가 구성 상품 관리 ENTITY
 public class ProductBundleItem {
 	
 	// 번들항목 ID, PK

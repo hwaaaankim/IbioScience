@@ -40,8 +40,11 @@ public class Product {
     private Long id;
 
     // 진열상태 (ON/OFF)
+    // Boolean 보다는 더 많은 상태가 추가될 수 있음.
     @Enumerated(EnumType.STRING)
     private DisplayStatus displayStatus;
+    
+    // private String displayStatus;
 
     // 판매상태 (ON/OFF)
     @Enumerated(EnumType.STRING)
@@ -68,6 +71,8 @@ public class Product {
     private LocalDateTime updatedAt;
 
     // 상품상태(정상/삭제대기/삭제)
+    // 어드민 외에 다른 관리자가 삭제 시 삭제 대기 가 됨.
+    // 고객 - 상품 - 리뷰 - Order : 리뷰가 있거나, 구매자가 있는 제품의 경우는 삭제 불가. 
     @Enumerated(EnumType.STRING)
     private ProductState state;
 

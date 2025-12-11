@@ -20,8 +20,10 @@ import lombok.Data;
     name = "tb_medium_small_category",
     uniqueConstraints = @UniqueConstraint(columnNames = {"medium_id", "small_id"})
 )
+// 소분류와 중분류의 ManyToMany 관계를 담당하는 Entity
 public class MediumSmallCategory {
-    @Id
+    
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

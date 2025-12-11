@@ -425,72 +425,153 @@ document.addEventListener("DOMContentLoaded", function() {
 	const addOptionGroupBtn = document.getElementById('product-manager-add-option-group');
 	let optionGroups = [];
 
-	// ===== [교체] syncOptionGroupsFromDOM =====
+	// DOM -> 상태(optionGroups) 동기화 (완전 재생성 방식)
 	function syncOptionGroupsFromDOM() {
-		const groupCards = optionGroupList.querySelectorAll('.card');
-		optionGroups.forEach((group, groupIdx) => {
-			const groupCard = groupCards[groupIdx];
-			if (!groupCard) return;
-			group.name = groupCard.querySelector(`[name="optionGroups[${groupIdx}].name"]`)?.value || '';
-			const optionRows = groupCard.querySelectorAll('.input-group.mb-1');
-			group.options.forEach((opt, optIdx) => {
-				const row = optionRows[optIdx]; if (!row) return;
-				opt.name = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].name"]`)?.value || '';
-				opt.value = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].value"]`)?.value || '';
-				opt.extraPrice = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].extraPrice"]`)?.value || '';
-				opt.sign = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].sign"]`)?.value || 'PLUS';
+		if (!optionGroupList) {
+			optionGroups = [];
+			return;
+		}
+		const groupCards = optionGroupList.querySelectorAll('.product-option-group-card');
+		const newGroups = [];
+		groupCards.forEach((card, groupIdx) => {
+			const groupNameInput = card.querySelector('.js-option-group-name');
+			const groupName = groupNameInput ? groupNameInput.value.trim() : '';
+			const options = [];
+			const optionRows = card.querySelectorAll('.product-option-row');
+			optionRows.forEach((row, optIdx) => {
+				const nameInput = row.querySelector('.js-option-name');
+				const valueInput = row.querySelector('.js-option-value');
+				const extraInput = row.querySelector('.js-option-extra');
+				const signSelect = row.querySelector('.js-option-sign');
+				options.push({
+					name: nameInput ? nameInput.value.trim() : '',
+					value: valueInput ? valueInput.value.trim() : '',
+					extraPrice: extraInput ? extraInput.value.trim() : '',
+					sign: signSelect ? (signSelect.value || 'PLUS') : 'PLUS',
+					sortOrder: optIdx + 1
+				});
 			});
+			newGroups.push({ name: groupName, options });
 		});
+		optionGroups = newGroups;
 	}
 
+	// 상태(optionGroups) -> DOM 렌더링
 	function renderOptionGroups() {
+		if (!optionGroupList) return;
 		optionGroupList.innerHTML = '';
 		optionGroups.forEach((group, groupIdx) => {
 			const groupDiv = document.createElement('div');
-			groupDiv.className = 'card mb-2';
+			groupDiv.className = 'card mb-2 product-option-group-card';
 			groupDiv.innerHTML = `
         <div class="card-body p-2">
           <div class="input-group mb-2">
-            <input type="text" class="form-control form-control-sm" name="optionGroups[${groupIdx}].name" placeholder="옵션 그룹명" value="${group.name || ''}" required>
-            <button type="button" class="btn btn-outline-danger btn-sm" title="옵션그룹 삭제">×</button>
+            <input type="text"
+                   class="form-control form-control-sm js-option-group-name"
+                   name="optionGroups[${groupIdx}].name"
+                   placeholder="옵션 그룹명"
+                   value="${group.name || ''}"
+                   required>
+            <button type="button"
+                    class="btn btn-outline-danger btn-sm js-option-group-remove"
+                    title="옵션그룹 삭제">×</button>
           </div>
-          <div id="option-group-options-${groupIdx}"></div>
-          <button type="button" class="btn btn-outline-primary btn-sm mt-1" data-group-idx="${groupIdx}">+ 옵션 추가</button>
+          <div class="product-option-group-options" data-group-idx="${groupIdx}"></div>
+          <button type="button"
+                  class="btn btn-outline-primary btn-sm mt-1 js-option-add"
+                  data-group-idx="${groupIdx}">+ 옵션 추가</button>
         </div>`;
-			// 삭제
-			groupDiv.querySelector('.btn-outline-danger').onclick = () => { syncOptionGroupsFromDOM(); optionGroups.splice(groupIdx, 1); renderOptionGroups(); };
-			// 옵션 추가
-			groupDiv.querySelector('.btn-outline-primary').onclick = () => {
-				syncOptionGroupsFromDOM();
-				group.options.push({ name: '', value: '', extraPrice: '', sign: 'PLUS', sortOrder: group.options.length + 1 });
-				renderOptionGroups();
-			};
-			groupDiv.querySelector(`[name="optionGroups[${groupIdx}].name"]`).addEventListener('input', syncOptionGroupsFromDOM);
-
-			const optionsContainer = groupDiv.querySelector(`#option-group-options-${groupIdx}`);
+			
+			const optionsContainer = groupDiv.querySelector('.product-option-group-options');
+			
+			// 옵션 행 렌더
 			group.options.forEach((opt, optIdx) => {
 				const optRow = document.createElement('div');
-				optRow.className = 'input-group mb-1';
+				optRow.className = 'input-group mb-1 product-option-row';
 				optRow.innerHTML = `
-					  <input type="text" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].name" placeholder="옵션명" value="${opt.name || ''}" required>
-					  <input type="text" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].value" placeholder="값" value="${opt.value || ''}">
-					  <input type="number" class="form-control form-control-sm" name="optionGroups[${groupIdx}].options[${optIdx}].extraPrice" placeholder="추가금액" value="${opt.extraPrice || ''}">
-					  <select class="form-select form-select-sm" name="optionGroups[${groupIdx}].options[${optIdx}].sign">
-					    <option value="PLUS" ${opt.sign === 'PLUS' ? 'selected' : ''}>+</option>
-					    <option value="MINUS" ${opt.sign === 'MINUS' ? 'selected' : ''}>-</option>
-					  </select>
-					  <button type="button" class="btn btn-outline-danger btn-sm" title="옵션 삭제">×</button>`;
-				optRow.querySelector('.btn-outline-danger').onclick = () => { syncOptionGroupsFromDOM(); group.options.splice(optIdx, 1); renderOptionGroups(); };
-				optRow.querySelectorAll('input, select').forEach(inp => {
-					inp.addEventListener('input', syncOptionGroupsFromDOM);
-					inp.addEventListener('change', syncOptionGroupsFromDOM);
-				});
+          <input type="text"
+                 class="form-control form-control-sm js-option-name"
+                 name="optionGroups[${groupIdx}].options[${optIdx}].name"
+                 placeholder="옵션명"
+                 value="${opt.name || ''}"
+                 required>
+          <input type="text"
+                 class="form-control form-control-sm js-option-value"
+                 name="optionGroups[${groupIdx}].options[${optIdx}].value"
+                 placeholder="값"
+                 value="${opt.value || ''}">
+          <input type="number"
+                 class="form-control form-control-sm js-option-extra"
+                 name="optionGroups[${groupIdx}].options[${optIdx}].extraPrice"
+                 placeholder="추가금액"
+                 value="${opt.extraPrice || ''}">
+          <select class="form-select form-select-sm js-option-sign"
+                  name="optionGroups[${groupIdx}].options[${optIdx}].sign">
+            <option value="PLUS" ${opt.sign === 'PLUS' ? 'selected' : ''}>+</option>
+            <option value="MINUS" ${opt.sign === 'MINUS' ? 'selected' : ''}>-</option>
+          </select>
+          <button type="button"
+                  class="btn btn-outline-danger btn-sm js-option-remove"
+                  title="옵션 삭제">×</button>`;
 				optionsContainer.appendChild(optRow);
 			});
+
+			// 그룹명 입력 변경 시 동기화
+			groupDiv.querySelector('.js-option-group-name')?.addEventListener('input', syncOptionGroupsFromDOM);
+
+			// 옵션 추가 버튼
+			groupDiv.querySelector('.js-option-add')?.addEventListener('click', () => {
+				syncOptionGroupsFromDOM();
+				if (!optionGroups[groupIdx]) optionGroups[groupIdx] = { name: '', options: [] };
+				optionGroups[groupIdx].options.push({
+					name: '',
+					value: '',
+					extraPrice: '',
+					sign: 'PLUS',
+					sortOrder: (optionGroups[groupIdx].options.length || 0) + 1
+				});
+				renderOptionGroups();
+			});
+
+			// 그룹 삭제 버튼
+			groupDiv.querySelector('.js-option-group-remove')?.addEventListener('click', () => {
+				syncOptionGroupsFromDOM();
+				optionGroups.splice(groupIdx, 1);
+				renderOptionGroups();
+			});
+
+			// 옵션 삭제 버튼들
+			groupDiv.querySelectorAll('.js-option-remove').forEach((btn, optIdx) => {
+				btn.addEventListener('click', () => {
+					syncOptionGroupsFromDOM();
+					if (optionGroups[groupIdx]) {
+						optionGroups[groupIdx].options.splice(optIdx, 1);
+					}
+					renderOptionGroups();
+				});
+			});
+
+			// 옵션 값 입력/변경 시 동기화
+			groupDiv.querySelectorAll('.product-option-row input, .product-option-row select')
+				.forEach(el => {
+					el.addEventListener('input', syncOptionGroupsFromDOM);
+					el.addEventListener('change', syncOptionGroupsFromDOM);
+				});
+
 			optionGroupList.appendChild(groupDiv);
 		});
 	}
-	addOptionGroupBtn.onclick = () => { syncOptionGroupsFromDOM(); optionGroups.push({ name: '', options: [] }); renderOptionGroups(); };
+
+	// 옵션 그룹 추가 버튼
+	if (addOptionGroupBtn) {
+		addOptionGroupBtn.onclick = () => {
+			syncOptionGroupsFromDOM();
+			optionGroups.push({ name: '', options: [] });
+			renderOptionGroups();
+		};
+	}
+
+	// 초기 렌더 (비어있는 상태)
 	renderOptionGroups();
 
 	// ===== CKEditor(공통 표시항목 + 상세설명) =====
@@ -1126,6 +1207,8 @@ document.addEventListener("DOMContentLoaded", function() {
 		if (hasQuestionError) { alert('필수 공통표시항목(질문/옵션)을 모두 입력하세요.'); return false; }
 
 		// 7) 옵션그룹/옵션
+		// DOM 기준으로 최신 상태 동기화 후 검사
+		syncOptionGroupsFromDOM();
 		let hasOptionGroupError = false;
 		if (optionGroups.length > 0) {
 			optionGroups.forEach((group) => {
@@ -1281,6 +1364,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
 		// 11. 옵션그룹
 		logSection('11) 옵션그룹');
+		// DOM 기준 최신 상태
+		syncOptionGroupsFromDOM();
 		console.log(`그룹 개수: ${optionGroups.length}`);
 		optionGroups.forEach((g, gi) => {
 			console.log(`그룹#${gi} name="${g.name}" 옵션수=${g.options.length}`);
@@ -1317,9 +1402,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
 		// 16. 딜러 추가할인
 		logSection('16) 딜러 추가할인');
-		const dealerKeys = Object.keys(dealerDiscounts);
-		console.log(`적용 등급 수: ${dealerKeys.length}`);
-		dealerKeys.forEach(k => console.log(`${k}: ${dealerDiscounts[k]}%`));
+		const dealerKeys2 = Object.keys(dealerDiscounts);
+		console.log(`적용 등급 수: ${dealerKeys2.length}`);
+		dealerKeys2.forEach(k => console.log(`${k}: ${dealerDiscounts[k]}%`));
 		endSection();
 
 		console.groupEnd();
@@ -1349,12 +1434,12 @@ document.addEventListener("DOMContentLoaded", function() {
 			const formData = new FormData();
 
 			// 가격 정책
-			const priceExposeTarget = document.querySelector('input[name="priceExposeTarget"]:checked')?.value;
-			formData.append('priceExposeTarget', priceExposeTarget || 'MEMBER');
-			const usePriceReplace = document.getElementById('usePriceReplacementText').checked;
-			formData.append('usePriceReplacementText', usePriceReplace);
-			const priceReplacementText = document.getElementById('priceReplacementText').value.trim();
-			if (usePriceReplace && priceReplacementText) formData.append('priceReplacementText', priceReplacementText);
+			const priceExposeTarget2 = document.querySelector('input[name="priceExposeTarget"]:checked')?.value;
+			formData.append('priceExposeTarget', priceExposeTarget2 || 'MEMBER');
+			const usePriceReplace2 = document.getElementById('usePriceReplacementText').checked;
+			formData.append('usePriceReplacementText', usePriceReplace2);
+			const priceReplacementText2 = document.getElementById('priceReplacementText').value.trim();
+			if (usePriceReplace2 && priceReplacementText2) formData.append('priceReplacementText', priceReplacementText2);
 
 			// 브랜드
 			formData.append('brandId', selectedBrand ? selectedBrand.id : '');
@@ -1459,13 +1544,14 @@ document.addEventListener("DOMContentLoaded", function() {
 				});
 			}
 
-			// 옵션그룹/옵션
+			// 옵션그룹/옵션 - DOM 기준 최신 상태를 먼저 반영
+			syncOptionGroupsFromDOM();
 			if (optionGroupList) {
-				const groupCards = optionGroupList.querySelectorAll('.card');
+				const groupCards = optionGroupList.querySelectorAll('.product-option-group-card');
 				groupCards.forEach((groupDiv, groupIdx) => {
 					const groupName = groupDiv.querySelector(`[name="optionGroups[${groupIdx}].name"]`)?.value || '';
 					formData.append(`optionGroups[${groupIdx}].name`, groupName);
-					const optionRows = groupDiv.querySelectorAll('.input-group.mb-1');
+					const optionRows = groupDiv.querySelectorAll('.product-option-row');
 					optionRows.forEach((row, optIdx) => {
 						const name = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].name"]`)?.value || '';
 						const value = row.querySelector(`[name="optionGroups[${groupIdx}].options[${optIdx}].value"]`)?.value || '';
