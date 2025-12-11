@@ -258,7 +258,7 @@
 										<img src="/front/image/sample/1130-1600.png" class="img-responsive">
 									</div>
 
-									<!-- 상세이미지 리스트 -->
+									<!-- 상세이미지 리스트 또는 '등록된 상세페이지가 없습니다.' -->
 									<div
 										th:if="${productDetail != null and (productDetail.detailHtml == null or #strings.isEmpty(productDetail.detailHtml))}">
 										<div
@@ -268,8 +268,10 @@
 												th:src="${dimg.url != null ? dimg.url : '/front/image/sample/1130-1600.png'}"
 												th:alt="${dimg.originalFilename != null ? dimg.originalFilename : '상세이미지'}">
 										</div>
-										<img th:if="${productDetail.detailImages == null or #lists.isEmpty(productDetail.detailImages)}"
-											src="/front/image/sample/1130-1600.png" class="img-responsive">
+										<p th:if="${productDetail.detailImages == null or #lists.isEmpty(productDetail.detailImages)}"
+											class="text-center">
+											등록된 상세페이지가 없습니다.
+										</p>
 									</div>
 								</div>
 
@@ -380,24 +382,20 @@
 
 								<!-- 첨부파일 탭 : QuestionBlock/Answer 파일 유형 -->
 								<div id="tab-file" class="tab-pane fade">
-									<ul class="product-detail-file-list">
-										<!-- 첨부파일 없을 때 (질문 자체가 없을 때만) -->
-										<li class="product-detail-file-item" th:if="${productDetail == null
-           or productDetail.questions == null
-           or #lists.isEmpty(productDetail.questions)}">
-											<div class="product-detail-file-left">
-												<div class="product-detail-file-icon" aria-hidden="true">
-													<i class="fas fa-file"></i>
-												</div>
-												<div class="product-detail-file-info">
-													<span class="product-detail-file-name">등록된 첨부파일이 없습니다.</span>
-												</div>
-											</div>
-										</li>
+									<!-- productDetail.questions 가 없거나 비어 있는 경우 서버에서 바로 문구 출력 -->
+									<div class="product-detail-file-empty"
+										th:if="${productDetail == null
+            or productDetail.questions == null
+            or #lists.isEmpty(productDetail.questions)}">
+										등록된 첨부파일이 없습니다.
+									</div>
 
-										<!-- QuestionBlock.answers 중 fileUrl 이 있는 항목만 표시 -->
-										<th:block
-											th:each="q : ${productDetail != null ? productDetail.questions : null}"
+									<!-- QuestionBlock.answers 중 fileUrl 이 있는 항목만 표시 -->
+									<ul id="product-detail-file-list" class="product-detail-file-list"
+										th:if="${productDetail != null
+             and productDetail.questions != null
+             and !#lists.isEmpty(productDetail.questions)}">
+										<th:block th:each="q : ${productDetail.questions}"
 											th:if="${q != null and q.answers != null}">
 											<li class="product-detail-file-item" th:each="ans : ${q.answers}"
 												th:if="${ans != null and ans.fileUrl != null}" th:with="fileName=${ans.fileName != null ? ans.fileName : (ans.value != null ? ans.value : '파일')},
@@ -755,6 +753,7 @@
 
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 	<script src="/front/js/page/productDetail.js"></script>
+	
 </body>
 
 </html>

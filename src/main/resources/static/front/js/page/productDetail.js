@@ -323,4 +323,15 @@
 			});
 		});
 	});
+
+	$(function() {
+		var $fileList = $('#product-detail-file-list');
+
+		// productDetail.questions 는 있지만 fileUrl 이 전혀 없는 경우
+		if ($fileList.length && $fileList.find('.product-detail-file-item').length === 0) {
+			$fileList.replaceWith(
+				'<p class="product-detail-file-empty">등록된 첨부파일이 없습니다.</p>'
+			);
+		}
+	});
 })(jQuery);

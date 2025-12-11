@@ -9585,6 +9585,7 @@ p.price-old{
 
 .producttab .tabsslider.vertical-tabs ul.nav-tabs li {
 	border-bottom: 1px solid #ddd;
+	border-right: 1px solid #ddd;
 	clear: both;
 	position: relative;
 	width: 100%;

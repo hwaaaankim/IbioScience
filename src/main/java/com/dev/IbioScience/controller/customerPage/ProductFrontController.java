@@ -35,13 +35,6 @@ public class ProductFrontController {
 	private final ObjectMapper objectMapper;
 	private final ProductDetailService productDetailService;
 
-	
-	@GetMapping("/testDetail")
-	public String testDetail() {
-		
-		return "front/product/testDetail";
-	}
-	
 	@GetMapping("/productList")
 	public String productList(@RequestParam(required = false) Long largeId,
 			@RequestParam(required = false) Long mediumId, @RequestParam(required = false) Long smallId,
