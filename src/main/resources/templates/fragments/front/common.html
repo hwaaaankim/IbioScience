@@ -1003,6 +1003,9 @@
 
 		// 전역: 로그인 여부 주입
 		window.__isAuthenticated = /*[[${#authorization.expression('isAuthenticated()')}]]*/ false;
+		
+		// ✅ 전역: 로그인 유저 ID 주입 (비로그인/null 안전)
+		window.__loginMemberId = /*[[${#authorization.expression('isAuthenticated()') ? #authentication.principal.member.id : null}]]*/ null;
 	</script>
 	<script type="text/javascript" src="/front/js/jquery-2.2.4.min.js"></script>
 	<script type="text/javascript" src="/front/js/bootstrap.min.js"></script>

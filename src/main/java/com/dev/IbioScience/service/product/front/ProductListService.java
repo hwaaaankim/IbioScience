@@ -121,7 +121,6 @@ public class ProductListService {
 	}
 
 	/** 동적 검색 조건 */
-	/** 동적 검색 조건 */
 	private Specification<Product> buildSpec(ProductListFilter f) {
 		return (root, query, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();

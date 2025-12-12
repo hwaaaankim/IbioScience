@@ -1,9 +1,9 @@
-/* /front/js/common/cart.js */
 /* global jQuery */
+
 (function(window, $) {
 	'use strict';
 
-	var STORAGE_KEY = 'ibio_cart_v1';
+	var STORAGE_KEY_BASE = 'ibio_cart_v1';
 
 	// =========================
 	// 유틸
@@ -13,116 +13,182 @@
 		return isNaN(n) ? 0 : n;
 	}
 
-	function formatMoney(n) {
-		n = Number(n || 0);
-		return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	function safeString(v) {
+		return (v === undefined || v === null) ? '' : String(v);
+	}
+
+	function nowTs() {
+		return Date.now();
 	}
 
 	// =========================
-	// 장바구니 Core
+	// 로그인 유저 정보 (frontScript에서 주입)
 	// =========================
+	function isAuthenticated() {
+		return !!(window.__isAuthenticated === true);
+	}
+
+	function getCurrentMemberId() {
+		// 비로그인 안전
+		if (!isAuthenticated()) return null;
+
+		var v = window.__loginMemberId;
+		if (v === undefined || v === null || v === '') return null;
+
+		var idNum = Number(v);
+		if (!isFinite(idNum) || idNum <= 0) return null;
+
+		return idNum;
+	}
+
+	function getStorageKeyForUser(memberId) {
+		return STORAGE_KEY_BASE + '_u' + String(memberId);
+	}
+
+	// =========================
+	// 장바구니 Core (Entry 단위: "담기 1회" = 1건)
+	// =========================
+	/**
+	 * cart 구조 (유저별 저장):
+	 * {
+	 *   userId: 123,
+	 *   items: [
+	 *     {
+	 *       cartEntryId: "E-...",
+	 *       userId: 123,
+	 *       productId: 10,
+	 *       productName: "...",
+	 *       productImageUrl: "...",
+	 *       createdAt: 1700000000000,
+	 *       options: [
+	 *         { optionGroupId, optionGroupName, optionId, optionName, optionCode, unit, unitPrice, quantity, linePrice }
+	 *       ],
+	 *       entryPrice: 12345
+	 *     }
+	 *   ],
+	 *   totalQuantity: 2, // ✅ "장바구니 건수" (Entry 개수)
+	 *   totalPrice: 99999
+	 * }
+	 */
 	var IbioCart = {
-		// 장바구니 로드
+
 		loadCart: function() {
+			var memberId = getCurrentMemberId();
+			if (!memberId) {
+				return { userId: null, items: [], totalQuantity: 0, totalPrice: 0 };
+			}
+
 			if (!window.localStorage) {
-				return { items: [], totalQuantity: 0, totalPrice: 0 };
+				return { userId: memberId, items: [], totalQuantity: 0, totalPrice: 0 };
 			}
-			var raw = localStorage.getItem(STORAGE_KEY);
+
+			var key = getStorageKeyForUser(memberId);
+			var raw = localStorage.getItem(key);
+
 			if (!raw) {
-				return { items: [], totalQuantity: 0, totalPrice: 0 };
+				return { userId: memberId, items: [], totalQuantity: 0, totalPrice: 0 };
 			}
+
 			try {
 				var cart = JSON.parse(raw);
+
 				if (!cart || !Array.isArray(cart.items)) {
-					return { items: [], totalQuantity: 0, totalPrice: 0 };
+					return { userId: memberId, items: [], totalQuantity: 0, totalPrice: 0 };
 				}
+
+				if (Number(cart.userId) !== Number(memberId)) {
+					return { userId: memberId, items: [], totalQuantity: 0, totalPrice: 0 };
+				}
+
 				this.recalcTotals(cart);
 				return cart;
 			} catch (e) {
 				console.error('[IbioCart] JSON parse error', e);
-				return { items: [], totalQuantity: 0, totalPrice: 0 };
+				return { userId: memberId, items: [], totalQuantity: 0, totalPrice: 0 };
 			}
 		},
 
-		// 장바구니 저장
 		saveCart: function(cart) {
+			var memberId = getCurrentMemberId();
+			if (!memberId) return;
 			if (!window.localStorage) return;
+
+			cart = cart || { userId: memberId, items: [] };
+			cart.userId = memberId;
+
 			this.recalcTotals(cart);
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+
+			var key = getStorageKeyForUser(memberId);
+			localStorage.setItem(key, JSON.stringify(cart));
 		},
 
-		// totals 재계산
 		recalcTotals: function(cart) {
-			var totalOptionCount = 0;
+			var totalEntryCount = 0;
 			var totalPrice = 0;
 
-			(cart.items || []).forEach(function(item) {
-				var q = safeParseInt(item.quantity);
-				var up = safeParseInt(item.unitPrice);
-				if (q < 1) q = 1;
+			(cart.items || []).forEach(function(entry) {
+				if (!Array.isArray(entry.options)) entry.options = [];
 
-				item.quantity = q;
-				item.linePrice = q * up;
+				var entryPrice = 0;
 
-				totalOptionCount++;   // ✅ 옵션 하나당 +1
-				totalPrice += item.linePrice;
+				entry.options.forEach(function(opt) {
+					var q = safeParseInt(opt.quantity);
+					var up = safeParseInt(opt.unitPrice);
+
+					if (q < 1) q = 1;
+
+					opt.quantity = q;
+					opt.unitPrice = up;
+					opt.linePrice = q * up;
+
+					entryPrice += opt.linePrice;
+				});
+
+				entry.entryPrice = entryPrice;
+
+				totalEntryCount += 1; // ✅ "담기 1회" = 1건
+				totalPrice += entryPrice;
 			});
 
-			cart.totalQuantity = totalOptionCount;   // 🔥 총 수량 = 옵션 개수
+			cart.totalQuantity = totalEntryCount;
 			cart.totalPrice = totalPrice;
 		},
-
 
 		getCart: function() {
 			return this.loadCart();
 		},
 
-		// 동일 productId + optionId (null 포함) 면 수량 합침
-		addItem: function(item) {
-			var cart = this.getCart();
-
-			var productId = item.productId;
-			var optionId = item.optionId != null ? String(item.optionId) : '';
-
-			var exist = cart.items.find(function(it) {
-				var itOptId = it.optionId != null ? String(it.optionId) : '';
-				return String(it.productId) === String(productId) &&
-					itOptId === optionId;
-			});
-
-			if (exist) {
-				exist.quantity = safeParseInt(exist.quantity) + safeParseInt(item.quantity);
-				// unitPrice 는 동일한 옵션이라고 가정
-			} else {
-				item.cartItemId = 'P' + productId + '-O' + (optionId || 'NONE') + '-' + Date.now();
-				cart.items.push(item);
+		// ✅ 클릭 1회당 entry 1개 추가 (동일 제품이어도 합치지 않음)
+		addEntry: function(entry) {
+			var memberId = getCurrentMemberId();
+			if (!memberId) {
+				alert('로그인이 필요합니다.');
+				return this.getCart();
 			}
 
-			this.saveCart(cart);
-			return cart;
-		},
-
-		// 여러 옵션 한 번에 추가
-		addItems: function(items) {
-			var self = this;
 			var cart = this.getCart();
-			items.forEach(function(item) {
-				var productId = item.productId;
-				var optionId = item.optionId != null ? String(item.optionId) : '';
 
-				var exist = cart.items.find(function(it) {
-					var itOptId = it.optionId != null ? String(it.optionId) : '';
-					return String(it.productId) === String(productId) &&
-						itOptId === optionId;
-				});
+			entry.userId = memberId;
+			entry.cartEntryId = 'E-' + memberId + '-' + nowTs() + '-' + Math.random().toString(16).slice(2);
+			entry.createdAt = nowTs();
 
-				if (exist) {
-					exist.quantity = safeParseInt(exist.quantity) + safeParseInt(item.quantity);
-				} else {
-					item.cartItemId = 'P' + productId + '-O' + (optionId || 'NONE') + '-' + Date.now();
-					cart.items.push(item);
-				}
+			if (!Array.isArray(entry.options)) entry.options = [];
+			entry.entryPrice = 0;
+
+			entry.options.forEach(function(opt) {
+				var q = safeParseInt(opt.quantity);
+				var up = safeParseInt(opt.unitPrice);
+				if (q < 1) q = 1;
+
+				opt.quantity = q;
+				opt.unitPrice = up;
+				opt.linePrice = q * up;
+
+				entry.entryPrice += opt.linePrice;
 			});
+
+			cart.items.push(entry);
+
 			this.saveCart(cart);
 			return cart;
 		},
@@ -137,27 +203,20 @@
 			return cart.totalPrice || 0;
 		},
 
-		// 헤더/모바일 장바구니 카운트 업데이트
 		updateHeaderCount: function() {
-			var count = this.getTotalQuantity();
-			// 모바일 퀵 메뉴
+			var memberId = getCurrentMemberId();
+			var count = memberId ? this.getTotalQuantity() : 0;
+
 			$('.ibio-index-m-qnum').each(function() {
 				$(this).text(count + '건');
 			});
 			$('.front-header-cart-count').text(count);
-			// 필요하다면 PC 헤더에도 별도 span 만들어서 여기서 같이 업데이트 가능
 		},
 
 		// =========================
-		// DOM → CartItem 변환
+		// DOM → Option 변환
 		// =========================
-
-		/**
-		 * 옵션 행 하나를 Cart Item 으로 변환
-		 * @param $row 옵션 tr
-		 * @param context {productId, productName, productImageUrl}
-		 */
-		buildItemFromOptionRow: function($row, context) {
+		buildOptionFromRow: function($row) {
 			var $check = $row.find('.product-list-row-check');
 			if (!$check.length || !$check.is(':checked')) {
 				return null;
@@ -175,7 +234,7 @@
 			var optionName = $row.data('option-name') || '';
 			var optionCode = $row.data('option-code') || '';
 
-			// 단위는 4번째 칸(td index 3) 기준으로
+			// 단위: 4번째 칸(td index 3) 기준
 			var unit = '-';
 			var $tds = $row.find('td');
 			if ($tds.length >= 4) {
@@ -183,45 +242,33 @@
 				if (unitText) unit = unitText;
 			}
 
-			var item = {
-				productId: context.productId,
-				productName: context.productName || '',
-				productImageUrl: context.productImageUrl || '',
-
+			return {
 				optionGroupId: optionGroupId != null ? Number(optionGroupId) : null,
-				optionGroupName: optionGroupName || '',
+				optionGroupName: safeString(optionGroupName),
 				optionId: optionId != null ? Number(optionId) : null,
-				optionName: optionName || '',
-				optionCode: optionCode || '',
-				unit: unit,
+				optionName: safeString(optionName),
+				optionCode: safeString(optionCode),
+				unit: safeString(unit),
 
 				unitPrice: unitPrice,
 				quantity: qty,
-				linePrice: unitPrice * qty,
-				createdAt: Date.now()
+				linePrice: unitPrice * qty
 			};
-
-			return item;
 		},
 
-		/**
-		 * 옵션 패널(리스트/상세 공통 구조)에서 체크된 옵션들을 모두 장바구니 아이템 배열로 변환
-		 * @param $panel 옵션 패널 .product-list-option-panel
-		 * @param context {productId, productName, productImageUrl}
-		 */
-		buildItemsFromOptionPanel: function($panel, context) {
+		buildOptionsFromPanel: function($panel) {
 			var self = this;
-			var items = [];
+			var options = [];
+
 			$panel.find('tbody tr').each(function() {
 				var $row = $(this);
-				if (!$row.find('.product-list-row-check').length) return; // 그룹헤더/문구행 제외
+				if (!$row.find('.product-list-row-check').length) return;
 
-				var item = self.buildItemFromOptionRow($row, context);
-				if (item) {
-					items.push(item);
-				}
+				var opt = self.buildOptionFromRow($row);
+				if (opt) options.push(opt);
 			});
-			return items;
+
+			return options;
 		},
 
 		// =========================
@@ -230,19 +277,24 @@
 		bindEvents: function() {
 			var self = this;
 
-			// 1) 리스트 페이지 / 상세페이지 공통: 옵션 패널 안의 "장바구니담기(바로구매 버튼을 활용)" 클릭
+			// 1) 리스트/상세 공통: 옵션 패널 안 "장바구니담기" 클릭 → Entry 1개 생성
 			$(document).on('click', '.product-list-option-panel .product-list-btn-buy', function(e) {
 				e.preventDefault();
+
+				if (!getCurrentMemberId()) {
+					alert('로그인이 필요합니다.');
+					return;
+				}
 
 				var $btn = $(this);
 				var $panel = $btn.closest('.product-list-option-panel');
 
-				// 어떤 상품의 옵션인지 찾기 (리스트/상세 공통)
+				// 상품 정보 찾기 (리스트/상세 공통)
 				var productId = null;
 				var productName = '';
 				var productImageUrl = '';
 
-				// (A) 리스트 페이지: .product-layout 기준
+				// (A) 리스트 페이지
 				var $layout = $btn.closest('.product-layout');
 				if ($layout.length) {
 					var $listContainer = $layout.find('.product-item-container.list-container');
@@ -250,22 +302,18 @@
 						productId = $listContainer.data('product-id') || null;
 						productName = $.trim($listContainer.find('h4 a').first().text()) || '';
 						var $img = $listContainer.find('img').first();
-						if ($img.length) {
-							productImageUrl = $img.attr('src') || '';
-						}
+						if ($img.length) productImageUrl = $img.attr('src') || '';
 					}
 				}
 
-				// (B) 상세 페이지: #product / 타이틀 영역 기준
+				// (B) 상세 페이지
 				if (!productId) {
 					var $prodBox = $('#product');
 					if ($prodBox.length) {
 						productId = $prodBox.data('product-id') || null;
 						productName = $.trim($('.title-product h1').first().text()) || '';
 						var $img2 = $('.content-product-left .large-image img').first();
-						if ($img2.length) {
-							productImageUrl = $img2.attr('src') || '';
-						}
+						if ($img2.length) productImageUrl = $img2.attr('src') || '';
 					}
 				}
 
@@ -274,27 +322,32 @@
 					return;
 				}
 
-				var context = {
-					productId: Number(productId),
-					productName: productName,
-					productImageUrl: productImageUrl
-				};
-
-				var items = self.buildItemsFromOptionPanel($panel, context);
-				if (!items.length) {
+				var options = self.buildOptionsFromPanel($panel);
+				if (!options.length) {
 					alert('선택된 옵션이 없습니다.\n옵션을 선택 후 장바구니에 담아 주세요.');
 					return;
 				}
 
-				self.addItems(items);
-				self.updateHeaderCount();
+				// ✅ 옵션이 몇 개든, 수량이 얼마든 "장바구니 1건"만 추가
+				self.addEntry({
+					productId: Number(productId),
+					productName: productName,
+					productImageUrl: productImageUrl,
+					options: options
+				});
 
-				alert(items.length + '개의 옵션이 장바구니에 담겼습니다.');
+				self.updateHeaderCount();
+				alert('장바구니에 담겼습니다.');
 			});
 
-			// 2) 상세페이지 상단 "장바구니담기" 버튼 (#button-cart)
+			// 2) 상세페이지 상단 "장바구니담기" (#button-cart) - 옵션 없는 상품
 			$(document).on('click', '#button-cart', function(e) {
 				e.preventDefault();
+
+				if (!getCurrentMemberId()) {
+					alert('로그인이 필요합니다.');
+					return;
+				}
 
 				var $prodBox = $('#product');
 				if (!$prodBox.length) {
@@ -308,14 +361,13 @@
 					return;
 				}
 
-				// 이 상품에 옵션이 있는지 확인
+				// 옵션 상품이면 옵션 탭에서 담도록 유도
 				var hasOptions = $('#tab-option .product-list-option-table .product-list-row-check').length > 0;
 				if (hasOptions) {
 					alert('옵션이 있는 상품입니다.\n옵션 탭에서 옵션을 선택한 후 장바구니에 담아 주세요.');
 					return;
 				}
 
-				// 옵션이 없는 상품 → 수량만큼 기본 상품을 장바구니에 추가
 				var qtyInput = $prodBox.find('input[name="quantity"]');
 				var qty = safeParseInt(qtyInput.val());
 				if (qty < 1) qty = 1;
@@ -326,28 +378,26 @@
 
 				var unitPrice = safeParseInt($prodBox.data('product-sale-price'));
 
-				var item = {
+				// ✅ 옵션 없는 상품도 entry 1건
+				self.addEntry({
 					productId: Number(productId),
 					productName: productName,
 					productImageUrl: productImageUrl,
+					options: [{
+						optionGroupId: null,
+						optionGroupName: '',
+						optionId: null,
+						optionName: '',
+						optionCode: '',
+						unit: '-',
+						unitPrice: unitPrice,
+						quantity: qty,
+						linePrice: unitPrice * qty
+					}]
+				});
 
-					optionGroupId: null,
-					optionGroupName: '',
-					optionId: null,
-					optionName: '',
-					optionCode: '',
-					unit: '-',
-
-					unitPrice: unitPrice,
-					quantity: qty,
-					linePrice: unitPrice * qty,
-					createdAt: Date.now()
-				};
-
-				self.addItem(item);
 				self.updateHeaderCount();
-
-				alert('장바구니에 ' + qty + '개가 담겼습니다.');
+				alert('장바구니에 담겼습니다.');
 			});
 		},
 
@@ -357,7 +407,6 @@
 		}
 	};
 
-	// 전역으로 노출 (필요시 다른 JS에서도 사용 가능)
 	window.IbioCart = IbioCart;
 
 	$(function() {

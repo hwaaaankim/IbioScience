@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.dev.IbioScience.model.product.Product;
 import com.dev.IbioScience.model.product.ProductAnswer;
+import com.dev.IbioScience.model.product.ProductQuestion;
 
 public interface ProductAnswerRepository extends JpaRepository<ProductAnswer, Long> {
 	// 답변ID 없이 product/question 기준 조회
@@ -48,6 +49,8 @@ public interface ProductAnswerRepository extends JpaRepository<ProductAnswer, Lo
         order by pa.question.sortOrder asc, pa.id asc
         """)
     List<ProductAnswer> findAllWithQuestionAndImagesByProductId(@Param("productId") Long productId);
+    
+    Optional<ProductAnswer> findFirstByProductAndQuestionOrderByIdAsc(Product product, ProductQuestion question);
 }
 
 

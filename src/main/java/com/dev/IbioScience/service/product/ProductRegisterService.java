@@ -380,35 +380,61 @@ public class ProductRegisterService {
 	}
 
 	public List<String> uploadEditorImages(List<MultipartFile> files, String type, String key) {
-		List<String> urlList = new ArrayList<>();
-		String dateStr = LocalDate.now().toString().replace("-", "");
-		String subDir;
-		if ("detailHtml".equals(type))
-			subDir = "detailHtml";
-		else if ("question".equals(type) && key != null && key.startsWith("question_"))
-			subDir = key;
-		else
-			subDir = "etc";
-		Path tempDir = Paths.get(uploadBasePath, "temp", dateStr, subDir);
-		File dir = tempDir.toFile();
-		if (!dir.exists() && !dir.mkdirs())
-			throw new RuntimeException("임시 폴더 생성 실패");
-		for (MultipartFile file : files) {
-			if (file.isEmpty())
-				continue;
-			String orig = org.springframework.util.StringUtils
-					.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-			String newName = UUID.randomUUID().toString().replace("-", "") + "_" + orig;
-			Path savePath = tempDir.resolve(newName);
-			try {
-				file.transferTo(savePath);
-			} catch (IOException e) {
-				throw new RuntimeException("이미지 저장 실패: " + orig, e);
-			}
-			String url = "/upload/temp/" + dateStr + "/" + subDir + "/" + newName;
-			urlList.add(url);
-		}
-		return urlList;
+	    List<String> urlList = new ArrayList<>();
+
+	    String dateStr = LocalDate.now().toString().replace("-", "");
+
+	    String subDir;
+	    if ("detailHtml".equals(type)) {
+	        subDir = "detailHtml";
+	    } else if ("question".equals(type) && key != null && key.startsWith("question_")) {
+	        subDir = key;
+	    } else {
+	        subDir = "etc";
+	    }
+
+	    Path tempDir = Paths.get(uploadBasePath, "temp", dateStr, subDir);
+	    File dir = tempDir.toFile();
+	    if (!dir.exists() && !dir.mkdirs()) {
+	        throw new RuntimeException("임시 폴더 생성 실패");
+	    }
+
+	    for (MultipartFile file : files) {
+	        if (file == null || file.isEmpty()) {
+	            continue;
+	        }
+
+	        String orig = Objects.requireNonNull(file.getOriginalFilename(), "원본 파일명이 없습니다.");
+
+	        // 1) 확장자만 추출 (원본 파일명 본문은 사용하지 않음)
+	        String ext = "";
+	        int dotIdx = orig.lastIndexOf('.');
+	        if (dotIdx >= 0 && dotIdx < orig.length() - 1) {
+	            ext = orig.substring(dotIdx + 1).toLowerCase(); // "jpg"
+	        }
+
+	        // 2) 확장자가 없으면 저장 자체를 막거나, 기본 확장자를 부여해도 됩니다.
+	        //    지금은 "막는" 방식으로 처리합니다.
+	        if (ext.isBlank()) {
+	            throw new RuntimeException("확장자가 없는 파일은 업로드할 수 없습니다: " + orig);
+	        }
+
+	        // 3) 저장 파일명은 UID만 (영문/숫자) + "." + ext
+	        String uid = UUID.randomUUID().toString().replace("-", ""); // 영문/숫자 32자
+	        String newName = uid + "." + ext;
+
+	        Path savePath = tempDir.resolve(newName);
+	        try {
+	            file.transferTo(savePath);
+	        } catch (IOException e) {
+	            throw new RuntimeException("이미지 저장 실패: " + orig, e);
+	        }
+
+	        String url = "/upload/temp/" + dateStr + "/" + subDir + "/" + newName;
+	        urlList.add(url);
+	    }
+
+	    return urlList;
 	}
 
 	private List<String> extractTempUrlsFromHtml(String html) {
@@ -430,31 +456,35 @@ public class ProductRegisterService {
 
 	@Transactional
 	public String moveEditorImages(Long productId, String type, String key, String html, List<String> tempImgList) {
+		System.out.println(key);
+		System.out.println(type);
+	    Product product = productRepository.findById(productId)
+	            .orElseThrow(() -> new IllegalArgumentException("상품 없음: " + productId));
 
-		Product product = productRepository.findById(productId)
-				.orElseThrow(() -> new IllegalArgumentException("상품 없음: " + productId));
+	    if ((tempImgList == null || tempImgList.isEmpty()) && html != null) {
+	        tempImgList = extractTempUrlsFromHtml(html);
+	        System.out.println(">>> [DEBUG] extracted temp from html: " + tempImgList.size());
+	    }
 
-		// === [ADD] 프론트 누락 대비: tempImgList 비었으면 html에서 재추출
-		if ((tempImgList == null || tempImgList.isEmpty()) && html != null) {
-			tempImgList = extractTempUrlsFromHtml(html);
-			System.out.println(">>> [DEBUG] extracted temp from html: " + tempImgList.size());
-		}
+	    String targetDir;
+	    ProductAnswer targetAnswer = null;
 
-		// 1) 타겟 정보
-		String targetDir;
-		ProductAnswer targetAnswer = null;
-		if ("detailHtml".equals(type) && "detailHtml".equals(key)) {
-			targetDir = uploadBasePath + "/product/" + productId + "/detail";
-		} else if ("question".equals(type) && key != null && key.startsWith("question_")) {
-			String idx = key.replace("question_", "");
-			Long idNum = parseLongSafe(idx);
-			targetAnswer = findAnswerByKey(productId, idNum);
-			if (targetAnswer == null)
-				throw new IllegalArgumentException("답변 없음: " + key);
-			targetDir = uploadBasePath + "/product/" + productId + "/common/editor/" + targetAnswer.getId();
-		} else {
-			throw new IllegalArgumentException("지원하지 않는 type/key");
-		}
+	    if ("detailHtml".equals(type) && "detailHtml".equals(key)) {
+	        targetDir = uploadBasePath + "/product/" + productId + "/detailHtml";
+
+	    } else if ("question".equals(type) && key != null && key.startsWith("question_")) {
+	        String idx = key.replace("question_", "");
+	        Long questionId = parseLongSafe(idx);
+
+	        // ✅ ✅ ✅ [핵심 변경] : 없으면 생성해서 반환 (예외 금지)
+	        targetAnswer = findOrCreateAnswerByKey(product, questionId);
+
+	        targetDir = uploadBasePath + "/product/" + productId + "/common/editor/" + targetAnswer.getId();
+
+	    } else {
+	        throw new IllegalArgumentException("지원하지 않는 type/key");
+	    }
+
 		File dir = new File(targetDir);
 		if (!dir.exists() && !dir.mkdirs())
 			throw new RuntimeException("타겟 폴더 생성 실패: " + targetDir);
@@ -479,6 +509,21 @@ public class ProductRegisterService {
 			try {
 				System.out.println("tempFile.toPath() : " + tempFile.toPath());
 				System.out.println("targetFile.toPath() : " + targetFile.toPath());
+				// Files.move 직전
+				System.out.println(">>> [MOVE] uploadBasePath = " + uploadBasePath);
+				System.out.println(">>> [MOVE] uploadUrl     = " + uploadUrl);
+				System.out.println(">>> [MOVE] relative      = " + relative);
+				System.out.println(">>> [MOVE] tempFileAbs   = " + tempFile.getAbsolutePath());
+				System.out.println(">>> [MOVE] tempExists    = " + tempFile.exists());
+				System.out.println(">>> [MOVE] tempIsFile    = " + tempFile.isFile());
+				System.out.println(">>> [MOVE] tempReadable  = " + tempFile.canRead());
+				System.out.println(">>> [MOVE] targetAbs     = " + targetFile.getAbsolutePath());
+				System.out.println(">>> [MOVE] targetDirAbs  = " + dir.getAbsolutePath());
+				System.out.println(">>> [MOVE] targetDirOk   = " + dir.exists() + ", canWrite=" + dir.canWrite());
+				if (!tempFile.exists() || !tempFile.isFile()) {
+				    throw new RuntimeException("임시파일이 실제로 존재하지 않습니다. tempFileAbs=" + tempFile.getAbsolutePath()
+				            + " | uploadUrl=" + uploadUrl + " | relative=" + relative);
+				}
 				Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			} catch (Exception e) {
 				throw new RuntimeException("임시파일 이동 실패: " + uploadUrl, e);
@@ -692,19 +737,6 @@ public class ProductRegisterService {
 		}
 	}
 
-	private ProductAnswer findAnswerByKey(Long productId, Long questionId) {
-		if (questionId == null) {
-			throw new IllegalArgumentException("key 식별자 없음");
-		}
-		// questionId 는 항상 ProductQuestion의 ID 로 취급
-		ProductQuestion q = productQuestionRepository.findById(questionId)
-				.orElseThrow(() -> new IllegalArgumentException("질문 없음(id): " + questionId));
-
-		return productAnswerRepository.findTopByProductIdAndQuestionIdOrderByIdAsc(productId, q.getId())
-				.orElseThrow(() -> new IllegalArgumentException(
-						"해당 제품/질문에 대한 답변 없음 (productId=" + productId + ", questionId=" + questionId + ")"));
-	}
-
 	/** HTML 내 img src에서 '/upload/...' 부분만 추출 (절대 URL이어도 /upload 부터) */
 	private String extractUploadPath(String url) {
 		if (url == null)
@@ -830,5 +862,42 @@ public class ProductRegisterService {
 			Files.deleteIfExists(Path.of(path));
 		} catch (Exception ignore) {
 		}
+	}
+	
+	/**
+	 * ✅ 핵심: 제품-질문 Answer가 없으면 생성해서 반환
+	 * - "제품 등록 후 공통질문이 추가"된 케이스를 안전하게 처리
+	 * - register / update 둘 다에서 동일하게 사용 가능
+	 */
+	private ProductAnswer findOrCreateAnswerByKey(Product product, Long questionId) {
+	    if (product == null || product.getId() == null) {
+	        throw new IllegalArgumentException("상품 없음");
+	    }
+	    if (questionId == null) {
+	        throw new IllegalArgumentException("questionId 없음");
+	    }
+
+	    ProductQuestion q = productQuestionRepository.findById(questionId)
+	            .orElseThrow(() -> new IllegalArgumentException("질문 없음(id): " + questionId));
+
+	    List<ProductAnswer> exists = em.createQuery(
+	                    "select a from ProductAnswer a where a.product = :p and a.question = :q order by a.id asc",
+	                    ProductAnswer.class)
+	            .setParameter("p", product)
+	            .setParameter("q", q)
+	            .getResultList();
+
+	    if (exists != null && !exists.isEmpty()) {
+	        return exists.get(0);
+	    }
+
+	    ProductAnswer a = new ProductAnswer();
+	    a.setProduct(product);
+	    a.setQuestion(q);
+	    a.setValue("");       // 에디터의 html이 곧 들어올 예정이므로 빈값 허용
+	    a.setFileUrl(null);
+	    a.setPath(null);
+	    a.setFileName(null);
+	    return productAnswerRepository.save(a);
 	}
 }

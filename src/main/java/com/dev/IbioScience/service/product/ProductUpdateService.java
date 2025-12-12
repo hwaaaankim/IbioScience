@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -178,6 +180,7 @@ public class ProductUpdateService {
 
 		if (StringUtils.hasText(req.getPriceExposeTarget()))
 			product.setPriceExposeTarget(PriceExposeTarget.valueOf(req.getPriceExposeTarget()));
+
 		product.setUsePriceReplacementText(Boolean.TRUE.equals(req.getUsePriceReplacementText()));
 		product.setPriceReplacementText(req.getPriceReplacementText());
 
@@ -215,6 +218,7 @@ public class ProductUpdateService {
 		// ========== 2) 외부 카테고리(대입력: 전체 재구성) ==========
 		em.createQuery("delete from SmallProductCategory spc where spc.product = :p").setParameter("p", product)
 				.executeUpdate();
+
 		if (req.getCategorySmallIds() != null) {
 			for (Long sid : req.getCategorySmallIds()) {
 				CategorySmall small = categorySmallRepository.findById(sid)
@@ -230,11 +234,11 @@ public class ProductUpdateService {
 		// 3-1) 대표
 		String mainAction = (req.getMainImageAction() == null) ? "KEEP" : req.getMainImageAction();
 		if ("DELETE".equalsIgnoreCase(mainAction) || "REPLACE".equalsIgnoreCase(mainAction)) {
-			// 기존 대표 이미지들 제거
 			List<ProductImage> mains = em
 					.createQuery("select i from ProductImage i where i.product = :p and i.type = :t",
 							ProductImage.class)
 					.setParameter("p", product).setParameter("t", ProductImageType.MAIN).getResultList();
+
 			for (ProductImage mi : mains) {
 				deletePhysicalFileSafe(mi.getPath());
 				productImageRepository.delete(mi);
@@ -251,17 +255,19 @@ public class ProductUpdateService {
 							ProductImage.class)
 					.setParameter("p", product).setParameter("t", ProductImageType.ADDITIONAL)
 					.setParameter("urls", req.getSubImageDeleteUrls()).getResultList();
+
 			for (ProductImage pi : dels) {
 				deletePhysicalFileSafe(pi.getPath());
 				productImageRepository.delete(pi);
 			}
 		}
+
 		if (req.getSubImages() != null && !req.getSubImages().isEmpty()) {
-			// 마지막 sort 다음부터
 			Integer maxSort = em.createQuery(
 					"select coalesce(max(i.sortOrder),0) from ProductImage i where i.product = :p and i.type = :t",
 					Integer.class).setParameter("p", product).setParameter("t", ProductImageType.ADDITIONAL)
 					.getSingleResult();
+
 			int sort = maxSort == null ? 0 : maxSort;
 			for (MultipartFile f : req.getSubImages()) {
 				if (f != null && !f.isEmpty()) {
@@ -273,12 +279,12 @@ public class ProductUpdateService {
 		// ========== 4) 아이콘 ==========
 		String iconAction = (req.getIconImageAction() == null) ? "KEEP" : req.getIconImageAction();
 		if ("DELETE".equalsIgnoreCase(iconAction) || "REPLACE".equalsIgnoreCase(iconAction)) {
-			// 기존 아이콘 파일 제거 + 필드 초기화
 			deletePhysicalFileSafe(product.getIconPath());
 			product.setIconPath(null);
 			product.setIconFileName(null);
 			product.setIconUrl(null);
 		}
+
 		if ("REPLACE".equalsIgnoreCase(iconAction) && req.getIconImage() != null && !req.getIconImage().isEmpty()) {
 			String dir = uploadBasePath + "/product/" + product.getId() + "/icon";
 			String savedPath = fileStorageUtil.save(req.getIconImage(), dir);
@@ -293,6 +299,7 @@ public class ProductUpdateService {
 		// ========== 5) 추가 입력필드(전체 재구성) ==========
 		em.createQuery("delete from ProductExtraField ef where ef.product = :p").setParameter("p", product)
 				.executeUpdate();
+
 		if (req.getExtraFields() != null) {
 			for (ProductUpdateRequestDTO.ExtraFieldDTO f : req.getExtraFields()) {
 				if (!StringUtils.hasText(f.getLabel()) && !StringUtils.hasText(f.getValue()))
@@ -306,10 +313,10 @@ public class ProductUpdateService {
 		}
 
 		// ========== 6) 옵션(전체 재구성) ==========
-		// 옵션 항목부터 삭제
-		em.createQuery("delete from ProductOption o where o.group.id in "
-				+ "(select g.id from ProductOptionGroup g where g.product = :p)").setParameter("p", product)
-				.executeUpdate();
+		em.createQuery(
+				"delete from ProductOption o where o.group.id in (select g.id from ProductOptionGroup g where g.product = :p)")
+				.setParameter("p", product).executeUpdate();
+
 		em.createQuery("delete from ProductOptionGroup g where g.product = :p").setParameter("p", product)
 				.executeUpdate();
 
@@ -318,6 +325,7 @@ public class ProductUpdateService {
 			for (ProductUpdateRequestDTO.OptionGroupDTO g : req.getOptionGroups()) {
 				if (!StringUtils.hasText(g.getName()))
 					continue;
+
 				ProductOptionGroup og = new ProductOptionGroup();
 				og.setProduct(product);
 				og.setName(g.getName());
@@ -329,16 +337,20 @@ public class ProductUpdateService {
 					for (ProductUpdateRequestDTO.OptionDTO o : g.getOptions()) {
 						if (!StringUtils.hasText(o.getName()))
 							continue;
+
 						ProductOption opt = new ProductOption();
 						opt.setGroup(og);
 						opt.setName(o.getName());
 						opt.setValue(o.getValue());
+
 						if (StringUtils.hasText(o.getExtraPrice()))
 							opt.setExtraPrice(new BigDecimal(o.getExtraPrice()));
 						else
 							opt.setExtraPrice(BigDecimal.ZERO);
+
 						if (StringUtils.hasText(o.getSign()))
 							opt.setSign(PriceSign.valueOf(o.getSign()));
+
 						opt.setSortOrder(o.getSortOrder() != null ? o.getSortOrder() : osort++);
 						productOptionRepository.save(opt);
 					}
@@ -349,16 +361,19 @@ public class ProductUpdateService {
 		// ========== 7) 키워드(전체 재구성) ==========
 		em.createQuery("delete from ProductKeyword pk where pk.product = :p").setParameter("p", product)
 				.executeUpdate();
+
 		if (req.getKeywords() != null) {
 			for (String w : req.getKeywords()) {
 				if (!StringUtils.hasText(w))
 					continue;
+
 				Keyword k = keywordRepository.findByWord(w).orElse(null);
 				if (k == null) {
 					k = new Keyword();
 					k.setWord(w);
 					k = keywordRepository.save(k);
 				}
+
 				ProductKeyword pk = new ProductKeyword();
 				pk.setProduct(product);
 				pk.setKeyword(k);
@@ -369,6 +384,7 @@ public class ProductUpdateService {
 		// ========== 8) 번들/관련(전체 재구성) ==========
 		em.createQuery("delete from ProductBundleItem b where b.mainProduct = :p").setParameter("p", product)
 				.executeUpdate();
+
 		if (Boolean.TRUE.equals(req.getUseBundleItems()) && req.getBundleProducts() != null) {
 			for (ProductUpdateRequestDTO.BundleProductDTO b : req.getBundleProducts()) {
 				Product bundle = productRepository.findById(b.getId())
@@ -381,15 +397,17 @@ public class ProductUpdateService {
 			}
 		}
 
-		// 관련상품은 상호/일방 모두 재구성: 기존 양방향도 일괄 삭제
 		em.createQuery("delete from RelatedProduct r where r.baseProduct = :p or r.relatedProduct = :p")
 				.setParameter("p", product).executeUpdate();
+
 		if (Boolean.TRUE.equals(req.getUseRelatedProducts()) && req.getRelatedProducts() != null) {
 			for (ProductUpdateRequestDTO.RelatedProductDTO r : req.getRelatedProducts()) {
 				Product rel = productRepository.findById(r.getId())
 						.orElseThrow(() -> new IllegalArgumentException("연관상품 없음: " + r.getId()));
+
 				RelatedType type = StringUtils.hasText(r.getType()) ? RelatedType.valueOf(r.getType())
 						: RelatedType.RECIPROCAL;
+
 				upsertRelated(product, rel, type, r.getSortOrder() != null ? r.getSortOrder() : 0);
 				if (type == RelatedType.RECIPROCAL) {
 					upsertRelated(rel, product, type, r.getSortOrder() != null ? r.getSortOrder() : 0);
@@ -398,24 +416,25 @@ public class ProductUpdateService {
 		}
 
 		// ========== 9) 프로모션(동기화) ==========
-		// 현재 매핑 조회
 		List<ProductPromotionMapping> curMaps = em
 				.createQuery("select m from ProductPromotionMapping m where m.product = :p",
 						ProductPromotionMapping.class)
 				.setParameter("p", product).getResultList();
+
 		Set<Long> newIds = req.getDiscounts() == null ? Set.of()
 				: req.getDiscounts().stream().map(ProductUpdateRequestDTO.DiscountDTO::getId)
 						.collect(Collectors.toSet());
-		// 삭제 대상
+
 		for (ProductPromotionMapping m : curMaps) {
 			if (m.getPromotion() == null || !newIds.contains(m.getPromotion().getId())) {
 				productPromotionMappingRepository.delete(m);
 			}
 		}
-		// 추가 대상
+
 		if (req.getDiscounts() != null) {
 			Set<Long> curIds = curMaps.stream().filter(x -> x.getPromotion() != null).map(x -> x.getPromotion().getId())
 					.collect(Collectors.toSet());
+
 			for (ProductUpdateRequestDTO.DiscountDTO d : req.getDiscounts()) {
 				if (!curIds.contains(d.getId())) {
 					Promotion promo = productPromotionRepository.findById(d.getId())
@@ -431,12 +450,14 @@ public class ProductUpdateService {
 		// ========== 10) 딜러 할인율(전체 재구성) ==========
 		em.createQuery("delete from ProductGradeBenefit b where b.product = :p").setParameter("p", product)
 				.executeUpdate();
+
 		if (req.getDealerDiscounts() != null) {
 			for (Map.Entry<String, String> e : req.getDealerDiscounts().entrySet()) {
 				String grade = e.getKey();
 				String val = e.getValue();
 				if (!StringUtils.hasText(val))
 					continue;
+
 				ProductGradeBenefit b = new ProductGradeBenefit();
 				b.setProduct(product);
 				b.setDealerGrade(DealerGrade.valueOf(grade));
@@ -444,16 +465,18 @@ public class ProductUpdateService {
 				productGradeBenefitRepository.save(b);
 			}
 		}
+
 		// ========== 11) 공통표시항목(질문/답변) ==========
 		List<ProductQuestion> questions = productQuestionRepository.findAll();
 
-		// === (변경) 에디터형(CKEDITOR)과 파일형(FILE)은 update에서 건드리지 않도록 제외 집합 구성
-		final java.util.Set<QuestionType> EXCLUDED_TYPES = java.util.EnumSet.of(QuestionType.FILE,
-				QuestionType.CKEDITOR);
+		// === (기존) update에서 CKEDITOR/FILE은 건드리지 않도록 제외
+		final Set<QuestionType> EXCLUDED_TYPES = EnumSet.of(QuestionType.FILE, QuestionType.CKEDITOR);
+
+		// ✅ ✅ ✅ [핵심 추가] : "나중에 추가된 공통질문"에 대해, 제품-질문 연결용 Answer가 없으면 미리 생성
+		ensureAnswersExistForExcludedTypes(product, questions, EXCLUDED_TYPES);
 
 		/*
-		 * 11-1) 에디터형/파일형을 제외한 기존 답변 삭제 (자식부터) - editor(CKEDITOR)는 moveEditorImages()에서
-		 * 관리되므로 이곳에서 절대 삭제/갱신하지 않음 - file(FILE)은 아래 11-3 단계에서 별도 처리
+		 * 11-1) 에디터형/파일형을 제외한 기존 답변 삭제 (자식부터)
 		 */
 		List<ProductAnswer> answersToDelete = em
 				.createQuery("select a from ProductAnswer a join a.question q "
@@ -463,8 +486,7 @@ public class ProductUpdateService {
 		deleteAnswersAndChildren(answersToDelete);
 
 		/*
-		 * 11-2) 요청 값으로 '에디터형/파일형을 제외한' 비파일형 답변 재삽입 - CKEDITOR는 moveEditorImages()로,
-		 * FILE은 11-3에서 다룸
+		 * 11-2) 요청 값으로 '에디터형/파일형을 제외한' 비파일형 답변 재삽입
 		 */
 		if (req.getDisplayOptions() != null) {
 			for (Map.Entry<String, String> en : req.getDisplayOptions().entrySet()) {
@@ -472,7 +494,6 @@ public class ProductUpdateService {
 				Long qid = parseQuestionKey(key);
 				ProductQuestion q = findQuestion(questions, qid);
 
-				// === (변경) 에디터/파일형은 완전히 제외
 				if (EXCLUDED_TYPES.contains(q.getType())) {
 					continue;
 				}
@@ -486,11 +507,11 @@ public class ProductUpdateService {
 		}
 
 		/*
-		 * 11-3) 파일형(KEEP/DELETE/REPLACE) - 기존 로직 유지, 다만 널가드 추가
+		 * 11-3) 파일형(KEEP/DELETE/REPLACE)
 		 */
 		Map<String, String> fileActions = (req.getDisplayOptionFileActions() != null)
 				? req.getDisplayOptionFileActions()
-				: java.util.Collections.emptyMap();
+				: Collections.emptyMap();
 
 		for (ProductQuestion q : questions) {
 			if (q.getType() != QuestionType.FILE) {
@@ -500,14 +521,12 @@ public class ProductUpdateService {
 			String baseKey = "question_" + q.getId();
 			String act = fileActions.getOrDefault(baseKey + "_fileAction", "KEEP");
 
-			// 기존 파일형 답변 로드
 			List<ProductAnswer> fileAnswers = em
 					.createQuery("select a from ProductAnswer a where a.product = :p and a.question = :q",
 							ProductAnswer.class)
 					.setParameter("p", product).setParameter("q", q).getResultList();
 
 			if ("DELETE".equalsIgnoreCase(act) || "REPLACE".equalsIgnoreCase(act)) {
-				// 파일형도 동일하게: 자식 -> flush -> 부모 (물리파일 포함) 일괄 삭제
 				deleteAnswersAndChildren(fileAnswers);
 			}
 
@@ -515,6 +534,7 @@ public class ProductUpdateService {
 				List<MultipartFile> newFiles = (req.getDisplayOptionFiles() != null)
 						? req.getDisplayOptionFiles().get(baseKey)
 						: null;
+
 				if (newFiles != null) {
 					for (MultipartFile f : newFiles) {
 						if (f == null || f.isEmpty())
@@ -533,7 +553,45 @@ public class ProductUpdateService {
 					}
 				}
 			}
-			// KEEP은 아무 것도 하지 않음
+
+			// ✅ KEEP인데도 아무 답변이 없어서 나중에 "답변 없음" 터지는 상황 방지:
+			// ensureAnswersExistForExcludedTypes()에서 FILE은 최소 1개 answer를 미리 생성해두므로 여기선 추가
+			// 처리 불필요
+		}
+	}
+
+	/**
+	 * ✅ 핵심: CKEDITOR/FILE 같은 "updateProduct에서 제외되는 타입"은 제품 등록 후 질문이 추가되면 답변 레코드가
+	 * 없어서 moveEditorImages 등에서 예외가 터집니다. 따라서 최소 1개 빈 Answer를 제품-질문 연결용으로 미리 생성합니다.
+	 */
+	private void ensureAnswersExistForExcludedTypes(Product product, List<ProductQuestion> questions,
+			Set<QuestionType> excludedTypes) {
+		if (product == null || product.getId() == null)
+			return;
+		if (questions == null || questions.isEmpty())
+			return;
+
+		for (ProductQuestion q : questions) {
+			if (q == null || q.getId() == null)
+				continue;
+			if (!excludedTypes.contains(q.getType()))
+				continue;
+
+			boolean exists = em
+					.createQuery("select count(a) from ProductAnswer a where a.product = :p and a.question = :q",
+							Long.class)
+					.setParameter("p", product).setParameter("q", q).getSingleResult() > 0;
+
+			if (!exists) {
+				ProductAnswer a = new ProductAnswer();
+				a.setProduct(product);
+				a.setQuestion(q);
+				a.setValue(null); // 빈 값 (CKEDITOR은 moveEditorImages에서 채워짐)
+				a.setFileUrl(null); // FILE도 기본은 비워둠
+				a.setPath(null);
+				a.setFileName(null);
+				productAnswerRepository.save(a);
+			}
 		}
 	}
 
@@ -541,24 +599,22 @@ public class ProductUpdateService {
 		if (answers == null || answers.isEmpty())
 			return;
 
-		// 1) 디테일 이미지 물리파일 삭제
 		List<ProductAnswerDetailImage> imgs = em
 				.createQuery("select i from ProductAnswerDetailImage i where i.answer in :answers",
 						ProductAnswerDetailImage.class)
 				.setParameter("answers", answers).getResultList();
+
 		for (ProductAnswerDetailImage img : imgs) {
 			deletePhysicalFileSafe(img.getPath());
 		}
 
-		// 2) 답변 자체의 물리파일 방어적 삭제
 		for (ProductAnswer a : answers) {
 			deletePhysicalFileSafe(a.getPath());
 		}
 
-		// 3) DB 삭제 (자식 -> 부모, 순서 보장)
 		em.createQuery("delete from ProductAnswerDetailImage i where i.answer in :answers")
 				.setParameter("answers", answers).executeUpdate();
-		em.flush(); // FK 제약 순서 보장
+		em.flush();
 
 		em.createQuery("delete from ProductAnswer a where a in :answers").setParameter("answers", answers)
 				.executeUpdate();
