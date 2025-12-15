@@ -1483,14 +1483,17 @@
 
 /* 오버레이(bootstrap backdrop) */
 .modal-backdrop.in {
-	opacity: 0.6 !important; /* rgba(0,0,0,0.6) 느낌 */
+	opacity: 0.6 !important;
+	/* rgba(0,0,0,0.6) 느낌 */
 }
 
 /* 모달 너비 90% + 중앙정렬 */
 #detailModal.cart-mobile-modal-root .cart-mobile-modal-dialog {
 	width: 90% !important;
-	max-width: 520px; /* 너무 커지지 않게 상한 */
-	margin: 7vh auto !important; /* 위아래 여백 */
+	max-width: 520px;
+	/* 너무 커지지 않게 상한 */
+	margin: 7vh auto !important;
+	/* 위아래 여백 */
 }
 
 /* 내용 영역: 자연스럽게 높이 맞추되, 너무 길면 스크롤 */
