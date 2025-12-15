@@ -3,7 +3,9 @@
 
 <head th:replace="fragments/front/common :: frontHead"></head>
 
-<body class="common-home res layout-1" th:with="productDetailBase='/product'">
+<body class="common-home res layout-1"
+      th:with="productDetailBase='/product'"
+      th:attr="data-product-detail-base=${productDetailBase}">
 
 	<div id="wrapper" class="wrapper-fluid banners-effect-3">
 		<header id="header" class="typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
@@ -133,8 +135,7 @@
 																	</span>
 																</div>
 																<span class="rating-num"
-																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">(
-																	0 )</span>
+																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">( 0 )</span>
 															</div>
 
 															<h4>
@@ -267,8 +268,7 @@
 																	</span>
 																</div>
 																<span class="rating-num"
-																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">(
-																	0 )</span>
+																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">( 0 )</span>
 															</div>
 															<h4>
 																<a th:href="@{${productDetailBase}+'/'+${p.id}}"
@@ -391,8 +391,7 @@
 																	</span>
 																</div>
 																<span class="rating-num"
-																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">(
-																	0 )</span>
+																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">( 0 )</span>
 															</div>
 															<h4>
 																<a th:href="@{${productDetailBase}+'/'+${p.id}}"
@@ -447,8 +446,7 @@
 
 					<!-- 우 2 : 최근 본 제품 -->
 					<div class="col-lg-2 t-d-n">
-						<div id="recentViewModule" class="module product-simple extra-layout1 mt-20"
-							style="display:none;">
+						<div id="recentViewModule" class="module product-simple extra-layout1 mt-20" style="display:none;">
 							<h3 class="modtitle"><span>최근 본 제품</span></h3>
 							<div class="modcontent">
 								<div class="so-extraslider">
@@ -510,10 +508,7 @@
 						</div>
 
 					</div>
-					<!-- /우 2 -->
-
 				</div>
-				<!-- /본문 -->
 			</div>
 		</div>
 
@@ -522,28 +517,6 @@
 
 	<!-- 공통 스크립트 -->
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
-	<script src="/front/js/page/recent-view-product.js"></script>
-
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-			// 카드/타이틀 공통 저장 훅
-			document.querySelectorAll('.rvp-link').forEach(function (a) {
-				a.addEventListener('click', function () {
-					if (!window.RecentView) return;
-					window.RecentView.addFromDataset(a.dataset);
-				});
-			});
-
-			// 사이드 최근 본 제품 렌더
-			if (window.RecentView) {
-				window.RecentView.render('#recentViewModule .extraslider-inner', {
-					onEmptyHide: '#recentViewModule',
-					productDetailBase: document.body.getAttribute('data-product-detail-base') || '/product'
-				});
-			}
-		});
-	</script>
 
 </body>
-
 </html>

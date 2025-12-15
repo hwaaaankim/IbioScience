@@ -4,6 +4,50 @@
 <head th:replace="fragments/front/common :: frontHead"></head>
 
 <body class="common-home res layout-1">
+	<!-- =========================
+	     최근 본 제품 자동저장용
+	     (컨트롤러 수정 없음 / MAIN 이미지 정확 처리)
+		========================= -->
+	<div id="rvpAutoData" th:if="${productDetail != null}" th:attr="
+        data-rvp-id=${productDetail.id},
+        data-rvp-name=${productDetail.name},
+        data-rvp-pricenew=${productDetail.salePrice},
+        data-rvp-priceold=${productDetail.salePrice},
+        data-rvp-rating=${productDetail.reviewSummary != null ? productDetail.reviewSummary.averageRating : 0},
+        data-rvp-review=${productDetail.reviewSummary != null ? productDetail.reviewSummary.reviewCount : 0}
+     " style="display:none;"></div>
+
+	<!-- ===== 대표 이미지 설정 로직 ===== -->
+	<th:block th:if="${productDetail.images != null and !#lists.isEmpty(productDetail.images)}">
+
+		<!-- 1️⃣ MAIN 이미지 우선 -->
+		<th:block th:each="img : ${productDetail.images}">
+			<th:block th:if="${img.type == 'MAIN' and img.url != null}">
+				<script th:inline="javascript">
+					(function () {
+						var el = document.getElementById('rvpAutoData');
+						if (el && !el.getAttribute('data-rvp-image')) {
+							el.setAttribute('data-rvp-image', /*[[${img.url}]]*/ '');
+						}
+					})();
+				</script>
+			</th:block>
+		</th:block>
+
+		<!-- 2️⃣ MAIN 없을 경우 fallback: 첫 번째 이미지 -->
+		<script th:inline="javascript">
+			(function () {
+				var el = document.getElementById('rvpAutoData');
+				if (el && !el.getAttribute('data-rvp-image')) {
+					el.setAttribute(
+						'data-rvp-image',
+                    /*[[${productDetail.images[0].url}]]*/ ''
+					);
+				}
+			})();
+		</script>
+
+	</th:block>
 
 	<div id="wrapper" class="wrapper-fluid banners-effect-3">
 		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
@@ -383,16 +427,14 @@
 								<!-- 첨부파일 탭 : QuestionBlock/Answer 파일 유형 -->
 								<div id="tab-file" class="tab-pane fade">
 									<!-- productDetail.questions 가 없거나 비어 있는 경우 서버에서 바로 문구 출력 -->
-									<div class="product-detail-file-empty"
-										th:if="${productDetail == null
+									<div class="product-detail-file-empty" th:if="${productDetail == null
             or productDetail.questions == null
             or #lists.isEmpty(productDetail.questions)}">
 										등록된 첨부파일이 없습니다.
 									</div>
 
 									<!-- QuestionBlock.answers 중 fileUrl 이 있는 항목만 표시 -->
-									<ul id="product-detail-file-list" class="product-detail-file-list"
-										th:if="${productDetail != null
+									<ul id="product-detail-file-list" class="product-detail-file-list" th:if="${productDetail != null
              and productDetail.questions != null
              and !#lists.isEmpty(productDetail.questions)}">
 										<th:block th:each="q : ${productDetail.questions}"
@@ -753,7 +795,7 @@
 
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 	<script src="/front/js/page/productDetail.js"></script>
-	
+
 </body>
 
 </html>
