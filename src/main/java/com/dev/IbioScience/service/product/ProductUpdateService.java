@@ -6,12 +6,16 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,12 +49,14 @@ import com.dev.IbioScience.model.product.ProductOptionGroup;
 import com.dev.IbioScience.model.product.ProductQuestion;
 import com.dev.IbioScience.model.product.Promotion;
 import com.dev.IbioScience.model.product.RelatedProduct;
+import com.dev.IbioScience.model.product.category.CategoryMedium;
 import com.dev.IbioScience.model.product.category.CategorySmall;
+import com.dev.IbioScience.model.product.relation.MediumSmallProductCategory;
 import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
-import com.dev.IbioScience.model.product.relation.SmallProductCategory;
 import com.dev.IbioScience.model.product.util.Keyword;
+import com.dev.IbioScience.repository.category.CategoryMediumRepository;
 import com.dev.IbioScience.repository.category.CategorySmallRepository;
-import com.dev.IbioScience.repository.category.SmallProductCategoryRepository;
+import com.dev.IbioScience.repository.category.MediumSmallProductCategoryRepository;
 import com.dev.IbioScience.repository.product.BrandRepository;
 import com.dev.IbioScience.repository.product.InternalCategorySmallRepository;
 import com.dev.IbioScience.repository.product.ProductPromotionMappingRepository;
@@ -81,7 +87,6 @@ public class ProductUpdateService {
 	private final ProductRepository productRepository;
 	private final BrandRepository brandRepository;
 	private final CategorySmallRepository categorySmallRepository;
-	private final SmallProductCategoryRepository smallProductCategoryRepository;
 	private final ProductImageRepository productImageRepository;
 	private final ProductOptionGroupRepository productOptionGroupRepository;
 	private final ProductOptionRepository productOptionRepository;
@@ -97,7 +102,9 @@ public class ProductUpdateService {
 	private final ProductPromotionMappingRepository productPromotionMappingRepository;
 	private final InternalCategorySmallRepository internalCategorySmallRepository;
 	private final FileStorageUtil fileStorageUtil;
-
+	private final CategoryMediumRepository categoryMediumRepository;
+	private final MediumSmallProductCategoryRepository mediumSmallProductCategoryRepository;
+	
 	@PersistenceContext
 	private EntityManager em;
 
@@ -133,6 +140,84 @@ public class ProductUpdateService {
 		return ("/upload" + rel).replaceAll("/+", "/");
 	}
 
+	
+
+@Transactional
+private void syncExternalCategories(Product product, ProductUpdateRequestDTO req) {
+
+    // 1) 요청값 정리: null 제거 + (mediumId, smallId) 기준 중복 제거
+    final List<ProductUpdateRequestDTO.ExternalCategoryDTO> incoming =
+            Optional.ofNullable(req.getExternalCategories()).orElseGet(Collections::emptyList)
+                    .stream()
+                    .filter(ec -> ec != null && ec.getMediumId() != null && ec.getSmallId() != null)
+                    .collect(Collectors.collectingAndThen(
+                            Collectors.toMap(
+                                    ec -> ec.getMediumId() + "_" + ec.getSmallId(),
+                                    ec -> ec,
+                                    (a, b) -> a,
+                                    LinkedHashMap::new
+                            ),
+                            m -> new ArrayList<>(m.values())
+                    ));
+
+    // 요청이 아예 없으면 "외부카테고리 전체 삭제" 정책인지,
+    // "미전송이면 유지" 정책인지가 애매합니다.
+    // 지금 화면/JS 흐름상 externalCategories는 항상 전송되는 것으로 보이니,
+    // 여기서는 "요청값 = 최종상태"로 보고 처리합니다.
+
+    // 2) DB 기존 목록 로드
+    final List<MediumSmallProductCategory> existing =
+            mediumSmallProductCategoryRepository.findAllByProductIdWithMediumSmall(product.getId());
+
+    // 3) existing을 key 기준 Map으로 구성
+    // key = mediumId_smallId
+    final Map<String, MediumSmallProductCategory> existingMap = new LinkedHashMap<>();
+    for (MediumSmallProductCategory m : existing) {
+        Long mid = (m.getMedium() != null) ? m.getMedium().getId() : null;
+        Long sid = (m.getSmall() != null) ? m.getSmall().getId() : null;
+        if (mid == null || sid == null) continue;
+        existingMap.put(mid + "_" + sid, m);
+    }
+
+    // 4) incoming key set
+    final Set<String> incomingKeys = incoming.stream()
+            .map(ec -> ec.getMediumId() + "_" + ec.getSmallId())
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+
+    // 5) 삭제 대상: DB에는 있는데 요청에는 없는 것
+    final List<MediumSmallProductCategory> toDelete = new ArrayList<>();
+    for (Map.Entry<String, MediumSmallProductCategory> e : existingMap.entrySet()) {
+        if (!incomingKeys.contains(e.getKey())) {
+            toDelete.add(e.getValue());
+        }
+    }
+    if (!toDelete.isEmpty()) {
+        mediumSmallProductCategoryRepository.deleteAll(toDelete);
+    }
+
+    // 6) 추가 대상: 요청에는 있는데 DB에는 없는 것
+    for (ProductUpdateRequestDTO.ExternalCategoryDTO ec : incoming) {
+        String key = ec.getMediumId() + "_" + ec.getSmallId();
+        if (existingMap.containsKey(key)) {
+            // ✅ 이미 있으면 유지 (insert 금지)
+            continue;
+        }
+
+        CategoryMedium medium = categoryMediumRepository.findById(ec.getMediumId())
+                .orElseThrow(() -> new IllegalArgumentException("중분류 없음: " + ec.getMediumId()));
+
+        CategorySmall small = categorySmallRepository.findById(ec.getSmallId())
+                .orElseThrow(() -> new IllegalArgumentException("소분류 없음: " + ec.getSmallId()));
+
+        MediumSmallProductCategory m = new MediumSmallProductCategory();
+        m.setProduct(product);
+        m.setMedium(medium);
+        m.setSmall(small);
+
+        mediumSmallProductCategoryRepository.save(m);
+    }
+}
+	
 	// ===== 실제 업데이트 =====
 	@Transactional
 	public void updateProduct(Long productId, ProductUpdateRequestDTO req) throws IOException {
@@ -216,19 +301,7 @@ public class ProductUpdateService {
 		productRepository.save(product);
 
 		// ========== 2) 외부 카테고리(대입력: 전체 재구성) ==========
-		em.createQuery("delete from SmallProductCategory spc where spc.product = :p").setParameter("p", product)
-				.executeUpdate();
-
-		if (req.getCategorySmallIds() != null) {
-			for (Long sid : req.getCategorySmallIds()) {
-				CategorySmall small = categorySmallRepository.findById(sid)
-						.orElseThrow(() -> new IllegalArgumentException("소분류 없음: " + sid));
-				SmallProductCategory m = new SmallProductCategory();
-				m.setSmall(small);
-				m.setProduct(product);
-				smallProductCategoryRepository.save(m);
-			}
-		}
+		syncExternalCategories(product, req);
 
 		// ========== 3) 대표/추가 이미지 ==========
 		// 3-1) 대표

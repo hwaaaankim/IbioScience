@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	const $smallName = document.getElementById('smallName');
 	const $smallList = document.getElementById('smallList');
 	const $smallSelect = document.getElementById('smallSelect');
+	
 	// --------- 소분류-중분류 매핑 영역 --------- //
 	const $mappingLargeSelect = document.getElementById('mappingLargeSelect');
 	const $mappingMediumSelect = document.getElementById('mappingMediumSelect');
@@ -84,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	};
 
+
 	function renderLargeList() {
 		$largeList.innerHTML = '';
 		largeList.forEach(l => {
@@ -130,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			$largeList.appendChild(li);
 		});
 	}
-
+	
 	function renderLargeSelect() {
 		$largeSelect.innerHTML = '<option value="">대분류 선택</option>';
 		largeList.forEach(l => {

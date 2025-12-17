@@ -6,7 +6,6 @@ const typeMap = {
 	'CKEDITOR': '에디터(HTML)'
 };
 let rowData = []; // 서버와 동기화될 데이터
-
 const tbody = document.getElementById('questionTbody');
 const saveBtn = document.getElementById('saveBtn');
 const typeSelect = document.getElementById('typeSelect');

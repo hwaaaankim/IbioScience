@@ -45,6 +45,19 @@ document.addEventListener('DOMContentLoaded', async function() {
 	const ckeInstances = {}; // 질문용
 	let detailEditor = null; // 상세설명
 
+	function __catKey__(mediumId, smallId) {
+		return `${String(mediumId || '')}__${String(smallId || '')}`;
+	}
+
+	function __dedupeSelectedCategories__(arr) {
+		const map = new Map();
+		(arr || []).forEach(c => {
+			const key = __catKey__(c.mediumId, c.id); // c.id = smallId로 쓰는 구조 유지
+			if (!map.has(key)) map.set(key, c);
+		});
+		return Array.from(map.values());
+	}
+
 	// ===== 에디터 업로드 어댑터 (insert와 동일) =====
 	function CustomUploadAdapterPlugin(editor) {
 		editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
@@ -198,8 +211,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 			const largeName = largeCategoryMap[largeId] || '';
 			const mediumName = mediumInfo.name || '';
 			const smallName = li.textContent;
-			if (!selectedCategories.some(sc => String(sc.id) === String(smallId))) {
+			const key = __catKey__(mediumId, smallId);
+			const exists = (selectedCategories || []).some(sc => __catKey__(sc.mediumId, sc.id) === key);
+
+			if (!exists) {
 				selectedCategories.push({ id: smallId, largeId, largeName, mediumId, mediumName, smallName });
+				selectedCategories = __dedupeSelectedCategories__(selectedCategories);
 				renderSelectedCategories();
 			}
 		});
@@ -1366,6 +1383,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 			mediumName: c.mediumName,
 			smallName: c.smallName
 		}));
+		selectedCategories = __dedupeSelectedCategories__(selectedCategories);
 		renderSelectedCategories();
 
 		// 4) 내부 카테고리
@@ -1690,7 +1708,16 @@ document.addEventListener('DOMContentLoaded', async function() {
 	// ===== Validation (업데이트 전) =====
 	async function validateProductFormDetail() {
 		// 1) 외부 카테고리 1개 이상
-		if (!selectedCategories || selectedCategories.length === 0) { alert('카테고리를 1개 이상 선택하세요.'); return false; }
+		if (!selectedCategories || selectedCategories.length === 0) {
+			alert('카테고리를 1개 이상 선택하세요.');
+			return false;
+		}
+		for (const c of selectedCategories) {
+			if (!c.mediumId || !c.id) {
+				alert('외부 카테고리 선택 정보가 올바르지 않습니다. (중분류/소분류 누락)');
+				return false;
+			}
+		}
 
 		// 2) 기본 필수
 		const pName = byId('productName')?.value.trim();
@@ -2125,8 +2152,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 		if (S.internalCategorySmallId) fd.append('internalCategorySmallId', S.internalCategorySmallId);
 		if (S.newState) fd.append('newState', S.newState);
 
-		// 2) 카테고리(외부)
-		(selectedCategories || []).forEach((c) => fd.append('categorySmallIds[]', String(c.id)));
+		// 2) 카테고리(외부) - mediumId + smallId 쌍 전송
+		const dedupedExternalCategories = __dedupeSelectedCategories__(selectedCategories || []);
+
+		dedupedExternalCategories.forEach((c, i) => {
+			fd.append(`externalCategories[${i}].mediumId`, String(c.mediumId || ''));
+			fd.append(`externalCategories[${i}].smallId`, String(c.id || ''));
+		});
+
 
 		// 3) 대표/추가 이미지 & 액션
 		// 대표
@@ -2224,7 +2257,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 		// 1) 상세
 		const detailHtmlNow = detailEditor ? detailEditor.getData() : (byId('editor-desc')?.value || '');
 		const detailTemps = extractTempUploadUrlsFromHtml(detailHtmlNow);
-		console.log("detailTemps : ",detailTemps);
+		console.log("detailTemps : ", detailTemps);
 		{
 			const body = { type: 'detailHtml', key: 'detailHtml', html: detailHtmlNow, tempImgList: detailTemps };
 			const res = await fetch(`/api/product/${productId}/move-editor-images`, {
@@ -2244,7 +2277,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 			const editor = ckeInstances[`editor-question-${q.id}`];
 			const html = editor ? editor.getData() : '';
 			const temps = extractTempUploadUrlsFromHtml(html);
-			console.log("temps : ",temps);
+			console.log("temps : ", temps);
 			const body = { type: 'question', key: `question_${q.id}`, html, tempImgList: temps };
 			const res = await fetch(`/api/product/${productId}/move-editor-images`, {
 				method: 'POST',

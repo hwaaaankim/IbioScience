@@ -46,6 +46,7 @@ public class BrandAPIController {
             return ResponseEntity.badRequest().body("브랜드명 또는 이미지가 비어있습니다.");
         }
         Brand brand = brandService.saveBrand(name, image);
+        
         return ResponseEntity.ok(brand);
     }
 
@@ -53,6 +54,8 @@ public class BrandAPIController {
     public ResponseEntity<?> getBrandList(@RequestParam(defaultValue = "0") int page,
                                           @RequestParam(defaultValue = "") String keyword) {
         Page<Brand> result = brandService.getBrands(keyword, PageRequest.of(page, 18));
+        System.out.println(result.getTotalPages());
+        System.out.println();
         return ResponseEntity.ok(result);
     }
 

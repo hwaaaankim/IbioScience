@@ -210,7 +210,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const totalPages = data.totalPages;
         const current = data.number;
 
-        if (totalPages <= 1) return;
+        // if (totalPages <= 1) return;
 
         for (let i = 0; i < totalPages; i++) {
             const li = document.createElement('li');

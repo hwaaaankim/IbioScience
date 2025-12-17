@@ -17,8 +17,13 @@ public class ProductUpdateRequestDTO {
     private String detailHtml;
 
     // 카테고리(외부)
-    private List<Long> categorySmallIds = new ArrayList<>();
-
+    @Data
+    public static class ExternalCategoryDTO {
+        private Long mediumId;
+        private Long smallId;
+    }
+    private List<ExternalCategoryDTO> externalCategories = new ArrayList<>();
+    
     // 이미지(대표/추가)
     // 대표 이미지 액션: KEEP | DELETE | REPLACE
     private String mainImageAction;

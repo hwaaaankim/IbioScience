@@ -40,10 +40,10 @@ import com.dev.IbioScience.model.product.ProductOption;
 import com.dev.IbioScience.model.product.ProductQuestionOption;
 import com.dev.IbioScience.model.product.category.CategorySmall;
 import com.dev.IbioScience.model.product.relation.MediumSmallCategory;
+import com.dev.IbioScience.model.product.relation.MediumSmallProductCategory;
 import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
-import com.dev.IbioScience.model.product.relation.SmallProductCategory;
 import com.dev.IbioScience.repository.category.MediumSmallCategoryRepository;
-import com.dev.IbioScience.repository.category.SmallProductCategoryRepository;
+import com.dev.IbioScience.repository.category.MediumSmallProductCategoryRepository;
 import com.dev.IbioScience.repository.product.ProductPromotionMappingRepository;
 import com.dev.IbioScience.repository.product.ProductQuestionRepository;
 import com.dev.IbioScience.repository.product.register.ProductAnswerRepository;
@@ -71,10 +71,10 @@ public class ProductDetailQueryService {
     private final ProductPromotionMappingRepository productPromotionMappingRepository;
     private final ProductGradeBenefitRepository productGradeBenefitRepository;
     private final ProductKeywordRepository productKeywordRepository;
-    private final SmallProductCategoryRepository smallProductCategoryRepository;
     private final MediumSmallCategoryRepository mediumSmallCategoryRepository;
     private final ProductAnswerRepository productAnswerRepository;
     private final ProductQuestionRepository productQuestionRepository;
+    private final MediumSmallProductCategoryRepository mediumSmallProductCategoryRepository;
 
     private static final DateTimeFormatter D = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -315,12 +315,51 @@ public class ProductDetailQueryService {
         );
 
         // 외부 카테고리(대/중/소 경로)
-        List<SmallProductCategory> spcs = smallProductCategoryRepository.findByProductWithSmall(productId);
+     // 외부 카테고리(대/중/소 경로) ✅ MediumSmallProductCategory 기반
+        List<MediumSmallProductCategory> mspcs = mediumSmallProductCategoryRepository.findByProductWithPath(productId);
+
         dto.setExternalCategories(
-                spcs.stream().map(spc -> buildCategoryPath(spc.getSmall()))
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList())
+            mspcs.stream()
+                .map(mspc -> {
+                    ProductDetailReadResponseDTO.CategoryPathReadDTO cp =
+                            new ProductDetailReadResponseDTO.CategoryPathReadDTO();
+
+                    // small
+                    if (mspc.getSmall() != null) {
+                        cp.setSmallId(mspc.getSmall().getId());
+                        cp.setSmallName(mspc.getSmall().getName());
+                    }
+
+                    // medium
+                    if (mspc.getMedium() != null) {
+                        cp.setMediumId(mspc.getMedium().getId());
+                        cp.setMediumName(mspc.getMedium().getName());
+
+                        // large (medium -> large)
+                        if (mspc.getMedium().getLarge() != null) {
+                            cp.setLargeId(mspc.getMedium().getLarge().getId());
+                            cp.setLargeName(mspc.getMedium().getLarge().getName());
+                        }
+                    }
+
+                    // 필수값 누락이면 null 처리(프론트 렌더 방지)
+                    if (cp.getMediumId() == null || cp.getSmallId() == null) return null;
+
+                    return cp;
+                })
+                .filter(Objects::nonNull)
+                // ✅ 동일 (mediumId, smallId) 중복 제거
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(
+                                cp -> cp.getMediumId() + "_" + cp.getSmallId(),
+                                cp -> cp,
+                                (a, b) -> a,
+                                LinkedHashMap::new
+                        ),
+                        m -> new ArrayList<>(m.values())
+                ))
         );
+
 
         return dto;
     }

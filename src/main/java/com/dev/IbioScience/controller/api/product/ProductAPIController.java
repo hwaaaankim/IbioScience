@@ -108,21 +108,26 @@ public class ProductAPIController {
 		dto.setSaleStatus(nvl(params.getFirst("saleStatus")));
 		dto.setDetailHtml(nvl(params.getFirst("detailHtml")));
 
-		List<String> smalls = params.get("categorySmallIds[]");
-		if (smalls != null) {
-			for (String v : smalls) {
-				if (notEmpty(v))
-					dto.getCategorySmallIds().add(Long.valueOf(v));
-			}
-		} else {
-			for (int i = 0;; i++) {
-				String v = params.getFirst("categorySmallIds[" + i + "]");
-				if (v == null)
-					break;
-				if (notEmpty(v))
-					dto.getCategorySmallIds().add(Long.valueOf(v));
-			}
-		}
+		for (int i = 0;; i++) {
+            String mediumIdStr = params.getFirst("categoryPaths[" + i + "].mediumId");
+            String smallIdStr  = params.getFirst("categoryPaths[" + i + "].smallId");
+
+            // 둘 다 없으면 종료
+            if (mediumIdStr == null && smallIdStr == null) {
+                break;
+            }
+
+            // 값 누락/공백이면 스킵
+            if (!notEmpty(mediumIdStr) || !notEmpty(smallIdStr)) {
+                continue;
+            }
+
+            ProductRegisterRequestDTO.CategoryPathDTO cp = new ProductRegisterRequestDTO.CategoryPathDTO();
+            cp.setMediumId(Long.valueOf(mediumIdStr));
+            cp.setSmallId(Long.valueOf(smallIdStr));
+
+            dto.getCategoryPaths().add(cp);
+        }
 
 		if (files != null) {
 			MultipartFile main = getFirstFile(files, "mainImage");
@@ -380,20 +385,19 @@ public class ProductAPIController {
 		dto.setSaleStatus(nvl(params.getFirst("saleStatus")));
 		dto.setDetailHtml(nvl(params.getFirst("detailHtml")));
 
-		// 외부 카테고리
-		List<String> smalls = params.get("categorySmallIds[]");
-		if (smalls != null) {
-			for (String v : smalls)
-				if (notEmpty(v))
-					dto.getCategorySmallIds().add(Long.valueOf(v));
-		} else {
-			for (int i = 0;; i++) {
-				String v = params.getFirst("categorySmallIds[" + i + "]");
-				if (v == null)
-					break;
-				if (notEmpty(v))
-					dto.getCategorySmallIds().add(Long.valueOf(v));
-			}
+		// ===== 외부 카테고리(중+소 쌍) =====
+		for (int i = 0;; i++) {
+		    String mid = params.getFirst("externalCategories[" + i + "].mediumId");
+		    String sid = params.getFirst("externalCategories[" + i + "].smallId");
+
+		    if (mid == null && sid == null) break;
+
+		    if (notEmpty(mid) && notEmpty(sid)) {
+		        ProductUpdateRequestDTO.ExternalCategoryDTO ec = new ProductUpdateRequestDTO.ExternalCategoryDTO();
+		        ec.setMediumId(Long.valueOf(mid));
+		        ec.setSmallId(Long.valueOf(sid));
+		        dto.getExternalCategories().add(ec);
+		    }
 		}
 
 		// 이미지 액션/파일

@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -50,11 +51,15 @@ import com.dev.IbioScience.model.product.ProductOptionGroup;
 import com.dev.IbioScience.model.product.ProductQuestion;
 import com.dev.IbioScience.model.product.Promotion;
 import com.dev.IbioScience.model.product.RelatedProduct;
+import com.dev.IbioScience.model.product.category.CategoryMedium;
 import com.dev.IbioScience.model.product.category.CategorySmall;
+import com.dev.IbioScience.model.product.relation.MediumSmallProductCategory;
 import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
-import com.dev.IbioScience.model.product.relation.SmallProductCategory;
 import com.dev.IbioScience.model.product.util.Keyword;
+import com.dev.IbioScience.repository.category.CategoryMediumRepository;
 import com.dev.IbioScience.repository.category.CategorySmallRepository;
+import com.dev.IbioScience.repository.category.MediumSmallCategoryRepository;
+import com.dev.IbioScience.repository.category.MediumSmallProductCategoryRepository;
 import com.dev.IbioScience.repository.category.SmallProductCategoryRepository;
 import com.dev.IbioScience.repository.product.BrandRepository;
 import com.dev.IbioScience.repository.product.InternalCategorySmallRepository;
@@ -105,6 +110,9 @@ public class ProductRegisterService {
 	private final ProductPromotionMappingRepository productPromotionMappingRepository;
 	private final InternalCategorySmallRepository internalCategorySmallRepository;
 	private final FileStorageUtil fileStorageUtil;
+	private final CategoryMediumRepository categoryMediumRepository;
+	private final MediumSmallProductCategoryRepository mediumSmallProductCategoryRepository;
+	private final MediumSmallCategoryRepository mediumSmallCategoryRepository;
 
 	@Value("${spring.upload.path}")
 	private String uploadBasePath;
@@ -163,15 +171,43 @@ public class ProductRegisterService {
 		product.setState(ProductState.NORMAL);
 		product = productRepository.save(product);
 
-		if (req.getCategorySmallIds() != null) {
-			for (Long smallId : req.getCategorySmallIds()) {
-				CategorySmall small = categorySmallRepository.findById(smallId)
-						.orElseThrow(() -> new IllegalArgumentException("소분류 없음: " + smallId));
-				SmallProductCategory m = new SmallProductCategory();
-				m.setSmall(small);
-				m.setProduct(product);
-				smallProductCategoryRepository.save(m);
-			}
+		if (!CollectionUtils.isEmpty(req.getCategoryPaths())) {
+
+		    for (ProductRegisterRequestDTO.CategoryPathDTO path : req.getCategoryPaths()) {
+
+		        if (path.getMediumId() == null || path.getSmallId() == null) {
+		            throw new IllegalArgumentException("카테고리 경로가 올바르지 않습니다. (mediumId/smallId 누락)");
+		        }
+
+		        // 1) 중-소 관계가 실제로 존재하는지 검증 (tb_medium_small_category 기반)
+		        boolean valid = mediumSmallCategoryRepository.existsByMediumIdAndSmallId(path.getMediumId(), path.getSmallId());
+		        if (!valid) {
+		            throw new IllegalArgumentException(
+		                "중분류-소분류 매핑이 존재하지 않습니다. mediumId=" + path.getMediumId() + ", smallId=" + path.getSmallId()
+		            );
+		        }
+
+		        // 2) 엔티티 로딩
+		        CategoryMedium medium = categoryMediumRepository.findById(path.getMediumId())
+		                .orElseThrow(() -> new IllegalArgumentException("중분류 없음: " + path.getMediumId()));
+
+		        CategorySmall small = categorySmallRepository.findById(path.getSmallId())
+		                .orElseThrow(() -> new IllegalArgumentException("소분류 없음: " + path.getSmallId()));
+
+		        // 3) productId+mediumId+smallId 중복 방지 (DB unique 제약 전에 선 차단)
+		        if (mediumSmallProductCategoryRepository.existsByProductIdAndMediumIdAndSmallId(
+		                product.getId(), medium.getId(), small.getId())) {
+		            continue;
+		        }
+
+		        // 4) 경로 저장
+		        MediumSmallProductCategory mspc = new MediumSmallProductCategory();
+		        mspc.setProduct(product);
+		        mspc.setMedium(medium);
+		        mspc.setSmall(small);
+
+		        mediumSmallProductCategoryRepository.save(mspc);
+		    }
 		}
 
 		if (req.getMainImage() != null && !req.getMainImage().isEmpty()) {
@@ -355,8 +391,6 @@ public class ProductRegisterService {
 			throw new IllegalArgumentException("진열상태 필수");
 		if (!StringUtils.hasText(req.getSaleStatus()))
 			throw new IllegalArgumentException("판매상태 필수");
-		if (req.getCategorySmallIds() == null || req.getCategorySmallIds().isEmpty())
-			throw new IllegalArgumentException("카테고리 최소 1개 선택");
 		if (Boolean.TRUE.equals(req.getUsePriceReplacementText())
 				&& !StringUtils.hasText(req.getPriceReplacementText()))
 			throw new IllegalArgumentException("가격대체문구 사용 시 문구 필수");
@@ -470,7 +504,7 @@ public class ProductRegisterService {
 	    ProductAnswer targetAnswer = null;
 
 	    if ("detailHtml".equals(type) && "detailHtml".equals(key)) {
-	        targetDir = uploadBasePath + "/product/" + productId + "/detailHtml";
+	        targetDir = uploadBasePath + "/product/" + productId + "/detail";
 
 	    } else if ("question".equals(type) && key != null && key.startsWith("question_")) {
 	        String idx = key.replace("question_", "");

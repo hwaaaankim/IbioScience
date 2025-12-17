@@ -1,7 +1,7 @@
 # 공통 설정
 spring:
   profiles:
-    active: prod
+    active: test
   application:
     name: IbioScience
   mail:
@@ -86,7 +86,7 @@ spring:
     multipart:
       max-file-size: 5000MB
       max-request-size: -1
-  upload:
+  upload: 
     path: /home/ubuntu/IbioScience/files/
     env: prod
 

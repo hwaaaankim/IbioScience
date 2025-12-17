@@ -76,16 +76,32 @@ document.addEventListener("DOMContentLoaded", function() {
 	smallList.addEventListener('click', (e) => {
 		const li = e.target.closest('.category-small-item');
 		if (!li) return;
-		const smallId = li.dataset.id;
-		const mediumId = li.dataset.mediumId;
+
+		const smallId = li.dataset.id;         // 소분류 ID
+		const mediumId = li.dataset.mediumId;  // 중분류 ID
+
 		const mediumInfo = mediumCategoryMap[mediumId] || {};
 		const largeId = mediumInfo.largeId;
+
 		const largeName = largeCategoryMap[largeId] || '';
 		const mediumName = mediumInfo.name || '';
 		const smallName = li.textContent;
 
-		if (!selectedCategories.some(sc => String(sc.id) === String(smallId))) {
-			selectedCategories.push({ id: smallId, largeId, largeName, mediumId, mediumName, smallName });
+		// ✅ 중복 체크를 "경로(중분류+소분류)"로 변경
+		const exists = selectedCategories.some(sc =>
+			String(sc.mediumId) === String(mediumId) &&
+			String(sc.smallId) === String(smallId)
+		);
+
+		if (!exists) {
+			selectedCategories.push({
+				largeId,
+				largeName,
+				mediumId,
+				mediumName,
+				smallId,
+				smallName
+			});
 			renderSelectedCategories();
 		}
 	});
@@ -111,18 +127,22 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	function renderSelectedCategories() {
 		selectedList.innerHTML = '';
+
 		selectedCategories.forEach((c, idx) => {
 			const div = document.createElement('div');
-			div.className = 'badge bg-primary text-white px-2 py-2 me-2 d-flex align-items-center';
+			div.className = 'badge bg-primary text-white px-2 py-2 me-2 mb-2 d-inline-flex align-items-center';
 			div.innerHTML = `${c.largeName} &gt; ${c.mediumName} &gt; <b>${c.smallName}</b>
-        <span class="ms-2" style="cursor:pointer;" title="삭제">[삭제]</span>`;
+			<span class="ms-2" style="cursor:pointer;" title="삭제">[삭제]</span>`;
+
 			div.querySelector('span').onclick = () => {
 				selectedCategories.splice(idx, 1);
 				renderSelectedCategories();
 			};
+
 			selectedList.appendChild(div);
 		});
 	}
+
 
 	// ===== 내부분류(자체) =====
 	const internalLarge = document.getElementById('internal-large-select');
@@ -481,9 +501,9 @@ document.addEventListener("DOMContentLoaded", function() {
                   class="btn btn-outline-primary btn-sm mt-1 js-option-add"
                   data-group-idx="${groupIdx}">+ 옵션 추가</button>
         </div>`;
-			
+
 			const optionsContainer = groupDiv.querySelector('.product-option-group-options');
-			
+
 			// 옵션 행 렌더
 			group.options.forEach((opt, optIdx) => {
 				const optRow = document.createElement('div');
@@ -586,6 +606,9 @@ document.addEventListener("DOMContentLoaded", function() {
 	class CustomUploadAdapter {
 		constructor(loader) { this.loader = loader; }
 		upload() {
+
+			console.log('upload adator processing');
+
 			return this.loader.file.then(file => new Promise(async (resolve, reject) => {
 				try {
 					const formData = new FormData();
@@ -593,9 +616,12 @@ document.addEventListener("DOMContentLoaded", function() {
 					formData.append('type', window.currentEditorType);
 					formData.append('key', window.currentEditorKey);
 					const res = await fetch('/api/product/editor-images', { method: 'POST', body: formData });
+
+					console.log(res);
 					if (!res.ok) return reject(new Error('이미지 업로드 실패'));
 					const data = await res.json();
 					if (!data.success || !data.imageUrls || data.imageUrls.length === 0) return reject(new Error('이미지 업로드 실패(서버응답)'));
+					console.log(data);
 					resolve({ default: data.imageUrls[0] });
 				} catch (e) { reject(e); }
 			}));
@@ -1447,8 +1473,11 @@ document.addEventListener("DOMContentLoaded", function() {
 			// 내부 분류
 			formData.append('internalCategorySmallId', internalCategorySmallId || '');
 
-			// (외부) 카테고리
-			selectedCategories.forEach(cat => formData.append('categorySmallIds[]', cat.id));
+			// (외부) 카테고리 - 경로 저장용 (중분류+소분류)
+			selectedCategories.forEach((cat, idx) => {
+				formData.append(`categoryPaths[${idx}].mediumId`, cat.mediumId);
+				formData.append(`categoryPaths[${idx}].smallId`, cat.smallId);
+			});
 
 			// 공통표시항목(파일/일반값)
 			$$('#product-manager-display-options')?.querySelectorAll('[name]')?.forEach(el => {

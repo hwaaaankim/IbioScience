@@ -18,8 +18,6 @@ public class ProductRegisterRequestDTO {
     private String saleStatus;
     private String detailHtml;
 
-    private List<Long> categorySmallIds = new ArrayList<>();
-
     private MultipartFile mainImage;
     private List<MultipartFile> subImages = new ArrayList<>();
 
@@ -57,6 +55,14 @@ public class ProductRegisterRequestDTO {
     private LocalDate iconStartDate;
     private LocalDate iconEndDate;
 
+    @Data
+    public static class CategoryPathDTO {
+        private Long mediumId;
+        private Long smallId;
+    }
+    
+    private List<CategoryPathDTO> categoryPaths = new ArrayList<>();
+    
     @Data
     public static class ExtraFieldDTO {
         private String label;

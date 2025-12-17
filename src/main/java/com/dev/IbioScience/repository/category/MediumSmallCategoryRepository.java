@@ -13,6 +13,8 @@ import com.dev.IbioScience.model.product.relation.MediumSmallCategory;
 
 public interface MediumSmallCategoryRepository extends JpaRepository<MediumSmallCategory, Long> {
     
+	boolean existsByMediumIdAndSmallId(Long mediumId, Long smallId);
+	
 	List<MediumSmallCategory> findBySmall(CategorySmall small);
     List<MediumSmallCategory> findByMedium(CategoryMedium medium);
     List<MediumSmallCategory> findAll();
