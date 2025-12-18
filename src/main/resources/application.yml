@@ -27,6 +27,8 @@ server:
         secure: false
 logging:
   config: classpath:logback-spring.xml
+  level:
+    org.springframework.web.servlet.resource.NoResourceFoundException: OFF
   
 # 개발 환경
 ---

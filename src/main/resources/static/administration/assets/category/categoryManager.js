@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
 	// 캐시 변수
 	let largeList = [];
 	let mediumList = [];
@@ -19,37 +19,68 @@ document.addEventListener('DOMContentLoaded', function () {
 	const $smallName = document.getElementById('smallName');
 	const $smallList = document.getElementById('smallList');
 	const $smallSelect = document.getElementById('smallSelect');
-	
+
 	// --------- 소분류-중분류 매핑 영역 --------- //
 	const $mappingLargeSelect = document.getElementById('mappingLargeSelect');
 	const $mappingMediumSelect = document.getElementById('mappingMediumSelect');
 	const $mappingBtn = document.getElementById('mappingBtn');
 	const $mappingList = document.getElementById('mappingList');
 
-	// ----------- 에러메시지 안전 파싱 API 함수 -----------
+	// ----------- 에러메시지 안전 파싱 API 함수 (교체본) -----------
 	async function api(url, method = 'GET', data) {
-		const options = { method, headers: {} };
-		if (data) {
+		const options = {
+			method,
+			headers: {}
+		};
+
+		if (data !== undefined) {
 			options.headers['Content-Type'] = 'application/json';
 			options.body = JSON.stringify(data);
 		}
+
 		const res = await fetch(url, options);
-		if (!res.ok) {
-			let errMsg = '서버 오류';
+
+		// 1) 응답을 무조건 text로 먼저 받음 (성공/실패 공통)
+		const contentType = (res.headers.get('content-type') || '').toLowerCase();
+		const rawText = await res.text(); // 여기서 한 번만 읽습니다.
+
+		// 2) JSON이면 파싱 시도
+		let json = null;
+		if (contentType.includes('application/json')) {
 			try {
-				// 우선 text로 전체 받아서 json여부 판별
-				const text = await res.text();
-				try {
-					const err = JSON.parse(text);
-					if (err && err.message) errMsg = err.message;
-					else errMsg = text;
-				} catch {
-					if (text) errMsg = text;
-				}
-			} catch (_) { }
-			throw new Error(errMsg);
+				json = rawText ? JSON.parse(rawText) : null;
+			} catch (e) {
+				// content-type은 json인데 파싱이 안 되면 서버가 잘못 준 것
+				throw new Error('서버 응답(JSON) 파싱 실패');
+			}
 		}
-		return await res.json();
+
+		// 3) 실패(비 2xx) 처리
+		if (!res.ok) {
+			// JSON 에러 포맷 우선
+			if (json && typeof json === 'object') {
+				const msg = json.message || json.error || json.msg || JSON.stringify(json);
+				throw new Error(msg);
+			}
+			// HTML/텍스트 에러 처리
+			const text = (rawText || '').trim();
+			if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+				throw new Error('서버가 JSON이 아닌 HTML 에러 페이지를 반환했습니다. (로그인/권한/예외처리 확인 필요)');
+			}
+			throw new Error(text || '서버 오류');
+		}
+
+		// 4) 성공(2xx)인데 JSON이 아니면(HTML 등) -> 여기서도 방어
+		if (!contentType.includes('application/json')) {
+			const text = (rawText || '').trim();
+			if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+				throw new Error('서버가 JSON 대신 HTML을 반환했습니다. (로그인 리다이렉트 또는 에러 페이지 가능)');
+			}
+			// 성공인데 텍스트를 반환하는 API라면 여기서 text 반환하도록 바꿀 수 있음
+			throw new Error('서버 응답이 JSON이 아닙니다.');
+		}
+
+		return json;
 	}
 
 	// =========== 데이터 일괄 초기화 ===============
@@ -72,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	loadAll();
 
 	// =============== 대분류 CRUD 및 렌더 =================
-	$largeForm.onsubmit = async function (e) {
+	$largeForm.onsubmit = async function(e) {
 		e.preventDefault();
 		const name = $largeName.value.trim();
 		if (!name) return alert('대분류명을 입력하세요.');
@@ -100,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
 			// 수정
-			li.querySelector('.edit').onclick = function () {
+			li.querySelector('.edit').onclick = function() {
 				if (li.querySelector('.edit-input')) return;
 				const input = document.createElement('input');
 				input.type = 'text';
@@ -108,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				input.value = l.name;
 				li.querySelector('.name').replaceWith(input);
 				this.textContent = '저장';
-				this.onclick = async function () {
+				this.onclick = async function() {
 					const newName = input.value.trim();
 					if (!newName) return alert('값을 입력하세요.');
 					try {
@@ -120,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 			};
 			// 삭제
-			li.querySelector('.delete').onclick = async function () {
+			li.querySelector('.delete').onclick = async function() {
 				if (!confirm('정말 삭제하시겠습니까?')) return;
 				try {
 					await api(`/api/category/large/${l.id}`, 'DELETE');
@@ -132,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			$largeList.appendChild(li);
 		});
 	}
-	
+
 	function renderLargeSelect() {
 		$largeSelect.innerHTML = '<option value="">대분류 선택</option>';
 		largeList.forEach(l => {
@@ -141,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	// =============== 중분류 CRUD 및 렌더 ==================
-	$mediumForm.onsubmit = async function (e) {
+	$mediumForm.onsubmit = async function(e) {
 		e.preventDefault();
 		const name = $mediumName.value.trim();
 		const largeId = $largeSelect.value;
@@ -176,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
 				// 수정
-				li.querySelector('.edit').onclick = function () {
+				li.querySelector('.edit').onclick = function() {
 					if (li.querySelector('.edit-input')) return;
 					const input = document.createElement('input');
 					input.type = 'text';
@@ -184,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					input.value = m.name;
 					li.querySelector('.name').replaceWith(input);
 					this.textContent = '저장';
-					this.onclick = async function () {
+					this.onclick = async function() {
 						const newName = input.value.trim();
 						if (!newName) return alert('값을 입력하세요.');
 						try {
@@ -196,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					}
 				};
 				// 삭제
-				li.querySelector('.delete').onclick = async function () {
+				li.querySelector('.delete').onclick = async function() {
 					if (!confirm('정말 삭제하시겠습니까?')) return;
 					try {
 						await api(`/api/category/medium/${m.id}`, 'DELETE');
@@ -212,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	$largeSelect.onchange = renderMediumList;
 
 	// =============== 소분류 CRUD 및 렌더 ===================
-	$smallForm.onsubmit = async function (e) {
+	$smallForm.onsubmit = async function(e) {
 		e.preventDefault();
 		const name = $smallName.value.trim();
 		if (!name) return alert('소분류명을 입력하세요.');
@@ -241,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <button class="btn btn-sm btn-outline-danger delete">삭제</button>
                     </div>
                 `;
-				li.querySelector('.edit').onclick = function () {
+				li.querySelector('.edit').onclick = function() {
 					if (li.querySelector('.edit-input')) return;
 					const input = document.createElement('input');
 					input.type = 'text';
@@ -249,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					input.value = s.name;
 					li.querySelector('.name').replaceWith(input);
 					this.textContent = '저장';
-					this.onclick = async function () {
+					this.onclick = async function() {
 						const newName = input.value.trim();
 						if (!newName) return alert('값을 입력하세요.');
 						if (!confirm('소분류명 변경 시 모든 중분류 매핑에 적용됩니다.\n계속하시겠습니까?')) return;
@@ -261,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						}
 					}
 				};
-				li.querySelector('.delete').onclick = async function () {
+				li.querySelector('.delete').onclick = async function() {
 					if (!confirm('정말 삭제하시겠습니까?')) return;
 					try {
 						await api(`/api/category/small/${s.id}`, 'DELETE');
@@ -285,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <button class="btn btn-sm btn-outline-danger delete">삭제</button>
                         </div>
                     `;
-					li.querySelector('.edit').onclick = function () {
+					li.querySelector('.edit').onclick = function() {
 						if (li.querySelector('.edit-input')) return;
 						const input = document.createElement('input');
 						input.type = 'text';
@@ -293,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						input.value = s.name;
 						li.querySelector('.name').replaceWith(input);
 						this.textContent = '저장';
-						this.onclick = async function () {
+						this.onclick = async function() {
 							const newName = input.value.trim();
 							if (!newName) return alert('값을 입력하세요.');
 							if (!confirm('소분류명 변경 시 모든 중분류 매핑에 적용됩니다.\n계속하시겠습니까?')) return;
@@ -305,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function () {
 							}
 						}
 					};
-					li.querySelector('.delete').onclick = async function () {
+					li.querySelector('.delete').onclick = async function() {
 						if (!confirm('정말 삭제하시겠습니까?')) return;
 						try {
 							await api(`/api/category/small/${s.id}`, 'DELETE');
@@ -335,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	$mappingLargeSelect.onchange = function () {
+	$mappingLargeSelect.onchange = function() {
 		const largeId = $mappingLargeSelect.value;
 		$mappingMediumSelect.innerHTML = '';
 		mediumList.filter(m => m.largeId == largeId)
@@ -362,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <span>${large ? large.name + " > " : ""}${medium ? medium.name + " > " : ""}${small ? small.name : ""}</span>
                     <button class="btn btn-sm btn-outline-danger delete">매핑해제</button>
                 `;
-				li.querySelector('.delete').onclick = async function () {
+				li.querySelector('.delete').onclick = async function() {
 					if (!confirm('정말 매핑을 해제하시겠습니까?')) return;
 					try {
 						await api(`/api/category/mapping/${m.id}`, 'DELETE');
@@ -378,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 
-	$mappingBtn.onclick = async function () {
+	$mappingBtn.onclick = async function() {
 		const smallId = $smallSelect.value;
 		const mediumIds = Array.from($mappingMediumSelect.selectedOptions).map(opt => opt.value);
 		if (!smallId) return alert('소분류를 선택하세요.');
