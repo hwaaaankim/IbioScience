@@ -333,9 +333,4 @@ public class CustomerFrontController {
 		return "front/customer/reviewList";
 	}
 
-	@GetMapping("/wishList/{id}")
-	public String wishList(@PathVariable Long id) {
-		return "front/customer/wishList";
-	}
-
 }

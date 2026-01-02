@@ -12,5 +12,14 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Long
 	
 	@Query("select i from ProductImage i where i.product.id = :pid order by i.type asc, i.sortOrder asc, i.id asc")
     List<ProductImage> findAllByProductOrder(@Param("pid") Long productId);
+	
+	 @Query("""
+        select pi
+        from ProductImage pi
+        where pi.product.id in :productIds
+          and pi.type = com.dev.IbioScience.enums.product.ProductImageType.MAIN
+        order by pi.product.id asc, pi.sortOrder asc nulls last, pi.id asc
+    """)
+    List<ProductImage> findMainImagesByProductIds(@Param("productIds") List<Long> productIds);
 }
 

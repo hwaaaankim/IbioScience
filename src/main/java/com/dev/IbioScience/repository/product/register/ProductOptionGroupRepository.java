@@ -15,5 +15,13 @@ public interface ProductOptionGroupRepository extends JpaRepository<ProductOptio
            "where g.product.id = :pid " +
            "order by g.sortOrder asc, g.id asc, o.sortOrder asc, o.id asc")
     List<ProductOptionGroup> findWithOptions(@Param("pid") Long productId);
+	
+	@Query("""
+        select distinct g
+        from ProductOptionGroup g
+        left join fetch g.options o
+        where g.product.id in :productIds
+        """)
+    List<ProductOptionGroup> findWithOptionsByProductIds(@Param("productIds") List<Long> productIds);
 }
 

@@ -20,36 +20,46 @@
 
 							<th:block th:replace="fragments/front/common :: myPageSideMenu"></th:block>
 
-							<!-- 본문 -->
 							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3 p-l-m-n p-r-m-n"
 								style="border-left:1px solid #ddd;">
 								<h3 class="community-title text-center">관심상품</h3>
 
 								<section class="wishList-table-section">
 
-									<!-- 필터 -->
-									<div class="wishList-filter">
-										<select id="wishList-status" class="wishList-control">
-											<option value="all">판매여부 전체</option>
-											<option value="on">판매중</option>
-											<option value="off">판매중지</option>
-										</select>
-										<select id="wishList-pageSize" class="wishList-control">
-											<option value="10">10개씩 보기</option>
-											<option value="30">30개씩 보기</option>
-											<option value="50">50개씩 보기</option>
-										</select>
-										<button id="wishList-searchBtn" type="button" class="wishList-btn">검색</button>
-									</div>
+									<!-- ✅ GET 폼으로 필터/사이즈/페이지 관리 -->
+									<form id="wishListForm"
+										th:action="@{'/customer/wishList/' + ${#authentication.principal.member.id}}"
+										method="get">
 
-									<!-- 테이블 -->
+										<input type="hidden" name="page" th:value="${page}" />
+
+										<div class="wishList-filter">
+											<select id="wishList-status" name="sale" class="wishList-control">
+												<option value="all" th:selected="${sale == 'all'}">판매여부 전체</option>
+												<option value="on" th:selected="${sale == 'on'}">판매중</option>
+												<option value="off" th:selected="${sale == 'off'}">판매중지</option>
+											</select>
+
+											<select id="wishList-pageSize" name="size" class="wishList-control">
+												<option value="10" th:selected="${size == 10}">10개씩 보기</option>
+												<option value="30" th:selected="${size == 30}">30개씩 보기</option>
+												<option value="50" th:selected="${size == 50}">50개씩 보기</option>
+												<option value="70" th:selected="${size == 70}">70개씩 보기</option>
+												<option value="100" th:selected="${size == 100}">100개씩 보기</option>
+											</select>
+
+											<button id="wishList-searchBtn" type="submit"
+												class="wishList-btn">검색</button>
+										</div>
+									</form>
+
 									<div class="wishList-tablewrap">
 										<table class="wishList-table">
 											<colgroup>
 												<col style="width:48px">
 												<col>
 												<col style="width:180px">
-												<col style="width:120px">
+												<col style="width:120px"><!-- 재고 -->
 												<col style="width:140px">
 												<col style="width:160px">
 											</colgroup>
@@ -59,326 +69,223 @@
 															aria-label="전체 선택"></th>
 													<th>상품명</th>
 													<th>옵션</th>
-													<th>수량</th>
+													<th>재고</th>
 													<th>상품가</th>
 													<th>비고</th>
 												</tr>
 											</thead>
+
 											<tbody id="wishList-tbody">
-												<!-- 샘플 1 -->
-												<tr class="wishList-row" data-id="101">
-													<td><input type="checkbox" class="wishList-check" data-id="101">
-													</td>
-													<td class="wishList-td-product">
-														<div class="wishList-product">
-															<div class="wishList-thumb">
-																<img src="/front/image/catalog/demo/product/270/e3.jpg"
-																	alt="Falcon Conical Tube">
-															</div>
-															<div class="wishList-pinfo">
-																<div class="wishList-pname"
-																	title="Falcon Conical Tube 15ml/50ml 25PK/500cs">
-																	Falcon Conical Tube 15ml/50ml 25PK/500cs</div>
-																<div class="wishList-pbrand">Biotreat</div>
-															</div>
-														</div>
-													</td>
-													<td class="wishList-td-option">
-														<div class="wishList-optcode">12341234</div>
-														<div class="wishList-optname">Conical Tube 15ml</div>
-													</td>
-													<td class="wishList-td-qty">
-														<div class="wishList-qty-pc">
-															<button type="button" class="wishList-qty-btn"
-																data-step="-1" aria-label="수량 감소">-</button>
-															<input type="text" class="wishList-qty-input" value="3"
-																inputmode="numeric" aria-label="수량 입력">
-															<button type="button" class="wishList-qty-btn" data-step="1"
-																aria-label="수량 증가">+</button>
-														</div>
-														<input type="number" class="wishList-qty-mobile" value="3"
-															min="1" aria-label="모바일 수량">
-													</td>
-													<td class="wishList-td-price"><span
-															class="wishList-price">57,270</span> 원</td>
-													<td class="wishList-td-actions">
-														<button type="button" class="wishList-btn block"
-															data-action="go">상품바로가기</button>
-														<!-- ⬇ 기존 '삭제' 대신 '옵션보기'로 교체 -->
-														<button type="button"
-															class="wishList-btn wishList-add-toggle-btn block"
-															data-target="101" aria-expanded="false"
-															aria-controls="wishList-add-panel-101">
-															옵션보기
-															<span class="wishList-add-caret" aria-hidden="true"></span>
-														</button>
-													</td>
+
+												<!-- ✅ 비어있을 때 -->
+												<tr th:if="${wishPage == null or #lists.isEmpty(wishPage.content)}">
+													<td colspan="6" class="text-center">관심상품이 없습니다.</td>
 												</tr>
 
-												<!-- 옵션 패널 (★ 체크박스 첫 번째 컬럼으로 이동) -->
-												<tr class="wishList-add-optrow" id="wishList-add-panel-101"
-													data-parent="101" aria-hidden="true">
-													<td colspan="6">
-														<div class="wishList-add-optpanel">
-															<div class="wishList-add-scroll">
-																<table class="wishList-add-option-table">
-																	<colgroup>
-																		<col style="width:80px"> <!-- ★ 선택(체크) -->
-																		<col style="width:160px"> <!-- CAT. NO -->
-																		<col> <!-- 품명 -->
-																		<col style="width:140px"> <!-- 판매가 -->
-																		<col style="width:140px"> <!-- 단위 -->
-																		<col style="width:120px"> <!-- 수량 -->
-																	</colgroup>
-																	<thead>
-																		<tr>
-																			<th>선택</th> <!-- ★ 이동 -->
-																			<th>CAT. NO</th>
-																			<th>품명</th>
-																			<th>판매가</th>
-																			<th>단위</th>
-																			<th>수량</th>
-																		</tr>
-																	</thead>
-																	<tbody>
-																		<tr>
-																			<td class="col-pick">
-																				<input type="checkbox"
-																					class="wishList-add-optpick">
-																			</td>
-																			<td class="col-cat">357531</td>
-																			<td class="col-name">
-																				10mL Serological Pipet, PS, Individually
-																				Paper-Plastic wrap
-																			</td>
-																			<td class="col-price text-right">72,405</td>
-																			<td class="col-unit">50Bag/200CS</td>
-																			<td class="col-qty">
-																				<input type="number"
-																					class="wishList-add-optqty"
-																					value="1" min="1">
-																			</td>
-																		</tr>
-																		<tr>
-																			<td class="col-pick">
-																				<input type="checkbox"
-																					class="wishList-add-optpick">
-																			</td>
-																			<td class="col-cat">357550</td>
-																			<td class="col-name">
-																				50mL Serological Pipet, PS, Individually
-																				Paper-Plastic wrap
-																			</td>
-																			<td class="col-price text-right">67,400</td>
-																			<td class="col-unit">50Bag/200CS</td>
-																			<td class="col-qty">
-																				<input type="number"
-																					class="wishList-add-optqty"
-																					value="1" min="1">
-																			</td>
-																		</tr>
-																		<tr>
-																			<td class="col-pick">
-																				<input type="checkbox"
-																					class="wishList-add-optpick">
-																			</td>
-																			<td class="col-cat">357543</td>
-																			<td class="col-name">
-																				5mL Serological Pipet, PS, Individually
-																				Paper-Plastic wrap
-																			</td>
-																			<td class="col-price text-right">59,400</td>
-																			<td class="col-unit">50Bag/200CS</td>
-																			<td class="col-qty">
-																				<input type="number"
-																					class="wishList-add-optqty"
-																					value="1" min="1">
-																			</td>
-																		</tr>
-																	</tbody>
-																</table>
+												<!-- ✅ 목록 -->
+												<th:block th:each="row : ${wishPage.content}">
+													<tr class="wishList-row" th:attr="data-product-id=${row.productId}">
+														<td>
+															<input type="checkbox" class="wishList-check"
+																th:attr="data-id=${row.productId}">
+														</td>
 
-																<div class="wishList-add-optpanel-footer">
-																	<div class="wishList-add-optpanel-left">
-																		<p class="wishList-add-note">
-																			제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수
-																			있습니다.<br>
-																			가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수
-																			있습니다.
-																		</p>
-																	</div>
-																	<div class="wishList-add-optpanel-right">
-																		<button type="button"
-																			class="wishList-btn outline"
-																			data-action="quote">견적문의</button>
-																		<button type="button" class="wishList-btn"
-																			data-action="addCart">장바구니</button>
-																		<button type="button"
-																			class="wishList-btn wishList-primary"
-																			data-action="buyNow">바로구매</button>
-																	</div>
+														<td class="wishList-td-product">
+															<div class="wishList-product">
+																<div class="wishList-thumb">
+																	<img th:src="${row.mainImageUrl != null ? row.mainImageUrl : '/front/image/catalog/demo/product/270/e3.jpg'}"
+																		alt="thumb">
+																</div>
+																<div class="wishList-pinfo">
+																	<div class="wishList-pname"
+																		th:title="${row.productName}"
+																		th:text="${row.productName}">제품명</div>
+																	<div class="wishList-pbrand"
+																		th:text="${row.brandName}">브랜드</div>
 																</div>
 															</div>
-														</div>
-													</td>
-												</tr>
+														</td>
 
-												<!-- 샘플 2 -->
-												<tr class="wishList-row" data-id="102">
-													<td><input type="checkbox" class="wishList-check" data-id="102">
-													</td>
-													<td class="wishList-td-product">
-														<div class="wishList-product">
-															<div class="wishList-thumb">
-																<img src="/front/image/catalog/demo/product/270/e5.jpg"
-																	alt="FILTER PAPER">
-															</div>
-															<div class="wishList-pinfo">
-																<div class="wishList-pname" title="FILTER PAPER">FILTER
-																	PAPER</div>
-																<div class="wishList-pbrand">Biotreat</div>
-															</div>
-														</div>
-													</td>
-													<td class="wishList-td-option">
-														<div class="wishList-optcode">55559999</div>
-														<div class="wishList-optname">FILTER PAPER</div>
-													</td>
-													<td class="wishList-td-qty">
-														<div class="wishList-qty-pc">
-															<button type="button" class="wishList-qty-btn"
-																data-step="-1" aria-label="수량 감소">-</button>
-															<input type="text" class="wishList-qty-input" value="3"
-																inputmode="numeric" aria-label="수량 입력">
-															<button type="button" class="wishList-qty-btn" data-step="1"
-																aria-label="수량 증가">+</button>
-														</div>
-														<input type="number" class="wishList-qty-mobile" value="3"
-															min="1" aria-label="모바일 수량">
-													</td>
-													<td class="wishList-td-price"><span
-															class="wishList-price">27,270</span> 원</td>
-													<td class="wishList-td-actions">
-														<button type="button" class="wishList-btn block"
-															data-action="go">상품바로가기</button>
-														<button type="button"
-															class="wishList-btn wishList-add-toggle-btn block"
-															data-target="102" aria-expanded="false"
-															aria-controls="wishList-add-panel-102">
-															옵션보기
-															<span class="wishList-add-caret" aria-hidden="true"></span>
-														</button>
-													</td>
-												</tr>
+														<!-- ✅ 옵션: 옵션 코드/이름 대신 '옵션 개수' -->
+														<td class="wishList-td-option">
+															<span th:text="${row.optionCount + '개 옵션'}">0개 옵션</span>
+														</td>
 
-												<!-- 옵션 패널(샘플2, ★ 체크박스 첫 번째 컬럼) -->
-												<tr class="wishList-add-optrow" id="wishList-add-panel-102"
-													data-parent="102" aria-hidden="true">
-													<td colspan="6">
-														<div class="wishList-add-optpanel">
-															<div class="wishList-add-scroll">
-																<table class="wishList-add-option-table">
-																	<colgroup>
-																		<col style="width:80px"> <!-- ★ 선택(체크) -->
-																		<col style="width:160px"> <!-- CAT. NO -->
-																		<col> <!-- 품명 -->
-																		<col style="width:140px"> <!-- 판매가 -->
-																		<col style="width:140px"> <!-- 단위 -->
-																		<col style="width:120px"> <!-- 수량 -->
-																	</colgroup>
-																	<thead>
-																		<tr>
-																			<th>선택</th> <!-- ★ 이동 -->
-																			<th>CAT. NO</th>
-																			<th>품명</th>
-																			<th>판매가</th>
-																			<th>단위</th>
-																			<th>수량</th>
-																		</tr>
-																	</thead>
-																	<tbody>
-																		<tr>
-																			<td class="col-pick">
-																				<input type="checkbox"
-																					class="wishList-add-optpick">
-																			</td>
-																			<td class="col-cat">FP-100</td>
-																			<td class="col-name">Filter Paper A</td>
-																			<td class="col-price text-right">12,000</td>
-																			<td class="col-unit">100ea/box</td>
-																			<td class="col-qty">
-																				<input type="number"
-																					class="wishList-add-optqty"
-																					value="1" min="1">
-																			</td>
-																		</tr>
-																		<tr>
-																			<td class="col-pick">
-																				<input type="checkbox"
-																					class="wishList-add-optpick">
-																			</td>
-																			<td class="col-cat">FP-200</td>
-																			<td class="col-name">Filter Paper B</td>
-																			<td class="col-price text-right">18,500</td>
-																			<td class="col-unit">100ea/box</td>
-																			<td class="col-qty">
-																				<input type="number"
-																					class="wishList-add-optqty"
-																					value="1" min="1">
-																			</td>
-																		</tr>
-																	</tbody>
-																</table>
+														<!-- ✅ 재고: 디자인 제거하고 0개 고정 -->
+														<td class="wishList-td-qty">
+															<span>0개</span>
+														</td>
 
-																<div class="wishList-add-optpanel-footer">
-																	<div class="wishList-add-optpanel-left">
-																		<p class="wishList-add-note">
-																			제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수
-																			있습니다.<br>
-																			가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수
-																			있습니다.
-																		</p>
+														<td class="wishList-td-price">
+															<span class="wishList-price"
+																th:text="${row.salePrice != null ? #numbers.formatInteger(row.salePrice,0,'COMMA') : '-'}">0</span>
+															원
+														</td>
+
+														<td class="wishList-td-actions">
+															<button type="button"
+																class="wishList-btn block wishList-go-detail"
+																th:attr="data-product-id=${row.productId}">
+																상품바로가기
+															</button>
+
+															<button type="button"
+																class="wishList-btn wishList-add-toggle-btn block"
+																th:attr="data-target=${row.productId},
+																	 aria-controls=${'wishList-add-panel-' + row.productId}">
+																옵션보기
+																<span class="wishList-add-caret"
+																	aria-hidden="true"></span>
+															</button>
+														</td>
+													</tr>
+
+													<!-- ✅ 옵션 패널 -->
+													<tr class="wishList-add-optrow" th:attr="id=${'wishList-add-panel-' + row.productId},
+														 data-parent=${row.productId}" aria-hidden="true">
+														<td colspan="6">
+															<div class="wishList-add-optpanel">
+																<div class="wishList-add-scroll">
+																	<table class="wishList-add-option-table">
+																		<colgroup>
+																			<col style="width:80px">
+																			<col style="width:160px">
+																			<col>
+																			<col style="width:140px">
+																			<col style="width:140px">
+																			<col style="width:120px">
+																		</colgroup>
+																		<thead>
+																			<tr>
+																				<th>선택</th>
+																				<th>CAT. NO</th>
+																				<th>품명</th>
+																				<th>판매가</th>
+																				<th>단위</th>
+																				<th>수량</th>
+																			</tr>
+																		</thead>
+
+																		<tbody>
+																			<!-- 옵션이 없을 때 -->
+																			<tr
+																				th:if="${row.optionGroups == null or #lists.isEmpty(row.optionGroups)}">
+																				<td colspan="6" class="text-center">등록된
+																					옵션이 없습니다.</td>
+																			</tr>
+
+																			<!-- 옵션 그룹/옵션 -->
+																			<th:block th:each="g : ${row.optionGroups}">
+																				<tr>
+																					<td colspan="6"
+																						class="product-list-option-group"
+																						th:text="${g.groupName}">그룹명
+																					</td>
+																				</tr>
+
+																				<tr th:each="opt : ${g.options}"
+																					th:attr="
+																			data-option-id=${opt.optionId},
+																			data-option-group-id=${opt.optionGroupId},
+																			data-option-group-name=${opt.optionGroupName},
+																			data-option-name=${opt.optionName},
+																			data-option-code=${opt.optionCode},
+																			data-price=${opt.finalPrice}
+																		">
+																					<td class="col-pick">
+																						<input type="checkbox"
+																							class="wishList-add-optpick">
+																					</td>
+																					<td class="col-cat"
+																						th:text="${opt.optionCode}">-
+																					</td>
+																					<td class="col-name"
+																						th:text="${opt.optionGroupName + ' - ' + opt.optionName}">
+																						-</td>
+																					<td class="col-price text-right"
+																						th:text="${#numbers.formatInteger(opt.finalPrice,0,'COMMA')}">
+																						0</td>
+																					<td class="col-unit">-</td>
+																					<td class="col-qty">
+																						<input type="number"
+																							class="wishList-add-optqty"
+																							value="1" min="1">
+																					</td>
+																				</tr>
+																			</th:block>
+																		</tbody>
+																	</table>
+
+																	<div class="wishList-add-optpanel-footer">
+																		<div class="wishList-add-optpanel-left">
+																			<p class="wishList-add-note">
+																				제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수
+																				있습니다.<br>
+																				가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수
+																				있습니다.
+																			</p>
+																		</div>
+																		<div class="wishList-add-optpanel-right">
+																			<!-- ✅ 미사용: 비활성화 -->
+																			<button type="button"
+																				class="wishList-btn outline"
+																				disabled>견적문의</button>
+																			<button type="button"
+																				class="wishList-btn wishList-add-cart">장바구니</button>
+																			<button type="button"
+																				class="wishList-btn wishList-primary"
+																				disabled>바로구매</button>
+																		</div>
 																	</div>
-																	<div class="wishList-add-optpanel-right">
-																		<button type="button"
-																			class="wishList-btn outline"
-																			data-action="quote">견적문의</button>
-																		<button type="button" class="wishList-btn"
-																			data-action="addCart">장바구니</button>
-																		<button type="button"
-																			class="wishList-btn wishList-primary"
-																			data-action="buyNow">바로구매</button>
-																	</div>
+
 																</div>
 															</div>
-														</div>
-													</td>
-												</tr>
+														</td>
+													</tr>
+												</th:block>
 
 											</tbody>
 										</table>
 									</div>
 
-									<!-- 하단 액션: 선택삭제만 복구(오른쪽 정렬) -->
 									<div class="wishList-actions"
 										style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
 										<button id="wishList-deleteBtn" type="button" class="wishList-btn outline"
 											disabled>선택삭제</button>
 									</div>
 
-									<!-- 페이지네이션 -->
-									<nav class="d-flex justify-content-center">
+									<!-- ✅ 페이지네이션 -->
+									<nav class="d-flex justify-content-center"
+										th:if="${wishPage != null and wishPage.totalPages > 1}">
 										<ul class="pagination">
-											<li class="page-item"><a class="page-link" href="#">First</a></li>
-											<li class="page-item"><a class="page-link" href="#">Previous</a></li>
-											<li class="page-item active"><a class="page-link" href="#">1</a></li>
-											<li class="page-item"><a class="page-link" href="#">Next</a></li>
-											<li class="page-item"><a class="page-link" href="#">Last</a></li>
+											<li class="page-item" th:classappend="${wishPage.first} ? 'disabled'">
+												<a class="page-link" href="#" data-page="0">First</a>
+											</li>
+											<li class="page-item" th:classappend="${wishPage.first} ? 'disabled'">
+												<a class="page-link" href="#"
+													th:attr="data-page=${wishPage.number - 1}">Previous</a>
+											</li>
+
+											<li class="page-item"
+												th:each="pNum : ${#numbers.sequence(0, wishPage.totalPages - 1)}"
+												th:classappend="${pNum == wishPage.number} ? 'active'">
+												<a class="page-link" href="#" th:text="${pNum + 1}"
+													th:attr="data-page=${pNum}">1</a>
+											</li>
+
+											<li class="page-item" th:classappend="${wishPage.last} ? 'disabled'">
+												<a class="page-link" href="#"
+													th:attr="data-page=${wishPage.number + 1}">Next</a>
+											</li>
+											<li class="page-item" th:classappend="${wishPage.last} ? 'disabled'">
+												<a class="page-link" href="#"
+													th:attr="data-page=${wishPage.totalPages - 1}">Last</a>
+											</li>
 										</ul>
 									</nav>
+
 								</section>
 							</div>
-							<!-- //본문 -->
 						</div>
 					</div>
 				</div>

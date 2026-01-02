@@ -141,7 +141,8 @@
 									<div class="short-by-show form-inline text-right col-md-12 col-sm-12 col-xs-12">
 										<h3 class="title-category text-left">
 											<span th:text="${categoryPathText}">대/중/소분류</span>
-											<span th:if="${brandLabel != null}" th:text="' - ' + ${brandLabel}"> -브랜드</span>
+											<span th:if="${brandLabel != null}" th:text="' - ' + ${brandLabel}">
+												-브랜드</span>
 											<span
 												th:text="' [총 : ' + ${#numbers.formatInteger(totalCount, 0, 'COMMA')} + ' 개 상품 검색]'">
 												[총 : ___개 상품 검색]
@@ -233,10 +234,17 @@
 										</div>
 										<div class="right-block">
 											<div class="button-group so-quickview cartinfo--left">
-												<button type="button" class="addToCart">
-													<span>관심상품등록</span>
-												</button>
-												<button type="button" class="addToCart">
+
+												<!-- ✅ 관심상품등록: 로그인 사용자만 노출 -->
+												<th:block sec:authorize="isAuthenticated()">
+													<button type="button" class="addToCart ibio-wish-toggle"
+														th:attr="data-product-id=${p.id}">
+														<span>관심상품등록</span>
+													</button>
+												</th:block>
+
+												<button type="button" class="addToCart"
+													th:onclick="'location.href=''\'' + @{/productDetail/{id}(id=${p.id})} + '\'''">
 													<span>상세사항확인</span>
 												</button>
 											</div>
@@ -306,12 +314,15 @@
 													</a>
 												</p>
 												<div class="product-list-list-icons">
-													<!-- 하트 -->
-													<button type="button"
-														class="product-list-list-iconbtn product-list-list-wish"
-														aria-label="관심상품">
-														<i class="fa fa-heart-o" aria-hidden="true"></i>
-													</button>
+													<!-- ✅ 하트(모바일): 로그인 사용자에게만 노출 -->
+													<th:block sec:authorize="isAuthenticated()">
+														<button type="button"
+															class="product-list-list-iconbtn product-list-list-wish ibio-wish-toggle"
+															aria-label="관심상품" th:attr="data-product-id=${p.id}">
+															<i class="fa fa-heart-o" aria-hidden="true"></i>
+														</button>
+													</th:block>
+
 													<!-- 옵션보기(슬라이드 토글 트리거) -->
 													<button type="button"
 														class="product-list-list-iconbtn product-list-grid-option"
@@ -336,9 +347,16 @@
 											</p>
 										</div>
 										<div class="col-lg-2 col-md-2 m-d-n">
-											<button type="button" class="product-list-wish-btn">
-												<i class="fa fa-heart-o"></i><span> 관심상품등록</span>
-											</button>
+
+											<!-- ✅ 관심상품등록(데스크탑 LIST): 로그인 사용자만 노출 -->
+											<th:block sec:authorize="isAuthenticated()">
+												<button type="button" class="product-list-wish-btn ibio-wish-toggle"
+													th:attr="data-product-id=${p.id}">
+													<i class="fa fa-heart-o"></i>
+													<span> 관심상품등록</span>
+												</button>
+											</th:block>
+
 											<!-- 옵션보기 -->
 											<button type="button" class="product-list-option-btn">
 												<i class="fa fa-angle-down"></i><span> 옵션상세보기</span>
@@ -399,7 +417,6 @@
 															</th:block>
 														</th:block>
 
-
 														<!-- 옵션이 없는 경우 -->
 														<tr
 															th:if="${p.optionGroups == null or #lists.isEmpty(p.optionGroups)}">
@@ -430,8 +447,7 @@
 												<button type="button"
 													class="product-list-btn product-list-btn-quote">바로구매
 												</button>
-												<button type="button"
-													class="product-list-btn product-list-btn-buy">장바구니
+												<button type="button" class="product-list-btn product-list-btn-buy">장바구니
 												</button>
 											</div>
 										</div>

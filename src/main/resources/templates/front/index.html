@@ -3,9 +3,8 @@
 
 <head th:replace="fragments/front/common :: frontHead"></head>
 
-<body class="common-home res layout-1"
-      th:with="productDetailBase='/productDetail'"
-      th:attr="data-product-detail-base=${productDetailBase}">
+<body class="common-home res layout-1" th:with="productDetailBase='/productDetail'"
+	th:attr="data-product-detail-base=${productDetailBase}">
 
 	<div id="wrapper" class="wrapper-fluid banners-effect-3">
 		<header id="header" class="typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
@@ -116,7 +115,15 @@
 
 													<div class="right-block">
 														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="관심상품등록"><span>관심상품등록</span></button>
+
+															<!-- ✅ 관심상품등록: 로그인 사용자만 노출 -->
+															<th:block sec:authorize="isAuthenticated()">
+																<button type="button" class="addToCart ibio-wish-toggle"
+																	th:attr="data-product-id=${p.id}">
+																	<span>관심상품등록</span>
+																</button>
+															</th:block>
+
 															<!--<button type="button" class="wishlist btn-button"><i
 																	class="fa fa-heart-o"></i><span>Add to
 																	WishList</span></button>-->
@@ -134,7 +141,8 @@
 																	</span>
 																</div>
 																<span class="rating-num"
-																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">( 0 )</span>
+																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">(
+																	0 )</span>
 															</div>
 
 															<h4>
@@ -248,7 +256,15 @@
 
 													<div class="right-block">
 														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="관심상품등록"><span>관심상품등록</span></button>
+
+															<!-- ✅ 관심상품등록: 로그인 사용자만 노출 -->
+															<th:block sec:authorize="isAuthenticated()">
+																<button type="button" class="addToCart ibio-wish-toggle"
+																	th:attr="data-product-id=${p.id}">
+																	<span>관심상품등록</span>
+																</button>
+															</th:block>
+
 															<!--<button type="button" class="wishlist btn-button"><i
 																	class="fa fa-heart-o"></i><span>Add to
 																	WishList</span></button>-->
@@ -266,7 +282,8 @@
 																	</span>
 																</div>
 																<span class="rating-num"
-																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">( 0 )</span>
+																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">(
+																	0 )</span>
 															</div>
 															<h4>
 																<a th:href="@{${productDetailBase}+'/'+${p.id}}"
@@ -370,7 +387,15 @@
 
 													<div class="right-block">
 														<div class="button-group so-quickview cartinfo--left">
-															<button type="button" class="addToCart" title="관심상품등록"><span>관심상품등록</span></button>
+
+															<!-- ✅ 관심상품등록: 로그인 사용자만 노출 -->
+															<th:block sec:authorize="isAuthenticated()">
+																<button type="button" class="addToCart ibio-wish-toggle"
+																	th:attr="data-product-id=${p.id}">
+																	<span>관심상품등록</span>
+																</button>
+															</th:block>
+
 															<!--<button type="button" class="wishlist btn-button"><i
 																	class="fa fa-heart-o"></i><span>Add to
 																	WishList</span></button>-->
@@ -388,7 +413,8 @@
 																	</span>
 																</div>
 																<span class="rating-num"
-																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">( 0 )</span>
+																	th:text="${'( ' + (p.reviewCount != null ? p.reviewCount : 0) + ' )'}">(
+																	0 )</span>
 															</div>
 															<h4>
 																<a th:href="@{${productDetailBase}+'/'+${p.id}}"
@@ -443,7 +469,8 @@
 
 					<!-- 우 2 : 최근 본 제품 -->
 					<div class="col-lg-2 t-d-n">
-						<div id="recentViewModule" class="module product-simple extra-layout1 mt-20" style="display:none;">
+						<div id="recentViewModule" class="module product-simple extra-layout1 mt-20"
+							style="display:none;">
 							<h3 class="modtitle"><span>최근 본 제품</span></h3>
 							<div class="modcontent">
 								<div class="so-extraslider">
@@ -516,4 +543,5 @@
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 
 </body>
+
 </html>
