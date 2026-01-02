@@ -15,17 +15,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/customer")
 public class PaymentFrontController {
 
-	@GetMapping("/paymentStart")
-	public String paymentStart() {
-
-		return "front/payment/paymentStart";
-	}
-
-	@GetMapping("/paymentEnd")
-	public String paymentEnd() {
-
-		return "front/payment/paymentEnd";
-	}
 
 	@GetMapping("/receipt")
 	public String receipt() {

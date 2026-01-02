@@ -467,6 +467,7 @@
 	background: #1e3a8a !important;
 	color: #fff !important;
 	border: 1px solid #1e3a8a !important;
+	height:40px !important;
 }
 
 .paymentSuccess-btnPrimary:hover {
@@ -588,7 +589,7 @@
 }
 
 .table.paymentSuccess-orderTable tbody>tr>td:first-child {
-	border-top: 0px;
+	border-top: 1px solid #ddd;
 }
 
 .paymentSuccess-radio {
@@ -891,6 +892,7 @@
 }
 
 .paymentSuccess-radioRow {
+	height:40px !important;
 	gap: 20px !important;
 	margin-left: 0 !important;
 }

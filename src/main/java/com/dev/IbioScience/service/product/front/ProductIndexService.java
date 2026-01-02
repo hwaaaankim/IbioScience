@@ -30,6 +30,30 @@ public class ProductIndexService {
         return map(repo.findPromotionOldestRaw(limit));
     }
 
+    /**
+     * ✅ 이벤트 상품(오래된순) 조회
+     * - 이벤트 등록상품이 0건이면 랜덤 상품으로 대체
+     */
+    public List<ProductCardDTO> promotionOldestOrRandom(int limit) {
+        List<ProductCardDTO> promo = map(repo.findPromotionOldestRaw(limit));
+        System.out.println("[IDX] promo size=" + (promo == null ? "null" : promo.size()));
+
+        if (promo == null || promo.isEmpty()) {
+            List<ProductCardDTO> rnd = random(limit);
+            System.out.println("[IDX] random size=" + (rnd == null ? "null" : rnd.size()));
+            return rnd;
+        }
+        return promo;
+    }
+    
+    /**
+     * ✅ 랜덤 상품 조회 (이벤트 fallback 용)
+     */
+    public List<ProductCardDTO> random(int limit) {
+        return map(repo.findRandomRaw(limit));
+    }
+
+    
     private List<ProductCardDTO> map(List<Object[]> rows) {
         if (rows == null || rows.isEmpty()) return Collections.emptyList();
         return rows.stream().map(r -> {

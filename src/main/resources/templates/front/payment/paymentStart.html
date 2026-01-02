@@ -43,7 +43,7 @@
 							<th class="text-end">배송비</th>
 							<th class="text-end">적립금</th>
 							<th class="text-center">수량</th>
-							<th class="text-end">총 할인금액</th>
+							<th class="text-end">할인금액</th>
 							<th class="text-end">합계금액</th>
 						</tr>
 					</thead>
@@ -117,9 +117,10 @@
 							<label class="form-label">배송방법</label>
 							<div class="paymentSuccess-selectWrap paymentSuccess-wideControl">
 								<select class="form-select paymentSuccess-shippingMethod">
-									<option value="택배배송">택배배송</option>
-									<option value="우편배송">우편배송</option>
-									<option value="퀵/당일">퀵/당일</option>
+									<!-- ✅ 배송비 문구 반영 -->
+									<option value="택배배송">택배배송 (3,000원)</option>
+									<option value="우편배송">우편배송 (5,000원)</option>
+									<option value="퀵/당일">퀵/당일 (20,000원)</option>
 								</select>
 							</div>
 						</div>
@@ -228,11 +229,6 @@
 						</div>
 					</div>
 
-					<div class="form-check mb-3">
-						<input class="form-check-input" type="checkbox" id="paymentSuccess-defaultAddr">
-						<label class="form-check-label" for="paymentSuccess-defaultAddr">기본 배송지로 사용하기</label>
-					</div>
-
 					<!-- 할인 및 포인트 -->
 					<h4 class="paymentSuccess-title d-flex align-items-center gap-2">
 						할인 및 포인트
@@ -272,7 +268,7 @@
 						<div class="col">
 							<div class="paymentSuccess-radioRow">
 								<label class="paymentSuccess-radio"><input class="paymentSuccess-payMethod" type="radio"
-										name="payMethod" value="무통장입금" checked><span>무통장입금</span></label>
+										name="payMethod" value="계좌이체" checked><span>계좌이체</span></label>
 								<label class="paymentSuccess-radio"><input class="paymentSuccess-payMethod" type="radio"
 										name="payMethod" value="신용카드"><span>신용카드</span></label>
 								<label class="paymentSuccess-radio"><input class="paymentSuccess-payMethod" type="radio"
@@ -287,8 +283,8 @@
 					<aside class="paymentSuccess-summary card">
 						<div class="card-body">
 							<ul class="paymentSuccess-summary-list">
-								<li><span>상품금액</span><strong><span data-bind="sumPrice">59,400</span> 원</strong></li>
-								<li><span>배송비</span><strong><span data-bind="sumShip">3,000</span> 원</strong></li>
+								<li><span>상품금액</span><strong><span data-bind="sumPrice">0</span> 원</strong></li>
+								<li><span>배송비</span><strong><span data-bind="sumShip">0</span> 원</strong></li>
 								<li><span>할인금액</span><strong>-<span data-bind="sumDiscount">0</span> 원</strong></li>
 								<li><span>쿠폰할인</span><strong>-<span data-bind="couponDiscount">0</span> 원</strong></li>
 							</ul>
@@ -296,9 +292,9 @@
 							<div class="paymentSuccess-divider-strong my-2"></div>
 
 							<div class="paymentSuccess-spread">
-								<div>총 <span data-bind="totalCount">1</span>건</div>
-								<div class="paymentSuccess-right paymentSuccess-grand"><span
-										data-bind="grand">63,400</span> 원</div>
+								<div>총 <span data-bind="totalCount">0</span>건</div>
+								<div class="paymentSuccess-right paymentSuccess-grand"><span data-bind="grand">0</span>
+									원</div>
 							</div>
 							<div class="paymentSuccess-spread text-muted">
 								<div>예상 적립 포인트</div>
@@ -334,7 +330,6 @@
 				<button type="button" class="paymentSuccess-modal-close" data-close>&times;</button>
 			</div>
 			<div class="paymentSuccess-modal-body">
-				<!-- 변경/추가: 상태 셀렉트 제거, 버튼을 날짜와 같은 줄 + 하단 정렬 -->
 				<div class="row paymentSuccess-filterRow g-2">
 					<div class="col-12 col-md-4">
 						<label class="form-label">발급일 시작</label>
@@ -350,7 +345,7 @@
 							id="paymentSuccess-cpnSearch">검색</button>
 					</div>
 				</div>
-				<p class="paymentSuccess-cpnNotice">* 사용 가능 쿠폰만 조회됩니다.</p> <!-- 변경/추가: 안내문구 -->
+				<p class="paymentSuccess-cpnNotice">* 사용 가능 쿠폰만 조회됩니다.</p>
 
 				<div class="paymentSuccess-couponList-wrap">
 					<ul class="paymentSuccess-couponList list-group" id="paymentSuccess-cpnList"></ul>
@@ -379,10 +374,38 @@
 			</div>
 		</div>
 	</div>
+	<!-- ===== 결제 테스트용 팝업(바닐라) ===== -->
+	<div class="paymentSuccess-modal" id="paymentTestModal" aria-hidden="true">
+		<div class="paymentSuccess-modal-dialog">
+			<div class="paymentSuccess-modal-header">
+				<h5 id="paymentTestModalTitle">결제 테스트용 팝업</h5>
+				<button type="button" class="paymentSuccess-modal-close" data-close>&times;</button>
+			</div>
+
+			<div class="paymentSuccess-modal-body">
+				<p class="mb-2">
+					선택한 결제수단: <strong id="paymentTest-payMethodText">-</strong>
+				</p>
+				<div id="paymentTest-bodyText" class="text-muted" style="line-height:1.5;">
+					테스트 결제 팝업입니다. 아래 버튼을 눌러 결제 결과를 시뮬레이션합니다.
+				</div>
+				<div class="mt-3">
+					<div><strong>주문번호</strong> : <span id="paymentTest-orderNo">-</span></div>
+					<div><strong>결제금액</strong> : <span id="paymentTest-grand">0</span> 원</div>
+				</div>
+			</div>
+
+			<div class="paymentSuccess-modal-footer">
+				<button type="button" class="btn btn-danger" id="paymentTest-btnError">결제에러</button>
+				<button type="button" class="btn paymentSuccess-btnPrimary" id="paymentTest-btnSuccess">결제완료</button>
+			</div>
+		</div>
+	</div>
 
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
-
-	<!-- 다음 우편번호 서비스 (주소검색) - 변경/추가 -->
+	<script th:inline="javascript">
+		window.__loginMemberId = /*[[${loginMemberId}]]*/ null;
+	</script>
 	<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 	<script src="/front/js/page/paymentStart.js"></script>
 </body>

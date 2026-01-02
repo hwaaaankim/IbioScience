@@ -211,3 +211,16 @@
 		padding: 14px 18px;
 	}
 }
+.label.black{
+	color:black !important;
+	font-size:13px !important;
+}
+div.cart-mobile-modal-summary-list div.value{
+	font-size:12px !important;
+}
+div.cart-mobile-modal-summary-list div{
+	padding-left:10px;
+}
+.btn-danger {
+	height:40px !important;	
+}

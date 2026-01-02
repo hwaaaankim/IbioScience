@@ -109,6 +109,7 @@
 
 		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
 	</div>
+
 	<!-- ===== 모바일 상세내역 모달 ===== -->
 	<div class="modal fade cart-mobile-modal-root" id="detailModal" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="modal-dialog cart-mobile-modal-dialog" role="document">
@@ -133,13 +134,16 @@
 		</div>
 	</div>
 
-	<!-- 상세내역 모달(생략: 기존 동일) -->
-
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 
-	<!-- ✅ cart.js가 사용하는 로그인 memberId 주입 (컨트롤러에서 cartMemberId 내려줌) -->
+	<!-- ✅ cart.js가 사용하는 로그인/인증 정보 주입 -->
 	<script th:inline="javascript">
+		// 로그인 ID (컨트롤러에서 cartMemberId 내려줌)
 		window.__loginMemberId = /*[[${cartMemberId}]]*/ null;
+
+		// ✅ cart.js는 이 값이 true여야 "로그인 상태"로 판단합니다.
+		// sec:authorize 를 이용해 정확히 주입합니다.
+		window.__isAuthenticated = /*[[${#authorization.expression('isAuthenticated()')}]]*/ false;
 	</script>
 
 	<!-- ✅ 장바구니 페이지 전용 -->

@@ -40,7 +40,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "member", uniqueConstraints = {
-		@UniqueConstraint(name = "uk_member_login_id", columnNames = "usename") }, indexes = {
+		@UniqueConstraint(name = "uk_member_login_id", columnNames = "username") }, indexes = {
 				@Index(name = "ix_member_email", columnList = "email"),
 				@Index(name = "ix_member_role", columnList = "role"),
 				@Index(name = "ix_member_status", columnList = "status") })
@@ -73,6 +73,9 @@ public class Member extends BaseTimeEntity {
 	/** 이메일 */
 	@Column(length = 200)
 	private String email;
+	
+	@Column(name="point")
+	private Long point;
 
 	/** 기본 주소 (개인/기업 공통: 홈페이지 제외 모든 주소 포맷) */
 	@Embedded

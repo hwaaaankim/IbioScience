@@ -17,7 +17,7 @@ import com.dev.IbioScience.model.product.Product;
 @Repository
 public interface ProductIndexRepository extends JpaRepository<Product, Long> {
 
-    @Query(value =
+	@Query(value =
         "SELECT " +
         "  p.id                    AS id, " +
         "  p.name                  AS name, " +
@@ -88,4 +88,34 @@ public interface ProductIndexRepository extends JpaRepository<Product, Long> {
         "LIMIT :limit",
         nativeQuery = true)
     List<Object[]> findPromotionOldestRaw(@Param("limit") int limit);
+
+    /**
+     * ✅ 이벤트가 없을 때 사용할 랜덤 상품 조회
+     * - 기존 raw 컬럼 배열(0~10)과 완전히 동일한 SELECT/조인/그룹 형태 유지
+     * - ORDER BY RAND() 로 랜덤 정렬
+     *
+     * 주의:
+     * - 데이터가 매우 많아지면 ORDER BY RAND()는 성능이 떨어질 수 있습니다.
+     *   (그 경우 더 가벼운 랜덤 샘플링 방식으로 교체 가능)
+     */
+    @Query(value =
+        "SELECT " +
+        "  p.id, p.name, p.sale_price, p.consumer_price, IFNULL(p.sales_count,0), IFNULL(p.view_count,0), " +
+        "  ROUND(IFNULL(AVG(r.rating),0),1), IFNULL(COUNT(r.id),0), " +
+        "  (SELECT i.url FROM tb_product_image i WHERE i.product_id=p.id AND i.type='MAIN' " +
+        "     ORDER BY IFNULL(i.sort_order,999999), i.id LIMIT 1), " +
+        "  CAST(MAX(CASE WHEN pr.type='DISCOUNT' THEN pr.discount_percent END) AS SIGNED), " +
+        "  GROUP_CONCAT(DISTINCT CASE WHEN pr.type <> 'DISCOUNT' THEN pr.name END SEPARATOR '||') " +
+        "FROM tb_product p " +
+        "LEFT JOIN tb_product_review r ON r.product_id=p.id " +
+        "LEFT JOIN tb_product_promotion_mapping ppm ON ppm.product_id=p.id " +
+        "LEFT JOIN tb_promotion pr ON pr.id=ppm.promotion_id " +
+        "  AND pr.active=1 " +
+        "  AND ( (pr.term='ALWAYS') OR (pr.term='PERIOD' AND pr.start_date<=CURRENT_DATE AND pr.end_date>=CURRENT_DATE) ) " +
+        "WHERE p.state='NORMAL' " +
+        "GROUP BY p.id " +
+        "ORDER BY RAND() " +
+        "LIMIT :limit",
+        nativeQuery = true)
+    List<Object[]> findRandomRaw(@Param("limit") int limit);
 }

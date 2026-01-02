@@ -17,13 +17,15 @@ public class IndexController {
 
 	private final ProductIndexService productIndexService;
 
-    @GetMapping({"/", "", "/index"})
+	@GetMapping({"/", "", "/index"})
     public String index(Model model) {
-        // 데이터가 없을 수 있으므로 항상 빈 리스트 안전
+
         List<ProductCardDTO> topViewed   = productIndexService.topViewed(10);
         List<ProductCardDTO> topSales    = productIndexService.topSales(10);
-        List<ProductCardDTO> promoOldest = productIndexService.promotionOldest(10);
 
+        // ✅ 이벤트 상품: 없으면 랜덤으로 대체되도록 서비스에서 처리
+        List<ProductCardDTO> promoOldest = productIndexService.promotionOldestOrRandom(10);
+        System.out.println(promoOldest.size());
         model.addAttribute("idxTopViewed", topViewed);
         model.addAttribute("idxTopSales", topSales);
         model.addAttribute("idxPromoOldest", promoOldest);
