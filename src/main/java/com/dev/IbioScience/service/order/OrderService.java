@@ -234,7 +234,7 @@ public class OrderService {
         Order order = Order.builder()
                 .orderNo(generateUniqueOrderNo())
                 .member(member)
-                .status(OrderStatus.PAYMENT_PENDING)
+                .status(OrderStatus.PRODUCT_PREPARING)
                 .paymentMethod(paymentMethod)
                 .shippingMethod(shippingMethod)
                 .shippingPayType(shippingPayType)
@@ -292,11 +292,11 @@ public class OrderService {
         Order order = orderRepository.findByMember_IdAndOrderNo(loginMemberId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
-        if (order.getStatus() != OrderStatus.PAYMENT_PENDING && order.getStatus() != OrderStatus.PAYMENT_ERROR) {
+        if (order.getStatus() != OrderStatus.ORDER_COMPLETED && order.getStatus() != OrderStatus.PAYMENT_ERROR) {
             throw new IllegalArgumentException("현재 상태에서는 결제완료 처리할 수 없습니다. status=" + order.getStatus());
         }
 
-        order.setStatus(OrderStatus.PAYMENT_COMPLETED);
+        order.setStatus(OrderStatus.PRODUCT_PREPARING);
         order.setPaidAt(LocalDateTime.now());
 
         // 쿠폰 사용 처리(선택)
@@ -339,7 +339,7 @@ public class OrderService {
         Order order = orderRepository.findByMember_IdAndOrderNo(loginMemberId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
-        if (order.getStatus() != OrderStatus.PAYMENT_PENDING) {
+        if (order.getStatus() != OrderStatus.ORDER_COMPLETED) {
             throw new IllegalArgumentException("현재 상태에서는 결제에러 처리할 수 없습니다. status=" + order.getStatus());
         }
 

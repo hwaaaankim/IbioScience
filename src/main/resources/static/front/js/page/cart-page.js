@@ -43,9 +43,10 @@
 		return (opt && opt.unit) ? String(opt.unit) : '-';
 	}
 
+	// ✅ 옵션행만 대상으로 체크된 row key 수집
 	function getCheckedRowKeys() {
 		var keys = [];
-		$('#cart-tbody').find('tr').each(function() {
+		$('#cart-tbody').find('tr[data-row-type="opt"]').each(function() {
 			var $tr = $(this);
 			var $chk = $tr.find('.row-check');
 			if ($chk.is(':checked')) {
@@ -94,6 +95,7 @@
 
 	// -------------------------
 	// 렌더링(테이블)
+	// - ✅ 제품 묶음(rowspan) + divider 행 추가
 	// -------------------------
 	function renderCartTable() {
 		var cart = window.IbioCart.getCart();
@@ -107,7 +109,7 @@
 			return;
 		}
 
-		cart.items.forEach(function(entry) {
+		cart.items.forEach(function(entry, entryIndex) {
 			var entryId = entry.cartEntryId;
 			var productId = entry.productId;
 			var productName = entry.productName || '';
@@ -126,49 +128,55 @@
 				}];
 			}
 
+			// ✅ divider (제품 묶음 사이 구분)
+			if (entryIndex > 0) {
+				var $div = $('<tr class="cart-entry-divider" data-row-type="divider"></tr>');
+				$div.append('<td colspan="8"><div class="divider-line"></div></td>');
+				$tbody.append($div);
+			}
+
+			// ✅ rowspan 적용: 첫 옵션행에만 상품정보 셀 출력
+			var rowSpan = options.length;
+
 			options.forEach(function(opt, optIndex) {
 				var unitPrice = safeParseInt(opt.unitPrice);
 				var qty = safeParseInt(opt.quantity);
 				if (qty < 1) qty = 1;
 
-				var $tr = $('<tr></tr>');
+				var $tr = $('<tr data-row-type="opt"></tr>');
 				$tr.attr('data-cart-entry-id', entryId);
 				$tr.attr('data-opt-index', optIndex);
 
+				// 체크
 				var $tdCheck = $('<td class="col-check"></td>');
 				$tdCheck.append('<input type="checkbox" class="row-check">');
 
+				// 상품번호
 				var $tdCat = $('<td class="col-catno"></td>').text(productId != null ? String(productId) : '-');
 
+				// 상품명/썸네일
 				var $tdName = $('<td class="col-name"></td>');
-				var nameHtml = ''
-					+ '<div class="name-cell">'
-					+ '  <img src="' + escapeHtml(productImageUrl) + '" class="thumb" alt="">'
-					+ '  <div class="texts">'
-					+ '    <div class="brand">-</div>'
-					+ '    <div class="title"></div>'
-					+ '    <div class="cat">Product ID : <span></span></div>'
-					+ '  </div>'
-					+ '</div>';
-				$tdName.html(nameHtml);
-				$tdName.find('.title').text(productName || '-');
-				$tdName.find('.cat span').text(productId != null ? String(productId) : '-');
 
+				// 옵션
 				var $tdOpt = $('<td class="col-calib"></td>');
 				var optLabel = buildOptionLabel(opt);
 				var $optInput = $('<input type="text" class="form-control form-control-sm option-input" readonly>');
 				$optInput.val(optLabel);
 				$tdOpt.append($optInput);
 
+				// 단가
 				var $tdPrice = $('<td class="col-price"></td>');
 				$tdPrice.append('<span class="price unit-price" data-value="' + unitPrice + '">' + formatMoney(unitPrice) + '</span>원');
 
+				// 딜러가
 				var $tdDealer = $('<td class="col-dealer"></td>');
 				$tdDealer.append('<strong class="dealer price" data-value="0">-</strong>');
 
+				// 단위
 				var unitText = buildUnitText(opt);
 				var $tdUnit = $('<td class="col-unit"></td>').text(unitText);
 
+				// 수량
 				var $tdQty = $('<td class="col-qty"></td>');
 				var qtyHtml = ''
 					+ '<div class="qty-stepper" data-min="1">'
@@ -180,7 +188,33 @@
 					+ '</div>';
 				$tdQty.html(qtyHtml);
 
-				$tr.append($tdCheck, $tdCat, $tdName, $tdOpt, $tdPrice, $tdDealer, $tdUnit, $tdQty);
+				// ✅ 첫 옵션행: 상품정보를 rowspan으로 묶어서 출력
+				if (optIndex === 0) {
+					var nameHtml = ''
+						+ '<div class="name-cell">'
+						+ '  <img src="' + escapeHtml(productImageUrl) + '" class="thumb" alt="">'
+						+ '  <div class="texts">'
+						+ '    <div class="brand">-</div>'
+						+ '    <div class="title"></div>'
+						+ '    <div class="cat">Product ID : <span></span></div>'
+						+ '    <div class="cart-entry-meta">옵션 <strong class="opt-count"></strong>개 담김</div>'
+						+ '  </div>'
+						+ '</div>';
+					$tdName.html(nameHtml);
+					$tdName.find('.title').text(productName || '-');
+					$tdName.find('.cat span').text(productId != null ? String(productId) : '-');
+					$tdName.find('.opt-count').text(String(rowSpan));
+
+					// rowspan 적용
+					$tdCat.attr('rowspan', rowSpan);
+					$tdName.attr('rowspan', rowSpan);
+
+					$tr.append($tdCheck, $tdCat, $tdName, $tdOpt, $tdPrice, $tdDealer, $tdUnit, $tdQty);
+				} else {
+					// ✅ 이후 옵션행: 상품번호/상품명 셀은 출력하지 않음 (rowspan으로 이미 위에 존재)
+					$tr.append($tdCheck, $tdOpt, $tdPrice, $tdDealer, $tdUnit, $tdQty);
+				}
+
 				$tbody.append($tr);
 			});
 		});
@@ -195,7 +229,7 @@
 	// 체크박스/합계
 	// -------------------------
 	function updateCheckAllState() {
-		var $rows = $('#cart-tbody').find('.row-check');
+		var $rows = $('#cart-tbody').find('tr[data-row-type="opt"] .row-check');
 		if ($rows.length === 0) {
 			$('#cart-checkall').prop('checked', false);
 			return;
@@ -210,7 +244,7 @@
 	function calcSelectedTotalsFromDom() {
 		var productsTotal = 0;
 
-		$('#cart-tbody').find('tr').each(function() {
+		$('#cart-tbody').find('tr[data-row-type="opt"]').each(function() {
 			var $tr = $(this);
 			var checked = $tr.find('.row-check').is(':checked');
 			if (!checked) return;
@@ -279,7 +313,7 @@
 		var cart = window.IbioCart.getCart();
 		if (!cart || !Array.isArray(cart.items)) return;
 
-		$('#cart-tbody').find('tr').each(function() {
+		$('#cart-tbody').find('tr[data-row-type="opt"]').each(function() {
 			var $tr = $(this);
 			var entryId = $tr.data('cart-entry-id');
 			var optIndex = safeParseInt($tr.data('opt-index'));
@@ -340,7 +374,6 @@
 			if (!guardCartOrRedirect()) return;
 		}
 	}
-
 
 	// =========================
 	// ✅ 주문서 payload 생성 + 이동 + 장바구니에서 제거
@@ -436,7 +469,7 @@
 	function bindEvents() {
 		$(document).on('change', '#cart-checkall', function() {
 			var checked = $(this).is(':checked');
-			$('#cart-tbody').find('.row-check').prop('checked', checked);
+			$('#cart-tbody').find('tr[data-row-type="opt"] .row-check').prop('checked', checked);
 			updateTotals();
 		});
 
@@ -446,7 +479,7 @@
 		});
 
 		$(document).on('click', '#cart-tbody .btn-step.up', function() {
-			var $tr = $(this).closest('tr');
+			var $tr = $(this).closest('tr[data-row-type="opt"]');
 			var $input = $tr.find('.qty-input');
 			var v = safeParseInt($input.val());
 			v = v + 1;
@@ -456,7 +489,7 @@
 		});
 
 		$(document).on('click', '#cart-tbody .btn-step.down', function() {
-			var $tr = $(this).closest('tr');
+			var $tr = $(this).closest('tr[data-row-type="opt"]');
 			var $input = $tr.find('.qty-input');
 			var v = safeParseInt($input.val());
 			v = v - 1;
@@ -492,9 +525,34 @@
 		});
 
 		$(document).on('click', '#btn-buy-all', function() {
+			// ✅ 옵션행 전체 개수
+			var $rows = $('#cart-tbody').find('tr[data-row-type="opt"] .row-check');
+
+			// 안전장치: 행이 없으면 진행 불가
+			if ($rows.length === 0) {
+				alert('선택된 상품이 없습니다.');
+				return;
+			}
+
+			// ✅ 하나라도 체크가 안 되어 있으면 막기
+			var allChecked = true;
+			$rows.each(function() {
+				if (!$(this).is(':checked')) {
+					allChecked = false;
+					return false; // break
+				}
+			});
+
+			if (!allChecked) {
+				alert('모든 제품을 체크박스를 통해 선택 해 주세요');
+				return; // ✅ 구매페이지로 이동 금지
+			}
+
+			// ✅ 모두 체크된 경우에만 기존 로직 수행
 			$('#cart-checkall').prop('checked', true).trigger('change');
 			goPaymentStart();
 		});
+
 
 		// ✅ 모달 열릴 때 상세내역 렌더링 (Bootstrap modal 이벤트)
 		$(document).on('show.bs.modal', '#detailModal', function() {

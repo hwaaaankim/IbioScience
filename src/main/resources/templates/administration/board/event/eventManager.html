@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('이벤트 관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">이벤트 관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">이벤트 관리</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- 메시지 -->
+					<div class="row" th:if="${msg != null}">
+						<div class="col-12">
+							<div class="alert alert-success" th:text="${msg}"></div>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card-body">
+
+							<!-- ===== 필터 ===== -->
+							<form class="event-manager-filter" method="get" th:action="@{/admin/manager/eventManager}">
+								<div class="row g-2 align-items-end">
+									<div class="col-md-4">
+										<label class="form-label">제목</label>
+										<input type="text" class="form-control event-manager-title" name="title"
+											th:value="${cond.title}" placeholder="제목 검색">
+									</div>
+
+									<div class="col-md-2">
+										<label class="form-label">진행여부</label>
+										<select class="form-select event-manager-status" name="status">
+											<option value="ALL"
+												th:selected="${cond.status == null || cond.status == 'ALL'}">전체</option>
+											<option value="ONGOING" th:selected="${cond.status == 'ONGOING'}">진행중
+											</option>
+											<option value="ENDED" th:selected="${cond.status == 'ENDED'}">종료</option>
+										</select>
+									</div>
+
+									<div class="col-md-2">
+										<label class="form-label">작성일 From</label>
+										<input type="date" class="form-control event-manager-from" name="fromDate"
+											th:value="${cond.fromDate}">
+									</div>
+
+									<div class="col-md-2">
+										<label class="form-label">작성일 To</label>
+										<input type="date" class="form-control event-manager-to" name="toDate"
+											th:value="${cond.toDate}">
+									</div>
+
+									<div class="col-md-2">
+										<label class="form-label">페이지 사이즈</label>
+										<select class="form-select event-manager-size" name="size">
+											<option value="10" th:selected="${cond.size == 10}">10</option>
+											<option value="30" th:selected="${cond.size == 30}">30</option>
+											<option value="50" th:selected="${cond.size == 50}">50</option>
+											<option value="70" th:selected="${cond.size == 70}">70</option>
+											<option value="100" th:selected="${cond.size == 100}">100</option>
+										</select>
+									</div>
+
+									<div class="col-12 d-flex justify-content-between mt-2">
+										<div class="d-flex gap-2">
+											<button type="submit" class="btn btn-primary event-manager-search-btn">
+												검색
+											</button>
+											<a class="btn btn-light event-manager-reset-btn"
+												th:href="@{/admin/manager/eventManager}">
+												초기화
+											</a>
+										</div>
+
+										<a class="btn btn-success event-manager-insert-btn"
+											th:href="@{/admin/manager/eventInsertForm}">
+											이벤트 등록
+										</a>
+									</div>
+								</div>
+							</form>
+
+							<hr class="my-4" />
+
+							<!-- ===== 테이블 ===== -->
+							<div class="table-responsive">
+								<table class="table table-hover align-middle event-manager-table">
+									<thead class="table-light">
+										<tr>
+											<th style="width:80px;">ID</th>
+											<th>제목</th>
+											<th style="width:120px;">진행여부</th>
+											<th style="width:120px;">시작일</th>
+											<th style="width:120px;">종료일</th>
+											<th style="width:120px;">조회수</th>
+											<th style="width:180px;">작성일</th>
+											<th style="width:180px;">수정일</th>
+											<th style="width:120px;">관리</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:if="${page.totalElements == 0}">
+											<td colspan="9" class="text-center text-muted py-5">
+												조회된 이벤트가 없습니다.
+											</td>
+										</tr>
+
+										<tr th:each="e : ${page.content}">
+											<td th:text="${e.id}">1</td>
+
+											<td>
+												<a th:href="@{/admin/manager/eventDetail/{id}(id=${e.id})}"
+													th:text="${e.title}" class="event-manager-title-link"></a>
+											</td>
+
+											<!-- 진행여부(서버 계산): start<=today<=end -->
+											<td>
+												<span class="badge bg-success"
+													th:if="${#temporals.createNow().toLocalDate() >= e.startDate && #temporals.createNow().toLocalDate() <= e.endDate}">
+													진행중
+												</span>
+												<span class="badge bg-secondary"
+													th:if="${#temporals.createNow().toLocalDate() > e.endDate}">
+													종료
+												</span>
+												<span class="badge bg-warning"
+													th:if="${#temporals.createNow().toLocalDate() < e.startDate}">
+													예정
+												</span>
+											</td>
+
+											<td th:text="${e.startDate}">2026-01-01</td>
+											<td th:text="${e.endDate}">2026-01-10</td>
+											<td th:text="${e.viewCount}">0</td>
+
+											<td th:text="${#temporals.format(e.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+											<td th:text="${#temporals.format(e.updatedAt, 'yyyy-MM-dd HH:mm')}"></td>
+
+											<td>
+												<div class="d-flex gap-2">
+													<a class="btn btn-sm btn-outline-primary"
+														th:href="@{/admin/manager/eventDetail/{id}(id=${e.id})}">
+														상세
+													</a>
+													<button type="button"
+														class="btn btn-sm btn-outline-danger event-manager-delete-btn"
+														th:attr="data-id=${e.id}">
+														삭제
+													</button>
+												</div>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<!-- ===== 페이지네이션 ===== -->
+							<nav th:if="${page.totalPages > 1}" class="event-manager-pagination mt-3">
+								<ul class="pagination justify-content-center">
+
+									<li class="page-item" th:classappend="${page.first} ? 'disabled'">
+										<a class="page-link" th:href="@{/admin/manager/eventManager(page=${page.number-1},
+                                       size=${cond.size}, title=${cond.title}, status=${cond.status},
+                                       fromDate=${cond.fromDate}, toDate=${cond.toDate})}">
+											이전
+										</a>
+									</li>
+
+									<li class="page-item" th:each="i : ${#numbers.sequence(0, page.totalPages-1)}"
+										th:classappend="${i == page.number} ? 'active'">
+										<a class="page-link" th:text="${i+1}" th:href="@{/admin/manager/eventManager(page=${i},
+                                       size=${cond.size}, title=${cond.title}, status=${cond.status},
+                                       fromDate=${cond.fromDate}, toDate=${cond.toDate})}">
+										</a>
+									</li>
+
+									<li class="page-item" th:classappend="${page.last} ? 'disabled'">
+										<a class="page-link" th:href="@{/admin/manager/eventManager(page=${page.number+1},
+                                       size=${cond.size}, title=${cond.title}, status=${cond.status},
+                                       fromDate=${cond.fromDate}, toDate=${cond.toDate})}">
+											다음
+										</a>
+									</li>
+
+								</ul>
+							</nav>
+
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/administration/assets/js/page/shopManager/board/event/eventManager.js}"></script>
+</body>
+
+</html>

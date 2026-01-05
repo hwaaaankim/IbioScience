@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<head th:replace="fragments/front/common :: frontHead"></head>
+<head th:replace="~{fragments/front/common :: frontHead}"></head>
 
 <body class="common-home res layout-1">
 
@@ -244,7 +244,7 @@
 												</th:block>
 
 												<button type="button" class="addToCart"
-													th:onclick="'location.href=''\'' + @{/productDetail/{id}(id=${p.id})} + '\'''">
+													th:onclick="|location.href='@{/productDetail/{id}(id=${p.id})}'|">
 													<span>상세사항확인</span>
 												</button>
 											</div>

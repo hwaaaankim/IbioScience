@@ -47,7 +47,6 @@
 		return 'ibio_payment_payload_v1_u' + String(memberId || '');
 	}
 
-
 	function getPaymentInProgressKey(memberId) {
 		return 'ibio_payment_in_progress_v1_u' + String(memberId || '');
 	}
@@ -65,6 +64,7 @@
 		try { return sessionStorage.getItem(key) === '1'; } catch (e) { }
 		return false;
 	}
+
 	function confirmAbandonPaymentAndRedirect() {
 		const memberId = getLoginMemberId();
 		// 로그인 없으면 기존대로
@@ -82,6 +82,7 @@
 		clearPaymentPayloadSession(memberId);
 		redirectToCart();
 	}
+
 	function clearPaymentPayloadSession(memberId) {
 		const key = getPaymentSessionKey(memberId);
 		try { sessionStorage.removeItem(key); } catch (e) { }
@@ -163,10 +164,37 @@
 			return;
 		}
 
-		// quantity 정리
+		// =========================
+		// ✅ 가격/수량 정규화 (중요)
+		// - 문제 원인: payload의 unitPrice가 "단가"가 아니라 "라인합계(단가*수량)"로 들어오는 경우가 있음.
+		// - 해결: linePrice가 존재하면 unitPrice를 linePrice/quantity로 보정하여 항상 단가로 통일.
+		// - 주의: linePrice 없이 unitPrice만 있는 경우는 '합계인지 단가인지' 확정 불가 → 추측 보정 금지.
+		// =========================
 		payload.items.forEach(it => {
-			it.quantity = Math.max(1, num(it.quantity));
-			it.unitPrice = num(it.unitPrice);
+			const qty = Math.max(1, num(it.quantity));
+			const rawUnit = num(it.unitPrice);
+			const rawLine = num(it.linePrice);
+
+			let unitPrice = rawUnit;
+
+			// linePrice가 있으면 그 값을 기준으로 단가를 확정 가능
+			if (rawLine > 0) {
+				const derivedUnit = Math.round(rawLine / qty);
+
+				// 1) unitPrice가 비어있거나
+				// 2) unitPrice*qty 와 linePrice가 다르거나
+				// 3) unitPrice가 linePrice와 같고 qty>1(= unitPrice에 합계가 들어온 전형적인 케이스)
+				// -> 단가를 derivedUnit로 보정
+				const mismatch = Math.abs(rawLine - (rawUnit * qty)) > 0;
+				const looksLikeLineInUnit = (qty > 1 && rawUnit === rawLine);
+
+				if (!rawUnit || mismatch || looksLikeLineInUnit) {
+					unitPrice = derivedUnit;
+				}
+			}
+
+			it.quantity = qty;
+			it.unitPrice = num(unitPrice);
 			it.linePrice = it.unitPrice * it.quantity;
 		});
 
@@ -219,7 +247,7 @@
 		const optLabel = optParts.length ? optParts.join(' / ') : '-';
 
 		const unitText = item.unit || '-';
-		const unitPrice = num(item.unitPrice);
+		const unitPrice = num(item.unitPrice); // ✅ 반드시 "단가"로 통일된 값
 		const qty = Math.max(1, num(item.quantity));
 
 		// ✅ 배송비는 "주문 단위"로 별도 적용 (요약/최종금액에 포함)
@@ -292,6 +320,7 @@
 		if (v === '착불') return 'COLLECT';
 		return 'PREPAID';
 	}
+
 	function buildCreateOrderRequest() {
 		// 주문자
 		const ordererName = $("#paymentSuccess-ordererName")?.value || "";
@@ -329,12 +358,11 @@
 		// 아이템: 현재 화면의 st.payload.items를 기반으로 quantity는 DOM값 반영 필요
 		const items = [];
 		$$(".paymentSuccess-orderTable tbody tr").forEach((tr, idx) => {
-			const key = tr.getAttribute("data-key") || "";
 			// st.payload.items 순서대로 렌더링했으니 idx로 매칭
 			const origin = st.payload.items[idx];
 
 			const qty = Math.max(1, num(tr.querySelector(".paymentSuccess-qty-input")?.value));
-			const unitPrice = num(tr.querySelector(".ps-unitPrice")?.dataset?.value);
+			const unitPrice = num(tr.querySelector(".ps-unitPrice")?.dataset?.value); // ✅ 단가
 
 			items.push({
 				productId: origin.productId != null ? Number(origin.productId) : null,
@@ -378,6 +406,7 @@
 			items
 		};
 	}
+
 	async function apiPostJson(url, body) {
 		const res = await fetch(url, {
 			method: 'POST',
@@ -399,6 +428,7 @@
 		}
 		return await res.json();
 	}
+
 	function setTestModalContent(payMethodEnum, orderNo, grand) {
 		const payTextEl = $("#paymentTest-payMethodText");
 		const bodyEl = $("#paymentTest-bodyText");
@@ -1008,7 +1038,7 @@
 				const badge = document.querySelector(".paymentSuccess-selectedCoupon");
 				if (badge) {
 					const textEl = badge.querySelector(".text");
-					if (textEl) textEl.textContent = "";
+					if (textEl) textContent = "";
 					badge.classList.add("d-none");
 				}
 				recalc();
@@ -1051,6 +1081,7 @@
 			e.returnValue = '';
 		});
 	}
+
 	// =========================
 	// 기타 셀렉트/라디오
 	// =========================
@@ -1119,4 +1150,5 @@
 	}
 
 	document.addEventListener("DOMContentLoaded", init);
+
 })();

@@ -1235,6 +1235,18 @@ document.addEventListener("DOMContentLoaded", function() {
 		// 7) 옵션그룹/옵션
 		// DOM 기준으로 최신 상태 동기화 후 검사
 		syncOptionGroupsFromDOM();
+
+		// ✅ [추가] 옵션(개별 옵션) 총 개수 1개 이상 필수
+		const totalOptionCount = (optionGroups || []).reduce((sum, g) => {
+			const cnt = (g && Array.isArray(g.options)) ? g.options.length : 0;
+			return sum + cnt;
+		}, 0);
+
+		if (totalOptionCount === 0) {
+			alert('옵션이 1개 이상 있어야 등록할 수 있습니다.');
+			return false;
+		}
+
 		let hasOptionGroupError = false;
 		if (optionGroups.length > 0) {
 			optionGroups.forEach((group) => {
@@ -1247,6 +1259,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			});
 		}
 		if (hasOptionGroupError) { alert('옵션그룹을 추가했다면 그룹명과 각 옵션명을 입력하고, 추가금액은 숫자로 입력하세요.'); return false; }
+
 
 		// 8) 아이콘 기간 체크 시 날짜 필수 + from <= to
 		if (useIconPeriod.checked) {
@@ -1392,12 +1405,25 @@ document.addEventListener("DOMContentLoaded", function() {
 		logSection('11) 옵션그룹');
 		// DOM 기준 최신 상태
 		syncOptionGroupsFromDOM();
+
+		const totalOptionCount2 = (optionGroups || []).reduce((sum, g) => {
+			const cnt = (g && Array.isArray(g.options)) ? g.options.length : 0;
+			return sum + cnt;
+		}, 0);
+
 		console.log(`그룹 개수: ${optionGroups.length}`);
+		console.log(`옵션 총 개수: ${totalOptionCount2}`);
+
+		if (totalOptionCount2 === 0) {
+			console.warn('⚠️ 옵션이 0개입니다. 현재 정책상 등록 불가 상태입니다.');
+		}
+
 		optionGroups.forEach((g, gi) => {
 			console.log(`그룹#${gi} name="${g.name}" 옵션수=${g.options.length}`);
 			g.options.forEach((o, oi) => console.log(`  - 옵션#${oi} name="${o.name}", value="${o.value}", extraPrice="${o.extraPrice}", sign=${o.sign}, sortOrder=${o.sortOrder}`));
 		});
 		endSection();
+
 
 		// 12. 키워드
 		logSection('12) 키워드');

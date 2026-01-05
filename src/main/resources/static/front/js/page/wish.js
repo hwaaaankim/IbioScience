@@ -20,14 +20,14 @@
 		return $.ajax({
 			url: '/api/customer/wishlist/count',
 			method: 'GET',
-			dataType: 'text' // count는 숫자 텍스트로 와도 안전
+			dataType: 'text'
 		});
 	}
 
-	// ✅ toggle은 JSON(action+count)로 받음
-	function apiToggle(productId) {
+	// ✅ "추가만" 하는 API (이미 있으면 EXISTS)
+	function apiAddCheck(productId) {
 		return $.ajax({
-			url: '/api/customer/wishlist/toggle',
+			url: '/api/customer/wishlist/add-check',
 			method: 'POST',
 			dataType: 'json',
 			data: { productId: productId }
@@ -52,16 +52,17 @@
 				.fail(function() { });
 		},
 
-		toggle: function(productId) {
+		// ✅ 전역은 "추가만" 동작
+		add: function(productId) {
 			if (!isAuthenticated()) {
 				alert('로그인이 필요합니다.');
 				return $.Deferred().reject().promise();
 			}
 			if (!productId) return $.Deferred().reject().promise();
 
-			return apiToggle(productId)
+			return apiAddCheck(productId)
 				.done(function(res) {
-					// res: { count, action }
+					// res: { count, action }  action = ADDED | EXISTS
 					if (res && typeof res.count !== 'undefined') {
 						setHeaderCount(res.count);
 					}
@@ -78,20 +79,21 @@
 				var pid = Number($btn.data('product-id'));
 				if (!pid) return;
 
-				self.toggle(pid)
+				self.add(pid)
 					.done(function(res) {
 						if (!res || !res.action) {
 							alert('처리 결과를 확인할 수 없습니다.');
 							return;
 						}
 
-						// ✅ 서버 action 기반으로 UI 확정
+						// ✅ 전역은 삭제하지 않음
 						if (res.action === 'ADDED') {
 							$btn.addClass('active');
 							alert('관심상품에 추가되었습니다.');
-						} else if (res.action === 'REMOVED') {
-							$btn.removeClass('active');
-							alert('관심상품에서 삭제되었습니다.');
+						} else if (res.action === 'EXISTS') {
+							// 이미 담김: 안내만
+							$btn.addClass('active'); // 이미 담긴 상태를 확실히 표시
+							alert('이미 관심상품에 담긴 상품입니다.');
 						} else {
 							alert('처리 중 오류가 발생했습니다.');
 						}

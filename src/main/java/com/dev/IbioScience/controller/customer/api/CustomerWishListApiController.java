@@ -44,6 +44,20 @@ public class CustomerWishListApiController {
         return ResponseEntity.ok(wishListService.countByMemberId(loginMemberId));
     }
 
+    /** ✅ 전역용: "추가만" + action 포함 응답 (이미 있으면 EXISTS) */
+    @PostMapping("/add-check")
+    public ResponseEntity<WishToggleResponse> addCheck(
+            @AuthenticationPrincipal(expression = "member.id") Long loginMemberId,
+            @RequestParam("productId") Long productId
+    ) {
+        if (loginMemberId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new WishToggleResponse(0L, null));
+        }
+        WishToggleResponse res = wishListService.addWithResult(loginMemberId, productId);
+        return ResponseEntity.ok(res);
+    }
+
     /** 관심상품 삭제 */
     @PostMapping("/remove")
     public ResponseEntity<Long> remove(

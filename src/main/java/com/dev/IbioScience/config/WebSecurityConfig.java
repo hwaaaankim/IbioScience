@@ -52,7 +52,7 @@ public class WebSecurityConfig {
     // 관리자 공통/등급별 구간
     private static final String[] ADMIN_COMMON_URLS  = { "/admin/common/**" };
     private static final String[] ADMIN_OPERATOR_URLS= { "/admin/operator/**" };
-    private static final String[] ADMIN_MANAGER_URLS = { "/admin/manager/**" };
+    private static final String[] ADMIN_MANAGER_URLS = { "/admin/manager/**" , "/api/manager/**"};
     private static final String[] ADMIN_MASTER_URLS  = { "/admin/master/**" };
     private static final String[] ADMIN_ROOT_URLS    = { "/admin/root/**" };
 

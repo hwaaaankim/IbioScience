@@ -64,6 +64,26 @@ public class WishListService {
         wishListItemRepository.save(item);
     }
 
+    /** ✅ 전역용: "추가만" 수행 + ADDED/EXISTS 반환 */
+    @Transactional
+    public WishToggleResponse addWithResult(Long memberId, Long productId) {
+        if (memberId == null) throw new IllegalArgumentException("로그인이 필요합니다.");
+        if (productId == null) throw new IllegalArgumentException("productId가 필요합니다.");
+
+        boolean exists = wishListItemRepository.existsByMember_IdAndProduct_Id(memberId, productId);
+
+        WishToggleAction action;
+        if (exists) {
+            action = WishToggleAction.EXISTS; // ✅ 삭제하지 않음
+        } else {
+            add(memberId, productId);
+            action = WishToggleAction.ADDED;
+        }
+
+        long count = countByMemberId(memberId);
+        return new WishToggleResponse(count, action);
+    }
+
     @Transactional
     public void remove(Long memberId, Long productId) {
         if (memberId == null) throw new IllegalArgumentException("로그인이 필요합니다.");
@@ -104,9 +124,6 @@ public class WishListService {
         return countByMemberId(memberId);
     }
 
-    /**
-     * ✅ 찜목록 페이지용 (대표이미지/옵션/가격 매핑 포함)
-     */
     @Transactional(readOnly = true)
     public Page<WishListProductViewDto> getWishListPage(
             Long memberId,
@@ -121,18 +138,15 @@ public class WishListService {
                 .distinct()
                 .toList();
 
-        // (1) 옵션그룹+옵션 조회
         List<ProductOptionGroup> groups = productOptionGroupRepository.findWithOptionsByProductIds(productIds);
         Map<Long, List<ProductOptionGroup>> groupMap = groups.stream()
                 .collect(Collectors.groupingBy(g -> g.getProduct().getId()));
 
-        // (2) 대표(MAIN) 이미지 조회 -> productId별 1장 매핑
         Map<Long, String> mainImageUrlMap = new HashMap<>();
         if (!productIds.isEmpty()) {
             List<ProductImage> mains = productImageRepository.findMainImagesByProductIds(productIds);
             for (ProductImage pi : mains) {
                 Long pid = pi.getProduct().getId();
-                // 첫번째(정렬상 가장 우선)만 사용
                 mainImageUrlMap.putIfAbsent(pid, pi.getUrl());
             }
         }

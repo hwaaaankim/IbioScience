@@ -76,7 +76,7 @@ public class Member extends BaseTimeEntity {
 	
 	@Column(name="point")
 	private Long point;
-
+	
 	/** 기본 주소 (개인/기업 공통: 홈페이지 제외 모든 주소 포맷) */
 	@Embedded
 	private Address address;
