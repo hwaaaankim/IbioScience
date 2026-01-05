@@ -234,7 +234,7 @@ public class OrderService {
         Order order = Order.builder()
                 .orderNo(generateUniqueOrderNo())
                 .member(member)
-                .status(OrderStatus.PRODUCT_PREPARING)
+                .status(OrderStatus.ORDER_COMPLETED)
                 .paymentMethod(paymentMethod)
                 .shippingMethod(shippingMethod)
                 .shippingPayType(shippingPayType)

@@ -37,7 +37,7 @@
 
 				<!-- 성공 아이콘 -->
 				<div class="paymentEnd-headIcon" aria-hidden="true"
-					 th:if="${orderDetail.status == 'PAYMENT_COMPLETED'}">
+					 th:if="${orderDetail.status == 'PRODUCT_PREPARING'}">
 					<svg width="72" height="72" viewBox="0 0 72 72">
 						<circle cx="36" cy="36" r="34" fill="#22c55e" />
 						<path d="M23 37.5l9.2 9.2L49 29" fill="none" stroke="#ffffff" stroke-width="4"
@@ -56,11 +56,11 @@
 				</div>
 
 				<h2 class="paymentEnd-headTitle"
-					th:if="${orderDetail.status == 'PAYMENT_COMPLETED'}">
+					th:if="${orderDetail.status == 'PRODUCT_PREPARING'}">
 					주문해주셔서 감사드립니다.
 				</h2>
 				<p class="paymentEnd-headSub"
-				   th:if="${orderDetail.status == 'PAYMENT_COMPLETED'}">
+				   th:if="${orderDetail.status == 'PRODUCT_PREPARING'}">
 					고객님의 주문이 정상적으로 접수 되었습니다.
 				</p>
 
