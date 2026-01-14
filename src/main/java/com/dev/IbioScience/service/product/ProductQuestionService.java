@@ -29,10 +29,14 @@ public class ProductQuestionService {
     private final ProductAnswerRepository productAnswerRepository; // 추가
     
     public List<ProductQuestionApiDTO> getAllQuestions() {
-        List<ProductQuestion> questions = productQuestionRepository.findAllByOrderBySortOrderAsc();
+
+        // ✅ required=true(=노출 + 필수)만 조회
+        List<ProductQuestion> questions = productQuestionRepository.findByRequiredTrueOrderBySortOrderAsc();
+
         return questions.stream()
             .map(q -> {
-                List<ProductQuestionOption> options = optionRepository.findByQuestionIdOrderBySortOrderAsc(q.getId());
+                List<ProductQuestionOption> options =
+                    optionRepository.findByQuestionIdOrderBySortOrderAsc(q.getId());
                 return ProductQuestionApiDTO.from(q, options);
             })
             .collect(Collectors.toList());

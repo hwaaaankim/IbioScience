@@ -151,7 +151,7 @@ public class ProductDetailQueryService {
 
         // 공통질문 정의
         dto.setDisplayQuestions(
-                productQuestionRepository.findAllWithOptionsOrder().stream()
+                productQuestionRepository.findRequiredWithOptionsOrder().stream()
                         .map(q -> {
                             // 옵션 정렬 보장
                             List<ProductQuestionOption> sortedOpts =

@@ -28,7 +28,7 @@ public interface ProductAnswerRepository extends JpaRepository<ProductAnswer, Lo
     List<ProductAnswer> findByProductWithQuestion(@Param("pid") Long productId);
     
     /**
-     * 제품별 공통질문/답변 조회
+     * 제품별 공통질문/답변 조회 (required=true 질문만)
      *
      * - ProductAnswer.question            : 즉시 로딩
      * - ProductAnswer.detailImages        : 즉시 로딩 (bag 1개)
@@ -46,11 +46,13 @@ public interface ProductAnswerRepository extends JpaRepository<ProductAnswer, Lo
         select pa
         from ProductAnswer pa
         where pa.product.id = :productId
+          and pa.question.required = true
         order by pa.question.sortOrder asc, pa.id asc
         """)
     List<ProductAnswer> findAllWithQuestionAndImagesByProductId(@Param("productId") Long productId);
     
     Optional<ProductAnswer> findFirstByProductAndQuestionOrderByIdAsc(Product product, ProductQuestion question);
+    
 }
 
 
