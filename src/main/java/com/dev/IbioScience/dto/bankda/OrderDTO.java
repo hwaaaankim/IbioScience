@@ -24,8 +24,9 @@ public class OrderDTO {
     private String bank_code_name;      // 은행코드 : 뱅크다발급
     private java.util.Date order_date;  // API 호환 위해 Date 유지
     private Integer order_price_amount;
-
-    private String buyer_email;
+    
+    // 선택 사항
+    private String buyer_email; 
     private String buyer_cellphone;
 
     /**
