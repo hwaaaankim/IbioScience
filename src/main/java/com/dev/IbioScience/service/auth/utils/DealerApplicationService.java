@@ -45,7 +45,7 @@ public class DealerApplicationService {
 		case BUYER -> {
 			// 개인/법인 일반회원만 가능, 기존 딜러면 불가
 			if (!(fromCustomer == CustomerType.PERSONAL || fromCustomer == CustomerType.BUSINESS)) {
-				throw new IllegalArgumentException("구매딜러 신청은 개인/법인 일반회원만 가능합니다.");
+				throw new IllegalArgumentException("구매딜러는 사업자 회원만 가능합니다.");
 			}
 			if (fromDealer != DealerType.NONE) {
 				throw new IllegalArgumentException("이미 딜러 권한이 존재합니다.");
@@ -54,7 +54,7 @@ public class DealerApplicationService {
 		case SELLER -> {
 			// 법인 회원만 가능, 이미 SELLER면 불가
 			if (fromCustomer != CustomerType.BUSINESS) {
-				throw new IllegalArgumentException("판매딜러 신청은 법인 회원만 가능합니다.");
+				throw new IllegalArgumentException("판매딜러 신청은 사업자 회원만 가능합니다.");
 			}
 			if (fromDealer == DealerType.SELLER) {
 				throw new IllegalArgumentException("이미 판매딜러입니다.");

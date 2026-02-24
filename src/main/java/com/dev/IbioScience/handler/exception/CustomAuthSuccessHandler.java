@@ -9,8 +9,11 @@ import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.stereotype.Component;
 
+import com.dev.IbioScience.enums.auth.CustomerType;
+import com.dev.IbioScience.enums.logging.MemberAuditAction;
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.auth.PrincipalDetails;
+import com.dev.IbioScience.service.logging.MemberAuditLogService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,12 +27,32 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
 
     private final HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
 
+    // ✅ 감사로그 서비스
+    private final MemberAuditLogService memberAuditLogService;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
 
         PrincipalDetails pd = (PrincipalDetails) authentication.getPrincipal();
         Member m = pd.getMember();
+
+        // ✅ 0) 로그인 성공 로깅 (흐름을 방해하지 않도록 방어)
+        try {
+            CustomerType ct = m.getCustomerType();
+
+            if (ct == CustomerType.BUSINESS) {
+                memberAuditLogService.logEvent(m, MemberAuditAction.COMPANY_LOGIN, "LOGIN_SUCCESS", m.getId());
+            } else if (ct == CustomerType.PERSONAL) {
+                memberAuditLogService.logEvent(m, MemberAuditAction.PERSONAL_LOGIN, "LOGIN_SUCCESS", m.getId());
+            } else if (ct == CustomerType.STAFF) {
+                memberAuditLogService.logEvent(m, MemberAuditAction.STAFF_LOGIN, "LOGIN_SUCCESS", m.getId());
+            } else {
+                memberAuditLogService.logEvent(m, MemberAuditAction.OTHER, "LOGIN_SUCCESS", m.getId());
+            }
+        } catch (Exception ignore) {
+            // 로깅 실패가 로그인 흐름을 막으면 안됨
+        }
 
         // 1) 최초 로그인 시 비밀번호 변경 강제
         if (m.isMustChangePassword()) {
@@ -52,7 +75,7 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        // 2) Security 가 저장해 둔 요청(SavedRequest)이 있는 경우 → 그쪽으로 우선 이동
+        // 2) SavedRequest 우선
         SavedRequest savedRequest = requestCache.getRequest(request, response);
         if (savedRequest != null) {
             String targetUrl = savedRequest.getRedirectUrl();
@@ -60,7 +83,7 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        // 3) SavedRequest 가 없으면, 우리가 세션에 저장해 둔 prevPage 로 이동
+        // 3) prevPage
         HttpSession session = request.getSession(false);
         if (session != null) {
             String prevPage = (String) session.getAttribute("prevPage");
@@ -71,7 +94,7 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
             }
         }
 
-        // 4) 그 외에는 기본적으로 메인으로 이동
+        // 4) default
         response.sendRedirect("/");
     }
 }

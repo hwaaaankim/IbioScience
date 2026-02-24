@@ -46,7 +46,7 @@ public class WebSecurityConfig {
     };
 
     // 고객/내부 구간
-    private static final String[] CUSTOMER_URLS = { "/customer/**", "/mypage/**", "/api/customer/**" };
+    private static final String[] CUSTOMER_URLS = { "/customer/**", "/mypage/**"};
     private static final String[] SELLER_URLS   = { "/seller/**" };
 
     // 관리자 공통/등급별 구간

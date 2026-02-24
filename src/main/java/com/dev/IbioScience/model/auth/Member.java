@@ -1,6 +1,8 @@
 package com.dev.IbioScience.model.auth;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.dev.IbioScience.enums.auth.CustomerType;
 import com.dev.IbioScience.enums.auth.DealerType;
@@ -9,6 +11,7 @@ import com.dev.IbioScience.enums.auth.MemberRole;
 import com.dev.IbioScience.enums.auth.MemberStatus;
 import com.dev.IbioScience.model.auth.embedded.Address;
 import com.dev.IbioScience.model.auth.embedded.BaseTimeEntity;
+import com.dev.IbioScience.model.order.Order;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -22,6 +25,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -143,4 +148,16 @@ public class Member extends BaseTimeEntity {
 	 /** ✅ 대표여부 (직원 목록에서 우선 표기/검색 용) */
     @Column(name = "is_primary", nullable = false)
     private boolean isPrimary; // Lombok이 게터: isPrimary(), 세터: setPrimary(boolean) 생성
+    
+    // Member 클래스 내부에 필드 추가 (아무 위치나 가능)
+    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
+    private BuyerDealerProfile buyerDealerProfile;
+    
+    // 	판매딜러(입점) 프로필(1:1 역방향)
+    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
+    private SellerDealerProfile sellerDealerProfile;
+    
+    @OneToMany(mappedBy = "member")
+    @Builder.Default
+    private List<Order> orders = new ArrayList<>();
 }

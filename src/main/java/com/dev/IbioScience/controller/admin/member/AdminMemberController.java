@@ -27,11 +27,6 @@ public class AdminMemberController {
 		return "administration/shopManager/memberInsertForm";
 	}
 
-	@GetMapping("/memberManager")
-	public String memberManager() {
-		
-		return "administration/shopManager/memberManager";
-	}
 	
 	@PostMapping("/memberInsert")
 	@ResponseBody

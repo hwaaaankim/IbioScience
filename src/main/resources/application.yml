@@ -1,7 +1,7 @@
 # 공통 설정
 spring:
   profiles:
-    active: test
+    active: prod
   application:
     name: IbioScience
   mail:
@@ -16,6 +16,7 @@ spring:
           starttls:
             enable: true
 server:
+  forward-headers-strategy: framework
   port: 8080
   servlet:
     session:

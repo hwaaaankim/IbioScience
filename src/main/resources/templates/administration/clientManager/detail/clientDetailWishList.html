@@ -3,7 +3,7 @@
 	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
 	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<head th:replace="~{fragments/administration/common :: ibioAdminHead('회원관리')}"></head>
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('고객회원관리상세')}"></head>
 
 <body>
 	<div id="layout-wrapper">
@@ -15,15 +15,14 @@
 			<div class="page-content">
 				<div class="container-fluid">
 
-					<!-- Title / Breadcrumb -->
 					<div class="row">
 						<div class="col-12">
 							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
-								<h4 class="mb-sm-0">회원관리</h4>
+								<h4 class="mb-sm-0">고객회원관리상세</h4>
 								<div class="page-title-right">
 									<ol class="breadcrumb m-0">
 										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
-										<li class="breadcrumb-item active">직원관리</li>
+										<li class="breadcrumb-item active">고객회원 관심상품</li>
 									</ol>
 								</div>
 							</div>
@@ -34,7 +33,6 @@
 					<div class="card">
 						<div class="card-body">
 
-							<!-- 권한 제한 안내 -->
 						</div>
 					</div>
 				</div>
@@ -47,7 +45,7 @@
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="/administration/assets/js/page/shopManager/memberManager.js"></script>
+	<script src="/administration/assets/js/page/clientManager/detail/clientDetailWishList.js"></script>
 
 </body>
 

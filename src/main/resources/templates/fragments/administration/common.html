@@ -156,12 +156,21 @@ xmlns:th="http://www.thymeleaf.org">
 								role="button" 
 								aria-expanded="false" 
 								aria-controls="sidebarCustomerDashboard">
-								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[고객관리]</span>
+								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[회원관리]</span>
 							</a>
 							<div class="collapse menu-dropdown" id="sidebarCustomerDashboard">
 								<ul class="nav nav-sm flex-column">
 									<li class="nav-item">
-										<a href="/admin/root/memberManager" class="nav-link" data-key="t-ecommerce"> [고객리스트] </a>
+										<a href="/admin/root/clientDashBoard" class="nav-link" data-key="t-ecommerce"> [회원대시보드] </a>
+									</li>
+									<li class="nav-item">
+										<a href="/admin/root/clientSearch" class="nav-link" data-key="t-ecommerce"> [회원조회] </a>
+									</li>
+									<li class="nav-item">
+										<a href="/admin/root/clientManager" class="nav-link" data-key="t-ecommerce"> [회원관리] </a>
+									</li>
+									<li class="nav-item">
+										<a href="/admin/root/clientGradeManager" class="nav-link" data-key="t-ecommerce"> [회원등급관리] </a>
 									</li>
 								</ul>
 							</div>

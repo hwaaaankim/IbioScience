@@ -9,4 +9,8 @@ import com.dev.IbioScience.model.auth.Member;
 
 public interface BuyerDealerProfileRepository extends JpaRepository<BuyerDealerProfile, Long> {
 	Optional<BuyerDealerProfile> findByMember(Member member);
+	
+	boolean existsByMember_Id(Long memberId);
+
+    Optional<BuyerDealerProfile> findByMember_Id(Long memberId);
 }
