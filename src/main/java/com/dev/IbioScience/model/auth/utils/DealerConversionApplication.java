@@ -3,6 +3,7 @@ package com.dev.IbioScience.model.auth.utils;
 import java.time.LocalDateTime;
 
 import com.dev.IbioScience.enums.auth.CustomerType;
+import com.dev.IbioScience.enums.auth.DealerApplicationStatus;
 import com.dev.IbioScience.enums.auth.DealerType;
 import com.dev.IbioScience.model.auth.Member;
 

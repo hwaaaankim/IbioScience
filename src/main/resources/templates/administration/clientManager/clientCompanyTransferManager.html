@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('회원전환관리(기업전환)')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<!-- Title / Breadcrumb -->
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">회원전환관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">기업전환(일반 → 기업/구매딜러)</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<style>
+						.client-company-transfer-sort-btn {
+							border: 0;
+							background: transparent;
+							padding: 0 2px;
+						}
+
+						.client-company-transfer-sort-btn span {
+							font-size: 11px;
+							opacity: .6;
+						}
+
+						.client-company-transfer-sort-btn.active span {
+							opacity: 1;
+							font-weight: 700;
+						}
+
+						#client-company-transfer-pagination .page-link {
+							cursor: pointer;
+						}
+
+						.client-company-transfer-muted {
+							color: #6c757d;
+							font-size: 12px;
+						}
+
+						.client-company-transfer-modal-img {
+							width: 100%;
+							border: 1px solid #e9ecef;
+							border-radius: 8px;
+						}
+					</style>
+
+					<!-- CSRF (있을 때만 사용) -->
+					<input type="hidden" id="client-company-transfer-csrf-token"
+						th:value="${_csrf != null ? _csrf.token : ''}">
+					<input type="hidden" id="client-company-transfer-csrf-header"
+						th:value="${_csrf != null ? _csrf.headerName : ''}">
+
+					<!-- Filter Card -->
+					<div class="card">
+						<div class="card-body">
+							<div class="row g-3 align-items-end">
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">페이지 사이즈</label>
+									<select class="form-select" id="client-company-transfer-size">
+										<option value="10" selected>10</option>
+										<option value="30">30</option>
+										<option value="50">50</option>
+										<option value="100">100</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">From</label>
+									<input type="date" class="form-control" id="client-company-transfer-from">
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">To</label>
+									<input type="date" class="form-control" id="client-company-transfer-to">
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">검색</label>
+									<select class="form-select" id="client-company-transfer-search-type">
+										<option value="">(선택)</option>
+										<option value="USERNAME">아이디검색</option>
+										<option value="MOBILE">연락처검색</option>
+										<option value="NAME">이름검색</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">키워드</label>
+									<input type="text" class="form-control" id="client-company-transfer-keyword"
+										placeholder="검색어 입력">
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label d-block">유형</label>
+									<div class="d-flex gap-2 flex-wrap">
+										<div class="form-check">
+											<input class="form-check-input" type="radio"
+												name="client-company-transfer-kind"
+												id="client-company-transfer-kind-all" value="ALL">
+											<label class="form-check-label"
+												for="client-company-transfer-kind-all">전체</label>
+										</div>
+										<div class="form-check">
+											<input class="form-check-input" type="radio"
+												name="client-company-transfer-kind"
+												id="client-company-transfer-kind-company" value="COMPANY" checked>
+											<label class="form-check-label"
+												for="client-company-transfer-kind-company">기업전환</label>
+										</div>
+										<div class="form-check">
+											<input class="form-check-input" type="radio"
+												name="client-company-transfer-kind"
+												id="client-company-transfer-kind-seller" value="SELLER">
+											<label class="form-check-label"
+												for="client-company-transfer-kind-seller">판매딜러전환</label>
+										</div>
+									</div>
+									<div class="client-company-transfer-muted mt-1">* SELLER 선택 시 판매딜러 페이지로 이동합니다.</div>
+								</div>
+
+								<div class="col-12">
+									<div class="d-flex justify-content-end gap-2">
+										<button type="button" class="btn btn-primary"
+											id="client-company-transfer-search-btn">조회</button>
+										<button type="button" class="btn btn-outline-secondary"
+											id="client-company-transfer-reset-btn">초기화</button>
+									</div>
+								</div>
+
+							</div>
+						</div>
+					</div>
+
+					<!-- List Card -->
+					<div class="card">
+						<div class="card-body">
+							<div class="d-flex justify-content-between align-items-center mb-3">
+								<div>
+									<button type="button" class="btn btn-success"
+										id="client-company-transfer-bulk-approve-btn" disabled>일괄승인</button>
+									<span class="client-company-transfer-muted ms-2"
+										id="client-company-transfer-total-text"></span>
+								</div>
+								<div class="client-company-transfer-muted">* PENDING 신청만 노출</div>
+							</div>
+
+							<div class="table-responsive">
+								<table class="table table-bordered table-hover align-middle"
+									id="client-company-transfer-table">
+									<thead>
+										<tr>
+											<th style="width:48px; text-align:center;">
+												<input type="checkbox" id="client-company-transfer-check-all">
+											</th>
+
+											<th>
+												아이디
+												<button type="button" class="client-company-transfer-sort-btn"
+													data-sort="username">
+													<span>▲▼</span>
+												</button>
+											</th>
+
+											<th>
+												신청기업명
+												<button type="button" class="client-company-transfer-sort-btn"
+													data-sort="companyName">
+													<span>▲▼</span>
+												</button>
+											</th>
+
+											<th>
+												이름
+												<button type="button" class="client-company-transfer-sort-btn"
+													data-sort="name">
+													<span>▲▼</span>
+												</button>
+											</th>
+
+											<th>
+												연락처
+												<button type="button" class="client-company-transfer-sort-btn"
+													data-sort="mobile">
+													<span>▲▼</span>
+												</button>
+											</th>
+
+											<th>
+												전환신청일
+												<button type="button" class="client-company-transfer-sort-btn active"
+													data-sort="requestedAt">
+													<span>▲▼</span>
+												</button>
+											</th>
+
+											<th style="width:140px;">비고</th>
+										</tr>
+									</thead>
+									<tbody id="client-company-transfer-tbody">
+										<tr>
+											<td colspan="7" class="text-center text-muted">조회된 데이터가 없습니다.</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<nav class="mt-3">
+								<ul class="pagination justify-content-center" id="client-company-transfer-pagination">
+								</ul>
+							</nav>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<!-- Approve Modal -->
+	<div class="modal fade" id="client-company-transfer-approve-modal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">기업전환 신청 상세</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+
+					<input type="hidden" id="client-company-transfer-modal-application-id">
+
+					<div class="row g-3">
+						<div class="col-12 col-lg-6">
+							<div class="card">
+								<div class="card-body">
+									<h6 class="mb-3">개인 계정 정보</h6>
+									<div class="row g-2">
+										<div class="col-6">
+											<label class="form-label">아이디</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-username" readonly>
+										</div>
+										<div class="col-6">
+											<label class="form-label">이름</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-name" readonly>
+										</div>
+										<div class="col-6">
+											<label class="form-label">연락처</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-mobile" readonly>
+										</div>
+										<div class="col-6">
+											<label class="form-label">이메일</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-email" readonly>
+										</div>
+										<div class="col-12">
+											<label class="form-label">신청일</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-requestedAt" readonly>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12 col-lg-6">
+							<div class="card">
+								<div class="card-body">
+									<h6 class="mb-3">사업자 정보</h6>
+									<div class="row g-2">
+										<div class="col-12">
+											<label class="form-label">신청기업명</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-companyName" readonly>
+										</div>
+
+										<div class="col-6">
+											<label class="form-label">대표자명</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-ceoName" readonly>
+										</div>
+										<div class="col-6">
+											<label class="form-label">사업자등록번호</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-bizNo" readonly>
+										</div>
+
+										<div class="col-6">
+											<label class="form-label">대표전화</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-representativeTel" readonly>
+										</div>
+										<div class="col-6">
+											<label class="form-label">팩스</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-fax" readonly>
+										</div>
+
+										<div class="col-12">
+											<label class="form-label">주소</label>
+											<input type="text" class="form-control"
+												id="client-company-transfer-modal-address" readonly>
+										</div>
+
+										<div class="col-12">
+											<label class="form-label">사업자등록증 이미지</label>
+											<img id="client-company-transfer-modal-bizImg"
+												class="client-company-transfer-modal-img" alt="사업자등록증">
+											<div class="client-company-transfer-muted mt-1"
+												id="client-company-transfer-modal-bizImgHint"></div>
+										</div>
+
+										<div class="col-12">
+											<label class="form-label">처리 메모(선택)</label>
+											<textarea class="form-control"
+												id="client-company-transfer-modal-processNote" rows="3"
+												placeholder="관리자 메모"></textarea>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+
+					</div>
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">닫기</button>
+					<button type="button" class="btn btn-primary"
+						id="client-company-transfer-modal-approve-btn">승인하기</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/js/page/clientManager/clientCompanyTransferManager.js"></script>
+
+</body>
+
+</html>

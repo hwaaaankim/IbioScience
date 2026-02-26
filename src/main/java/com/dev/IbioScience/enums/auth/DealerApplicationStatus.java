@@ -1,4 +1,4 @@
-package com.dev.IbioScience.model.auth.utils;
+package com.dev.IbioScience.enums.auth;
 
 public enum DealerApplicationStatus {
 	PENDING, APPROVED, REJECTED, EXPIRED

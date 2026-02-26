@@ -1,20 +1,40 @@
 package com.dev.IbioScience.controller.admin.member;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.dev.IbioScience.dto.admin.client.ClientListRowDto;
 import com.dev.IbioScience.dto.admin.client.ClientSearchCondition;
+import com.dev.IbioScience.dto.common.CommonAPIResponse;
+import com.dev.IbioScience.dto.customer.auth.ClientApplyPaginationDto;
+import com.dev.IbioScience.dto.customer.auth.ClientApplyRowDto;
+import com.dev.IbioScience.dto.customer.auth.ClientApplySearchCondition;
+import com.dev.IbioScience.dto.customer.auth.WithdrawApproveBulkRequest;
+import com.dev.IbioScience.dto.customer.auth.WithdrawApproveResultDto;
+import com.dev.IbioScience.dto.customer.auth.WithdrawMemberDetailDto;
+import com.dev.IbioScience.dto.customer.auth.WithdrawMemberRowDto;
+import com.dev.IbioScience.dto.customer.auth.WithdrawSearchCondition;
 import com.dev.IbioScience.enums.auth.MemberStatus;
 import com.dev.IbioScience.service.admin.client.ClientSearchService;
+import com.dev.IbioScience.service.auth.admin.client.ClientApplyManagerService;
+import com.dev.IbioScience.service.auth.admin.common.ClientWithdrawManagerService;
 import com.dev.IbioScience.utils.PaginationUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -25,12 +45,9 @@ import lombok.RequiredArgsConstructor;
 public class AdminClientController {
 
 	private final ClientSearchService clientSearchService;
+	private final ClientApplyManagerService clientApplyManagerService;
+	private final ClientWithdrawManagerService service;
 
-	@GetMapping("/clientManager")
-	public String clientManager() {
-
-		return "administration/clientManager/clientManager";
-	}
 
 	@GetMapping("/clientSearch")
 	public String clientSearch(
@@ -97,6 +114,7 @@ public class AdminClientController {
 
 		return "administration/clientManager/clientSearch";
 	}
+	
 	@GetMapping("/clientDashBoard")
 	public String clientDashBoard(Model model) {
 		// ✅ 기본: 오늘 날짜
@@ -105,12 +123,125 @@ public class AdminClientController {
 		return "administration/clientManager/clientDashBoard";
 	}
 
-	@GetMapping("/clientGradeManager")
-	public String clientGradeManager() {
+	@GetMapping("/clientApplyManager")
+    public String clientApplyManager(
+            @ModelAttribute ClientApplySearchCondition cond,
+            @RequestParam(name = "sortKey", required = false) String sortKey,
+            @RequestParam(name = "sortDir", required = false) String sortDir,
+            Model model) {
 
-		return "administration/clientManager/clientGradeManager";
+        Page<ClientApplyRowDto> page = clientApplyManagerService.searchPending(cond, sortKey, sortDir);
+
+        model.addAttribute("cond", cond);
+        model.addAttribute("page", page);
+        model.addAttribute("pagination", ClientApplyPaginationDto.of(page));
+
+        model.addAttribute("sortKey", (sortKey == null || sortKey.isBlank()) ? "joinedAt" : sortKey);
+        model.addAttribute("sortDir", (sortDir == null || sortDir.isBlank()) ? "desc" : sortDir);
+
+        return "administration/clientManager/clientApplyManager";
+    }
+
+	@GetMapping("/clientWithDrawManager")
+	public String clientWithDrawManager(
+			@ModelAttribute WithdrawSearchCondition cond,
+			@RequestParam(name = "sortKey", required = false) String sortKey,
+			@RequestParam(name = "sortDir", required = false) String sortDir,
+			Model model) {
+
+		// 기본값
+		if (cond.getSize() == null) cond.setSize(10);
+		if (cond.getPage() == null) cond.setPage(0);
+		if (cond.getApplyType() == null) cond.setApplyType(WithdrawSearchCondition.ApplyType.ALL);
+
+		// 정렬 기본값: 신청일 desc
+		if (sortKey == null || sortKey.isBlank()) sortKey = "requestedAt";
+		if (sortDir == null || sortDir.isBlank()) sortDir = "desc";
+
+		Page<WithdrawMemberRowDto> page = service.search(cond, sortKey, sortDir);
+
+		int totalPages = page.getTotalPages();
+		if (totalPages <= 0) totalPages = 1;
+
+		int current = page.getNumber(); // 0-based
+		int group = current / 5;
+		int startPage = group * 5;
+		int endPage = Math.min(startPage + 4, totalPages - 1);
+
+		model.addAttribute("cond", cond);
+		model.addAttribute("page", page);
+		model.addAttribute("sortKey", sortKey);
+		model.addAttribute("sortDir", sortDir);
+
+		model.addAttribute("startPage", startPage);
+		model.addAttribute("endPage", endPage);
+		model.addAttribute("totalPages", totalPages);
+
+		// 링크 유지를 위한 query string
+		String qsBase = buildQueryStringBase(cond); // page/sort 제외
+		String qsWithSort = qsBase + "&sortKey=" + enc(sortKey) + "&sortDir=" + enc(sortDir);
+
+		model.addAttribute("qsBase", qsBase);
+		model.addAttribute("qsWithSort", qsWithSort);
+
+		return "administration/clientManager/clientWithDrawManager";
 	}
 
+	@ResponseBody
+	@GetMapping(value = "/api/clientWithdraw/{memberId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public CommonAPIResponse<WithdrawMemberDetailDto> apiDetail(@PathVariable Long memberId) {
+		return CommonAPIResponse.ok(service.getDetail(memberId));
+	}
+
+	@ResponseBody
+	@PostMapping(value = "/api/clientWithdraw/approve/{memberId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public CommonAPIResponse<Void> apiApproveOne(@PathVariable Long memberId) {
+		service.approveOne(memberId);
+		return CommonAPIResponse.ok("승인 처리되었습니다.", null);
+	}
+
+	@ResponseBody
+	@PostMapping(value = "/api/clientWithdraw/approve-bulk",
+			consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public CommonAPIResponse<WithdrawApproveResultDto> apiApproveBulk(@RequestBody WithdrawApproveBulkRequest req) {
+		WithdrawApproveResultDto result = service.approveBulk(req == null ? null : req.getMemberIds());
+		return CommonAPIResponse.ok("일괄 승인 처리되었습니다.", result);
+	}
+
+	private String buildQueryStringBase(WithdrawSearchCondition cond) {
+		StringJoiner sj = new StringJoiner("&");
+		// 항상 size 포함
+		sj.add("size=" + enc(String.valueOf(cond.getSize())));
+
+		if (cond.getFromDate() != null) sj.add("fromDate=" + enc(cond.getFromDate().toString()));
+		if (cond.getToDate() != null) sj.add("toDate=" + enc(cond.getToDate().toString()));
+
+		if (cond.getSearchField() != null) sj.add("searchField=" + enc(cond.getSearchField().name()));
+		if (cond.getKeyword() != null && !cond.getKeyword().isBlank()) sj.add("keyword=" + enc(cond.getKeyword().trim()));
+
+		if (cond.getApplyType() != null) sj.add("applyType=" + enc(cond.getApplyType().name()));
+
+		// page는 링크에서 별도 부여
+		return "?" + sj.toString();
+	}
+
+	private String enc(String v) {
+		return URLEncoder.encode(v == null ? "" : v, StandardCharsets.UTF_8);
+	}
+	
+	@GetMapping("/clientSellerTransferManager")
+	public String clientSellerTransferManager() {
+
+		return "administration/clientManager/clientSellerTransferManager";
+	}
+	
+	@GetMapping("/clientCompanyTransferManager")
+	public String clientCompanyTransferManager() {
+
+		return "administration/clientManager/clientCompanyTransferManager";
+	}
+	
 	@GetMapping("/clientDetail/home")
 	public String clientDetailHome() {
 

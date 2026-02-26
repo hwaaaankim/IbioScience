@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('회원전환관리(판매딜러전환)')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<!-- Title / Breadcrumb -->
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">회원전환관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">판매딜러전환(구매딜러 → 판매딜러)</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<style>
+						.client-seller-transfer-sort-btn {
+							border: 0;
+							background: transparent;
+							padding: 0 2px;
+						}
+
+						.client-seller-transfer-sort-btn span {
+							font-size: 11px;
+							opacity: .6;
+						}
+
+						.client-seller-transfer-sort-btn.active span {
+							opacity: 1;
+							font-weight: 700;
+						}
+
+						#client-seller-transfer-pagination .page-link {
+							cursor: pointer;
+						}
+
+						.client-seller-transfer-muted {
+							color: #6c757d;
+							font-size: 12px;
+						}
+
+						.client-seller-transfer-chip {
+							display: inline-flex;
+							align-items: center;
+							gap: 8px;
+							padding: 6px 10px;
+							border: 1px solid #e9ecef;
+							border-radius: 999px;
+							margin: 4px 6px 0 0;
+						}
+
+						.client-seller-transfer-chip button {
+							border: 0;
+							background: transparent;
+							color: #dc3545;
+							font-weight: 700;
+						}
+					</style>
+
+					<!-- CSRF (있을 때만 사용) -->
+					<input type="hidden" id="client-seller-transfer-csrf-token"
+						th:value="${_csrf != null ? _csrf.token : ''}">
+					<input type="hidden" id="client-seller-transfer-csrf-header"
+						th:value="${_csrf != null ? _csrf.headerName : ''}">
+
+					<!-- Filter Card -->
+					<div class="card">
+						<div class="card-body">
+							<div class="row g-3 align-items-end">
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">페이지 사이즈</label>
+									<select class="form-select" id="client-seller-transfer-size">
+										<option value="10" selected>10</option>
+										<option value="30">30</option>
+										<option value="50">50</option>
+										<option value="100">100</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">From</label>
+									<input type="date" class="form-control" id="client-seller-transfer-from">
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">To</label>
+									<input type="date" class="form-control" id="client-seller-transfer-to">
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">검색</label>
+									<select class="form-select" id="client-seller-transfer-search-type">
+										<option value="">(선택)</option>
+										<option value="USERNAME">아이디검색</option>
+										<option value="MOBILE">연락처검색</option>
+										<option value="NAME">이름검색</option>
+									</select>
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label">키워드</label>
+									<input type="text" class="form-control" id="client-seller-transfer-keyword"
+										placeholder="검색어 입력">
+								</div>
+
+								<div class="col-12 col-md-2">
+									<label class="form-label d-block">유형</label>
+									<div class="d-flex gap-2 flex-wrap">
+										<div class="form-check">
+											<input class="form-check-input" type="radio"
+												name="client-seller-transfer-kind" id="client-seller-transfer-kind-all"
+												value="ALL">
+											<label class="form-check-label"
+												for="client-seller-transfer-kind-all">전체</label>
+										</div>
+										<div class="form-check">
+											<input class="form-check-input" type="radio"
+												name="client-seller-transfer-kind"
+												id="client-seller-transfer-kind-company" value="COMPANY">
+											<label class="form-check-label"
+												for="client-seller-transfer-kind-company">기업전환</label>
+										</div>
+										<div class="form-check">
+											<input class="form-check-input" type="radio"
+												name="client-seller-transfer-kind"
+												id="client-seller-transfer-kind-seller" value="SELLER" checked>
+											<label class="form-check-label"
+												for="client-seller-transfer-kind-seller">판매딜러전환</label>
+										</div>
+									</div>
+									<div class="client-seller-transfer-muted mt-1">* COMPANY 선택 시 기업전환 페이지로 이동합니다.</div>
+								</div>
+
+								<div class="col-12">
+									<div class="d-flex justify-content-end gap-2">
+										<button type="button" class="btn btn-primary"
+											id="client-seller-transfer-search-btn">조회</button>
+										<button type="button" class="btn btn-outline-secondary"
+											id="client-seller-transfer-reset-btn">초기화</button>
+									</div>
+								</div>
+
+							</div>
+						</div>
+					</div>
+
+					<!-- List Card -->
+					<div class="card">
+						<div class="card-body">
+							<div class="d-flex justify-content-between align-items-center mb-3">
+								<span class="client-seller-transfer-muted"
+									id="client-seller-transfer-total-text"></span>
+								<div class="client-seller-transfer-muted">* PENDING(SELLER 신청)만 노출</div>
+							</div>
+
+							<div class="table-responsive">
+								<table class="table table-bordered table-hover align-middle"
+									id="client-seller-transfer-table">
+									<thead>
+										<tr>
+											<th style="width:80px;">번호</th>
+
+											<th>
+												아이디
+												<button type="button" class="client-seller-transfer-sort-btn"
+													data-sort="username">
+													<span>▲▼</span>
+												</button>
+											</th>
+
+											<th>
+												신청기업명
+												<button type="button" class="client-seller-transfer-sort-btn"
+													data-sort="companyName">
+													<span>▲▼</span>
+												</button>
+											</th>
+
+											<th>
+												이름
+												<button type="button" class="client-seller-transfer-sort-btn"
+													data-sort="name">
+													<span>▲▼</span>
+												</button>
+											</th>
+
+											<th>
+												연락처
+												<button type="button" class="client-seller-transfer-sort-btn"
+													data-sort="mobile">
+													<span>▲▼</span>
+												</button>
+											</th>
+
+											<th>
+												전환신청일
+												<button type="button" class="client-seller-transfer-sort-btn active"
+													data-sort="requestedAt">
+													<span>▲▼</span>
+												</button>
+											</th>
+
+											<th style="width:140px;">비고</th>
+										</tr>
+									</thead>
+									<tbody id="client-seller-transfer-tbody">
+										<tr>
+											<td colspan="7" class="text-center text-muted">조회된 데이터가 없습니다.</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<nav class="mt-3">
+								<ul class="pagination justify-content-center" id="client-seller-transfer-pagination">
+								</ul>
+							</nav>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<!-- Approve Modal -->
+	<div class="modal fade" id="client-seller-transfer-approve-modal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">판매딜러 전환 승인</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+
+					<input type="hidden" id="client-seller-transfer-modal-application-id">
+
+					<div class="row g-3">
+
+						<!-- 신청자 정보 -->
+						<div class="col-12">
+							<div class="card">
+								<div class="card-body">
+									<h6 class="mb-3">신청자 정보</h6>
+									<div class="row g-2">
+										<div class="col-6 col-lg-3">
+											<label class="form-label">아이디</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-modal-username" readonly>
+										</div>
+										<div class="col-6 col-lg-3">
+											<label class="form-label">이름</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-modal-name" readonly>
+										</div>
+										<div class="col-6 col-lg-3">
+											<label class="form-label">연락처</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-modal-mobile" readonly>
+										</div>
+										<div class="col-6 col-lg-3">
+											<label class="form-label">신청기업명</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-modal-companyName" readonly>
+										</div>
+										<div class="col-12 col-lg-6">
+											<label class="form-label">신청일</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-modal-requestedAt" readonly>
+										</div>
+										<div class="col-12 col-lg-6">
+											<label class="form-label">사업자등록번호</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-modal-bizNo" readonly>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- SellerDealerProfile 입력 -->
+						<div class="col-12 col-lg-6">
+							<div class="card">
+								<div class="card-body">
+									<h6 class="mb-3">판매딜러 정보(필수)</h6>
+									<div class="row g-2">
+										<div class="col-12">
+											<label class="form-label">입점몰명(shopName) *</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-shopName">
+										</div>
+
+										<div class="col-4">
+											<label class="form-label">거래상태 *</label>
+											<select class="form-select"
+												id="client-seller-transfer-form-tradingStatus"></select>
+										</div>
+										<div class="col-4">
+											<label class="form-label">공급유형 *</label>
+											<select class="form-select"
+												id="client-seller-transfer-form-supplyType"></select>
+										</div>
+										<div class="col-4">
+											<label class="form-label">공급구조 *</label>
+											<select class="form-select"
+												id="client-seller-transfer-form-supplyStructure"></select>
+										</div>
+
+										<div class="col-12">
+											<label class="form-label">거래상품유형(productTypeText) *</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-productTypeText">
+										</div>
+
+										<div class="col-6">
+											<label class="form-label">일반전화(tel) *</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-tel">
+										</div>
+										<div class="col-6">
+											<label class="form-label">팩스(fax)</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-fax">
+										</div>
+
+										<div class="col-12">
+											<label class="form-label">홈페이지(homepageUrl)</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-homepageUrl">
+										</div>
+
+										<div class="col-12">
+											<label class="form-label">처리 메모(선택)</label>
+											<textarea class="form-control" id="client-seller-transfer-form-processNote"
+												rows="3"></textarea>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- 주소 입력 -->
+						<div class="col-12 col-lg-6">
+							<div class="card">
+								<div class="card-body">
+									<h6 class="mb-3">주소(필수)</h6>
+
+									<div class="row g-2">
+										<div class="col-12"><strong>사업장 주소</strong></div>
+
+										<div class="col-4">
+											<label class="form-label">우편번호 *</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-biz-postcode">
+										</div>
+										<div class="col-8">
+											<label class="form-label">도로명 *</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-biz-road">
+										</div>
+										<div class="col-6">
+											<label class="form-label">지번</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-biz-jibun">
+										</div>
+										<div class="col-6">
+											<label class="form-label">상세</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-biz-detail">
+										</div>
+
+										<hr class="my-3">
+
+										<div class="col-12"><strong>반품 주소</strong></div>
+
+										<div class="col-4">
+											<label class="form-label">우편번호 *</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-ret-postcode">
+										</div>
+										<div class="col-8">
+											<label class="form-label">도로명 *</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-ret-road">
+										</div>
+										<div class="col-6">
+											<label class="form-label">지번</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-ret-jibun">
+										</div>
+										<div class="col-6">
+											<label class="form-label">상세</label>
+											<input type="text" class="form-control"
+												id="client-seller-transfer-form-ret-detail">
+										</div>
+
+									</div>
+
+								</div>
+							</div>
+						</div>
+
+						<!-- 연락처(동적) -->
+						<div class="col-12">
+							<div class="card">
+								<div class="card-body">
+									<div class="d-flex justify-content-between align-items-center">
+										<h6 class="mb-0">담당자(SellerContact) (0개 이상 가능)</h6>
+										<button type="button" class="btn btn-outline-primary btn-sm"
+											id="client-seller-transfer-contact-add-btn">추가</button>
+									</div>
+
+									<div class="table-responsive mt-3">
+										<table class="table table-bordered align-middle">
+											<thead>
+												<tr>
+													<th style="width:200px;">담당자명</th>
+													<th style="width:200px;">연락처</th>
+													<th>이메일</th>
+													<th style="width:100px;">삭제</th>
+												</tr>
+											</thead>
+											<tbody id="client-seller-transfer-contact-tbody">
+												<tr>
+													<td colspan="4" class="text-center text-muted">등록된 담당자가 없습니다.</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+
+									<div class="client-seller-transfer-muted">* 행을 추가하되 비워두면 저장되지 않습니다. (입력된 행은 담당자명 필수)
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- 카테고리 권한(동적 등록/삭제) -->
+						<div class="col-12">
+							<div class="card">
+								<div class="card-body">
+									<h6 class="mb-3">판매딜러 카테고리 권한(1개 이상 필수)</h6>
+
+									<div class="row g-2 align-items-end">
+										<div class="col-12 col-md-3">
+											<label class="form-label">대분류 *</label>
+											<select class="form-select" id="client-seller-transfer-cat-large"></select>
+										</div>
+										<div class="col-12 col-md-3">
+											<label class="form-label">중분류</label>
+											<select class="form-select" id="client-seller-transfer-cat-medium"
+												disabled></select>
+										</div>
+										<div class="col-12 col-md-3">
+											<label class="form-label">소분류</label>
+											<select class="form-select" id="client-seller-transfer-cat-small"
+												disabled></select>
+										</div>
+										<div class="col-12 col-md-3 d-grid">
+											<button type="button" class="btn btn-success"
+												id="client-seller-transfer-cat-add-btn">등록</button>
+										</div>
+									</div>
+
+									<div class="mt-3">
+										<div class="client-seller-transfer-muted mb-2">
+											* 대분류만 등록: 해당 대분류 전체 허용 / 중분류까지 등록: 해당 중분류 전체 허용 / 소분류까지 등록: 해당 소분류만 허용
+										</div>
+
+										<div id="client-seller-transfer-cat-chip-wrap"></div>
+
+										<div class="client-seller-transfer-muted mt-2"
+											id="client-seller-transfer-cat-count-text"></div>
+									</div>
+
+								</div>
+							</div>
+						</div>
+
+					</div>
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">닫기</button>
+					<button type="button" class="btn btn-primary"
+						id="client-seller-transfer-modal-approve-btn">승인</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/js/page/clientManager/clientSellerTransferManager.js"></script>
+
+</body>
+
+</html>

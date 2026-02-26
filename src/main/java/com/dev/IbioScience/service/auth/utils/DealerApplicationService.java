@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dev.IbioScience.enums.auth.CustomerType;
+import com.dev.IbioScience.enums.auth.DealerApplicationStatus;
 import com.dev.IbioScience.enums.auth.DealerType;
 import com.dev.IbioScience.model.auth.Member;
-import com.dev.IbioScience.model.auth.utils.DealerApplicationStatus;
 import com.dev.IbioScience.model.auth.utils.DealerApplyRequest;
 import com.dev.IbioScience.model.auth.utils.DealerConversionApplication;
 import com.dev.IbioScience.repository.auth.MemberRepository;

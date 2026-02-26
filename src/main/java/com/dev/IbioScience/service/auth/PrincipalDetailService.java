@@ -14,29 +14,32 @@ import com.dev.IbioScience.repository.auth.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
 
-/** UserDetailsService 구현 */
 @Service
 @RequiredArgsConstructor
 public class PrincipalDetailService implements UserDetailsService {
 
-    private final MemberRepository memberRepository;
+	private final MemberRepository memberRepository;
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Member m = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 아이디입니다."));
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        // 사용여부 우선 차단
-        if (!m.isUseYn()) {
-            throw new UseYnDisabledException("사용불가 계정입니다. 관리자에게 문의하세요.");
-        }
+		Member m = memberRepository.findByUsername(username)
+				.orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 아이디입니다."));
 
-        // 상태 차단 (ACTIVE 외 모두 거부)
-        if (m.getStatus() != MemberStatus.ACTIVE) {
-            // DisabledException 을 그대로 던지면 메시지 구분이 어려우니 커스텀 예외 사용
-            throw new InactiveMemberException("사용할 수 없는 계정 상태: " + m.getStatus().name());
-        }
+		// 사용여부 우선 차단
+		if (!m.isUseYn()) {
+			throw new UseYnDisabledException("사용불가 계정입니다. 관리자에게 문의하세요.");
+		}
 
-        return new PrincipalDetails(m);
-    }
+		// ✅ 상태 차단 정책: ACTIVE/WITHDRAWN만 허용
+		MemberStatus st = m.getStatus();
+		boolean loginAllowed = (st == MemberStatus.ACTIVE || st == MemberStatus.WITHDRAWN);
+
+		if (!loginAllowed) {
+			// FailureHandler가 "계정 상태:"를 파싱하므로 형식 유지
+			throw new InactiveMemberException("사용할 수 없는 계정 상태: " + (st == null ? "UNKNOWN" : st.name()));
+		}
+
+		return new PrincipalDetails(m);
+	}
 }

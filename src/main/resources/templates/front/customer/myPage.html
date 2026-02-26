@@ -46,30 +46,40 @@
 
 										<div class="myPage-main-greet">한경애님&nbsp;<span>즐거운 쇼핑 되세요!</span></div>
 
+										<!-- =======================
+											 ✅ 버튼 영역(요구사항 반영)
+											 - 개인(기업X): 탈퇴요청 + 기업전환
+											 - 기업(판매딜러X): 탈퇴요청 + 판매딜러전환요청
+											 - 판매딜러: 탈퇴요청만
+											 - 이미 신청된 경우: 버튼은 보이되 disabled 느낌 + 클릭 시 메시지
+										======================= -->
 										<div class="myPage-main-actions" sec:authorize="isAuthenticated()">
-											<!-- ✅ 탈퇴요청: 항상 노출 -->
-											<a href="#" class="myPage-main-btn myPage-main-btn--green">
+
+											<!-- ✅ 탈퇴요청: 항상 존재 (상태는 JS가 판정) -->
+											<a href="#" id="btn-withdraw" class="myPage-main-btn myPage-main-btn--green"
+												th:attr="data-member-id=${#authentication.principal.member.id}">
 												탈퇴요청 <i class="fas fa-arrow-right" aria-hidden="true"></i>
 											</a>
+											<div id="hint-withdraw"
+												style="display:none; margin-top:6px; font-size:12px; color:#777;"></div>
 
-											<!-- COMPANY_USER(법인 일반회원)만: 판매 딜러(SELLER) "입점신청" -->
+											<!-- ✅ 기업전환: 개인회원만 노출 (JS가 display 제어) -->
+											<a href="#" id="btn-convert-company"
+												class="myPage-main-btn myPage-main-btn--green" style="display:none;"
+												th:attr="data-conversion-url=@{/customer/conversionToCompany/{id}(id=${#authentication.principal.member.id})}">
+												기업전환 <i class="fas fa-arrow-right" aria-hidden="true"></i>
+											</a>
+											<div id="hint-convert-company"
+												style="display:none; margin-top:6px; font-size:12px; color:#777;"></div>
+
+											<!-- ✅ 판매딜러전환요청: 기업회원(판매딜러 아님)만 노출 (JS가 display 제어) -->
 											<a href="#" id="btn-apply-seller"
-												class="myPage-main-btn myPage-main-btn--green" th:if="${#authentication != null
-           and #authentication.principal != null
-           and #authentication.principal.uiMemberTypeName == 'COMPANY_USER'}"
+												class="myPage-main-btn myPage-main-btn--green" style="display:none;"
 												th:attr="data-member-id=${#authentication.principal.member.id}, data-target='SELLER'">
-												입점신청 <i class="fas fa-arrow-right" aria-hidden="true"></i>
+												판매딜러전환요청 <i class="fas fa-arrow-right" aria-hidden="true"></i>
 											</a>
-
-											<!-- PERSONAL_USER 또는 COMPANY_USER: 구매 딜러(BUYER) "딜러전환" -->
-											<a href="#" id="btn-apply-buyer"
-												class="myPage-main-btn myPage-main-btn--green" th:if="${#authentication != null
-           and #authentication.principal != null
-           and (#authentication.principal.uiMemberTypeName == 'PERSONAL_USER'
-                or #authentication.principal.uiMemberTypeName == 'COMPANY_USER')}"
-												th:attr="data-member-id=${#authentication.principal.member.id}, data-target='BUYER'">
-												딜러전환 <i class="fas fa-arrow-right" aria-hidden="true"></i>
-											</a>
+											<div id="hint-apply-seller"
+												style="display:none; margin-top:6px; font-size:12px; color:#777;"></div>
 
 										</div>
 
@@ -228,6 +238,18 @@
 		(function () {
 			"use strict";
 
+			// 공통: JSON GET 헬퍼
+			async function getJson(url) {
+				const res = await fetch(url, {
+					method: 'GET',
+					headers: {'Accept': 'application/json'}
+				});
+
+				let data = null;
+				try {data = await res.json();} catch (e) {data = null;}
+				return {ok: res.ok, status: res.status, data};
+			}
+
 			// 공통: JSON POST 헬퍼 (비JSON 응답/네트워크 오류 대비)
 			async function postJson(url, body) {
 				const res = await fetch(url, {
@@ -243,31 +265,140 @@
 				try {
 					data = await res.json();
 				} catch (e) {
-					// 비JSON 응답일 경우 data는 null로 둠
 					data = null;
 				}
 
 				return {ok: res.ok, status: res.status, data};
 			}
 
-			// 버튼 바인딩 (BUYER / SELLER)
-			function bindApply(btnId) {
-				const el = document.getElementById(btnId);
-				if (!el) return;
+			function show(el) {if (el) el.style.display = '';}
+			function hide(el) {if (el) el.style.display = 'none';}
 
-				el.addEventListener('click', async function (e) {
+			function markDisabled(el, reasonMsg) {
+				if (!el) return;
+				el.dataset.disabled = 'true';
+				el.dataset.disabledReason = reasonMsg || '이미 신청내역이 있습니다.';
+				el.classList.add('disabled');
+				el.setAttribute('aria-disabled', 'true');
+			}
+
+			function clearDisabled(el) {
+				if (!el) return;
+				el.dataset.disabled = 'false';
+				el.dataset.disabledReason = '';
+				el.classList.remove('disabled');
+				el.removeAttribute('aria-disabled');
+			}
+
+			function bindDisabledClickAlert(el) {
+				if (!el) return;
+				el.addEventListener('click', function (e) {
+					if (this.dataset.disabled === 'true') {
+						e.preventDefault();
+						alert(this.dataset.disabledReason || '이미 신청내역이 있습니다.');
+					}
+				});
+			}
+
+			// ✅ 탈퇴요청 버튼 바인딩
+			function bindWithdraw(btn, hintEl, statusState) {
+				if (!btn) return;
+
+				// disabled 클릭 시 메시지
+				bindDisabledClickAlert(btn);
+
+				btn.addEventListener('click', async function (e) {
+					// disabled면 위 핸들러에서 alert 처리되며 여기까지 내려올 수 있어 방어
+					if (btn.dataset.disabled === 'true') {
+						e.preventDefault();
+						return;
+					}
+
 					e.preventDefault();
 
-					const memberId = Number(this.getAttribute('data-member-id') || '0');
-					const target = String(this.getAttribute('data-target') || '').toUpperCase(); // BUYER / SELLER
-
-					if (!memberId || (target !== 'BUYER' && target !== 'SELLER')) {
+					const memberId = Number(btn.getAttribute('data-member-id') || '0');
+					if (!memberId) {
 						alert('잘못된 요청입니다.');
 						return;
 					}
 
-					// 최종 확인
-					if (!confirm(`정말로 ${target === 'BUYER' ? '구매딜러' : '판매딜러'} 전환을 신청하시겠습니까?`)) {
+					if (!confirm('정말로 탈퇴요청을 하시겠습니까?')) {
+						return;
+					}
+
+					try {
+						const {ok, status, data} = await postJson('/api/customer/mypage/withdraw', {memberId});
+
+						const msg = (data && data.message) ? data.message : null;
+
+						if (ok && data && data.success) {
+							alert(msg || '탈퇴요청이 접수되었습니다.');
+							// ✅ 즉시 로그아웃 처리(서버에서도 logout 수행하지만, 브라우저 이동으로 확정)
+							location.href = '/logout';
+							return;
+						}
+
+						if (status === 401) {
+							alert(msg || '로그인이 필요합니다.');
+							return;
+						}
+						if (status === 400) {
+							alert(msg || '이미 탈퇴신청 되었습니다.');
+							return;
+						}
+						alert(msg || '탈퇴요청 처리 중 오류가 발생했습니다.');
+					} catch (err) {
+						alert('탈퇴요청 처리 중 오류가 발생했습니다.');
+					}
+				});
+			}
+
+			// ✅ 기업전환 버튼 바인딩(개인회원만 노출)
+			function bindCompanyConvert(btn, hintEl) {
+				if (!btn) return;
+
+				// disabled 클릭 시 메시지
+				bindDisabledClickAlert(btn);
+
+				btn.addEventListener('click', function (e) {
+					if (btn.dataset.disabled === 'true') {
+						e.preventDefault();
+						return;
+					}
+					e.preventDefault();
+
+					const url = btn.getAttribute('data-conversion-url');
+					if (!url) {
+						alert('잘못된 요청입니다.');
+						return;
+					}
+					location.href = url;
+				});
+			}
+
+			// ✅ 판매딜러 전환 신청 버튼 바인딩(기존 /api/customer/apply 사용)
+			function bindSellerApply(btn, hintEl) {
+				if (!btn) return;
+
+				// disabled 클릭 시 메시지
+				bindDisabledClickAlert(btn);
+
+				btn.addEventListener('click', async function (e) {
+					if (btn.dataset.disabled === 'true') {
+						e.preventDefault();
+						return;
+					}
+					e.preventDefault();
+
+					const memberId = Number(btn.getAttribute('data-member-id') || '0');
+					const target = String(btn.getAttribute('data-target') || '').toUpperCase(); // SELLER
+
+					if (!memberId || target !== 'SELLER') {
+						alert('잘못된 요청입니다.');
+						return;
+					}
+
+					if (!confirm('정말로 판매딜러 전환을 신청하시겠습니까?')) {
 						return;
 					}
 
@@ -275,27 +406,23 @@
 						const {ok, status, data} = await postJson('/api/customer/apply', {
 							memberId: memberId,
 							targetDealerType: target,
-							note: '' // 필요 시 메모 UI 추가
+							note: ''
 						});
 
-						// 서버가 항상 JSON을 주도록 구현되었더라도, 방어적으로 메시지 구성
 						const serverMsg = (data && data.message) ? data.message : null;
 
 						if (ok && data && data.success) {
 							alert(serverMsg || '신청이 접수되었습니다.');
-							// 새로고침으로 최신 상태 반영
 							location.reload();
 							return;
 						}
 
-						// 비정상 케이스 처리(상태코드별 가독성 향상)
 						if (status === 401) {
 							alert(serverMsg || '로그인이 필요합니다.');
 							return;
 						}
 						if (status === 400) {
-							// 비즈니스 룰 위반(중복 대기 등)
-							alert(serverMsg || '요청이 거부되었습니다. 입력값/상태를 확인해 주세요.');
+							alert(serverMsg || '이미 신청내역이 있습니다.');
 							return;
 						}
 						if (status >= 500) {
@@ -303,19 +430,82 @@
 							return;
 						}
 
-						// 그 외 케이스(비JSON, 예상 밖 응답 등)
 						alert(serverMsg || '신청 처리 중 오류가 발생했습니다.');
-
 					} catch (err) {
-						// 네트워크/기타 예외
 						alert('신청 처리 중 오류가 발생했습니다.');
 					}
 				});
 			}
 
+			// ✅ 상태 조회 후 버튼 노출/비활성 처리
+			async function initMyPageActions() {
+				const btnWithdraw = document.getElementById('btn-withdraw');
+				const btnConvertCompany = document.getElementById('btn-convert-company');
+				const btnApplySeller = document.getElementById('btn-apply-seller');
+
+				const hintWithdraw = document.getElementById('hint-withdraw');
+				const hintConvertCompany = document.getElementById('hint-convert-company');
+				const hintApplySeller = document.getElementById('hint-apply-seller');
+
+				// 기본: 조건 버튼은 숨김
+				hide(btnConvertCompany);
+				hide(btnApplySeller);
+				hide(hintWithdraw);
+				hide(hintConvertCompany);
+				hide(hintApplySeller);
+
+				// 클릭 바인딩(선 바인딩 후 disabled면 alert만)
+				bindWithdraw(btnWithdraw, hintWithdraw);
+				bindCompanyConvert(btnConvertCompany, hintConvertCompany);
+				bindSellerApply(btnApplySeller, hintApplySeller);
+
+				const {ok, status, data} = await getJson('/api/customer/mypage/status');
+
+				if (!ok || !data || !data.success) {
+					// 인증 만료 등: 버튼을 최소화
+					return;
+				}
+
+				// 1) 탈퇴요청: 항상 노출
+				show(btnWithdraw);
+
+				if (data.withdrawAlready) {
+					markDisabled(btnWithdraw, '이미 탈퇴신청 되었습니다.');
+					hintWithdraw.textContent = '이미 탈퇴신청이 접수되어 처리중입니다.';
+					show(hintWithdraw);
+				} else {
+					clearDisabled(btnWithdraw);
+				}
+
+				// 2) 기업전환(개인만)
+				if (data.showCompanyConvert) {
+					show(btnConvertCompany);
+
+					if (data.companyConversionPending) {
+						markDisabled(btnConvertCompany, '이미 전환신청 되었습니다.');
+						hintConvertCompany.textContent = '이미 기업전환 신청이 접수되어 처리중입니다.';
+						show(hintConvertCompany);
+					} else {
+						clearDisabled(btnConvertCompany);
+					}
+				}
+
+				// 3) 판매딜러전환요청(기업+비판매딜러)
+				if (data.showSellerApply) {
+					show(btnApplySeller);
+
+					if (data.sellerConversionPending) {
+						markDisabled(btnApplySeller, '이미 신청내역이 있습니다.');
+						hintApplySeller.textContent = '이미 판매딜러 전환 신청이 접수되어 처리중입니다.';
+						show(hintApplySeller);
+					} else {
+						clearDisabled(btnApplySeller);
+					}
+				}
+			}
+
 			document.addEventListener('DOMContentLoaded', function () {
-				bindApply('btn-apply-buyer');
-				bindApply('btn-apply-seller');
+				initMyPageActions();
 			});
 		})();
 	</script>

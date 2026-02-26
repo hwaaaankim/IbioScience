@@ -1,0 +1,401 @@
+<!-- src/main/resources/templates/administration/clientManager/clientWithDrawManager.html -->
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('회원 탈퇴신청관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<!-- Title / Breadcrumb -->
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">회원관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">회원 탈퇴신청관리</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<style>
+						.client-withdraw-manager-card .form-label {
+							margin-bottom: .35rem;
+						}
+
+						.client-withdraw-manager-table th,
+						.client-withdraw-manager-table td {
+							vertical-align: middle !important;
+						}
+
+						.client-withdraw-manager-sort a {
+							text-decoration: none;
+							margin-left: 6px;
+						}
+
+						.client-withdraw-manager-sort a span {
+							font-size: 12px;
+						}
+
+						.client-withdraw-manager-sort .active {
+							font-weight: 700;
+						}
+
+						.client-withdraw-manager-badge {
+							font-size: 12px;
+						}
+
+						.client-withdraw-manager-modal-kv dt {
+							width: 140px;
+						}
+
+						.client-withdraw-manager-modal-kv dd {
+							margin-bottom: 8px;
+						}
+
+						.client-withdraw-manager-img {
+							width: 100%;
+							max-height: 340px;
+							object-fit: contain;
+							border: 1px solid #e5e7eb;
+							border-radius: 8px;
+						}
+					</style>
+
+					<!-- ===== Search Filter Card ===== -->
+					<div class="card client-withdraw-manager-card">
+						<div class="card-body">
+							<form id="client-withdraw-manager-search-form" method="get"
+								action="/admin/root/clientWithDrawManager">
+								<input type="hidden" name="page" value="0" />
+								<input type="hidden" name="sortKey" th:value="${sortKey}">
+								<input type="hidden" name="sortDir" th:value="${sortDir}">
+
+								<div class="row g-3 align-items-end">
+
+									<!-- Page Size -->
+									<div class="col-lg-1">
+										<label class="form-label" for="client-withdraw-manager-size">페이지 사이즈</label>
+										<select class="form-select" id="client-withdraw-manager-size" name="size">
+											<option value="10" th:selected="${cond.size == 10}">10</option>
+											<option value="30" th:selected="${cond.size == 30}">30</option>
+											<option value="50" th:selected="${cond.size == 50}">50</option>
+											<option value="100" th:selected="${cond.size == 100}">100</option>
+										</select>
+									</div>
+
+									<!-- Date From -->
+									<div class="col-lg-1">
+										<label class="form-label" for="client-withdraw-manager-fromDate">From</label>
+										<input type="date" class="form-control" id="client-withdraw-manager-fromDate"
+											name="fromDate" th:value="${cond.fromDate}">
+									</div>
+
+									<!-- Date To -->
+									<div class="col-lg-1">
+										<label class="form-label" for="client-withdraw-manager-toDate">To</label>
+										<input type="date" class="form-control" id="client-withdraw-manager-toDate"
+											name="toDate" th:value="${cond.toDate}">
+									</div>
+
+									<!-- Search Field -->
+									<div class="col-lg-2">
+										<label class="form-label" for="client-withdraw-manager-searchField">검색
+											조건</label>
+										<select class="form-select" id="client-withdraw-manager-searchField"
+											name="searchField">
+											<option value="" th:selected="${cond.searchField == null}">선택</option>
+											<option th:value="USERNAME"
+												th:selected="${cond.searchField != null and cond.searchField.name() == 'USERNAME'}">
+												아이디검색</option>
+											<option th:value="CONTACT"
+												th:selected="${cond.searchField != null and cond.searchField.name() == 'CONTACT'}">
+												연락처검색</option>
+											<option th:value="NAME"
+												th:selected="${cond.searchField != null and cond.searchField.name() == 'NAME'}">
+												이름검색</option>
+										</select>
+									</div>
+
+									<!-- Keyword -->
+									<div class="col-lg-2">
+										<label class="form-label" for="client-withdraw-manager-keyword">키워드</label>
+										<input type="text" class="form-control" id="client-withdraw-manager-keyword"
+											name="keyword" placeholder="검색어 입력" th:value="${cond.keyword}">
+									</div>
+									<div class="col-lg-3">
+										<label class="form-label" for="client-withdraw-manager-keyword">신청 구분</label>
+										<div class="d-flex flex-wrap gap-4 align-items-center" style="height:40px;">
+											<div class="form-check">
+												<input class="form-check-input" type="radio" name="applyType"
+													id="client-withdraw-manager-type-all" value="ALL"
+													th:checked="${cond.applyType != null and cond.applyType.name() == 'ALL'}">
+												<label class="form-check-label"
+													for="client-withdraw-manager-type-all">전체 신청</label>
+											</div>
+											<div class="form-check">
+												<input class="form-check-input" type="radio" name="applyType"
+													id="client-withdraw-manager-type-personal" value="PERSONAL"
+													th:checked="${cond.applyType != null and cond.applyType.name() == 'PERSONAL'}">
+												<label class="form-check-label"
+													for="client-withdraw-manager-type-personal">일반회원 신청</label>
+											</div>
+											<div class="form-check">
+												<input class="form-check-input" type="radio" name="applyType"
+													id="client-withdraw-manager-type-business" value="BUSINESS"
+													th:checked="${cond.applyType != null and cond.applyType.name() == 'BUSINESS'}">
+												<label class="form-check-label"
+													for="client-withdraw-manager-type-business">기업회원 신청</label>
+											</div>
+										</div>
+									</div>
+									<!-- Buttons -->
+									<div class="col-lg-2 d-flex gap-2">
+										<button type="submit" class="btn btn-primary w-50"
+											id="client-withdraw-manager-search-btn">조회</button>
+										<a class="btn btn-outline-secondary w-50"
+											href="/admin/root/clientWithDrawManager"
+											id="client-withdraw-manager-reset-btn">초기화</a>
+									</div>
+
+
+								</div>
+							</form>
+						</div>
+					</div>
+
+					<!-- ===== Table Card ===== -->
+					<div class="card client-withdraw-manager-card">
+						<div class="card-body">
+
+							<div class="d-flex justify-content-between align-items-center mb-3">
+								<div class="d-flex align-items-center gap-2">
+									<button type="button" class="btn btn-success"
+										id="client-withdraw-manager-bulk-approve-btn" disabled>
+										일괄승인
+									</button>
+									<span class="text-muted client-withdraw-manager-badge">
+										총 <strong th:text="${page.totalElements}">0</strong>건
+									</span>
+								</div>
+							</div>
+
+							<div class="table-responsive">
+								<table class="table table-bordered table-hover client-withdraw-manager-table">
+									<thead class="table-light">
+										<tr>
+											<th style="width:60px;" class="text-center">
+												<input type="checkbox" id="client-withdraw-manager-check-all">
+											</th>
+
+											<th>
+												아이디
+												<span class="client-withdraw-manager-sort">
+													<a
+														th:href="@{|/admin/root/clientWithDrawManager${qsBase}&page=0&sortKey=username&sortDir=asc|}">
+														<span
+															th:classappend="${sortKey=='username' and sortDir=='asc'} ? 'active text-primary' : 'text-muted'">▲</span>
+													</a>
+													<a
+														th:href="@{|/admin/root/clientWithDrawManager${qsBase}&page=0&sortKey=username&sortDir=desc|}">
+														<span
+															th:classappend="${sortKey=='username' and sortDir=='desc'} ? 'active text-primary' : 'text-muted'">▼</span>
+													</a>
+												</span>
+											</th>
+
+											<th>
+												업체명
+												<span class="client-withdraw-manager-sort">
+													<a
+														th:href="@{|/admin/root/clientWithDrawManager${qsBase}&page=0&sortKey=companyName&sortDir=asc|}">
+														<span
+															th:classappend="${sortKey=='companyName' and sortDir=='asc'} ? 'active text-primary' : 'text-muted'">▲</span>
+													</a>
+													<a
+														th:href="@{|/admin/root/clientWithDrawManager${qsBase}&page=0&sortKey=companyName&sortDir=desc|}">
+														<span
+															th:classappend="${sortKey=='companyName' and sortDir=='desc'} ? 'active text-primary' : 'text-muted'">▼</span>
+													</a>
+												</span>
+											</th>
+
+											<th>
+												이름
+												<span class="client-withdraw-manager-sort">
+													<a
+														th:href="@{|/admin/root/clientWithDrawManager${qsBase}&page=0&sortKey=name&sortDir=asc|}">
+														<span
+															th:classappend="${sortKey=='name' and sortDir=='asc'} ? 'active text-primary' : 'text-muted'">▲</span>
+													</a>
+													<a
+														th:href="@{|/admin/root/clientWithDrawManager${qsBase}&page=0&sortKey=name&sortDir=desc|}">
+														<span
+															th:classappend="${sortKey=='name' and sortDir=='desc'} ? 'active text-primary' : 'text-muted'">▼</span>
+													</a>
+												</span>
+											</th>
+
+											<th>
+												연락처
+												<span class="client-withdraw-manager-sort">
+													<a
+														th:href="@{|/admin/root/clientWithDrawManager${qsBase}&page=0&sortKey=contact&sortDir=asc|}">
+														<span
+															th:classappend="${sortKey=='contact' and sortDir=='asc'} ? 'active text-primary' : 'text-muted'">▲</span>
+													</a>
+													<a
+														th:href="@{|/admin/root/clientWithDrawManager${qsBase}&page=0&sortKey=contact&sortDir=desc|}">
+														<span
+															th:classappend="${sortKey=='contact' and sortDir=='desc'} ? 'active text-primary' : 'text-muted'">▼</span>
+													</a>
+												</span>
+											</th>
+
+											<th>
+												신청일
+												<span class="client-withdraw-manager-sort">
+													<a
+														th:href="@{|/admin/root/clientWithDrawManager${qsBase}&page=0&sortKey=requestedAt&sortDir=asc|}">
+														<span
+															th:classappend="${sortKey=='requestedAt' and sortDir=='asc'} ? 'active text-primary' : 'text-muted'">▲</span>
+													</a>
+													<a
+														th:href="@{|/admin/root/clientWithDrawManager${qsBase}&page=0&sortKey=requestedAt&sortDir=desc|}">
+														<span
+															th:classappend="${sortKey=='requestedAt' and sortDir=='desc'} ? 'active text-primary' : 'text-muted'">▼</span>
+													</a>
+												</span>
+											</th>
+
+											<th style="width:140px;" class="text-center">비고</th>
+										</tr>
+									</thead>
+
+									<tbody>
+										<tr th:if="${page.content == null || page.content.isEmpty()}">
+											<td colspan="7" class="text-center text-muted py-4">데이터가 없습니다.</td>
+										</tr>
+
+										<tr th:each="row : ${page.content}">
+											<td class="text-center">
+												<input type="checkbox" class="client-withdraw-manager-row-check"
+													th:value="${row.memberId}">
+											</td>
+											<td th:text="${row.username}">-</td>
+											<td th:text="${row.companyName}">-</td>
+											<td th:text="${row.name}">-</td>
+											<td th:text="${row.contact}">-</td>
+											<td
+												th:text="${row.requestedAt != null ? #temporals.format(row.requestedAt, 'yyyy-MM-dd HH:mm') : '-'}">
+												-</td>
+											<td class="text-center">
+												<button type="button"
+													class="btn btn-outline-primary btn-sm client-withdraw-manager-approve-btn"
+													th:attr="data-member-id=${row.memberId}">
+													승인처리
+												</button>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<!-- ===== Pagination ===== -->
+							<nav class="d-flex justify-content-center mt-3" aria-label="Page navigation">
+								<ul class="pagination mb-0">
+
+									<!-- FIRST -->
+									<li class="page-item" th:classappend="${page.number == 0} ? 'disabled'">
+										<a class="page-link"
+											th:href="@{|/admin/root/clientWithDrawManager${qsWithSort}&page=0|}">FIRST</a>
+									</li>
+
+									<!-- PREV -->
+									<li class="page-item" th:classappend="${page.number == 0} ? 'disabled'">
+										<a class="page-link"
+											th:href="@{|/admin/root/clientWithDrawManager${qsWithSort}&page=${page.number - 1}|}">PREV</a>
+									</li>
+
+									<!-- NUMBERS (max 5) -->
+									<li class="page-item" th:each="p : ${#numbers.sequence(startPage, endPage)}"
+										th:classappend="${p == page.number} ? 'active'">
+										<a class="page-link"
+											th:href="@{|/admin/root/clientWithDrawManager${qsWithSort}&page=${p}|}"
+											th:text="${p + 1}">1</a>
+									</li>
+
+									<!-- NEXT -->
+									<li class="page-item"
+										th:classappend="${page.number >= totalPages - 1} ? 'disabled'">
+										<a class="page-link"
+											th:href="@{|/admin/root/clientWithDrawManager${qsWithSort}&page=${page.number + 1}|}">NEXT</a>
+									</li>
+
+									<!-- LAST -->
+									<li class="page-item"
+										th:classappend="${page.number >= totalPages - 1} ? 'disabled'">
+										<a class="page-link"
+											th:href="@{|/admin/root/clientWithDrawManager${qsWithSort}&page=${totalPages - 1}|}">LAST</a>
+									</li>
+
+								</ul>
+							</nav>
+
+						</div>
+					</div>
+
+					<!-- ===== Approve Modal ===== -->
+					<div class="modal fade" id="client-withdraw-manager-approve-modal" tabindex="-1" aria-hidden="true">
+						<div class="modal-dialog modal-xl modal-dialog-scrollable">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title">탈퇴신청 상세</h5>
+									<button type="button" class="btn-close" data-bs-dismiss="modal"
+										aria-label="Close"></button>
+								</div>
+
+								<div class="modal-body" id="client-withdraw-manager-modal-body">
+									<!-- JS에서 채움 -->
+								</div>
+
+								<div class="modal-footer d-flex justify-content-end gap-2">
+									<button type="button" class="btn btn-outline-secondary"
+										data-bs-dismiss="modal">닫기</button>
+									<button type="button" class="btn btn-danger"
+										id="client-withdraw-manager-modal-approve-btn">
+										승인하기
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/js/page/clientManager/clientWithDrawManager.js"></script>
+
+</body>
+
+</html>

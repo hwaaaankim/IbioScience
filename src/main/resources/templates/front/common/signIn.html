@@ -20,8 +20,11 @@
 						<div class="signIn-divider"></div>
 
 						<!-- ===== 로그인 실패/안내 메시지 영역 ===== -->
-						<div th:if="${param.error}" class="alert alert-danger" role="alert" th:text="${param.msg}">로그인
-							안내 메시지</div>
+						<!-- ===== 로그인 실패/안내 메시지 영역 ===== -->
+						<div th:if="${param.error}" class="alert alert-danger" role="alert"
+							th:text="${(param.msg != null and #arrays.length(param.msg) > 0) ? param.msg[0] : '로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.'}">
+							로그인 안내 메시지
+						</div>
 
 						<form id="signIn-form" method="post" action="/signInProcess" class="signIn-form">
 							<div class="form-group">
@@ -56,4 +59,5 @@
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 
 </body>
+
 </html>
