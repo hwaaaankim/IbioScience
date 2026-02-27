@@ -142,3 +142,46 @@
 	line-height: 1.2;
 	margin-bottom: 0;
 }
+
+.client-detail-home-section {
+	border-radius: 12px;
+}
+
+.client-detail-home-inner-menu .list-group-item {
+	border-radius: 10px;
+	margin-bottom: 8px;
+}
+
+.client-detail-home-kv {
+	padding: 10px 12px;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 12px;
+	background: #fff;
+	height: 100%;
+}
+
+.client-detail-home-k {
+	font-size: 12px;
+	color: #6c757d;
+	margin-bottom: 6px;
+}
+
+.client-detail-home-v {
+	font-size: 15px;
+	font-weight: 600;
+	word-break: break-word;
+}
+
+.client-detail-home-address-box {
+	border: 1px dashed rgba(0, 0, 0, 0.2);
+	border-radius: 12px;
+	padding: 12px;
+	background: #fafbfc;
+}
+
+.client-detail-home-permission-add {
+	padding: 12px;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 12px;
+	background: #fff;
+}

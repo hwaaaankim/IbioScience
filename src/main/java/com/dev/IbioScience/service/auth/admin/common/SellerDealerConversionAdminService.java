@@ -1,5 +1,6 @@
 package com.dev.IbioScience.service.auth.admin.common;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -25,8 +26,11 @@ import com.dev.IbioScience.enums.auth.DealerApplicationStatus;
 import com.dev.IbioScience.enums.auth.DealerType;
 import com.dev.IbioScience.enums.auth.MemberRole;
 import com.dev.IbioScience.enums.auth.MemberStatus;
+import com.dev.IbioScience.enums.product.SettlementBasis;
+import com.dev.IbioScience.enums.product.SettlementCycle;
 import com.dev.IbioScience.model.auth.CompanyProfile;
 import com.dev.IbioScience.model.auth.DealerCategoryPermission;
+import com.dev.IbioScience.model.auth.DealerSettlementPolicy;
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.auth.SellerContact;
 import com.dev.IbioScience.model.auth.SellerDealerProfile;
@@ -243,11 +247,34 @@ public class SellerDealerConversionAdminService {
 		if (req.getBusinessAddress() == null) throw new IllegalArgumentException("사업장 주소가 필요합니다.");
 		if (req.getReturnAddress() == null) throw new IllegalArgumentException("반품 주소가 필요합니다.");
 
+		// ✅ 주소 필드도 서버에서 재검증(daum 강제지만, API 직접 호출 방어)
+		requireText(req.getBusinessAddress().getPostcode(), "사업장 우편번호");
+		requireText(req.getBusinessAddress().getRoadAddress(), "사업장 도로명주소");
+		requireText(req.getReturnAddress().getPostcode(), "반품 우편번호");
+		requireText(req.getReturnAddress().getRoadAddress(), "반품 도로명주소");
+
 		if (req.getCategoryPermissions() == null || req.getCategoryPermissions().isEmpty()) {
 			throw new IllegalArgumentException("카테고리 권한은 1개 이상 등록되어야 합니다.");
 		}
 
-		// enum 매핑 (프론트는 /seller-enums로 내려준 값만 선택하게 되어 있으므로 name() 매칭)
+		// ✅ 정산정책 필수
+		if (req.getSettlementPolicy() == null) {
+			throw new IllegalArgumentException("정산정책(settlementPolicy)이 필요합니다.");
+		}
+		if (req.getSettlementPolicy().getCommissionRate() == null) {
+			throw new IllegalArgumentException("수수료율(commissionRate)은 필수입니다.");
+		}
+		BigDecimal commissionRate = req.getSettlementPolicy().getCommissionRate();
+		if (commissionRate.compareTo(BigDecimal.ZERO) < 0 || commissionRate.compareTo(new BigDecimal("100")) > 0) {
+			throw new IllegalArgumentException("수수료율은 0~100 범위여야 합니다.");
+		}
+		requireText(req.getSettlementPolicy().getCycle(), "정산주기(cycle)");
+		requireText(req.getSettlementPolicy().getBasis(), "정산기준(basis)");
+
+		SettlementCycle cycle = SettlementCycle.valueOf(req.getSettlementPolicy().getCycle());
+		SettlementBasis basis = SettlementBasis.valueOf(req.getSettlementPolicy().getBasis());
+
+		// enum 매핑 (프론트는 /seller-enums로 내려준 값만 선택)
 		com.dev.IbioScience.enums.product.TradingStatus tradingStatus =
 				com.dev.IbioScience.enums.product.TradingStatus.valueOf(req.getTradingStatus());
 		com.dev.IbioScience.enums.product.SupplyType supplyType =
@@ -282,11 +309,20 @@ public class SellerDealerConversionAdminService {
 		em.persist(profile);
 		em.flush(); // id 확보
 
+		// ✅ DealerSettlementPolicy 생성/저장
+		DealerSettlementPolicy policy = DealerSettlementPolicy.builder()
+				.sellerDealerProfile(profile)
+				.commissionRate(commissionRate)
+				.cycle(cycle)
+				.basis(basis)
+				.nextSettlementDate(calculateNextSettlementDate(LocalDate.now(), cycle))
+				.build();
+		em.persist(policy);
+
 		// SellerContact(0~N)
 		if (req.getContacts() != null) {
 			for (SellerDealerApproveRequest.SellerContactDto c : req.getContacts()) {
 				if (c == null) continue;
-				// 0개 허용, 다만 입력된 row는 name은 필수로 강제
 				boolean any = hasAnyText(c.getName()) || hasAnyText(c.getPhone()) || hasAnyText(c.getEmail());
 				if (!any) continue;
 
@@ -303,8 +339,7 @@ public class SellerDealerConversionAdminService {
 			}
 		}
 
-		// DealerCategoryPermission(1개 이상 필수)
-		// - 중복 방지(largeId, mediumId, smallId 조합)
+		// DealerCategoryPermission(1개 이상 필수) - 중복 방지(largeId, mediumId, smallId 조합)
 		Set<String> dedup = new LinkedHashSet<>();
 		for (SellerDealerApproveRequest.CategoryPermissionDto p : req.getCategoryPermissions()) {
 			if (p == null || p.getLargeId() == null) {
@@ -318,7 +353,6 @@ public class SellerDealerConversionAdminService {
 			CategoryMedium medium = null;
 			if (p.getMediumId() != null) {
 				medium = em.getReference(CategoryMedium.class, p.getMediumId());
-				// medium이 large 하위인지 검증
 				Long midLargeId = medium.getLarge() != null ? medium.getLarge().getId() : null;
 				if (midLargeId == null || !midLargeId.equals(p.getLargeId())) {
 					throw new IllegalArgumentException("중분류가 선택된 대분류의 하위가 아닙니다. (mediumId=" + p.getMediumId() + ")");
@@ -328,7 +362,6 @@ public class SellerDealerConversionAdminService {
 			CategorySmall small = null;
 			if (p.getSmallId() != null) {
 				small = em.getReference(CategorySmall.class, p.getSmallId());
-				// 소분류는 N:N이라 완전한 FK 검증이 어려움 → MediumSmallProductCategory 기반으로 조합 검증(존재할 때만)
 				if (medium != null) {
 					Long cnt = em.createQuery(
 							"select count(ms.id) from MediumSmallProductCategory ms where ms.medium.id = :mid and ms.small.id = :sid",
@@ -355,7 +388,6 @@ public class SellerDealerConversionAdminService {
 
 		// Member 전환 반영
 		applicant.setDealerType(DealerType.SELLER);
-		// ✅ 보안 권한 role도 SELLER_DEALER로 변경(보안이 role 기준이면 필수)
 		applicant.setRole(MemberRole.SELLER_DEALER);
 		memberRepository.save(applicant);
 
@@ -400,7 +432,7 @@ public class SellerDealerConversionAdminService {
 
 	/**
 	 * ✅ 중분류 선택 시 소분류 목록
-	 * - 환님 구조상 중:소 = N:N 이라 “정합성”은 MediumSmallProductCategory(중-소-제품)에서 distinct small로 구성
+	 * - 중:소 = N:N 이라 “정합성”은 MediumSmallProductCategory에서 distinct small로 구성
 	 */
 	@Transactional(readOnly = true)
 	public List<Map<String, Object>> listCategorySmallsByMedium(Long mediumId) {
@@ -422,6 +454,10 @@ public class SellerDealerConversionAdminService {
 		map.put("tradingStatus", enumNames(com.dev.IbioScience.enums.product.TradingStatus.values()));
 		map.put("supplyType", enumNames(com.dev.IbioScience.enums.product.SupplyType.values()));
 		map.put("supplyStructure", enumNames(com.dev.IbioScience.enums.product.SupplyStructure.values()));
+
+		// ✅ 정산정책 enum 추가
+		map.put("settlementCycle", enumNames(SettlementCycle.values()));
+		map.put("settlementBasis", enumNames(SettlementBasis.values()));
 		return map;
 	}
 
@@ -503,6 +539,22 @@ public class SellerDealerConversionAdminService {
 		a.setJibunAddress(emptyToNull(dto.getJibunAddress()));
 		a.setDetailAddress(emptyToNull(dto.getDetailAddress()));
 		return a;
+	}
+
+	private static LocalDate calculateNextSettlementDate(LocalDate today, SettlementCycle cycle) {
+		if (cycle == SettlementCycle.MONTH_END) {
+			return today.withDayOfMonth(today.lengthOfMonth());
+		}
+
+		int day = cycle.day; // 1/5/10/15/20/25
+		LocalDate candidate = today.withDayOfMonth(Math.min(day, today.lengthOfMonth()));
+
+		if (!candidate.isBefore(today)) {
+			return candidate;
+		}
+
+		LocalDate nextMonth = today.plusMonths(1);
+		return nextMonth.withDayOfMonth(Math.min(day, nextMonth.lengthOfMonth()));
 	}
 
 	private String generateUniqueSupplierCode() {

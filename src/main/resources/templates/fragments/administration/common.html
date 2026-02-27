@@ -1,13 +1,6 @@
 <!doctype html>
-<html 
-lang="ko" 
-data-layout="vertical" 
-data-topbar="light" 
-data-sidebar="dark" 
-data-sidebar-size="lg"
-data-sidebar-image="none" 
-data-preloader="disable"
-xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
 
 <head th:fragment="ibioAdminHead(titleText)">
 
@@ -57,7 +50,8 @@ xmlns:th="http://www.thymeleaf.org">
 								aria-haspopup="true" aria-expanded="false">
 								<span class="d-flex align-items-center">
 									<span class="text-start ms-xl-2">
-										<span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">[사용자명]</span>
+										<span
+											class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">[사용자명]</span>
 										<span class="d-none d-xl-block ms-1 fs-12 user-name-sub-text">[사용자등급]</span>
 									</span>
 								</span>
@@ -110,13 +104,8 @@ xmlns:th="http://www.thymeleaf.org">
 					<ul class="navbar-nav" id="navbar-nav">
 						<li class="menu-title"><span data-key="t-menu">Menu</span></li>
 						<li class="nav-item">
-							<a 
-								class="nav-link menu-link" 
-								href="#sidebarDashboards" 
-								data-bs-toggle="collapse"
-								role="button" 
-								aria-expanded="false" 
-								aria-controls="sidebarDashboards">
+							<a class="nav-link menu-link" href="#sidebarDashboards" data-bs-toggle="collapse"
+								role="button" aria-expanded="false" aria-controls="sidebarDashboards">
 								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[상품관리]</span>
 							</a>
 							<div class="collapse menu-dropdown" id="sidebarDashboards">
@@ -134,112 +123,108 @@ xmlns:th="http://www.thymeleaf.org">
 										<a href="/couponManager" class="nav-link" data-key="t-ecommerce"> [쿠폰관리] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/productPromotionManager" class="nav-link" data-key="t-ecommerce"> [프로모션관리] </a>
+										<a href="/productPromotionManager" class="nav-link" data-key="t-ecommerce">
+											[프로모션관리] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/internalCategoryManager" class="nav-link" data-key="t-ecommerce"> [내부분류관리] </a>
+										<a href="/internalCategoryManager" class="nav-link" data-key="t-ecommerce">
+											[내부분류관리] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/productInsertForm" class="nav-link" data-key="t-ecommerce"> [상품등록] </a>
+										<a href="/admin/productInsertForm" class="nav-link" data-key="t-ecommerce">
+											[상품등록] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/productManager" class="nav-link" data-key="t-ecommerce"> [상품리스트] </a>
+										<a href="/admin/productManager" class="nav-link" data-key="t-ecommerce"> [상품리스트]
+										</a>
 									</li>
 								</ul>
 							</div>
-						</li> 
+						</li>
 						<li class="nav-item">
-							<a 
-								class="nav-link menu-link" 
-								href="#sidebarCustomerDashboard" 
-								data-bs-toggle="collapse"
-								role="button" 
-								aria-expanded="false" 
-								aria-controls="sidebarCustomerDashboard">
+							<a class="nav-link menu-link" href="#sidebarCustomerDashboard" data-bs-toggle="collapse"
+								role="button" aria-expanded="false" aria-controls="sidebarCustomerDashboard">
 								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[회원관리]</span>
 							</a>
 							<div class="collapse menu-dropdown" id="sidebarCustomerDashboard">
 								<ul class="nav nav-sm flex-column">
 									<li class="nav-item">
-										<a href="/admin/root/clientDashBoard" class="nav-link" data-key="t-ecommerce"> [회원대시보드] </a>
+										<a href="/admin/root/clientDashBoard" class="nav-link" data-key="t-ecommerce">
+											[회원대시보드] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/root/clientSearch" class="nav-link" data-key="t-ecommerce"> [회원조회] </a>
+										<a href="/admin/root/clientSearch" class="nav-link" data-key="t-ecommerce">
+											[회원조회] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/root/clientApplyManager" class="nav-link" data-key="t-ecommerce"> [회원신청관리] </a>
+										<a href="/admin/root/clientApplyManager" class="nav-link"
+											data-key="t-ecommerce"> [회원신청관리] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/root/clientCompanyTransferManager" class="nav-link" data-key="t-ecommerce"> [기업회원전환관리] </a>
+										<a href="/admin/root/clientCompanyTransferManager" class="nav-link"
+											data-key="t-ecommerce"> [기업회원전환관리] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/root/clientSellerTransferManager" class="nav-link" data-key="t-ecommerce"> [판매딜러전환관리] </a>
+										<a href="/admin/root/clientSellerTransferManager" class="nav-link"
+											data-key="t-ecommerce"> [판매딜러전환관리] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/root/clientWithDrawManager" class="nav-link" data-key="t-ecommerce"> [회원탈퇴관리] </a>
+										<a href="/admin/root/clientWithDrawManager" class="nav-link"
+											data-key="t-ecommerce"> [회원탈퇴관리] </a>
 									</li>
 								</ul>
 							</div>
 						</li>
 						<li class="nav-item">
-							<a 
-								class="nav-link menu-link" 
-								href="#sidebarBoardDashboard" 
-								data-bs-toggle="collapse"
-								role="button" 
-								aria-expanded="false" 
-								aria-controls="sidebarBoardDashboard">
+							<a class="nav-link menu-link" href="#sidebarBoardDashboard" data-bs-toggle="collapse"
+								role="button" aria-expanded="false" aria-controls="sidebarBoardDashboard">
 								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[사이트관리]</span>
 							</a>
 							<div class="collapse menu-dropdown" id="sidebarBoardDashboard">
 								<ul class="nav nav-sm flex-column">
 									<li class="nav-item">
-										<a href="/admin/manager/eventManager" class="nav-link" data-key="t-ecommerce"> [이벤트관리] </a>
+										<a href="/admin/manager/eventManager" class="nav-link" data-key="t-ecommerce">
+											[이벤트관리] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/manager/noticeManager" class="nav-link" data-key="t-ecommerce"> [공지사항관리] </a>
+										<a href="/admin/manager/noticeManager" class="nav-link" data-key="t-ecommerce">
+											[공지사항관리] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/manager/qnaCategoryManager" class="nav-link" data-key="t-ecommerce"> [QNA카테고리관리] </a>
+										<a href="/admin/manager/qnaCategoryManager" class="nav-link"
+											data-key="t-ecommerce"> [QNA카테고리관리] </a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/manager/qnaManager" class="nav-link" data-key="t-ecommerce"> [QNA관리] </a>
+										<a href="/admin/manager/qnaManager" class="nav-link" data-key="t-ecommerce">
+											[QNA관리] </a>
 									</li>
 								</ul>
 							</div>
 						</li>
 						<li class="nav-item">
-							<a 
-								class="nav-link menu-link" 
-								href="#sidebarUserDashboard" 
-								data-bs-toggle="collapse"
-								role="button" 
-								aria-expanded="false" 
-								aria-controls="sidebarUserDashboard">
+							<a class="nav-link menu-link" href="#sidebarUserDashboard" data-bs-toggle="collapse"
+								role="button" aria-expanded="false" aria-controls="sidebarUserDashboard">
 								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[입점몰관리]</span>
 							</a>
 							<div class="collapse menu-dropdown" id="sidebarUserDashboard">
 								<ul class="nav nav-sm flex-column">
 									<li class="nav-item">
-										<a href="/admin/root/mallInsertForm" class="nav-link" data-key="t-ecommerce"> [입점몰등록] </a>
+										<a href="/admin/root/mallInsertForm" class="nav-link" data-key="t-ecommerce">
+											[입점몰등록] </a>
 									</li>
 								</ul>
 							</div>
 						</li>
 						<li class="nav-item">
-							<a 
-								class="nav-link menu-link" 
-								href="#sidebarShopManagerDashboard" 
-								data-bs-toggle="collapse"
-								role="button" 
-								aria-expanded="false" 
-								aria-controls="sidebarShopManagerDashboard">
+							<a class="nav-link menu-link" href="#sidebarShopManagerDashboard" data-bs-toggle="collapse"
+								role="button" aria-expanded="false" aria-controls="sidebarShopManagerDashboard">
 								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[쇼핑몰관리]</span>
 							</a>
 							<div class="collapse menu-dropdown" id="sidebarShopManagerDashboard">
 								<ul class="nav nav-sm flex-column">
 									<li class="nav-item">
-										<a href="/admin/root/memberInsertForm" class="nav-link" data-key="t-ecommerce"> [직원등록] </a>
+										<a href="/admin/root/memberInsertForm" class="nav-link" data-key="t-ecommerce">
+											[직원등록] </a>
 									</li>
 								</ul>
 							</div>
@@ -256,7 +241,7 @@ xmlns:th="http://www.thymeleaf.org">
 		<button onclick="topFunction()" class="btn btn-danger btn-icon" id="back-to-top">
 			<i class="ri-arrow-up-line"></i>
 		</button>
-	
+
 		<div id="preloader">
 			<div id="status">
 				<div class="spinner-border text-primary avatar-sm" role="status">
@@ -286,7 +271,7 @@ xmlns:th="http://www.thymeleaf.org">
 		<script src="/administration/assets/libs/feather-icons/feather.min.js"></script>
 		<script src="/administration/assets/js/pages/plugins/lord-icon-2.1.0.js"></script>
 		<script src="/administration/assets/js/plugins.js"></script>
-	
+
 		<script src="/administration/assets/libs/apexcharts/apexcharts.min.js"></script>
 		<script src="/administration/assets/libs/jsvectormap/js/jsvectormap.min.js"></script>
 		<script src="/administration/assets/libs/jsvectormap/maps/world-merc.js"></script>
@@ -294,6 +279,50 @@ xmlns:th="http://www.thymeleaf.org">
 		<script src="/administration/assets/js/pages/dashboard-ecommerce.init.js"></script>
 		<script src="/administration/assets/js/app.js"></script>
 	</th:block>
+
+	<div th:fragment="clientDetailInnerMenu(memberId, activeTab)">
+		<div class="client-detail-home-inner-menu list-group">
+			<a class="list-group-item list-group-item-action" th:classappend="${activeTab == 'home'} ? ' active' : ''"
+				th:href="@{/admin/root/clientDetail/{id}/home(id=${memberId})}">
+				CRM 홈
+			</a>
+
+			<a class="list-group-item list-group-item-action"
+				th:classappend="${activeTab == 'information'} ? ' active' : ''"
+				th:href="@{/admin/root/clientDetail/{id}/information(id=${memberId})}">
+				회원상세정보
+			</a>
+
+			<a class="list-group-item list-group-item-action"
+				th:classappend="${activeTab == 'orderList'} ? ' active' : ''"
+				th:href="@{/admin/root/clientDetail/{id}/orderList(id=${memberId})}">
+				주문내역
+			</a>
+
+			<a class="list-group-item list-group-item-action"
+				th:classappend="${activeTab == 'boardList'} ? ' active' : ''"
+				th:href="@{/admin/root/clientDetail/{id}/boardList(id=${memberId})}">
+				회원게시글
+			</a>
+
+			<a class="list-group-item list-group-item-action"
+				th:classappend="${activeTab == 'benefit'} ? ' active' : ''"
+				th:href="@{/admin/root/clientDetail/{id}/benefit(id=${memberId})}">
+				적립금 및 쿠폰
+			</a>
+
+			<a class="list-group-item list-group-item-action" th:classappend="${activeTab == 'memo'} ? ' active' : ''"
+				th:href="@{/admin/root/clientDetail/{id}/memo(id=${memberId})}">
+				회원메모
+			</a>
+
+			<a class="list-group-item list-group-item-action"
+				th:classappend="${activeTab == 'wishList'} ? ' active' : ''"
+				th:href="@{/admin/root/clientDetail/{id}/wishList(id=${memberId})}">
+				관심상품열람
+			</a>
+		</div>
+	</div>
 </body>
 
 </html>

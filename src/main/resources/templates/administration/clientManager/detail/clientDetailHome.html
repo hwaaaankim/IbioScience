@@ -3,7 +3,7 @@
 	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
 	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<head th:replace="~{fragments/administration/common :: ibioAdminHead('고객회원관리상세')}"></head>
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('CRM 회원 상세 - 홈')}"></head>
 
 <body>
 	<div id="layout-wrapper">
@@ -15,38 +15,806 @@
 			<div class="page-content">
 				<div class="container-fluid">
 
+					<!-- Title -->
 					<div class="row">
 						<div class="col-12">
 							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
-								<h4 class="mb-sm-0">고객회원관리상세</h4>
+								<h4 class="mb-sm-0">CRM 회원 상세 (HOME)</h4>
 								<div class="page-title-right">
 									<ol class="breadcrumb m-0">
-										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
-										<li class="breadcrumb-item active">고객회원관리상세 홈</li>
+										<li class="breadcrumb-item"><a href="javascript:void(0);">CRM</a></li>
+										<li class="breadcrumb-item active">회원 상세</li>
 									</ol>
 								</div>
 							</div>
 						</div>
 					</div>
 
+					<div class="row">
+						<div class="col-xl-2 col-lg-3 col-md-4">
+							<div class="card">
+								<div class="card-body">
+									<div
+										th:replace="~{fragments/administration/common :: clientDetailInnerMenu(${memberId}, ${activeTab})}">
+									</div>
+								</div>
+							</div>
+						</div>
 
-					<div class="card">
-						<div class="card-body">
+						<div class="col-xl-10 col-lg-9 col-md-8">
+
+							<div class="card client-detail-home-section">
+								<div class="card-header d-flex align-items-center justify-content-between">
+									<div>
+										<h5 class="mb-0">회원 기본정보</h5>
+										<small class="text-muted">회원 ID: <span
+												th:text="${dto.member.id}"></span></small>
+									</div>
+									<div class="d-flex gap-2">
+										<button type="button" class="btn btn-outline-danger btn-sm"
+											id="client-detail-home-btn-reset-password">
+											비밀번호 초기화(SMS)
+										</button>
+										<button type="button" class="btn btn-primary btn-sm"
+											id="client-detail-home-btn-save-member" disabled>
+											변경사항 저장
+										</button>
+									</div>
+								</div>
+
+								<div class="card-body">
+									<div class="row g-3">
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">이름</div>
+												<div class="client-detail-home-v" th:text="${dto.member.name}"></div>
+											</div>
+										</div>
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">아이디</div>
+												<div class="client-detail-home-v" th:text="${dto.member.username}">
+												</div>
+											</div>
+										</div>
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">휴대폰</div>
+												<div class="client-detail-home-v" th:text="${dto.member.mobile}"></div>
+											</div>
+										</div>
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">이메일</div>
+												<div class="client-detail-home-v" th:text="${dto.member.email}"></div>
+											</div>
+										</div>
+
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">적립금</div>
+												<div class="client-detail-home-v">
+													<span th:text="${dto.member.point}"></span>
+												</div>
+											</div>
+										</div>
+
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">도메인</div>
+												<div class="client-detail-home-v" th:text="${dto.member.domain}"></div>
+											</div>
+										</div>
+
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">소비자유형</div>
+												<div class="client-detail-home-v" th:text="${dto.member.customerType}">
+												</div>
+											</div>
+										</div>
+
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">딜러유형</div>
+												<div class="client-detail-home-v" th:text="${dto.member.dealerType}">
+												</div>
+											</div>
+										</div>
+
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">ROLE</div>
+												<div class="client-detail-home-v" th:text="${dto.member.role}"></div>
+											</div>
+										</div>
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">상태</div>
+												<div class="client-detail-home-v" th:text="${dto.member.status}"></div>
+											</div>
+										</div>
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">사용여부</div>
+												<div class="client-detail-home-v" th:text="${dto.member.useYn}"></div>
+											</div>
+										</div>
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">대표여부</div>
+												<div class="client-detail-home-v" th:text="${dto.member.isPrimary}">
+												</div>
+											</div>
+										</div>
+
+										<div class="col-12">
+											<hr>
+										</div>
+
+										<div class="col-lg-9">
+											<h6 class="mb-2">회원 주소</h6>
+											<div class="client-detail-home-address-box">
+												<div><span class="text-muted">우편번호:</span> <span
+														id="client-detail-home-member-postcode"
+														th:text="${dto.member.postcode}"></span></div>
+												<div><span class="text-muted">도로명:</span> <span
+														id="client-detail-home-member-road"
+														th:text="${dto.member.roadAddress}"></span></div>
+												<div><span class="text-muted">지번:</span> <span
+														id="client-detail-home-member-jibun"
+														th:text="${dto.member.jibunAddress}"></span></div>
+												<div><span class="text-muted">상세:</span> <span
+														id="client-detail-home-member-detail"
+														th:text="${dto.member.detailAddress}"></span></div>
+											</div>
+										</div>
+										<div class="col-lg-3 d-flex align-items-end justify-content-end">
+											<button type="button" class="btn btn-outline-secondary btn-sm"
+												id="client-detail-home-btn-edit-member-address">
+												주소 수정
+											</button>
+										</div>
+
+									</div>
+
+									<hr class="my-4">
+
+									<div class="d-flex align-items-center justify-content-between">
+										<h6 class="mb-0">회원 메모 (최근 5개)</h6>
+										<div class="d-flex gap-2">
+											<button type="button" class="btn btn-outline-secondary btn-sm"
+												id="client-detail-home-btn-open-memo-modal">
+												전체보기
+											</button>
+											<button type="button" class="btn btn-primary btn-sm"
+												id="client-detail-home-btn-save-memos" disabled>
+												메모 변경사항 저장
+											</button>
+										</div>
+									</div>
+
+									<div class="mt-3">
+										<div class="input-group">
+											<input type="text" class="form-control"
+												id="client-detail-home-memo-new-content"
+												placeholder="메모를 입력 후 [추가]를 누르세요 (저장은 '메모 변경사항 저장')">
+											<button type="button" class="btn btn-outline-primary"
+												id="client-detail-home-btn-add-memo">
+												추가
+											</button>
+										</div>
+									</div>
+
+									<ul class="list-group mt-3" id="client-detail-home-memo-top5-list">
+										<li class="list-group-item d-flex justify-content-between align-items-start"
+											th:each="memo : ${dto.latestMemos}" th:attr="data-memo-id=${memo.id}">
+											<div class="me-3">
+												<div class="fw-semibold" th:text="${memo.writerName}"></div>
+												<div class="text-muted small"
+													th:text="${#temporals.format(memo.createdAt, 'yyyy-MM-dd HH:mm')}">
+												</div>
+												<div class="mt-2" th:text="${memo.content}"></div>
+											</div>
+											<button type="button"
+												class="btn btn-outline-danger btn-sm client-detail-home-btn-delete-memo">
+												삭제
+											</button>
+										</li>
+										<li class="list-group-item text-muted"
+											th:if="${#lists.isEmpty(dto.latestMemos)}">
+											등록된 메모가 없습니다.
+										</li>
+									</ul>
+
+								</div>
+							</div>
+
+							<div class="card client-detail-home-section" th:if="${dto.company != null}">
+								<div class="card-header d-flex align-items-center justify-content-between">
+									<div>
+										<h5 class="mb-0">기업 정보(CompanyProfile)</h5>
+										<small class="text-muted">CompanyProfile ID: <span
+												th:text="${dto.company.id}"></span></small>
+									</div>
+									<button type="button" class="btn btn-primary btn-sm"
+										id="client-detail-home-btn-save-company" disabled>
+										변경사항 저장
+									</button>
+								</div>
+
+								<div class="card-body">
+									<div class="row g-3">
+										<div class="col-lg-4">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">업체명</div>
+												<div class="client-detail-home-v" th:text="${dto.company.companyName}">
+												</div>
+											</div>
+										</div>
+										<div class="col-lg-4">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">대표자명</div>
+												<div class="client-detail-home-v" th:text="${dto.company.ceoName}">
+												</div>
+											</div>
+										</div>
+										<div class="col-lg-4">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">사업자번호</div>
+												<div class="client-detail-home-v"
+													th:text="${dto.company.businessRegistrationNumber}"></div>
+											</div>
+										</div>
+
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">대표번호</div>
+												<div class="client-detail-home-v"
+													th:text="${dto.company.representativeTel}"></div>
+											</div>
+										</div>
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">팩스</div>
+												<div class="client-detail-home-v" th:text="${dto.company.fax}"></div>
+											</div>
+										</div>
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">계산서 이메일</div>
+												<div class="client-detail-home-v" th:text="${dto.company.invoiceEmail}">
+												</div>
+											</div>
+										</div>
+										<div class="col-lg-3">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">홈페이지</div>
+												<div class="client-detail-home-v" th:text="${dto.company.homepageUrl}">
+												</div>
+											</div>
+										</div>
+
+										<div class="col-12">
+											<hr>
+										</div>
+
+										<div class="col-lg-9">
+											<h6 class="mb-2">회사 주소</h6>
+											<div class="client-detail-home-address-box">
+												<div><span class="text-muted">우편번호:</span> <span
+														id="client-detail-home-company-postcode"
+														th:text="${dto.company.postcode}"></span></div>
+												<div><span class="text-muted">도로명:</span> <span
+														id="client-detail-home-company-road"
+														th:text="${dto.company.roadAddress}"></span></div>
+												<div><span class="text-muted">지번:</span> <span
+														id="client-detail-home-company-jibun"
+														th:text="${dto.company.jibunAddress}"></span></div>
+												<div><span class="text-muted">상세:</span> <span
+														id="client-detail-home-company-detail"
+														th:text="${dto.company.detailAddress}"></span></div>
+											</div>
+										</div>
+										<div class="col-lg-3 d-flex align-items-end justify-content-end">
+											<button type="button" class="btn btn-outline-secondary btn-sm"
+												id="client-detail-home-btn-edit-company-address">
+												주소 수정
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="card client-detail-home-section" th:if="${dto.buyer != null}">
+								<div class="card-header d-flex align-items-center justify-content-between">
+									<div>
+										<h5 class="mb-0">구매딜러 정보(BuyerDealerProfile)</h5>
+										<small class="text-muted">BuyerDealerProfile ID: <span
+												th:text="${dto.buyer.id}"></span></small>
+									</div>
+									<button type="button" class="btn btn-primary btn-sm"
+										id="client-detail-home-btn-save-buyer" disabled>
+										변경사항 저장
+									</button>
+								</div>
+
+								<div class="card-body">
+									<div class="row g-3 align-items-end">
+										<div class="col-lg-4">
+											<label class="form-label">딜러 등급</label>
+											<select class="form-select" id="client-detail-home-buyer-grade">
+												<option th:each="g : ${dto.dealerGrades}" th:value="${g}"
+													th:selected="${dto.buyer.grade != null and dto.buyer.grade.name() == g}"
+													th:text="${g}">
+												</option>
+											</select>
+										</div>
+
+										<div class="col-lg-4">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">커스텀 할인율</div>
+												<div class="client-detail-home-v"
+													th:text="${dto.buyer.customDiscountRate}"></div>
+											</div>
+										</div>
+
+										<div class="col-lg-4">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">적용 시작일</div>
+												<div class="client-detail-home-v" th:text="${dto.buyer.effectiveFrom}">
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="text-muted small mt-2">
+										※ 등급 변경 후 [변경사항 저장]을 눌러야 반영됩니다.
+									</div>
+								</div>
+							</div>
+
+							<div class="card client-detail-home-section" th:if="${dto.seller != null}">
+								<div class="card-header d-flex align-items-center justify-content-between">
+									<div>
+										<h5 class="mb-0">판매딜러 정보(SellerDealerProfile)</h5>
+										<small class="text-muted">SellerDealerProfile ID: <span
+												th:text="${dto.seller.id}"></span></small>
+									</div>
+									<button type="button" class="btn btn-primary btn-sm"
+										id="client-detail-home-btn-save-seller" disabled>
+										변경사항 저장
+									</button>
+								</div>
+
+								<div class="card-body">
+									<div class="row g-3">
+
+										<div class="col-lg-4">
+											<label class="form-label">입점몰명</label>
+											<input class="form-control" id="client-detail-home-seller-shopName"
+												th:value="${dto.seller.shopName}">
+										</div>
+
+										<div class="col-lg-4">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">공급사 코드</div>
+												<div class="client-detail-home-v" th:text="${dto.seller.supplierCode}">
+												</div>
+											</div>
+										</div>
+
+										<div class="col-lg-4">
+											<div class="client-detail-home-kv">
+												<div class="client-detail-home-k">로고</div>
+												<div class="client-detail-home-v">
+													<a th:if="${dto.seller.logoImageRoad != null and !dto.seller.logoImageRoad.isEmpty()}"
+														th:href="${dto.seller.logoImageRoad}" target="_blank"
+														th:text="${dto.seller.logoImageRoad}"></a>
+													<span
+														th:if="${dto.seller.logoImageRoad == null or dto.seller.logoImageRoad.isEmpty()}"
+														class="text-muted">-</span>
+												</div>
+											</div>
+										</div>
+
+										<div class="col-lg-3">
+											<label class="form-label">거래상태</label>
+											<select class="form-select" id="client-detail-home-seller-tradingStatus">
+												<option th:each="v: ${dto.tradingStatuses}" th:value="${v}"
+													th:selected="${dto.seller.tradingStatus != null and dto.seller.tradingStatus.name() == v}"
+													th:text="${v}">
+												</option>
+											</select>
+										</div>
+
+										<div class="col-lg-3">
+											<label class="form-label">공급유형</label>
+											<select class="form-select" id="client-detail-home-seller-supplyType">
+												<option th:each="v: ${dto.supplyTypes}" th:value="${v}"
+													th:selected="${dto.seller.supplyType != null and dto.seller.supplyType.name() == v}"
+													th:text="${v}">
+												</option>
+											</select>
+										</div>
+
+										<div class="col-lg-3">
+											<label class="form-label">공급구조</label>
+											<select class="form-select" id="client-detail-home-seller-supplyStructure">
+												<option th:each="v: ${dto.supplyStructures}" th:value="${v}"
+													th:selected="${dto.seller.supplyStructure != null and dto.seller.supplyStructure.name() == v}"
+													th:text="${v}">
+												</option>
+											</select>
+										</div>
+
+										<div class="col-lg-3">
+											<label class="form-label">홈페이지</label>
+											<input class="form-control" id="client-detail-home-seller-homepageUrl"
+												th:value="${dto.seller.homepageUrl}">
+										</div>
+
+										<div class="col-lg-6">
+											<label class="form-label">거래상품유형(텍스트)</label>
+											<input class="form-control" id="client-detail-home-seller-productTypeText"
+												th:value="${dto.seller.productTypeText}">
+										</div>
+
+										<div class="col-lg-3">
+											<label class="form-label">전화</label>
+											<input class="form-control" id="client-detail-home-seller-tel"
+												th:value="${dto.seller.tel}">
+										</div>
+										<div class="col-lg-3">
+											<label class="form-label">팩스</label>
+											<input class="form-control" id="client-detail-home-seller-fax"
+												th:value="${dto.seller.fax}">
+										</div>
+
+										<div class="col-lg-3">
+											<label class="form-label">거래 시작일</label>
+											<input type="date" class="form-control"
+												id="client-detail-home-seller-dealStartDate"
+												th:value="${dto.seller.dealStartDate}">
+										</div>
+										<div class="col-lg-3">
+											<label class="form-label">거래 중지일</label>
+											<input type="date" class="form-control"
+												id="client-detail-home-seller-dealStopDate"
+												th:value="${dto.seller.dealStopDate}">
+										</div>
+
+										<div class="col-12">
+											<hr>
+										</div>
+
+										<!-- Business Address -->
+										<div class="col-lg-9">
+											<h6 class="mb-2">사업장 주소</h6>
+											<div class="client-detail-home-address-box">
+												<div><span class="text-muted">우편번호:</span> <span
+														id="client-detail-home-seller-biz-postcode"
+														th:text="${dto.seller.bizPostcode}"></span></div>
+												<div><span class="text-muted">도로명:</span> <span
+														id="client-detail-home-seller-biz-road"
+														th:text="${dto.seller.bizRoadAddress}"></span></div>
+												<div><span class="text-muted">지번:</span> <span
+														id="client-detail-home-seller-biz-jibun"
+														th:text="${dto.seller.bizJibunAddress}"></span></div>
+												<div><span class="text-muted">상세:</span> <span
+														id="client-detail-home-seller-biz-detail"
+														th:text="${dto.seller.bizDetailAddress}"></span></div>
+											</div>
+										</div>
+										<div class="col-lg-3 d-flex align-items-end justify-content-end">
+											<button type="button" class="btn btn-outline-secondary btn-sm"
+												id="client-detail-home-btn-edit-seller-biz-address">
+												주소 수정
+											</button>
+										</div>
+
+										<!-- Return Address -->
+										<div class="col-lg-9 mt-3">
+											<h6 class="mb-2">반품 주소</h6>
+											<div class="client-detail-home-address-box">
+												<div><span class="text-muted">우편번호:</span> <span
+														id="client-detail-home-seller-return-postcode"
+														th:text="${dto.seller.returnPostcode}"></span></div>
+												<div><span class="text-muted">도로명:</span> <span
+														id="client-detail-home-seller-return-road"
+														th:text="${dto.seller.returnRoadAddress}"></span></div>
+												<div><span class="text-muted">지번:</span> <span
+														id="client-detail-home-seller-return-jibun"
+														th:text="${dto.seller.returnJibunAddress}"></span></div>
+												<div><span class="text-muted">상세:</span> <span
+														id="client-detail-home-seller-return-detail"
+														th:text="${dto.seller.returnDetailAddress}"></span></div>
+											</div>
+										</div>
+										<div class="col-lg-3 d-flex align-items-end justify-content-end mt-3">
+											<button type="button" class="btn btn-outline-secondary btn-sm"
+												id="client-detail-home-btn-edit-seller-return-address">
+												주소 수정
+											</button>
+										</div>
+
+										<div class="col-12">
+											<hr>
+										</div>
+
+										<!-- Settlement -->
+										<div class="col-12">
+											<h6 class="mb-2">정산 정책(DealerSettlementPolicy)</h6>
+											<div class="row g-3">
+												<div class="col-lg-3">
+													<label class="form-label">수수료율(%)</label>
+													<input class="form-control"
+														id="client-detail-home-settle-commissionRate"
+														th:value="${dto.seller.settlementPolicy != null ? dto.seller.settlementPolicy.commissionRate : ''}">
+												</div>
+												<div class="col-lg-3">
+													<label class="form-label">정산주기</label>
+													<select class="form-select" id="client-detail-home-settle-cycle">
+														<option value="">선택</option>
+														<option th:each="v : ${dto.settlementCycles}" th:value="${v}"
+															th:selected="${dto.seller.settlementPolicy != null and dto.seller.settlementPolicy.cycle != null and dto.seller.settlementPolicy.cycle.name() == v}"
+															th:text="${v}">
+														</option>
+													</select>
+												</div>
+												<div class="col-lg-3">
+													<label class="form-label">정산기준</label>
+													<select class="form-select" id="client-detail-home-settle-basis">
+														<option value="">선택</option>
+														<option th:each="v : ${dto.settlementBases}" th:value="${v}"
+															th:selected="${dto.seller.settlementPolicy != null and dto.seller.settlementPolicy.basis != null and dto.seller.settlementPolicy.basis.name() == v}"
+															th:text="${v}">
+														</option>
+													</select>
+												</div>
+												<div class="col-lg-3">
+													<label class="form-label">다음 정산 기준일</label>
+													<input type="date" class="form-control"
+														id="client-detail-home-settle-nextDate"
+														th:value="${dto.seller.settlementPolicy != null ? dto.seller.settlementPolicy.nextSettlementDate : ''}">
+												</div>
+											</div>
+										</div>
+
+										<div class="col-12">
+											<hr>
+										</div>
+
+										<!-- Contacts -->
+										<div class="col-12">
+											<h6 class="mb-2">담당자 목록(SellerContact)</h6>
+											<div class="table-responsive">
+												<table class="table table-sm table-bordered align-middle mb-0">
+													<thead class="table-light">
+														<tr>
+															<th style="width: 60px;">ID</th>
+															<th>이름</th>
+															<th>연락처</th>
+															<th>이메일</th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr th:each="c : ${dto.seller.contacts}">
+															<td th:text="${c.id}"></td>
+															<td th:text="${c.name}"></td>
+															<td th:text="${c.phone}"></td>
+															<td th:text="${c.email}"></td>
+														</tr>
+														<tr th:if="${#lists.isEmpty(dto.seller.contacts)}">
+															<td colspan="4" class="text-muted text-center">등록된 담당자가
+																없습니다.</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+											<div class="text-muted small mt-2">
+												※ 담당자 추가/수정 기능은 다음 단계에서 별도 섹션으로 확장 가능합니다.
+											</div>
+										</div>
+
+										<div class="col-12">
+											<hr>
+										</div>
+
+										<!-- Category Permissions -->
+										<div class="col-12">
+											<h6 class="mb-2">등록가능 카테고리(DealerCategoryPermission)</h6>
+
+											<div class="client-detail-home-permission-add row g-2 align-items-end">
+												<div class="col-lg-4">
+													<label class="form-label">대분류</label>
+													<select class="form-select"
+														id="client-detail-home-cat-large"></select>
+												</div>
+												<div class="col-lg-4">
+													<label class="form-label">중분류</label>
+													<select class="form-select"
+														id="client-detail-home-cat-medium"></select>
+												</div>
+												<div class="col-lg-4">
+													<label class="form-label">소분류</label>
+													<select class="form-select"
+														id="client-detail-home-cat-small"></select>
+												</div>
+
+												<div class="col-12 d-flex justify-content-end">
+													<button type="button" class="btn btn-outline-primary btn-sm"
+														id="client-detail-home-btn-add-permission">
+														등록
+													</button>
+												</div>
+											</div>
+
+											<ul class="list-group mt-3" id="client-detail-home-permission-list">
+												<li class="list-group-item d-flex justify-content-between align-items-center"
+													th:each="p : ${dto.seller.categoryPermissions}"
+													th:attr="data-perm-id=${p.id}, data-large-id=${p.largeId}, data-medium-id=${p.mediumId}, data-small-id=${p.smallId}">
+													<div class="client-detail-home-perm-text">
+														<span class="text-muted">대:</span> <span
+															class="client-detail-home-perm-large">ID
+															[[${p.largeId}]]</span>
+														<span class="ms-2 text-muted">중:</span> <span
+															class="client-detail-home-perm-medium">ID
+															[[${p.mediumId}]]</span>
+														<span class="ms-2 text-muted">소:</span> <span
+															class="client-detail-home-perm-small">ID
+															[[${p.smallId}]]</span>
+													</div>
+													<button type="button"
+														class="btn btn-outline-danger btn-sm client-detail-home-btn-delete-permission">X</button>
+												</li>
+												<li class="list-group-item text-muted"
+													th:if="${#lists.isEmpty(dto.seller.categoryPermissions)}">
+													등록된 카테고리 권한이 없습니다.
+												</li>
+											</ul>
+
+											<div class="text-muted small mt-2">
+												※ 삭제/추가는 [변경사항 저장]을 눌러야 실제 반영됩니다.
+											</div>
+										</div>
+
+									</div>
+								</div>
+							</div>
 
 						</div>
 					</div>
+
 				</div>
 			</div>
-
-			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
 		</div>
 	</div>
 
+
+	<!-- =========================
+     주소 수정 Modal (공통)
+========================= -->
+	<div class="modal fade" id="client-detail-home-address-modal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="client-detail-home-address-modal-title">주소 수정</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div class="modal-body">
+					<input type="hidden" id="client-detail-home-address-modal-target">
+
+					<div class="row g-3">
+						<div class="col-lg-4">
+							<label class="form-label">우편번호</label>
+							<div class="input-group">
+								<input class="form-control" id="client-detail-home-address-postcode" readonly>
+								<button type="button" class="btn btn-outline-secondary"
+									id="client-detail-home-btn-daum-post">검색</button>
+							</div>
+						</div>
+
+						<div class="col-lg-8">
+							<label class="form-label">도로명주소</label>
+							<input class="form-control" id="client-detail-home-address-road" readonly>
+						</div>
+
+						<div class="col-lg-8">
+							<label class="form-label">지번주소</label>
+							<input class="form-control" id="client-detail-home-address-jibun" readonly>
+						</div>
+
+						<div class="col-lg-4">
+							<label class="form-label">상세주소</label>
+							<input class="form-control" id="client-detail-home-address-detail" placeholder="상세주소 입력">
+						</div>
+					</div>
+
+					<div class="text-muted small mt-2">
+						※ 주소 검색 후 상세주소까지 입력해 주세요.
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+					<button type="button" class="btn btn-primary" id="client-detail-home-btn-apply-address">적용</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- =========================
+     메모 전체보기 Modal
+========================= -->
+	<div class="modal fade" id="client-detail-home-memo-modal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">회원 메모 전체보기</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div class="modal-body">
+					<div class="row g-2 align-items-end">
+						<div class="col-lg-3">
+							<label class="form-label">작성일 From</label>
+							<input type="date" class="form-control" id="client-detail-home-memo-filter-from">
+						</div>
+						<div class="col-lg-3">
+							<label class="form-label">작성일 To</label>
+							<input type="date" class="form-control" id="client-detail-home-memo-filter-to">
+						</div>
+						<div class="col-lg-6 d-flex justify-content-end gap-2">
+							<button type="button" class="btn btn-outline-secondary"
+								id="client-detail-home-btn-memo-filter-reset">초기화</button>
+							<button type="button" class="btn btn-primary"
+								id="client-detail-home-btn-memo-filter-search">조회</button>
+						</div>
+					</div>
+
+					<hr>
+
+					<div class="table-responsive">
+						<table class="table table-sm table-bordered align-middle">
+							<thead class="table-light">
+								<tr>
+									<th style="width: 80px;">ID</th>
+									<th style="width: 160px;">작성자</th>
+									<th style="width: 180px;">작성일</th>
+									<th>내용</th>
+								</tr>
+							</thead>
+							<tbody id="client-detail-home-memo-modal-tbody">
+							</tbody>
+						</table>
+					</div>
+
+					<nav class="mt-3">
+						<ul class="pagination justify-content-center" id="client-detail-home-memo-pagination">
+						</ul>
+					</nav>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">닫기</button>
+				</div>
+			</div>
+		</div>
+	</div>
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="/administration/assets/js/page/clientManager/detail/home.js"></script>
+	<!-- Daum Postcode -->
+	<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		window.CLIENT_DETAIL_HOME_MEMBER_ID = /*[[${memberId}]]*/ null;
+/*]]>*/
+	</script>
+
+	<script th:src="@{/administration/assets/js/page/clientManager/detail/clientDetailHome.js}"></script>
 </body>
 
 </html>

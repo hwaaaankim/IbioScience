@@ -31,10 +31,12 @@ import com.dev.IbioScience.dto.customer.auth.WithdrawApproveResultDto;
 import com.dev.IbioScience.dto.customer.auth.WithdrawMemberDetailDto;
 import com.dev.IbioScience.dto.customer.auth.WithdrawMemberRowDto;
 import com.dev.IbioScience.dto.customer.auth.WithdrawSearchCondition;
+import com.dev.IbioScience.dto.customer.auth.crm.ClientDetailHomeDto;
 import com.dev.IbioScience.enums.auth.MemberStatus;
 import com.dev.IbioScience.service.admin.client.ClientSearchService;
 import com.dev.IbioScience.service.auth.admin.client.ClientApplyManagerService;
 import com.dev.IbioScience.service.auth.admin.common.ClientWithdrawManagerService;
+import com.dev.IbioScience.service.auth.crm.ClientDetailHomeService;
 import com.dev.IbioScience.utils.PaginationUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -47,6 +49,7 @@ public class AdminClientController {
 	private final ClientSearchService clientSearchService;
 	private final ClientApplyManagerService clientApplyManagerService;
 	private final ClientWithdrawManagerService service;
+	private final ClientDetailHomeService clientDetailHomeService;
 
 
 	@GetMapping("/clientSearch")
@@ -242,45 +245,55 @@ public class AdminClientController {
 		return "administration/clientManager/clientCompanyTransferManager";
 	}
 	
-	@GetMapping("/clientDetail/home")
-	public String clientDetailHome() {
+	@GetMapping("/clientDetail/{memberId}/home")
+    public String home(@PathVariable Long memberId, Model model) {
+        ClientDetailHomeDto dto = clientDetailHomeService.getHomeDto(memberId);
+        model.addAttribute("dto", dto);
+        model.addAttribute("memberId", memberId);
+        model.addAttribute("activeTab", "home");
+        return "administration/clientManager/detail/clientDetailHome";
+    }
 
-		return "administration/clientManager/detail/clientDetailHome";
-	}
+    // 나머지 6개 페이지는 “라우팅/active 메뉴”만 먼저 잡아둡니다(내용은 다음 작업에서 채우면 됩니다).
+    @GetMapping("/clientDetail/{memberId}/information")
+    public String information(@PathVariable Long memberId, Model model) {
+        model.addAttribute("memberId", memberId);
+        model.addAttribute("activeTab", "information");
+        return "administration/clientManager/detail/clientDetailInformation";
+    }
 
-	@GetMapping("/clientDetail/information")
-	public String clientDetailInformation() {
+    @GetMapping("/clientDetail/{memberId}/orderList")
+    public String orderList(@PathVariable Long memberId, Model model) {
+        model.addAttribute("memberId", memberId);
+        model.addAttribute("activeTab", "orderList");
+        return "administration/clientManager/detail/clientDetailOrderList";
+    }
 
-		return "administration/clientManager/detail/clientDetailInformation";
-	}
+    @GetMapping("/clientDetail/{memberId}/boardList")
+    public String boardList(@PathVariable Long memberId, Model model) {
+        model.addAttribute("memberId", memberId);
+        model.addAttribute("activeTab", "boardList");
+        return "administration/clientManager/detail/clientDetailBoardList";
+    }
 
-	@GetMapping("/clientDetail/orderList")
-	public String clientDetailOrderList() {
+    @GetMapping("/clientDetail/{memberId}/benefit")
+    public String benefit(@PathVariable Long memberId, Model model) {
+        model.addAttribute("memberId", memberId);
+        model.addAttribute("activeTab", "benefit");
+        return "administration/clientManager/detail/clientDetailBenefit";
+    }
 
-		return "administration/clientManager/detail/clientDetailOrderList";
-	}
+    @GetMapping("/clientDetail/{memberId}/memo")
+    public String memo(@PathVariable Long memberId, Model model) {
+        model.addAttribute("memberId", memberId);
+        model.addAttribute("activeTab", "memo");
+        return "administration/clientManager/detail/clientDetailMemo";
+    }
 
-	@GetMapping("/clientDetail/boardList")
-	public String clientDetailBoardList() {
-
-		return "administration/clientManager/detail/clientDetailBoardList";
-	}
-
-	@GetMapping("/clientDetail/benefit")
-	public String clientDetailBenefit() {
-
-		return "administration/clientManager/detail/clientDetailBenefit";
-	}
-
-	@GetMapping("/clientDetail/memo")
-	public String clientDetailMemo() {
-
-		return "administration/clientManager/detail/clientDetailMemo";
-	}
-
-	@GetMapping("/clientDetail/wishList")
-	public String clientDetailWishList() {
-
-		return "administration/clientManager/detail/clientDetailWishList";
-	}
+    @GetMapping("/clientDetail/{memberId}/wishList")
+    public String wishList(@PathVariable Long memberId, Model model) {
+        model.addAttribute("memberId", memberId);
+        model.addAttribute("activeTab", "wishList");
+        return "administration/clientManager/detail/clientDetailWishList";
+    }
 }

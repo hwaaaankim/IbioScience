@@ -1,28 +1,27 @@
 package com.dev.IbioScience.dto.customer.auth.transfer;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class SellerDealerApproveRequest {
 
 	private String processNote;
 
-	// SellerDealerProfile 필수 입력
 	private String shopName;
-
-	/**
-	 * 아래 3개는 엔티티 enum과 정확히 매칭되는 name() 문자열을 받습니다.
-	 * (프론트는 /seller-enums 로 내려주는 값으로 셀렉트 구성)
-	 */
 	private String tradingStatus;
 	private String supplyType;
 	private String supplyStructure;
-
 	private String productTypeText;
 	private String tel;
 	private String fax;
@@ -31,14 +30,17 @@ public class SellerDealerApproveRequest {
 	private AddressDto businessAddress;
 	private AddressDto returnAddress;
 
-	// 담당자(0~N)
-	private List<SellerContactDto> contacts = new ArrayList<>();
+	private List<SellerContactDto> contacts;
+	private List<CategoryPermissionDto> categoryPermissions;
 
-	// 판매딜러 카테고리 권한(1개 이상 필수)
-	private List<CategoryPermissionDto> categoryPermissions = new ArrayList<>();
+	// ✅ 정산정책(추가)
+	private SettlementPolicyDto settlementPolicy;
 
 	@Getter
 	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
 	public static class AddressDto {
 		private String postcode;
 		private String roadAddress;
@@ -48,6 +50,9 @@ public class SellerDealerApproveRequest {
 
 	@Getter
 	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
 	public static class SellerContactDto {
 		private String name;
 		private String phone;
@@ -56,9 +61,23 @@ public class SellerDealerApproveRequest {
 
 	@Getter
 	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
 	public static class CategoryPermissionDto {
 		private Long largeId;
-		private Long mediumId; // nullable
-		private Long smallId;  // nullable
+		private Long mediumId;
+		private Long smallId;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
+	public static class SettlementPolicyDto {
+		private BigDecimal commissionRate; // 0~100
+		private String cycle;              // SettlementCycle.name()
+		private String basis;              // SettlementBasis.name()
 	}
 }

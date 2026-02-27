@@ -240,11 +240,11 @@
 											<td th:text="${#temporals.format(row.joinedAt, 'yyyy-MM-dd')}">-</td>
 
 											<td>
-												<a th:href="@{/admin/root/clientDetail/home/{id}(id=${row.memberId})}"
+												<a th:href="@{/admin/root/clientDetail/{id}/home(id=${row.memberId})}"
 													th:text="${row.name}">이름</a>
 											</td>
 											<td>
-												<a th:href="@{/admin/root/clientDetail/home/{id}(id=${row.memberId})}"
+												<a th:href="@{/admin/root/clientDetail/{id}/home(id=${row.memberId})}"
 													th:text="${row.username}">아이디</a>
 											</td>
 

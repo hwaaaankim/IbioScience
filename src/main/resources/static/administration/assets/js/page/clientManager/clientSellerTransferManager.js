@@ -16,7 +16,7 @@
 	// 모달 내 임시 상태(연락처/카테고리 권한)
 	const modalState = {
 		contacts: [], // {name, phone, email}
-		categoryPermissions: [] // {largeId, mediumId, smallId, label}
+		categoryPermissions: [] // {key, largeId, mediumId, smallId, label}
 	};
 
 	function csrfHeaders() {
@@ -209,6 +209,12 @@
 		document.getElementById('client-seller-transfer-form-homepageUrl').value = '';
 		document.getElementById('client-seller-transfer-form-processNote').value = '';
 
+		// ✅ 정산정책
+		document.getElementById('client-seller-transfer-form-commissionRate').value = '';
+		document.getElementById('client-seller-transfer-form-settlementCycle').value = '';
+		document.getElementById('client-seller-transfer-form-settlementBasis').value = '';
+
+		// ✅ 주소(daum으로만 세팅)
 		document.getElementById('client-seller-transfer-form-biz-postcode').value = '';
 		document.getElementById('client-seller-transfer-form-biz-road').value = '';
 		document.getElementById('client-seller-transfer-form-biz-jibun').value = '';
@@ -235,6 +241,10 @@
 		fillSelect('client-seller-transfer-form-tradingStatus', data.tradingStatus, '거래상태 선택');
 		fillSelect('client-seller-transfer-form-supplyType', data.supplyType, '공급유형 선택');
 		fillSelect('client-seller-transfer-form-supplyStructure', data.supplyStructure, '공급구조 선택');
+
+		// ✅ 정산정책 enum
+		fillSelect('client-seller-transfer-form-settlementCycle', data.settlementCycle, '정산주기 선택');
+		fillSelect('client-seller-transfer-form-settlementBasis', data.settlementBasis, '정산기준 선택');
 	}
 
 	function fillSelect(selectId, items, placeholder) {
@@ -276,6 +286,38 @@
 
 		const modal = new bootstrap.Modal(document.getElementById('client-seller-transfer-approve-modal'));
 		modal.show();
+	}
+
+	/* =========================
+	 * ✅ Daum Postcode
+	 * ========================= */
+
+	function openDaumPostcode(target) {
+		if (typeof daum === 'undefined' || !daum.Postcode) {
+			alert('Daum Postcode 스크립트가 로드되지 않았습니다.');
+			return;
+		}
+
+		const isBiz = (target === 'biz');
+		const idPost = isBiz ? 'client-seller-transfer-form-biz-postcode' : 'client-seller-transfer-form-ret-postcode';
+		const idRoad = isBiz ? 'client-seller-transfer-form-biz-road' : 'client-seller-transfer-form-ret-road';
+		const idJibun = isBiz ? 'client-seller-transfer-form-biz-jibun' : 'client-seller-transfer-form-ret-jibun';
+		const idDetail = isBiz ? 'client-seller-transfer-form-biz-detail' : 'client-seller-transfer-form-ret-detail';
+
+		new daum.Postcode({
+			oncomplete: function(data) {
+				const zonecode = data.zonecode || '';
+				const roadAddress = data.roadAddress || '';
+				const jibunAddress = data.jibunAddress || '';
+
+				document.getElementById(idPost).value = zonecode;
+				document.getElementById(idRoad).value = roadAddress;
+				document.getElementById(idJibun).value = jibunAddress;
+
+				// 상세주소 입력 유도
+				document.getElementById(idDetail).focus();
+			}
+		}).open();
 	}
 
 	/* =========================
@@ -429,6 +471,22 @@
 		countText.textContent = `등록된 권한: ${modalState.categoryPermissions.length}개`;
 	}
 
+	function existsLargeAll(largeId) {
+		return (modalState.categoryPermissions || []).some(p => p.largeId === largeId && !p.mediumId && !p.smallId);
+	}
+
+	function existsMediumAll(largeId, mediumId) {
+		return (modalState.categoryPermissions || []).some(p => p.largeId === largeId && p.mediumId === mediumId && !p.smallId);
+	}
+
+	function removeByLarge(largeId) {
+		modalState.categoryPermissions = (modalState.categoryPermissions || []).filter(p => p.largeId !== largeId);
+	}
+
+	function removeByMedium(largeId, mediumId) {
+		modalState.categoryPermissions = (modalState.categoryPermissions || []).filter(p => !(p.largeId === largeId && p.mediumId === mediumId));
+	}
+
 	function addCategoryPermission() {
 		const largeSel = document.getElementById('client-seller-transfer-cat-large');
 		const mediumSel = document.getElementById('client-seller-transfer-cat-medium');
@@ -447,18 +505,84 @@
 		const mediumName = mediumId ? (mediumSel.options[mediumSel.selectedIndex]?.text || '') : '';
 		const smallName = smallId ? (smallSel.options[smallSel.selectedIndex]?.text || '') : '';
 
-		const label = smallId
-			? `${largeName} > ${mediumName} > ${smallName}`
-			: (mediumId ? `${largeName} > ${mediumName} (전체)` : `${largeName} (전체)`);
+		// 레벨 판단
+		const level = smallId ? 'SMALL' : (mediumId ? 'MEDIUM' : 'LARGE');
 
-		const key = `${largeId}:${mediumId || ''}:${smallId || ''}`;
-		const exists = (modalState.categoryPermissions || []).some(x => x.key === key);
-		if (exists) {
-			alert('이미 등록된 권한입니다.');
-			return;
+		// 규칙 적용:
+		// 1) LARGE 등록: 동일 large의 기존 medium/small 권한 전부 제거 후 large만 남김
+		// 2) MEDIUM 등록: large 전체 권한이 있으면 불필요 -> 차단
+		//              동일 large+medium 하위(small 포함) 권한 제거 후 medium만 남김
+		// 3) SMALL 등록: large 전체 권한이 있으면 차단, medium 전체 권한이 있으면 차단
+		if (level === 'LARGE') {
+			if (existsLargeAll(largeId)) {
+				alert('이미 해당 대분류 전체 권한이 등록되어 있습니다.');
+				return;
+			}
+			// 덮어쓰기: 동일 대분류의 기존 권한 모두 제거
+			removeByLarge(largeId);
+
+			const label = `${largeName} (전체)`;
+			const key = `${largeId}::`;
+
+			modalState.categoryPermissions.push({ key, largeId, mediumId: null, smallId: null, label });
 		}
 
-		modalState.categoryPermissions.push({ key, largeId, mediumId, smallId, label });
+		if (level === 'MEDIUM') {
+			if (existsLargeAll(largeId)) {
+				alert('이미 해당 대분류 전체 권한이 등록되어 있어, 중분류를 추가 등록할 필요가 없습니다.');
+				return;
+			}
+
+			if (!mediumId) {
+				alert('중분류 선택이 올바르지 않습니다.');
+				return;
+			}
+
+			// 덮어쓰기: 동일 대분류+중분류 하위 권한(small 포함) 제거 후 medium만 남김
+			removeByMedium(largeId, mediumId);
+
+			const label = `${largeName} > ${mediumName} (전체)`;
+			const key = `${largeId}:${mediumId}:`;
+
+			// 중복 체크(동일 medium 전체)
+			const exists = (modalState.categoryPermissions || []).some(x => x.key === key);
+			if (exists) {
+				alert('이미 등록된 권한입니다.');
+				return;
+			}
+
+			modalState.categoryPermissions.push({ key, largeId, mediumId, smallId: null, label });
+		}
+
+		if (level === 'SMALL') {
+			if (existsLargeAll(largeId)) {
+				alert('이미 해당 대분류 전체 권한이 등록되어 있어, 소분류를 추가 등록할 필요가 없습니다.');
+				return;
+			}
+			if (!mediumId) {
+				alert('소분류 등록은 중분류 선택이 필요합니다.');
+				return;
+			}
+			if (existsMediumAll(largeId, mediumId)) {
+				alert('이미 해당 중분류 전체 권한이 등록되어 있어, 소분류를 추가 등록할 필요가 없습니다.');
+				return;
+			}
+			if (!smallId) {
+				alert('소분류 선택이 올바르지 않습니다.');
+				return;
+			}
+
+			const label = `${largeName} > ${mediumName} > ${smallName}`;
+			const key = `${largeId}:${mediumId}:${smallId}`;
+
+			const exists = (modalState.categoryPermissions || []).some(x => x.key === key);
+			if (exists) {
+				alert('이미 등록된 권한입니다.');
+				return;
+			}
+
+			modalState.categoryPermissions.push({ key, largeId, mediumId, smallId, label });
+		}
 
 		// 셀렉트 초기화
 		largeSel.value = '';
@@ -485,6 +609,19 @@
 		}
 	}
 
+	function requireRate(v, msg) {
+		requireText(v, msg);
+		const n = Number(v);
+		if (Number.isNaN(n)) {
+			alert('수수료율은 숫자여야 합니다.');
+			throw new Error('수수료율은 숫자여야 합니다.');
+		}
+		if (n < 0 || n > 100) {
+			alert('수수료율은 0~100 사이여야 합니다.');
+			throw new Error('수수료율은 0~100 사이여야 합니다.');
+		}
+	}
+
 	async function approveSeller() {
 		const applicationId = document.getElementById('client-seller-transfer-modal-application-id').value;
 		if (!applicationId) return;
@@ -504,6 +641,16 @@
 			requireText(productTypeText, '거래상품유형은 필수입니다.');
 			requireText(tel, '일반전화(tel)은 필수입니다.');
 
+			// ✅ 정산정책 필수
+			const commissionRate = val('client-seller-transfer-form-commissionRate');
+			const settlementCycle = val('client-seller-transfer-form-settlementCycle');
+			const settlementBasis = val('client-seller-transfer-form-settlementBasis');
+
+			requireRate(commissionRate, '수수료율(commissionRate)은 필수입니다.');
+			requireText(settlementCycle, '정산주기(cycle)는 필수입니다.');
+			requireText(settlementBasis, '정산기준(basis)는 필수입니다.');
+
+			// ✅ 주소(daum 세팅값)
 			const bizPost = val('client-seller-transfer-form-biz-postcode');
 			const bizRoad = val('client-seller-transfer-form-biz-road');
 			const retPost = val('client-seller-transfer-form-ret-postcode');
@@ -557,7 +704,13 @@
 					largeId: p.largeId,
 					mediumId: p.mediumId || null,
 					smallId: p.smallId || null
-				}))
+				})),
+				// ✅ 정산정책
+				settlementPolicy: {
+					commissionRate: String(commissionRate), // BigDecimal 안전(문자열)
+					cycle: settlementCycle,
+					basis: settlementBasis
+				}
 			};
 
 			if (!confirm('입력한 내용으로 판매딜러 승인 처리하시겠습니까?')) return;
@@ -627,6 +780,10 @@
 
 		document.getElementById('client-seller-transfer-contact-add-btn').addEventListener('click', addContactRow);
 
+		// ✅ Daum 주소검색 버튼
+		document.getElementById('client-seller-transfer-biz-addr-search-btn').addEventListener('click', () => openDaumPostcode('biz'));
+		document.getElementById('client-seller-transfer-ret-addr-search-btn').addEventListener('click', () => openDaumPostcode('ret'));
+
 		document.getElementById('client-seller-transfer-cat-large').addEventListener('change', async (e) => {
 			const largeId = e.target.value;
 			if (!largeId) {
@@ -651,7 +808,6 @@
 		});
 
 		document.getElementById('client-seller-transfer-cat-add-btn').addEventListener('click', addCategoryPermission);
-
 		document.getElementById('client-seller-transfer-modal-approve-btn').addEventListener('click', approveSeller);
 	}
 
