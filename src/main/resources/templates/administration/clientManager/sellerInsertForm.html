@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('판매회원등록')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<!-- Title / Breadcrumb -->
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">회원관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">판매회원등록</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<style>
+						.seller-insert-form-page-wrap {
+							max-width: 1400px;
+							margin: 0 auto;
+						}
+
+						.seller-insert-form-card {
+							border-radius: 16px;
+							box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+							border: 1px solid #e9ebec;
+						}
+
+						.seller-insert-form-card .card-header {
+							background: #fff;
+							border-bottom: 1px solid #eef0f2;
+							padding: 1rem 1.25rem;
+						}
+
+						.seller-insert-form-card .card-body {
+							padding: 1.25rem;
+						}
+
+						.seller-insert-form-section-title {
+							font-size: 1rem;
+							font-weight: 700;
+							margin-bottom: 0;
+						}
+
+						.seller-insert-form-field-note {
+							font-size: 12px;
+							color: #6c757d;
+						}
+
+						.seller-insert-form-badge-wrap {
+							display: flex;
+							flex-wrap: wrap;
+							gap: 8px;
+						}
+
+						.seller-insert-form-badge {
+							padding: 0.5rem 0.85rem;
+							border-radius: 999px;
+							background: #f3f6f9;
+							font-weight: 600;
+							color: #495057;
+						}
+
+						.seller-insert-form-address-box {
+							border: 1px dashed #dbe2e8;
+							border-radius: 12px;
+							padding: 1rem;
+							background: #fafbfc;
+						}
+
+						.seller-insert-form-permission-table td,
+						.seller-insert-form-permission-table th {
+							vertical-align: middle;
+						}
+
+						.seller-insert-form-hidden {
+							display: none !important;
+						}
+
+						.seller-insert-form-feedback {
+							font-size: 12px;
+							margin-top: 6px;
+						}
+
+						.seller-insert-form-feedback.valid {
+							color: #0ab39c;
+						}
+
+						.seller-insert-form-feedback.invalid {
+							color: #f06548;
+						}
+
+						.seller-insert-form-sticky-submit {
+							position: sticky;
+							bottom: 12px;
+							z-index: 20;
+						}
+					</style>
+
+					<div class="seller-insert-form-page-wrap">
+						<form id="seller-insert-form-form" class="seller-insert-form-form"
+							action="/api/admin/root/sellers" method="post" enctype="multipart/form-data" novalidate>
+
+							<input type="hidden" name="categoryPermissionsJson"
+								id="seller-insert-form-category-permissions-json">
+
+							<div class="row justify-content-center g-4">
+
+								<div class="col-12">
+									<div class="card seller-insert-form-card">
+										<div class="card-header">
+											<h5 class="seller-insert-form-section-title">기본 회원 구분</h5>
+										</div>
+										<div class="card-body">
+											<div class="alert alert-info mb-3">
+												<div class="fw-semibold mb-1">이 등록폼은 판매가능 딜러 전용입니다.</div>
+												<div class="mb-0">
+													도메인: <strong>CUSTOMER</strong> /
+													고객유형: <strong>BUSINESS</strong> /
+													딜러유형: <strong>SELLER</strong> /
+													권한: <strong>SELLER_DEALER</strong>
+												</div>
+											</div>
+
+											<div class="row g-3 align-items-stretch">
+												<div class="col-lg-3 col-md-6">
+													<label class="form-label">회원상태</label>
+													<select class="form-select" name="status"
+														id="seller-insert-form-status" required>
+														<option value="">선택</option>
+														<option th:each="status : ${memberStatuses}"
+															th:value="${status.name()}" th:text="${status.name()}">
+														</option>
+													</select>
+												</div>
+
+												<div class="col-lg-3 col-md-6 d-flex align-items-end">
+													<div class="form-check form-switch">
+														<input class="form-check-input" type="checkbox"
+															id="seller-insert-form-use-yn" name="useYn" checked>
+														<label class="form-check-label"
+															for="seller-insert-form-use-yn">사용여부</label>
+													</div>
+												</div>
+
+												<div class="col-lg-3 col-md-6 d-flex align-items-end">
+													<div class="form-check form-switch">
+														<input class="form-check-input" type="checkbox"
+															id="seller-insert-form-primary" name="primary">
+														<label class="form-check-label"
+															for="seller-insert-form-primary">대표여부</label>
+													</div>
+												</div>
+
+												<div class="col-lg-3 col-md-6 d-flex align-items-end">
+													<div class="form-check form-switch">
+														<input class="form-check-input" type="checkbox"
+															id="seller-insert-form-must-change-password"
+															name="mustChangePassword" checked>
+														<label class="form-check-label"
+															for="seller-insert-form-must-change-password">최초 로그인 시 비밀번호
+															변경 강제</label>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Member -->
+								<div class="col-12">
+									<div class="card seller-insert-form-card">
+										<div class="card-header">
+											<h5 class="seller-insert-form-section-title">회원 기본정보</h5>
+										</div>
+										<div class="card-body">
+											<div class="row g-3">
+												<div class="col-lg-4">
+													<label class="form-label">아이디</label>
+													<input type="text" class="form-control" name="username"
+														id="seller-insert-form-username" maxlength="60" required>
+													<div id="seller-insert-form-username-feedback"
+														class="seller-insert-form-feedback"></div>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">비밀번호</label>
+													<input type="password" class="form-control" name="password"
+														id="seller-insert-form-password" maxlength="100" required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">비밀번호 확인</label>
+													<input type="password" class="form-control" name="passwordConfirm"
+														id="seller-insert-form-password-confirm" maxlength="100"
+														required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">담당자명</label>
+													<input type="text" class="form-control" name="name" maxlength="100"
+														required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">유선전화</label>
+													<input type="text" class="form-control seller-insert-form-phone"
+														name="tel" id="seller-insert-form-member-tel" maxlength="20"
+														inputmode="numeric">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">휴대폰번호</label>
+													<input type="text" class="form-control seller-insert-form-phone"
+														name="mobile" id="seller-insert-form-member-mobile"
+														maxlength="20" inputmode="numeric" required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">이메일</label>
+													<input type="email" class="form-control" name="email"
+														maxlength="200" required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">포인트</label>
+													<input type="number" class="form-control" name="point" min="0"
+														step="1" value="0">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">기관/업체명</label>
+													<input type="text" class="form-control" name="organizationName"
+														maxlength="200">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">직급</label>
+													<input type="text" class="form-control" name="position"
+														maxlength="100">
+												</div>
+
+												<div class="col-12">
+													<div class="seller-insert-form-address-box">
+														<div
+															class="d-flex justify-content-between align-items-center mb-3">
+															<label class="form-label mb-0">회원 주소</label>
+															<button type="button"
+																class="btn btn-outline-primary btn-sm seller-insert-form-address-search-btn"
+																data-address-prefix="member">
+																주소 검색
+															</button>
+														</div>
+
+														<div class="row g-3">
+															<div class="col-lg-3">
+																<label class="form-label">우편번호</label>
+																<input type="text" class="form-control" name="mPostcode"
+																	id="seller-insert-form-member-postcode" readonly>
+															</div>
+															<div class="col-lg-9">
+																<label class="form-label">도로명주소</label>
+																<input type="text" class="form-control"
+																	name="mRoadAddress"
+																	id="seller-insert-form-member-road-address"
+																	readonly>
+															</div>
+															<div class="col-lg-6">
+																<label class="form-label">지번주소</label>
+																<input type="text" class="form-control"
+																	name="mJibunAddress"
+																	id="seller-insert-form-member-jibun-address"
+																	readonly>
+															</div>
+															<div class="col-lg-6">
+																<label class="form-label">상세주소</label>
+																<input type="text" class="form-control"
+																	name="mDetailAddress"
+																	id="seller-insert-form-member-detail-address"
+																	maxlength="255">
+															</div>
+														</div>
+													</div>
+												</div>
+
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Company -->
+								<div class="col-12">
+									<div class="card seller-insert-form-card">
+										<div class="card-header">
+											<h5 class="seller-insert-form-section-title">회사 정보</h5>
+										</div>
+										<div class="card-body">
+											<div class="row g-3">
+												<div class="col-lg-4">
+													<label class="form-label">업체명(상호)</label>
+													<input type="text" class="form-control" name="companyName"
+														maxlength="200" required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">담당부서</label>
+													<input type="text" class="form-control" name="department"
+														maxlength="100">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">대표자명</label>
+													<input type="text" class="form-control" name="ceoName"
+														maxlength="100" required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">업태</label>
+													<input type="text" class="form-control" name="businessType"
+														maxlength="100" required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">종목</label>
+													<input type="text" class="form-control" name="businessItem"
+														maxlength="100" required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">기관분류</label>
+													<select class="form-select" name="organizationCategory" required>
+														<option value="">선택</option>
+														<option th:each="org : ${organizationCategories}"
+															th:value="${org.name()}" th:text="${org.name()}"></option>
+													</select>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">대표번호</label>
+													<input type="text" class="form-control seller-insert-form-phone"
+														name="representativeTel"
+														id="seller-insert-form-company-representative-tel"
+														maxlength="20" inputmode="numeric">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">팩스번호</label>
+													<input type="text" class="form-control seller-insert-form-phone"
+														name="fax" id="seller-insert-form-company-fax" maxlength="20"
+														inputmode="numeric">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">계산서 이메일</label>
+													<input type="email" class="form-control" name="invoiceEmail"
+														maxlength="200" required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">사업자등록번호</label>
+													<input type="text" class="form-control"
+														name="businessRegistrationNumber"
+														id="seller-insert-form-business-registration-number"
+														maxlength="12" inputmode="numeric" required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">회사 홈페이지 URL</label>
+													<input type="text" class="form-control" name="companyHomepageUrl"
+														maxlength="500">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">사업자등록증 파일</label>
+													<input type="file" class="form-control" name="businessRegFile"
+														accept=".jpg,.jpeg,.png,.pdf">
+												</div>
+
+												<div class="col-12">
+													<div class="seller-insert-form-address-box">
+														<div
+															class="d-flex justify-content-between align-items-center mb-3">
+															<label class="form-label mb-0">회사 주소</label>
+															<button type="button"
+																class="btn btn-outline-primary btn-sm seller-insert-form-address-search-btn"
+																data-address-prefix="company">
+																주소 검색
+															</button>
+														</div>
+
+														<div class="row g-3">
+															<div class="col-lg-3">
+																<label class="form-label">우편번호</label>
+																<input type="text" class="form-control" name="cPostcode"
+																	id="seller-insert-form-company-postcode" readonly>
+															</div>
+															<div class="col-lg-9">
+																<label class="form-label">도로명주소</label>
+																<input type="text" class="form-control"
+																	name="cRoadAddress"
+																	id="seller-insert-form-company-road-address"
+																	readonly>
+															</div>
+															<div class="col-lg-6">
+																<label class="form-label">지번주소</label>
+																<input type="text" class="form-control"
+																	name="cJibunAddress"
+																	id="seller-insert-form-company-jibun-address"
+																	readonly>
+															</div>
+															<div class="col-lg-6">
+																<label class="form-label">상세주소</label>
+																<input type="text" class="form-control"
+																	name="cDetailAddress"
+																	id="seller-insert-form-company-detail-address"
+																	maxlength="255">
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Buyer -->
+								<div class="col-12">
+									<div class="card seller-insert-form-card">
+										<div class="card-header">
+											<h5 class="seller-insert-form-section-title">구매딜러 프로필</h5>
+										</div>
+										<div class="card-body">
+											<div class="row g-3">
+												<div class="col-lg-4">
+													<label class="form-label">딜러 등급</label>
+													<select class="form-select" name="buyerGrade"
+														id="seller-insert-form-buyer-grade" required>
+														<option value="">선택</option>
+														<option th:each="grade : ${dealerGrades}"
+															th:value="${grade.name()}" th:text="${grade.name()}">
+														</option>
+													</select>
+												</div>
+
+												<div class="col-lg-4 seller-insert-form-hidden"
+													id="seller-insert-form-buyer-custom-rate-wrap">
+													<label class="form-label">커스텀 할인율(%)</label>
+													<input type="number" class="form-control"
+														name="buyerCustomDiscountRate"
+														id="seller-insert-form-buyer-custom-rate" min="0" max="100"
+														step="0.01">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">적용 시작일</label>
+													<input type="date" class="form-control" name="buyerEffectiveFrom">
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Seller -->
+								<div class="col-12">
+									<div class="card seller-insert-form-card">
+										<div class="card-header">
+											<h5 class="seller-insert-form-section-title">판매딜러 프로필</h5>
+										</div>
+										<div class="card-body">
+											<div class="row g-3">
+												<div class="col-lg-4">
+													<label class="form-label">입점몰명</label>
+													<input type="text" class="form-control" name="shopName"
+														maxlength="200" required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">공급사 코드</label>
+													<input type="text" class="form-control" name="supplierCode"
+														maxlength="40" placeholder="비워두면 자동 생성됩니다.">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">셀러 로고 파일</label>
+													<input type="file" class="form-control" name="sellerLogoFile"
+														accept=".jpg,.jpeg,.png,.webp,.gif,.svg">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">거래상태</label>
+													<select class="form-select" name="tradingStatus" required>
+														<option value="">선택</option>
+														<option th:each="item : ${tradingStatuses}"
+															th:value="${item.name()}" th:text="${item.name()}"></option>
+													</select>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">공급유형</label>
+													<select class="form-select" name="supplyType" required>
+														<option value="">선택</option>
+														<option th:each="item : ${supplyTypes}"
+															th:value="${item.name()}" th:text="${item.name()}"></option>
+													</select>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">공급구조</label>
+													<select class="form-select" name="supplyStructure" required>
+														<option value="">선택</option>
+														<option th:each="item : ${supplyStructures}"
+															th:value="${item.name()}" th:text="${item.name()}"></option>
+													</select>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">거래상품유형</label>
+													<input type="text" class="form-control" name="productTypeText"
+														maxlength="500">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">일반전화</label>
+													<input type="text" class="form-control seller-insert-form-phone"
+														name="sellerTel" id="seller-insert-form-seller-tel"
+														maxlength="20" inputmode="numeric">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">팩스번호</label>
+													<input type="text" class="form-control seller-insert-form-phone"
+														name="sellerFax" id="seller-insert-form-seller-fax"
+														maxlength="20" inputmode="numeric">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">판매딜러 홈페이지 URL</label>
+													<input type="text" class="form-control" name="sellerHomepageUrl"
+														maxlength="500">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">거래 시작일</label>
+													<input type="date" class="form-control" name="dealStartDate">
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">거래 중지일</label>
+													<input type="date" class="form-control" name="dealStopDate">
+												</div>
+
+												<div class="col-12">
+													<div class="seller-insert-form-address-box mb-3">
+														<div
+															class="d-flex justify-content-between align-items-center mb-3">
+															<label class="form-label mb-0">사업장 주소</label>
+															<button type="button"
+																class="btn btn-outline-primary btn-sm seller-insert-form-address-search-btn"
+																data-address-prefix="business">
+																주소 검색
+															</button>
+														</div>
+
+														<div class="row g-3">
+															<div class="col-lg-3">
+																<label class="form-label">우편번호</label>
+																<input type="text" class="form-control" name="bPostcode"
+																	id="seller-insert-form-business-postcode" readonly>
+															</div>
+															<div class="col-lg-9">
+																<label class="form-label">도로명주소</label>
+																<input type="text" class="form-control"
+																	name="bRoadAddress"
+																	id="seller-insert-form-business-road-address"
+																	readonly>
+															</div>
+															<div class="col-lg-6">
+																<label class="form-label">지번주소</label>
+																<input type="text" class="form-control"
+																	name="bJibunAddress"
+																	id="seller-insert-form-business-jibun-address"
+																	readonly>
+															</div>
+															<div class="col-lg-6">
+																<label class="form-label">상세주소</label>
+																<input type="text" class="form-control"
+																	name="bDetailAddress"
+																	id="seller-insert-form-business-detail-address"
+																	maxlength="255">
+															</div>
+														</div>
+													</div>
+
+													<div class="seller-insert-form-address-box">
+														<div
+															class="d-flex justify-content-between align-items-center mb-3">
+															<label class="form-label mb-0">반품 주소</label>
+															<button type="button"
+																class="btn btn-outline-primary btn-sm seller-insert-form-address-search-btn"
+																data-address-prefix="return">
+																주소 검색
+															</button>
+														</div>
+
+														<div class="row g-3">
+															<div class="col-lg-3">
+																<label class="form-label">우편번호</label>
+																<input type="text" class="form-control" name="rPostcode"
+																	id="seller-insert-form-return-postcode" readonly>
+															</div>
+															<div class="col-lg-9">
+																<label class="form-label">도로명주소</label>
+																<input type="text" class="form-control"
+																	name="rRoadAddress"
+																	id="seller-insert-form-return-road-address"
+																	readonly>
+															</div>
+															<div class="col-lg-6">
+																<label class="form-label">지번주소</label>
+																<input type="text" class="form-control"
+																	name="rJibunAddress"
+																	id="seller-insert-form-return-jibun-address"
+																	readonly>
+															</div>
+															<div class="col-lg-6">
+																<label class="form-label">상세주소</label>
+																<input type="text" class="form-control"
+																	name="rDetailAddress"
+																	id="seller-insert-form-return-detail-address"
+																	maxlength="255">
+															</div>
+														</div>
+													</div>
+												</div>
+
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Category Permission -->
+								<div class="col-12">
+									<div class="card seller-insert-form-card">
+										<div class="card-header">
+											<h5 class="seller-insert-form-section-title">판매 가능 카테고리 권한</h5>
+										</div>
+										<div class="card-body">
+											<div class="alert alert-warning">
+												<div class="fw-semibold mb-1">권한 등록 규칙</div>
+												<div>대분류만 등록하면 해당 대분류 하위 전체가 허용됩니다.</div>
+												<div>같은 대분류에 더 큰 범위 권한이 이미 있으면 더 작은 범위는 추가되지 않습니다.</div>
+											</div>
+
+											<div class="row g-3 align-items-end">
+												<div class="col-lg-4">
+													<label class="form-label">대분류</label>
+													<select class="form-select" id="seller-insert-form-large-select">
+														<option value="">선택</option>
+													</select>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">중분류</label>
+													<select class="form-select" id="seller-insert-form-medium-select">
+														<option value="">전체(선택 안 함)</option>
+													</select>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">소분류</label>
+													<select class="form-select" id="seller-insert-form-small-select">
+														<option value="">전체(선택 안 함)</option>
+													</select>
+												</div>
+
+												<div class="col-12 text-end">
+													<button type="button" class="btn btn-primary"
+														id="seller-insert-form-add-permission-btn">
+														카테고리 권한 추가
+													</button>
+												</div>
+											</div>
+
+											<div class="table-responsive mt-4">
+												<table
+													class="table table-bordered align-middle seller-insert-form-permission-table">
+													<thead class="table-light">
+														<tr>
+															<th style="width: 80px;">번호</th>
+															<th>등록 경로</th>
+															<th style="width: 140px;">권한범위</th>
+															<th style="width: 120px;">삭제</th>
+														</tr>
+													</thead>
+													<tbody id="seller-insert-form-permission-tbody">
+														<tr id="seller-insert-form-permission-empty-row">
+															<td colspan="4" class="text-center text-muted py-4">등록된 카테고리
+																권한이 없습니다.</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<div class="col-12 seller-insert-form-sticky-submit">
+									<div class="card seller-insert-form-card">
+										<div class="card-body">
+											<div
+												class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+												<button type="submit" class="btn btn-success btn-lg px-5"
+													id="seller-insert-form-submit-btn">
+													판매회원 등록
+												</button>
+												<button type="reset" class="btn btn-light btn-lg px-5"
+													id="seller-insert-form-reset-btn">
+													초기화
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+
+							</div>
+						</form>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+	<script src="/administration/assets/js/page/clientManager/sellerInsertForm.js"></script>
+</body>
+
+</html>

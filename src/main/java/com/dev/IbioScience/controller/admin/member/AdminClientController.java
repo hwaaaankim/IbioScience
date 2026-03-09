@@ -283,13 +283,6 @@ public class AdminClientController {
         return "administration/clientManager/detail/clientDetailBenefit";
     }
 
-    @GetMapping("/clientDetail/{memberId}/memo")
-    public String memo(@PathVariable Long memberId, Model model) {
-        model.addAttribute("memberId", memberId);
-        model.addAttribute("activeTab", "memo");
-        return "administration/clientManager/detail/clientDetailMemo";
-    }
-
     @GetMapping("/clientDetail/{memberId}/wishList")
     public String wishList(@PathVariable Long memberId, Model model) {
         model.addAttribute("memberId", memberId);

@@ -13,4 +13,5 @@ public interface BuyerDealerProfileRepository extends JpaRepository<BuyerDealerP
 	boolean existsByMember_Id(Long memberId);
 
     Optional<BuyerDealerProfile> findByMember_Id(Long memberId);
+    
 }

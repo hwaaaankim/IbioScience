@@ -10,6 +10,7 @@ import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.stereotype.Component;
 
 import com.dev.IbioScience.enums.auth.CustomerType;
+import com.dev.IbioScience.enums.auth.MemberDomain;
 import com.dev.IbioScience.enums.logging.MemberAuditAction;
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.auth.PrincipalDetails;
@@ -56,6 +57,14 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
 
         // 1) 최초 로그인 시 비밀번호 변경 강제
         if (m.isMustChangePassword()) {
+            String targetUrl;
+
+            if (m.getDomain() == MemberDomain.CUSTOMER) {
+                targetUrl = "/customer/companyInfoUpdate/" + m.getId();
+            } else {
+                targetUrl = "/admin/common/memberDetail/" + m.getId();
+            }
+
             response.setCharacterEncoding("UTF-8");
             response.setContentType("text/html;charset=UTF-8");
             response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
@@ -67,7 +76,7 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
                 out.println("<body>");
                 out.println("<script>");
                 out.println("alert('최초 로그인 시 계정정보를 변경해야 합니다.');");
-                out.println("window.location.replace('/admin/common/memberDetail/" + m.getId() + "');");
+                out.println("window.location.replace('" + targetUrl + "');");
                 out.println("</script>");
                 out.println("</body></html>");
                 out.flush();

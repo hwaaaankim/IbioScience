@@ -13,31 +13,54 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 public class UploadPathHelper {
 
-    @Value("${spring.upload.path}")
-    private String uploadRoot;
+	@Value("${spring.upload.path}")
+	private String uploadRoot;
 
-    public Path resolveCustomerBase(Long userId) {
-        return Paths.get(uploadRoot, "commonPath", "customer", String.valueOf(userId));
-    }
+	public Path resolveCustomerBase(Long userId) {
+		return Paths.get(uploadRoot, "commonPath", "customer", String.valueOf(userId));
+	}
 
-    public Path saveBizRegFileForCustomer(Long userId, MultipartFile file) {
-        if (file == null || file.isEmpty()) return null;
+	public Path saveBizRegFileForCustomer(Long userId, MultipartFile file) {
+		if (file == null || file.isEmpty()) return null;
 
-        Path base = resolveCustomerBase(userId);
-        try {
-            Files.createDirectories(base);
-            String original = StringUtils.cleanPath(file.getOriginalFilename());
-            String filename = System.currentTimeMillis() + "_" + original;
-            Path target = base.resolve(filename);
-            file.transferTo(target.toFile());
-            return target.normalize();
-        } catch (IOException e) {
-            throw new RuntimeException("파일 저장 실패", e);
-        }
-    }
+		Path base = resolveCustomerBase(userId);
+		try {
+			Files.createDirectories(base);
+			String original = StringUtils.cleanPath(file.getOriginalFilename());
+			String filename = System.currentTimeMillis() + "_" + original;
+			Path target = base.resolve(filename);
+			file.transferTo(target.toFile());
+			return target.normalize();
+		} catch (IOException e) {
+			throw new RuntimeException("파일 저장 실패", e);
+		}
+	}
 
-    public String publicUrlOf(Path savedPath) {
-        Path rel = Paths.get(uploadRoot).relativize(savedPath);
-        return "/upload/" + rel.toString().replace("\\", "/");
-    }
+	/* =========================
+	 * 판매딜러 로고 파일 저장
+	 * ========================= */
+	public Path resolveSellerLogoBase(Long userId) {
+		return Paths.get(uploadRoot, "commonPath", "customer", String.valueOf(userId), "seller-logo");
+	}
+
+	public Path saveSellerLogoForCustomer(Long userId, MultipartFile file) {
+		if (file == null || file.isEmpty()) return null;
+
+		Path base = resolveSellerLogoBase(userId);
+		try {
+			Files.createDirectories(base);
+			String original = StringUtils.cleanPath(file.getOriginalFilename());
+			String filename = System.currentTimeMillis() + "_" + original;
+			Path target = base.resolve(filename);
+			file.transferTo(target.toFile());
+			return target.normalize();
+		} catch (IOException e) {
+			throw new RuntimeException("셀러 로고 저장 실패", e);
+		}
+	}
+
+	public String publicUrlOf(Path savedPath) {
+		Path rel = Paths.get(uploadRoot).relativize(savedPath);
+		return "/upload/" + rel.toString().replace("\\", "/");
+	}
 }

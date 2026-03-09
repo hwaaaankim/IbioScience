@@ -161,6 +161,12 @@ public class CustomerCompanyInfoService {
 			}
 			m.setPassword(passwordEncoder.encode(p1));
 			m.setLastPasswordChangedAt(LocalDateTime.now());
+
+			// ✅ 최초 로그인 비밀번호 변경 강제 해제
+			if (m.isMustChangePassword()) {
+				m.setMustChangePassword(false);
+			}
+
 			passwordChanged = true;
 		}
 

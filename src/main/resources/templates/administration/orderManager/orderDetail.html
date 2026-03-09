@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('주문상세')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">주문상세</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item"><a th:href="@{/admin/root/orderManager}">주문관리</a>
+										</li>
+										<li class="breadcrumb-item active">주문상세</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<style>
+						.admin-order-list-detail-card {
+							border-radius: 14px;
+						}
+
+						.admin-order-list-detail-label {
+							font-weight: 700;
+							color: #495057;
+							margin-bottom: .4rem;
+						}
+
+						.admin-order-list-detail-value-box {
+							min-height: 44px;
+							border: 1px solid #e9ebec;
+							border-radius: .5rem;
+							padding: .65rem .9rem;
+							display: flex;
+							align-items: center;
+							background: #fff;
+						}
+
+						.admin-order-list-detail-section-title {
+							font-weight: 700;
+							font-size: 1rem;
+							margin-bottom: 1rem;
+						}
+
+						.admin-order-list-detail-product-table th,
+						.admin-order-list-detail-product-table td {
+							vertical-align: middle !important;
+							text-align: center;
+						}
+
+						.admin-order-list-detail-modal-table th,
+						.admin-order-list-detail-modal-table td {
+							vertical-align: middle !important;
+						}
+					</style>
+
+					<div class="row g-4">
+
+						<div class="col-12">
+							<div class="card admin-order-list-detail-card shadow-sm">
+								<div class="card-header">
+									<div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+										<div>
+											<h5 class="card-title mb-1">주문 기본 정보</h5>
+											<div class="text-muted small">
+												주문번호:
+												<span th:text="${order.orderNo}">ORD-001</span>
+											</div>
+										</div>
+										<div class="d-flex gap-2">
+											<a th:href="@{/admin/root/orderManager}" class="btn btn-light">목록</a>
+											<button type="button" class="btn btn-primary" data-bs-toggle="modal"
+												data-bs-target="#admin-order-list-detail-member-modal">
+												상세보기
+											</button>
+											<button type="button" class="btn btn-info" data-bs-toggle="modal"
+												data-bs-target="#admin-order-list-detail-items-modal">
+												구매상품보기
+											</button>
+										</div>
+									</div>
+								</div>
+
+								<div class="card-body">
+									<div class="row g-4">
+
+										<div class="col-12">
+											<div class="admin-order-list-detail-section-title">상태 변경</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<label class="admin-order-list-detail-label">주문상태</label>
+											<select class="form-select admin-order-list-detail-change-field"
+												id="admin-order-list-detail-status"
+												th:attr="data-original-value=${order.status.name()}">
+												<option th:each="status : ${orderStatusValues}"
+													th:value="${status.name()}" th:selected="${status == order.status}"
+													th:text="${orderStatusLabelMap[status.name()]}">
+												</option>
+											</select>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<label class="admin-order-list-detail-label">결제수단</label>
+											<select class="form-select admin-order-list-detail-change-field"
+												id="admin-order-list-detail-payment-method"
+												th:attr="data-original-value=${order.paymentMethod.name()}">
+												<option th:each="pm : ${paymentMethodValues}" th:value="${pm.name()}"
+													th:selected="${pm == order.paymentMethod}"
+													th:text="${paymentMethodLabelMap[pm.name()]}">
+												</option>
+											</select>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<label class="admin-order-list-detail-label">배송방법</label>
+											<select class="form-select admin-order-list-detail-change-field"
+												id="admin-order-list-detail-shipping-method"
+												th:attr="data-original-value=${order.shippingMethod.name()}">
+												<option th:each="sm : ${shippingMethodValues}" th:value="${sm.name()}"
+													th:selected="${sm == order.shippingMethod}"
+													th:text="${shippingMethodLabelMap[sm.name()]}">
+												</option>
+											</select>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<label class="admin-order-list-detail-label">배송비 구분</label>
+											<select class="form-select admin-order-list-detail-change-field"
+												id="admin-order-list-detail-shipping-pay-type"
+												th:attr="data-original-value=${order.shippingPayType.name()}">
+												<option th:each="spt : ${shippingPayTypeValues}"
+													th:value="${spt.name()}"
+													th:selected="${spt == order.shippingPayType}"
+													th:text="${shippingPayTypeLabelMap[spt.name()]}">
+												</option>
+											</select>
+										</div>
+
+										<div class="col-12 d-flex justify-content-center pt-2">
+											<button type="button" id="admin-order-list-detail-save-btn"
+												class="btn btn-success px-4" disabled>
+												상태변경
+											</button>
+										</div>
+
+										<div class="col-12">
+											<hr class="my-1">
+										</div>
+
+										<div class="col-12">
+											<div class="admin-order-list-detail-section-title">주문 정보</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">주문 ID</div>
+											<div class="admin-order-list-detail-value-box" th:text="${order.id}">1</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">주문번호</div>
+											<div class="admin-order-list-detail-value-box" th:text="${order.orderNo}">
+												ORD-001</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">주문일시</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm:ss')}">
+												2026-03-09 12:00:00
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">결제완료일시</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${order.paidAt != null ? #temporals.format(order.paidAt, 'yyyy-MM-dd HH:mm:ss') : '-'}">
+												-
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">주문자명</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${order.member != null ? order.member.name : '-'}">
+												홍길동
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">주문자 연락처</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${(order.member != null and order.member.mobile != null and !#strings.isEmpty(order.member.mobile)) ? order.member.mobile : ((order.hp1 != null ? order.hp1 : '') + '-' + (order.hp2 != null ? order.hp2 : '') + '-' + (order.hp3 != null ? order.hp3 : ''))}">
+												010-0000-0000
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">주문자 이메일</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${order.member != null ? order.member.email : '-'}">
+												test@test.com
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">주문자 분류</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${order.member != null ? dealerTypeLabelMap[order.member.dealerType.name()] : '-'}">
+												개인소비자주문
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-6">
+											<div class="admin-order-list-detail-label">업체명</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${(order.member != null and order.member.companyProfile != null) ? order.member.companyProfile.companyName : '-'}">
+												업체명
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-6">
+											<div class="admin-order-list-detail-label">입점몰명</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${(order.member != null and order.member.sellerDealerProfile != null) ? order.member.sellerDealerProfile.shopName : '-'}">
+												입점몰명
+											</div>
+										</div>
+
+										<div class="col-12">
+											<hr class="my-1">
+										</div>
+
+										<div class="col-12">
+											<div class="admin-order-list-detail-section-title">배송지 / 결제 정보</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">수령인</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${order.receiverName}">수령인</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">수령인 휴대폰</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${(order.hp1 != null ? order.hp1 : '') + '-' + (order.hp2 != null ? order.hp2 : '') + '-' + (order.hp3 != null ? order.hp3 : '')}">
+												010-0000-0000
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">유선전화</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${(order.tel1 != null and order.tel2 != null and order.tel3 != null) ? order.tel1 + '-' + order.tel2 + '-' + order.tel3 : '-'}">
+												-
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">배송메모</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${order.shippingMemo != null ? order.shippingMemo : '-'}">
+												-
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">우편번호</div>
+											<div class="admin-order-list-detail-value-box" th:text="${order.postcode}">
+												00000</div>
+										</div>
+
+										<div class="col-12 col-lg-9">
+											<div class="admin-order-list-detail-label">주소</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${order.roadAddress + ' ' + order.detailAddress}">
+												서울시 ...
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-2">
+											<div class="admin-order-list-detail-label">상품합계</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${#numbers.formatInteger(order.sumPrice, 3, 'COMMA')} + '원'">
+												0원
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-2">
+											<div class="admin-order-list-detail-label">배송비</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${#numbers.formatInteger(order.shippingFee, 3, 'COMMA')} + '원'">
+												0원
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-2">
+											<div class="admin-order-list-detail-label">기본할인</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${#numbers.formatInteger(order.baseDiscount, 3, 'COMMA')} + '원'">
+												0원
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-2">
+											<div class="admin-order-list-detail-label">쿠폰할인</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${#numbers.formatInteger(order.couponDiscount, 3, 'COMMA')} + '원'">
+												0원
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-2">
+											<div class="admin-order-list-detail-label">적립금사용</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${#numbers.formatInteger(order.pointUsed, 3, 'COMMA')} + '원'">
+												0원
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-2">
+											<div class="admin-order-list-detail-label">최종결제금액</div>
+											<div class="admin-order-list-detail-value-box fw-bold"
+												th:text="${#numbers.formatInteger(order.grandTotal, 3, 'COMMA')} + '원'">
+												0원
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">예상적립포인트</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${#numbers.formatInteger(order.expectPoint, 3, 'COMMA')} + 'P'">
+												0P
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">주문자 스냅샷 이름</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${order.ordererName != null ? order.ordererName : '-'}">
+												-
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">주문자 스냅샷 연락처</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${order.ordererPhone != null ? order.ordererPhone : '-'}">
+												-
+											</div>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<div class="admin-order-list-detail-label">SMS 수신동의</div>
+											<div class="admin-order-list-detail-value-box"
+												th:text="${order.orderSmsAgree != null and order.orderSmsAgree ? '동의' : '미동의'}">
+												동의
+											</div>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12">
+							<div class="card admin-order-list-detail-card shadow-sm">
+								<div class="card-header">
+									<h5 class="card-title mb-0">주문 상품</h5>
+								</div>
+								<div class="card-body">
+									<div class="table-responsive">
+										<table
+											class="table table-bordered align-middle admin-order-list-detail-product-table mb-0">
+											<thead class="table-light">
+												<tr>
+													<th>상품ID</th>
+													<th>상품명</th>
+													<th>옵션그룹</th>
+													<th>옵션명</th>
+													<th>단가</th>
+													<th>수량</th>
+													<th>라인금액</th>
+													<th>적립포인트</th>
+													<th>상세이동</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr th:each="item : ${order.items}">
+													<td th:text="${item.product != null ? item.product.id : '-'}">1</td>
+													<td th:text="${item.productName}">상품명</td>
+													<td
+														th:text="${item.optionGroupName != null ? item.optionGroupName : '-'}">
+														옵션그룹</td>
+													<td th:text="${item.optionName != null ? item.optionName : '-'}">옵션명
+													</td>
+													<td
+														th:text="${#numbers.formatInteger(item.unitPrice, 3, 'COMMA')} + '원'">
+														0원</td>
+													<td th:text="${item.quantity}">1</td>
+													<td
+														th:text="${#numbers.formatInteger(item.linePrice, 3, 'COMMA')} + '원'">
+														0원</td>
+													<td
+														th:text="${#numbers.formatInteger(item.itemEarnPoint, 3, 'COMMA')} + 'P'">
+														0P</td>
+													<td>
+														<a th:if="${item.product != null}"
+															th:href="@{/admin/productDetail/{id}(id=${item.product.id})}"
+															class="btn btn-sm btn-soft-primary">
+															상세보기
+														</a>
+														<span th:if="${item.product == null}">-</span>
+													</td>
+												</tr>
+												<tr th:if="${#lists.isEmpty(order.items)}">
+													<td colspan="9" class="text-center text-muted py-4">상품 정보가 없습니다.
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+
+					</div>
+
+					<!-- 주문자 상세 모달 -->
+					<div class="modal fade" id="admin-order-list-detail-member-modal" tabindex="-1" aria-hidden="true">
+						<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title">주문자 상세 정보</h5>
+									<button type="button" class="btn-close" data-bs-dismiss="modal"
+										aria-label="닫기"></button>
+								</div>
+								<div class="modal-body">
+									<div class="row g-4">
+
+										<div class="col-12">
+											<h6 class="fw-bold mb-3">회원정보</h6>
+											<div class="table-responsive">
+												<table class="table table-bordered admin-order-list-detail-modal-table">
+													<tbody>
+														<tr>
+															<th class="table-light" style="width:180px;">회원 ID</th>
+															<td
+																th:text="${order.member != null ? order.member.id : '-'}">
+																1</td>
+															<th class="table-light" style="width:180px;">아이디</th>
+															<td
+																th:text="${order.member != null ? order.member.username : '-'}">
+																user01</td>
+														</tr>
+														<tr>
+															<th class="table-light">이름</th>
+															<td
+																th:text="${order.member != null ? order.member.name : '-'}">
+																홍길동</td>
+															<th class="table-light">휴대폰</th>
+															<td
+																th:text="${order.member != null ? order.member.mobile : '-'}">
+																010-0000-0000</td>
+														</tr>
+														<tr>
+															<th class="table-light">이메일</th>
+															<td
+																th:text="${order.member != null ? order.member.email : '-'}">
+																test@test.com</td>
+															<th class="table-light">딜러유형</th>
+															<td
+																th:text="${order.member != null ? dealerTypeLabelMap[order.member.dealerType.name()] : '-'}">
+																개인소비자주문</td>
+														</tr>
+														<tr>
+															<th class="table-light">상태</th>
+															<td
+																th:text="${order.member != null ? order.member.status.name() : '-'}">
+																ACTIVE</td>
+															<th class="table-light">포인트</th>
+															<td
+																th:text="${(order.member != null and order.member.point != null) ? #numbers.formatInteger(order.member.point, 3, 'COMMA') : '0'}">
+																0</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</div>
+
+										<div class="col-12"
+											th:if="${order.member != null and order.member.companyProfile != null}">
+											<h6 class="fw-bold mb-3">업체정보</h6>
+											<div class="table-responsive">
+												<table class="table table-bordered admin-order-list-detail-modal-table">
+													<tbody>
+														<tr>
+															<th class="table-light" style="width:180px;">업체명</th>
+															<td th:text="${order.member.companyProfile.companyName}">업체명
+															</td>
+															<th class="table-light" style="width:180px;">대표자명</th>
+															<td
+																th:text="${order.member.companyProfile.ceoName != null ? order.member.companyProfile.ceoName : '-'}">
+																대표자</td>
+														</tr>
+														<tr>
+															<th class="table-light">사업자번호</th>
+															<td
+																th:text="${order.member.companyProfile.businessRegistrationNumber != null ? order.member.companyProfile.businessRegistrationNumber : '-'}">
+																123</td>
+															<th class="table-light">대표번호</th>
+															<td
+																th:text="${order.member.companyProfile.representativeTel != null ? order.member.companyProfile.representativeTel : '-'}">
+																02-000</td>
+														</tr>
+														<tr>
+															<th class="table-light">계산서 이메일</th>
+															<td
+																th:text="${order.member.companyProfile.invoiceEmail != null ? order.member.companyProfile.invoiceEmail : '-'}">
+																mail@test.com</td>
+															<th class="table-light">주소</th>
+															<td
+																th:text="${order.member.companyProfile.companyAddress != null ? ((order.member.companyProfile.companyAddress.roadAddress != null ? order.member.companyProfile.companyAddress.roadAddress : '') + ' ' + (order.member.companyProfile.companyAddress.detailAddress != null ? order.member.companyProfile.companyAddress.detailAddress : '')) : '-'}">
+																주소
+															</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</div>
+
+										<div class="col-12"
+											th:if="${order.member != null and order.member.buyerDealerProfile != null}">
+											<h6 class="fw-bold mb-3">구매딜러정보</h6>
+											<div class="table-responsive">
+												<table class="table table-bordered admin-order-list-detail-modal-table">
+													<tbody>
+														<tr>
+															<th class="table-light" style="width:180px;">딜러등급</th>
+															<td
+																th:text="${order.member.buyerDealerProfile.grade != null ? order.member.buyerDealerProfile.grade.name() : '-'}">
+																A</td>
+															<th class="table-light" style="width:180px;">적용시작일</th>
+															<td
+																th:text="${order.member.buyerDealerProfile.effectiveFrom != null ? #temporals.format(order.member.buyerDealerProfile.effectiveFrom, 'yyyy-MM-dd') : '-'}">
+																2026-03-09</td>
+														</tr>
+														<tr>
+															<th class="table-light">커스텀 할인율</th>
+															<td colspan="3"
+																th:text="${order.member.buyerDealerProfile.customDiscountRate != null ? order.member.buyerDealerProfile.customDiscountRate : '-'}">
+																-
+															</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</div>
+
+										<div class="col-12"
+											th:if="${order.member != null and order.member.sellerDealerProfile != null}">
+											<h6 class="fw-bold mb-3">판매딜러정보</h6>
+											<div class="table-responsive">
+												<table class="table table-bordered admin-order-list-detail-modal-table">
+													<tbody>
+														<tr>
+															<th class="table-light" style="width:180px;">입점몰명</th>
+															<td th:text="${order.member.sellerDealerProfile.shopName}">
+																입점몰</td>
+															<th class="table-light" style="width:180px;">공급사코드</th>
+															<td
+																th:text="${order.member.sellerDealerProfile.supplierCode}">
+																SUP-001</td>
+														</tr>
+														<tr>
+															<th class="table-light">거래상태</th>
+															<td
+																th:text="${order.member.sellerDealerProfile.tradingStatus != null ? order.member.sellerDealerProfile.tradingStatus.name() : '-'}">
+																ACTIVE</td>
+															<th class="table-light">공급유형</th>
+															<td
+																th:text="${order.member.sellerDealerProfile.supplyType != null ? order.member.sellerDealerProfile.supplyType.name() : '-'}">
+																DIRECT</td>
+														</tr>
+														<tr>
+															<th class="table-light">공급구조</th>
+															<td
+																th:text="${order.member.sellerDealerProfile.supplyStructure != null ? order.member.sellerDealerProfile.supplyStructure.name() : '-'}">
+																WHOLESALE</td>
+															<th class="table-light">대표번호</th>
+															<td
+																th:text="${order.member.sellerDealerProfile.tel != null ? order.member.sellerDealerProfile.tel : '-'}">
+																02-0000-0000</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</div>
+
+									</div>
+								</div>
+								<div class="modal-footer">
+									<a th:if="${order.member != null}"
+										th:href="@{/admin/root/clientDetail/{memberId}/home(memberId=${order.member.id})}"
+										class="btn btn-primary">
+										상세이동
+									</a>
+									<button type="button" class="btn btn-light" data-bs-dismiss="modal">닫기</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- 구매상품 모달 -->
+					<div class="modal fade" id="admin-order-list-detail-items-modal" tabindex="-1" aria-hidden="true">
+						<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title">구매상품 보기</h5>
+									<button type="button" class="btn-close" data-bs-dismiss="modal"
+										aria-label="닫기"></button>
+								</div>
+								<div class="modal-body">
+									<div class="table-responsive">
+										<table
+											class="table table-bordered align-middle admin-order-list-detail-product-table mb-0">
+											<thead class="table-light">
+												<tr>
+													<th>상품ID</th>
+													<th>상품명</th>
+													<th>옵션그룹</th>
+													<th>옵션명</th>
+													<th>수량</th>
+													<th>단가</th>
+													<th>라인금액</th>
+													<th>이동</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr th:each="item : ${order.items}">
+													<td th:text="${item.product != null ? item.product.id : '-'}">1</td>
+													<td>
+														<a th:if="${item.product != null}"
+															th:href="@{/admin/productDetail/{id}(id=${item.product.id})}"
+															th:text="${item.productName}" class="fw-semibold">
+															상품명
+														</a>
+														<span th:if="${item.product == null}"
+															th:text="${item.productName}">상품명</span>
+													</td>
+													<td
+														th:text="${item.optionGroupName != null ? item.optionGroupName : '-'}">
+														옵션그룹</td>
+													<td th:text="${item.optionName != null ? item.optionName : '-'}">옵션명
+													</td>
+													<td th:text="${item.quantity}">1</td>
+													<td
+														th:text="${#numbers.formatInteger(item.unitPrice, 3, 'COMMA')} + '원'">
+														0원</td>
+													<td
+														th:text="${#numbers.formatInteger(item.linePrice, 3, 'COMMA')} + '원'">
+														0원</td>
+													<td>
+														<a th:if="${item.product != null}"
+															th:href="@{/admin/productDetail/{id}(id=${item.product.id})}"
+															class="btn btn-sm btn-soft-primary">
+															자세히 보기
+														</a>
+														<span th:if="${item.product == null}">-</span>
+													</td>
+												</tr>
+												<tr th:if="${#lists.isEmpty(order.items)}">
+													<td colspan="8" class="text-center text-muted py-4">상품 정보가 없습니다.
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-light" data-bs-dismiss="modal">닫기</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		window.ADMIN_ORDER_LIST_DETAIL_ORDER_ID = /*[[${order.id}]]*/ 0;
+	/*]]>*/
+	</script>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/js/page/orderManager/orderDetail.js"></script>
+</body>
+
+</html>

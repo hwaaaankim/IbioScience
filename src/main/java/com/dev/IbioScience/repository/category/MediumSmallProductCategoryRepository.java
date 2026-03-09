@@ -13,6 +13,8 @@ import com.dev.IbioScience.model.product.relation.MediumSmallProductCategory;
 
 public interface MediumSmallProductCategoryRepository extends JpaRepository<MediumSmallProductCategory, Long> {
 
+	boolean existsByMedium_IdAndSmall_Id(Long mediumId, Long smallId);
+	
     @Query("select mspc from MediumSmallProductCategory mspc where mspc.product.id in :ids")
     List<MediumSmallProductCategory> findByProductIds(@Param("ids") Collection<Long> productIds);
 

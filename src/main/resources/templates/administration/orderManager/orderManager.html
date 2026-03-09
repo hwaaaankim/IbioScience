@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('주문관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">주문관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">주문관리</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<style>
+						.admin-order-list-manager-filter-card .form-label {
+							font-weight: 600;
+							margin-bottom: .45rem;
+						}
+
+						.admin-order-list-manager-filter-card .form-check {
+							min-height: auto;
+							margin-bottom: .45rem;
+						}
+
+						.admin-order-list-manager-filter-card .form-check-label {
+							cursor: pointer;
+						}
+
+						.admin-order-list-manager-section-card,
+						.admin-order-list-manager-filter-card {
+							border-radius: 14px;
+						}
+
+						.admin-order-list-manager-quick-btn-wrap {
+							display: flex;
+							flex-wrap: wrap;
+							gap: .5rem;
+							align-items: center;
+						}
+
+						.admin-order-list-manager-table th,
+						.admin-order-list-manager-table td {
+							vertical-align: middle !important;
+							text-align: center;
+							white-space: nowrap;
+						}
+
+						.admin-order-list-manager-table .admin-order-list-manager-click-cell {
+							cursor: pointer;
+							transition: background-color .15s ease-in-out;
+						}
+
+						.admin-order-list-manager-table .admin-order-list-manager-click-cell:hover {
+							background-color: rgba(64, 81, 137, 0.06);
+						}
+
+						.admin-order-list-manager-sort-btn {
+							border: 0;
+							background: transparent;
+							padding: 0 0 0 .25rem;
+							line-height: 1;
+							font-size: 11px;
+							color: #878a99;
+						}
+
+						.admin-order-list-manager-sort-btn.active {
+							color: #405189;
+							font-weight: 700;
+						}
+
+						.admin-order-list-manager-status-select {
+							min-width: 145px;
+						}
+
+						.admin-order-list-manager-pagination-wrap {
+							display: flex;
+							flex-wrap: wrap;
+							gap: .35rem;
+							align-items: center;
+							justify-content: center;
+						}
+
+						.admin-order-list-manager-pagination-wrap .btn {
+							min-width: 42px;
+						}
+
+						.admin-order-list-manager-empty-box {
+							min-height: 220px;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							text-align: center;
+							color: #878a99;
+						}
+					</style>
+
+					<form id="admin-order-list-manager-search-form" class="row g-3" method="get"
+						th:action="@{/admin/root/orderManager}">
+						<input type="hidden" name="searchSubmitted" value="true">
+						<input type="hidden" name="page" th:value="${search.page}">
+						<input type="hidden" name="sortBy" th:value="${search.sortBy}">
+						<input type="hidden" name="sortDir" th:value="${search.sortDir}">
+
+						<div class="col-12">
+							<div class="card admin-order-list-manager-filter-card shadow-sm">
+								<div class="card-header">
+									<h5 class="card-title mb-0">주문 검색 필터</h5>
+								</div>
+								<div class="card-body">
+									<div class="row g-4">
+
+										<div class="col-12 col-xl-2">
+											<label class="form-label" for="admin-order-list-manager-size">페이지
+												사이즈</label>
+											<select class="form-select" id="admin-order-list-manager-size" name="size">
+												<option value="10" th:selected="${search.size == 10}">10</option>
+												<option value="30" th:selected="${search.size == 30}">30</option>
+												<option value="50" th:selected="${search.size == 50}">50</option>
+												<option value="100" th:selected="${search.size == 100}">100</option>
+											</select>
+										</div>
+
+										<div class="col-12 col-xl-5">
+											<label class="form-label">주문일자</label>
+											<div class="row g-2 align-items-center">
+												<div class="col-md-5">
+													<input type="date" class="form-control"
+														id="admin-order-list-manager-from-date" name="fromDate"
+														th:value="${search.fromDate}">
+												</div>
+												<div class="col-md-2 text-center">~</div>
+												<div class="col-md-5">
+													<input type="date" class="form-control"
+														id="admin-order-list-manager-to-date" name="toDate"
+														th:value="${search.toDate}">
+												</div>
+												<div class="col-12">
+													<div class="admin-order-list-manager-quick-btn-wrap mt-2">
+														<button type="button" class="btn btn-soft-primary btn-sm"
+															data-range="today">오늘</button>
+														<button type="button" class="btn btn-soft-primary btn-sm"
+															data-range="7days">7일</button>
+														<button type="button" class="btn btn-soft-primary btn-sm"
+															data-range="1month">1개월</button>
+														<button type="button" class="btn btn-soft-secondary btn-sm"
+															data-range="all">전체</button>
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<div class="col-12 col-xl-5">
+											<label class="form-label">검색어</label>
+											<div class="row g-2">
+												<div class="col-md-4">
+													<select class="form-select" name="keywordType"
+														id="admin-order-list-manager-keyword-type">
+														<option value="">선택</option>
+														<option value="MEMBER_NAME"
+															th:selected="${search.keywordType == 'MEMBER_NAME'}">회원이름
+														</option>
+														<option value="COMPANY_NAME"
+															th:selected="${search.keywordType == 'COMPANY_NAME'}">업체명
+														</option>
+														<option value="SHOP_NAME"
+															th:selected="${search.keywordType == 'SHOP_NAME'}">입점몰명
+														</option>
+														<option value="MOBILE"
+															th:selected="${search.keywordType == 'MOBILE'}">휴대폰번호
+														</option>
+														<option value="EMAIL"
+															th:selected="${search.keywordType == 'EMAIL'}">이메일</option>
+													</select>
+												</div>
+												<div class="col-md-8">
+													<input type="text" class="form-control" name="keyword"
+														id="admin-order-list-manager-keyword"
+														placeholder="검색어를 입력해 주세요." th:value="${search.keyword}">
+												</div>
+											</div>
+										</div>
+
+										<div class="col-12">
+											<div class="row g-4">
+												<div class="col-12 col-lg-6 col-xl-3">
+													<label class="form-label">주문자 분류</label>
+													<div
+														class="border rounded p-3 h-100 d-flex flex-column justify-content-center">
+														<div class="form-check" th:each="type : ${dealerTypeValues}">
+															<input class="form-check-input" type="checkbox"
+																name="dealerTypes"
+																th:id="'admin-order-list-manager-dealer-' + ${type.name()}"
+																th:value="${type.name()}"
+																th:checked="${#lists.contains(search.dealerTypes, type)}">
+															<label class="form-check-label"
+																th:for="'admin-order-list-manager-dealer-' + ${type.name()}"
+																th:text="${dealerTypeLabelMap[type.name()]}"></label>
+														</div>
+													</div>
+												</div>
+
+												<div class="col-12 col-lg-6 col-xl-3">
+													<label class="form-label">주문상태</label>
+													<div class="border rounded p-3 h-100">
+														<div class="form-check" th:each="status : ${orderStatusValues}">
+															<input class="form-check-input" type="checkbox"
+																name="orderStatuses"
+																th:id="'admin-order-list-manager-status-' + ${status.name()}"
+																th:value="${status.name()}"
+																th:checked="${#lists.contains(search.orderStatuses, status)}">
+															<label class="form-check-label"
+																th:for="'admin-order-list-manager-status-' + ${status.name()}"
+																th:text="${orderStatusLabelMap[status.name()]}"></label>
+														</div>
+													</div>
+												</div>
+
+												<div class="col-12 col-lg-6 col-xl-2">
+													<label class="form-label">결제수단</label>
+													<div class="border rounded p-3 h-100">
+														<div class="form-check" th:each="pm : ${paymentMethodValues}">
+															<input class="form-check-input" type="checkbox"
+																name="paymentMethods"
+																th:id="'admin-order-list-manager-payment-' + ${pm.name()}"
+																th:value="${pm.name()}"
+																th:checked="${#lists.contains(search.paymentMethods, pm)}">
+															<label class="form-check-label"
+																th:for="'admin-order-list-manager-payment-' + ${pm.name()}"
+																th:text="${paymentMethodLabelMap[pm.name()]}"></label>
+														</div>
+													</div>
+												</div>
+
+												<div class="col-12 col-lg-6 col-xl-2">
+													<label class="form-label">배송방법</label>
+													<div class="border rounded p-3 h-100">
+														<div class="form-check" th:each="sm : ${shippingMethodValues}">
+															<input class="form-check-input" type="checkbox"
+																name="shippingMethods"
+																th:id="'admin-order-list-manager-shipping-' + ${sm.name()}"
+																th:value="${sm.name()}"
+																th:checked="${#lists.contains(search.shippingMethods, sm)}">
+															<label class="form-check-label"
+																th:for="'admin-order-list-manager-shipping-' + ${sm.name()}"
+																th:text="${shippingMethodLabelMap[sm.name()]}"></label>
+														</div>
+													</div>
+												</div>
+
+												<div class="col-12 col-lg-6 col-xl-2">
+													<label class="form-label">배송비 구분</label>
+													<div class="border rounded p-3 h-100">
+														<div class="form-check"
+															th:each="spt : ${shippingPayTypeValues}">
+															<input class="form-check-input" type="checkbox"
+																name="shippingPayTypes"
+																th:id="'admin-order-list-manager-ship-pay-' + ${spt.name()}"
+																th:value="${spt.name()}"
+																th:checked="${#lists.contains(search.shippingPayTypes, spt)}">
+															<label class="form-check-label"
+																th:for="'admin-order-list-manager-ship-pay-' + ${spt.name()}"
+																th:text="${shippingPayTypeLabelMap[spt.name()]}"></label>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<div class="col-12">
+											<div
+												class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+												<button type="submit" class="btn btn-primary px-4">
+													검색
+												</button>
+												<a th:href="@{/admin/root/orderManager}" class="btn btn-light px-4">
+													초기화
+												</a>
+											</div>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
+
+					<div class="row mt-1">
+						<div class="col-12">
+							<div class="card admin-order-list-manager-section-card shadow-sm">
+								<div class="card-header">
+									<div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+										<div>
+											<h5 class="card-title mb-1">주문 리스트</h5>
+											<div class="text-muted small">
+												총 <span th:text="${orderPage.totalElements}">0</span>건
+											</div>
+										</div>
+										<div>
+											<button type="button" id="admin-order-list-manager-save-status-btn"
+												class="btn btn-success" disabled>
+												상태저장
+											</button>
+										</div>
+									</div>
+								</div>
+
+								<div class="card-body">
+
+									<div class="table-responsive" th:if="${orderPage.totalElements > 0}">
+										<table
+											class="table table-hover align-middle admin-order-list-manager-table mb-0">
+											<thead class="table-light">
+												<tr>
+													<th>id</th>
+													<th>주문번호</th>
+													<th>
+														<div
+															class="d-inline-flex align-items-center justify-content-center">
+															<span>주문자이름</span>
+															<button type="button"
+																class="admin-order-list-manager-sort-btn"
+																data-sort-by="memberName"
+																th:classappend="${search.sortBy == 'memberName'} ? 'active' : ''">
+																▲▼
+															</button>
+														</div>
+													</th>
+													<th>
+														<div
+															class="d-inline-flex align-items-center justify-content-center">
+															<span>연락처</span>
+															<button type="button"
+																class="admin-order-list-manager-sort-btn"
+																data-sort-by="mobile"
+																th:classappend="${search.sortBy == 'mobile'} ? 'active' : ''">
+																▲▼
+															</button>
+														</div>
+													</th>
+													<th>
+														<div
+															class="d-inline-flex align-items-center justify-content-center">
+															<span>이메일</span>
+															<button type="button"
+																class="admin-order-list-manager-sort-btn"
+																data-sort-by="email"
+																th:classappend="${search.sortBy == 'email'} ? 'active' : ''">
+																▲▼
+															</button>
+														</div>
+													</th>
+													<th>업체명</th>
+													<th>입점몰명</th>
+													<th>
+														<div
+															class="d-inline-flex align-items-center justify-content-center">
+															<span>주문일</span>
+															<button type="button"
+																class="admin-order-list-manager-sort-btn"
+																data-sort-by="createdAt"
+																th:classappend="${search.sortBy == 'createdAt'} ? 'active' : ''">
+																▲▼
+															</button>
+														</div>
+													</th>
+													<th>
+														<div
+															class="d-inline-flex align-items-center justify-content-center">
+															<span>주문상태</span>
+															<button type="button"
+																class="admin-order-list-manager-sort-btn"
+																data-sort-by="status"
+																th:classappend="${search.sortBy == 'status'} ? 'active' : ''">
+																▲▼
+															</button>
+														</div>
+													</th>
+													<th>상태변경</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr th:each="order : ${orderPage.content}">
+													<td class="admin-order-list-manager-click-cell"
+														th:data-href="@{/admin/root/orderDetail/{id}(id=${order.id})}"
+														th:text="${order.id}">1</td>
+
+													<td class="admin-order-list-manager-click-cell"
+														th:data-href="@{/admin/root/orderDetail/{id}(id=${order.id})}"
+														th:text="${order.orderNo}">ORD-001</td>
+
+													<td class="admin-order-list-manager-click-cell"
+														th:data-href="@{/admin/root/orderDetail/{id}(id=${order.id})}"
+														th:text="${order.member != null ? order.member.name : '-'}">홍길동
+													</td>
+
+													<td class="admin-order-list-manager-click-cell"
+														th:data-href="@{/admin/root/orderDetail/{id}(id=${order.id})}"
+														th:text="${(order.member != null and order.member.mobile != null and !#strings.isEmpty(order.member.mobile)) ? order.member.mobile : ((order.hp1 != null ? order.hp1 : '') + '-' + (order.hp2 != null ? order.hp2 : '') + '-' + (order.hp3 != null ? order.hp3 : ''))}">
+														010-0000-0000
+													</td>
+
+													<td class="admin-order-list-manager-click-cell"
+														th:data-href="@{/admin/root/orderDetail/{id}(id=${order.id})}"
+														th:text="${order.member != null ? order.member.email : '-'}">
+														test@test.com</td>
+
+													<td class="admin-order-list-manager-click-cell"
+														th:data-href="@{/admin/root/orderDetail/{id}(id=${order.id})}"
+														th:text="${(order.member != null and order.member.companyProfile != null and order.member.companyProfile.companyName != null) ? order.member.companyProfile.companyName : '-'}">
+														업체명
+													</td>
+
+													<td class="admin-order-list-manager-click-cell"
+														th:data-href="@{/admin/root/orderDetail/{id}(id=${order.id})}"
+														th:text="${(order.member != null and order.member.sellerDealerProfile != null and order.member.sellerDealerProfile.shopName != null) ? order.member.sellerDealerProfile.shopName : '-'}">
+														입점몰명
+													</td>
+
+													<td class="admin-order-list-manager-click-cell"
+														th:data-href="@{/admin/root/orderDetail/{id}(id=${order.id})}"
+														th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm')}">
+														2026-03-09 12:00
+													</td>
+
+													<td class="admin-order-list-manager-click-cell"
+														th:data-href="@{/admin/root/orderDetail/{id}(id=${order.id})}"
+														th:text="${orderStatusLabelMap[order.status.name()]}">
+														주문완료
+													</td>
+
+													<td>
+														<select
+															class="form-select form-select-sm admin-order-list-manager-status-select"
+															th:attr="data-order-id=${order.id},data-original-value=${order.status.name()}">
+															<option th:each="status : ${orderStatusValues}"
+																th:value="${status.name()}"
+																th:selected="${status == order.status}"
+																th:text="${orderStatusLabelMap[status.name()]}">
+															</option>
+														</select>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+
+									<div class="admin-order-list-manager-empty-box border rounded"
+										th:if="${orderPage.totalElements == 0}">
+										<div>
+											<div class="fs-5 fw-semibold mb-2">조회된 주문이 없습니다.</div>
+											<div>검색 조건을 확인해 주세요.</div>
+										</div>
+									</div>
+
+									<div class="mt-4" th:if="${orderPage.totalPages > 0}">
+										<div class="admin-order-list-manager-pagination-wrap">
+											<button type="button" class="btn btn-sm btn-light" data-page="0"
+												th:disabled="${orderPage.first}">
+												FIRST
+											</button>
+
+											<button type="button" class="btn btn-sm btn-light"
+												th:data-page="${orderPage.number - 1}" th:disabled="${orderPage.first}">
+												PREV
+											</button>
+
+											<th:block th:each="pageNo : ${#numbers.sequence(blockStart, blockEnd)}">
+												<button type="button" class="btn btn-sm"
+													th:classappend="${pageNo == orderPage.number + 1} ? 'btn-primary' : 'btn-light'"
+													th:data-page="${pageNo - 1}" th:text="${pageNo}">
+													1
+												</button>
+											</th:block>
+
+											<button type="button" class="btn btn-sm btn-light"
+												th:data-page="${orderPage.number + 1}" th:disabled="${orderPage.last}">
+												NEXT
+											</button>
+
+											<button type="button" class="btn btn-sm btn-light"
+												th:data-page="${orderPage.totalPages - 1}"
+												th:disabled="${orderPage.last}">
+												LAST
+											</button>
+										</div>
+									</div>
+
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		window.ADMIN_ORDER_LIST_MANAGER_CURRENT_SORT_BY = /*[[${search.sortBy}]]*/ '';
+		window.ADMIN_ORDER_LIST_MANAGER_CURRENT_SORT_DIR = /*[[${search.sortDir}]]*/ '';
+	/*]]>*/
+	</script>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/js/page/orderManager/orderManager.js"></script>
+</body>
+
+</html>
