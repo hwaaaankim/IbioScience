@@ -65,6 +65,7 @@ public class CustomerSignUpService {
 		m.setRole(MemberRole.USER);
 
 		// ✅ 변경: 승인 전까지 로그인 불가
+		// 이것만 ACTIVE 로 바꾸면 일반회원은 바로 회원가입이 진행 됩니다.
 		m.setStatus(MemberStatus.PENDING);
 
 		m.setJoinedAt(LocalDateTime.now());
