@@ -292,12 +292,6 @@
 			</a>
 
 			<a class="list-group-item list-group-item-action"
-				th:classappend="${activeTab == 'information'} ? ' active' : ''"
-				th:href="@{/admin/root/clientDetail/{id}/information(id=${memberId})}">
-				회원상세정보
-			</a>
-
-			<a class="list-group-item list-group-item-action"
 				th:classappend="${activeTab == 'orderList'} ? ' active' : ''"
 				th:href="@{/admin/root/clientDetail/{id}/orderList(id=${memberId})}">
 				주문내역
@@ -319,11 +313,6 @@
 				th:classappend="${activeTab == 'benefit'} ? ' active' : ''"
 				th:href="@{/admin/root/clientDetail/{id}/benefit(id=${memberId})}">
 				적립금 및 쿠폰
-			</a>
-
-			<a class="list-group-item list-group-item-action" th:classappend="${activeTab == 'memo'} ? ' active' : ''"
-				th:href="@{/admin/root/clientDetail/{id}/memo(id=${memberId})}">
-				회원메모
 			</a>
 
 			<a class="list-group-item list-group-item-action"
