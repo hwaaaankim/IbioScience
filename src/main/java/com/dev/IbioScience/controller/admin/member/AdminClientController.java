@@ -268,6 +268,13 @@ public class AdminClientController {
         model.addAttribute("activeTab", "orderList");
         return "administration/clientManager/detail/clientDetailOrderList";
     }
+    
+    @GetMapping("/clientDetail/{memberId}/estimateList")
+    public String estimateList(@PathVariable Long memberId, Model model) {
+        model.addAttribute("memberId", memberId);
+        model.addAttribute("activeTab", "estimateList");
+        return "administration/clientManager/detail/clientEstimateList";
+    }
 
     @GetMapping("/clientDetail/{memberId}/boardList")
     public String boardList(@PathVariable Long memberId, Model model) {

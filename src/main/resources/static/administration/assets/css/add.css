@@ -689,3 +689,147 @@
 }
 
 /* Sign In End*/
+
+.crm-estimate-list-filter-card,
+.crm-estimate-list-table-card,
+.crm-estimate-list-detail-section-card,
+.crm-estimate-list-mail-section-card {
+	border-radius: 0.875rem;
+}
+
+.crm-estimate-list-label {
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+}
+
+.crm-estimate-list-control,
+.crm-estimate-list-search-btn {
+	min-height: 44px;
+}
+
+.crm-estimate-list-search-btn {
+	min-width: 120px;
+}
+
+.crm-estimate-list-checkbox-wrap {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	min-height: 44px;
+	flex-wrap: wrap;
+}
+
+.crm-estimate-list-table thead th {
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.crm-estimate-list-applicant-box {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+.crm-estimate-list-applicant-main {
+	font-weight: 600;
+	color: #212529;
+}
+
+.crm-estimate-list-applicant-sub {
+	font-size: 0.875rem;
+	color: #6c757d;
+	word-break: break-all;
+}
+
+.crm-estimate-list-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 84px;
+	padding: 0.45rem 0.75rem;
+	border-radius: 999px;
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.crm-estimate-list-badge-unchecked {
+	background-color: rgba(220, 53, 69, 0.12);
+	color: #dc3545;
+}
+
+.crm-estimate-list-badge-checked {
+	background-color: rgba(255, 193, 7, 0.18);
+	color: #8a6d00;
+}
+
+.crm-estimate-list-badge-answered {
+	background-color: rgba(25, 135, 84, 0.12);
+	color: #198754;
+}
+
+.crm-estimate-list-modal .modal-dialog {
+	max-width: 1400px;
+}
+
+.crm-estimate-list-detail-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
+}
+
+.crm-estimate-list-detail-item {
+	border: 1px solid #e9ebec;
+	border-radius: 0.75rem;
+	padding: 1rem;
+	background: #fff;
+	min-height: 88px;
+}
+
+.crm-estimate-list-detail-item-full {
+	grid-column: 1 / -1;
+}
+
+.crm-estimate-list-detail-label {
+	font-size: 0.875rem;
+	font-weight: 700;
+	color: #6c757d;
+	margin-bottom: 0.5rem;
+}
+
+.crm-estimate-list-detail-value,
+.crm-estimate-list-detail-content {
+	color: #212529;
+	word-break: break-word;
+	white-space: pre-wrap;
+}
+
+.crm-estimate-list-detail-content {
+	min-height: 100px;
+}
+
+.crm-estimate-list-mail-editor {
+	min-height: 280px;
+}
+
+.crm-estimate-list-mail-editor .ql-editor {
+	min-height: 220px;
+}
+
+.crm-estimate-list-pagination-wrap .page-link {
+	cursor: pointer;
+}
+
+#crm-estimate-list-mail-attachment-preview li,
+#crm-estimate-list-detail-attachments li {
+	padding: 0.25rem 0;
+}
+
+@media (max-width: 991.98px) {
+	.crm-estimate-list-detail-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.crm-estimate-list-search-btn {
+		width: 100%;
+	}
+}

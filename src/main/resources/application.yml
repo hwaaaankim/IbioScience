@@ -15,6 +15,19 @@ spring:
           auth: true
           starttls:
             enable: true
+app:
+  mail:
+    hiworks:
+      host: smtps.hiworks.com
+      port: 465
+      username: ${HIWORKS_MAIL_USERNAME:admin@ibioscience.co.kr}
+      password: ${HIWORKS_MAIL_PASSWORD:z1rwev8tD0xHJHICnOXV}
+      from-address: ${HIWORKS_MAIL_FROM:admin@ibioscience.co.kr}
+      from-name: 아이바이오사이언스
+      auth: true
+      ssl-enable: true
+      debug: false
+            
 server:
   forward-headers-strategy: framework
   port: 8080

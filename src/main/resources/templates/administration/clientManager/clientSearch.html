@@ -273,37 +273,97 @@
 									<ul class="pagination mb-0">
 
 										<li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
-											<a class="page-link"
-												th:href="@{/admin/root/clientSearch(${cond.toQueryParams(0)})}">
+											<a class="page-link" th:href="@{/admin/root/clientSearch(
+						page=${0},
+						size=${cond.size},
+						searchField=${cond.searchField},
+						keyword=${cond.keyword},
+						memberTypes=${selectedMemberTypes},
+						grade=${cond.grade != null ? cond.grade.name() : null},
+						status=${cond.status != null ? cond.status.name() : null},
+						dateField=${cond.dateField != null ? cond.dateField.name() : null},
+						from=${cond.from},
+						to=${cond.to},
+						sortKey=${sortKey},
+						sortDir=${sortDir}
+					)}">
 												first
 											</a>
 										</li>
 
 										<li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
-											<a class="page-link"
-												th:href="@{/admin/root/clientSearch(${cond.toQueryParams(page.number-1)})}">
+											<a class="page-link" th:href="@{/admin/root/clientSearch(
+						page=${page.number - 1},
+						size=${cond.size},
+						searchField=${cond.searchField},
+						keyword=${cond.keyword},
+						memberTypes=${selectedMemberTypes},
+						grade=${cond.grade != null ? cond.grade.name() : null},
+						status=${cond.status != null ? cond.status.name() : null},
+						dateField=${cond.dateField != null ? cond.dateField.name() : null},
+						from=${cond.from},
+						to=${cond.to},
+						sortKey=${sortKey},
+						sortDir=${sortDir}
+					)}">
 												prev
 											</a>
 										</li>
 
 										<li class="page-item" th:each="p : ${pageNumbers}"
 											th:classappend="${p == page.number ? 'active' : ''}">
-											<a class="page-link" th:text="${p + 1}"
-												th:href="@{/admin/root/clientSearch(${cond.toQueryParams(p)})}">
+											<a class="page-link" th:text="${p + 1}" th:href="@{/admin/root/clientSearch(
+						page=${p},
+						size=${cond.size},
+						searchField=${cond.searchField},
+						keyword=${cond.keyword},
+						memberTypes=${selectedMemberTypes},
+						grade=${cond.grade != null ? cond.grade.name() : null},
+						status=${cond.status != null ? cond.status.name() : null},
+						dateField=${cond.dateField != null ? cond.dateField.name() : null},
+						from=${cond.from},
+						to=${cond.to},
+						sortKey=${sortKey},
+						sortDir=${sortDir}
+					)}">
 												1
 											</a>
 										</li>
 
 										<li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
-											<a class="page-link"
-												th:href="@{/admin/root/clientSearch(${cond.toQueryParams(page.number+1)})}">
+											<a class="page-link" th:href="@{/admin/root/clientSearch(
+						page=${page.number + 1},
+						size=${cond.size},
+						searchField=${cond.searchField},
+						keyword=${cond.keyword},
+						memberTypes=${selectedMemberTypes},
+						grade=${cond.grade != null ? cond.grade.name() : null},
+						status=${cond.status != null ? cond.status.name() : null},
+						dateField=${cond.dateField != null ? cond.dateField.name() : null},
+						from=${cond.from},
+						to=${cond.to},
+						sortKey=${sortKey},
+						sortDir=${sortDir}
+					)}">
 												next
 											</a>
 										</li>
 
 										<li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
-											<a class="page-link"
-												th:href="@{/admin/root/clientSearch(${cond.toQueryParams(page.totalPages-1)})}">
+											<a class="page-link" th:href="@{/admin/root/clientSearch(
+						page=${page.totalPages - 1},
+						size=${cond.size},
+						searchField=${cond.searchField},
+						keyword=${cond.keyword},
+						memberTypes=${selectedMemberTypes},
+						grade=${cond.grade != null ? cond.grade.name() : null},
+						status=${cond.status != null ? cond.status.name() : null},
+						dateField=${cond.dateField != null ? cond.dateField.name() : null},
+						from=${cond.from},
+						to=${cond.to},
+						sortKey=${sortKey},
+						sortDir=${sortDir}
+					)}">
 												last
 											</a>
 										</li>

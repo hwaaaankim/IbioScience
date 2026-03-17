@@ -132,5 +132,9 @@ public interface MediumSmallProductCategoryRepository extends JpaRepository<Medi
 	        @Param("smallId") Long smallId,
 	        @Param("brandId") Long brandId
 	);
+    
+    List<MediumSmallProductCategory> findAllByIdIn(Collection<Long> ids);
+
+    List<MediumSmallProductCategory> findByProduct_IdOrderByIdAsc(Long productId);
 
 }

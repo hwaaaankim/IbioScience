@@ -45,15 +45,23 @@ public class CustomerFrontController {
 		return "front/customer/couponList";
 	}
 
-	@GetMapping("/estimateList/{id}")
-	public String estimateList(@PathVariable Long id) {
-		return "front/customer/estimateList";
-	}
+	@GetMapping({"/estimate", "/estimate/{id}"})
+    public String estimatePage(
+            @PathVariable(name = "id", required = false) Long productId,
+            @RequestParam(name = "mappingId", required = false) Long mappingId,
+            Model model
+    ) {
+        model.addAttribute("initialProductId", productId);
+        model.addAttribute("initialMappingId", mappingId);
+        return "front/customer/estimate";
+    }
 
-	@GetMapping("/estimate/{id}")
-	public String estimate(@PathVariable Long id) {
-		return "front/customer/estimate";
-	}
+    @GetMapping({"/estimateList", "/estimateList/{id}"})
+    public String estimateListPage(
+            @PathVariable(name = "id", required = false) Long ignoredId
+    ) {
+        return "front/customer/estimateList";
+    }
 
 	@GetMapping("/exchangeReturnList/{id}")
 	public String exchangeReturnList(@PathVariable Long id) {

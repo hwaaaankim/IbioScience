@@ -18,81 +18,88 @@
 					<div class="producttab">
 						<div class="tabsslider vertical-tabs col-xs-12">
 							<th:block th:replace="fragments/front/common :: myPageSideMenu"></th:block>
+
 							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 pb-3"
 								style="border-left:1px solid #ddd;">
 								<h3 class="community-title text-center">견적서문의</h3>
-								<!-- ======================= 마이페이지 메인 ======================= -->
-								<div class="myPage-main-area">
 
-									<!-- ===== 견적서 문의 ===== -->
+								<div class="myPage-main-area">
 									<div class="estimate-page-wrap">
-										<!-- 필터 -->
+
 										<div class="estimate-page-filter">
 											<div class="row gx-2 gy-2">
-												<!-- 대분류 -->
+
 												<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
 													<label for="estimate-page-catL"
 														class="estimate-page-filter-label">대분류</label>
 													<select id="estimate-page-catL"
 														class="form-select estimate-page-control"></select>
 												</div>
-												<!-- 중분류 -->
+
 												<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
 													<label for="estimate-page-catM"
 														class="estimate-page-filter-label">중분류</label>
 													<select id="estimate-page-catM"
 														class="form-select estimate-page-control"></select>
 												</div>
-												<!-- 소분류 -->
+
 												<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
 													<label for="estimate-page-catS"
 														class="estimate-page-filter-label">소분류</label>
 													<select id="estimate-page-catS"
 														class="form-select estimate-page-control"></select>
 												</div>
-												<!-- 브랜드 -->
+
 												<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
-													<label for="estimate-page-brand"
-														class="estimate-page-filter-label">브랜드</label>
-													<select id="estimate-page-brand"
-														class="form-select estimate-page-control"></select>
+													<label for="customer-estimate-brand-keyword"
+														class="estimate-page-filter-label">브랜드명</label>
+													<div class="customer-estimate-autocomplete-wrap">
+														<input type="text" id="customer-estimate-brand-keyword"
+															class="form-control estimate-page-control customer-estimate-input"
+															placeholder="브랜드명을 입력하세요(부분검색)" autocomplete="off">
+														<div id="customer-estimate-brand-suggest"
+															class="customer-estimate-suggest-box d-none" role="listbox"
+															aria-label="브랜드 자동완성"></div>
+													</div>
 												</div>
 											</div>
 
 											<div class="row gx-2 gy-2 mt-1 estimate-page-filter-row">
-												<!-- 제품명 -->
 												<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
 													<div class="estimate-page-formcol">
-														<label for="estimate-page-name"
+														<label for="customer-estimate-product-keyword"
 															class="estimate-page-filter-label">제품명</label>
-														<input type="text" id="estimate-page-name"
-															class="form-control estimate-page-control"
-															placeholder="제품명을 입력하세요(부분검색)">
+														<div class="customer-estimate-autocomplete-wrap">
+															<input type="text" id="customer-estimate-product-keyword"
+																class="form-control estimate-page-control customer-estimate-input"
+																placeholder="제품명을 입력하세요(부분검색)" autocomplete="off">
+															<div id="customer-estimate-product-suggest"
+																class="customer-estimate-suggest-box d-none"
+																role="listbox" aria-label="제품 자동완성"></div>
+														</div>
 													</div>
 												</div>
 
-												<!-- 검색 버튼 -->
 												<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
 													<div class="estimate-page-formcol">
-														<label for="estimate-page-name"
+														<label for="customer-estimate-search-btn"
 															class="estimate-page-filter-label">검색</label>
-														<button id="estimate-page-search" type="button"
+														<button id="customer-estimate-search-btn" type="button"
 															class="estimate-page-btn w-100">검색</button>
 													</div>
 												</div>
 											</div>
 										</div>
 
-										<!-- 리스트 -->
 										<div class="estimate-page-list mt-3">
 											<div class="estimate-page-tableWrap">
 												<table class="estimate-page-table">
 													<colgroup>
-														<col style="width:52px"><!-- 체크 -->
-														<col style="width:28%"><!-- 분류 -->
-														<col style="width:14%"><!-- 브랜드 -->
-														<col><!-- 제품 -->
-														<col style="width:110px"><!-- 수량 -->
+														<col style="width:52px">
+														<col style="width:28%">
+														<col style="width:14%">
+														<col>
+														<col style="width:110px">
 													</colgroup>
 													<thead>
 														<tr>
@@ -104,13 +111,19 @@
 															<th>수량</th>
 														</tr>
 													</thead>
-													<tbody id="estimate-page-tbody">
-														<!-- JS 렌더링 -->
-													</tbody>
+													<tbody id="estimate-page-tbody"></tbody>
 												</table>
 											</div>
 										</div>
-										<!-- 상세사항 -->
+
+										<div class="estimate-page-detail mt-3">
+											<label for="customer-estimate-title"
+												class="estimate-page-filter-label">제목</label>
+											<input type="text" id="customer-estimate-title"
+												class="form-control estimate-page-control customer-estimate-input"
+												placeholder="미입력 시 '제품견적 문의합니다' 로 자동 저장됩니다.">
+										</div>
+
 										<div class="estimate-page-detail mt-3">
 											<label for="estimate-page-detail"
 												class="estimate-page-filter-label">상세사항</label>
@@ -119,11 +132,21 @@
 												placeholder="상세 요청사항을 입력하세요."></textarea>
 										</div>
 
-										<!-- 액션 -->
+										<div class="estimate-page-detail mt-3">
+											<label for="customer-estimate-files"
+												class="estimate-page-filter-label">첨부파일</label>
+											<input type="file" id="customer-estimate-files"
+												class="form-control customer-estimate-file-input" multiple
+												accept="image/*,.pdf,application/pdf">
+											<div id="customer-estimate-file-list" class="customer-estimate-file-list">
+											</div>
+										</div>
+
 										<div class="estimate-page-actions">
 											<button id="estimate-page-applyBtn" type="button"
 												class="estimate-page-btn navy" disabled>견적문의</button>
 										</div>
+
 									</div>
 								</div>
 							</div>
@@ -132,10 +155,20 @@
 				</div>
 			</div>
 		</div>
+
 		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
 	</div>
+
 	<th:block th:replace="fragments/front/common :: frontScript"></th:block>
 	<th:block th:replace="fragments/front/common :: myPageBtnGroup"></th:block>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		window.CUSTOMER_ESTIMATE_INITIAL_PRODUCT_ID = /*[[${initialProductId}]]*/ null;
+		window.CUSTOMER_ESTIMATE_INITIAL_MAPPING_ID = /*[[${initialMappingId}]]*/ null;
+		/*]]>*/
+	</script>
+
 	<script src="/front/js/page/estimate.js"></script>
 </body>
 
