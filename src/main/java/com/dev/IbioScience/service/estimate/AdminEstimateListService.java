@@ -3,8 +3,8 @@ package com.dev.IbioScience.service.estimate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -30,11 +30,14 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class AdminEstimateListService {
 
+    private static final Pattern HTML_TAG_PATTERN = Pattern.compile("(?is)<[^>]+>");
+    private static final Pattern IMG_TAG_PATTERN = Pattern.compile("(?is)<img\\b[^>]*>");
+
     private final EstimateRepository estimateRepository;
     private final HiworksEstimateMailService hiworksEstimateMailService;
 
     public AdminPageResponse<AdminEstimateListRowDto> getEstimateList(Long memberId, AdminEstimateListSearchRequest request) {
-        Page<AdminEstimateListRowDto> page = estimateRepository.searchAdminEstimateList(memberId, request);
+        org.springframework.data.domain.Page<AdminEstimateListRowDto> page = estimateRepository.searchAdminEstimateList(memberId, request);
 
         return AdminPageResponse.of(
                 page.getContent(),
@@ -81,7 +84,7 @@ public class AdminEstimateListService {
             throw new IllegalArgumentException("이메일 제목을 입력해주세요.");
         }
 
-        if (!StringUtils.hasText(stripHtml(bodyHtml))) {
+        if (!hasMeaningfulHtmlContent(bodyHtml)) {
             throw new IllegalArgumentException("이메일 내용을 입력해주세요.");
         }
 
@@ -145,10 +148,22 @@ public class AdminEstimateListService {
         return response;
     }
 
-    private String stripHtml(String html) {
+    private boolean hasMeaningfulHtmlContent(String html) {
         if (!StringUtils.hasText(html)) {
-            return "";
+            return false;
         }
-        return html.replaceAll("<[^>]*>", "").replace("&nbsp;", " ").trim();
+
+        String normalized = html
+                .replaceAll("(?is)<script[^>]*>.*?</script>", " ")
+                .replaceAll("(?is)<style[^>]*>.*?</style>", " ")
+                .replaceAll("(?is)<br\\s*/?>", " ")
+                .replace("&nbsp;", " ");
+
+        String textOnly = HTML_TAG_PATTERN.matcher(normalized).replaceAll(" ").trim();
+        if (StringUtils.hasText(textOnly)) {
+            return true;
+        }
+
+        return IMG_TAG_PATTERN.matcher(normalized).find();
     }
 }
