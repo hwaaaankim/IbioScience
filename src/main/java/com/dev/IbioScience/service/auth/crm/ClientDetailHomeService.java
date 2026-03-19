@@ -1,11 +1,19 @@
 package com.dev.IbioScience.service.auth.crm;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -15,10 +23,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.dev.IbioScience.dto.customer.auth.crm.ClientDetailHomeDto;
 import com.dev.IbioScience.dto.customer.auth.crm.MemoPageResponseDto;
-import com.dev.IbioScience.dto.customer.auth.crm.MemoPageResponseDto.Item;
 import com.dev.IbioScience.dto.customer.auth.crm.SaveMemosRequest;
 import com.dev.IbioScience.dto.customer.auth.crm.UpdateAddressRequest;
 import com.dev.IbioScience.dto.customer.auth.crm.UpdateBuyerGradeRequest;
@@ -38,6 +49,9 @@ import com.dev.IbioScience.model.auth.MemberMemo;
 import com.dev.IbioScience.model.auth.SellerContact;
 import com.dev.IbioScience.model.auth.SellerDealerProfile;
 import com.dev.IbioScience.model.auth.embedded.Address;
+import com.dev.IbioScience.model.product.category.CategoryLarge;
+import com.dev.IbioScience.model.product.category.CategoryMedium;
+import com.dev.IbioScience.model.product.category.CategorySmall;
 import com.dev.IbioScience.repository.auth.MemberMemoRepository;
 import com.dev.IbioScience.repository.auth.MemberRepository;
 import com.dev.IbioScience.repository.auth.crm.CrmBuyerDealerProfileRepository;
@@ -46,7 +60,10 @@ import com.dev.IbioScience.repository.auth.crm.CrmDealerSettlementPolicyReposito
 import com.dev.IbioScience.repository.auth.crm.CrmSellerContactRepository;
 import com.dev.IbioScience.repository.auth.crm.CrmSellerDealerProfileRepository;
 import com.dev.IbioScience.service.util.SMSService;
+import com.dev.IbioScience.utils.UploadPathHelper;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -65,17 +82,18 @@ public class ClientDetailHomeService {
 
     private final PasswordEncoder passwordEncoder;
     private final SMSService smsService;
+    private final UploadPathHelper uploadPathHelper;
 
-    // =========================
-    // 1) HOME VIEW DATA
-    // =========================
+    @PersistenceContext
+    private EntityManager em;
+
     @Transactional(readOnly = true)
     public ClientDetailHomeDto getHomeDto(Long memberId) {
 
         Member m = memberRepository.findById(memberId)
             .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다. id=" + memberId));
 
-        CompanyProfile cp = m.getCompanyProfile(); // nullable
+        CompanyProfile cp = m.getCompanyProfile();
         BuyerDealerProfile buyer = crmBuyerDealerProfileRepository.findByMember_Id(memberId).orElse(null);
         SellerDealerProfile seller = crmSellerDealerProfileRepository.findByMember_Id(memberId).orElse(null);
 
@@ -225,9 +243,6 @@ public class ClientDetailHomeService {
             .build();
     }
 
-    // =========================
-    // 2) 비밀번호 초기화 + SMS 발송
-    // =========================
     @Transactional
     public void resetPasswordAndSendSms(Long memberId) {
         Member m = memberRepository.findById(memberId)
@@ -252,9 +267,6 @@ public class ClientDetailHomeService {
         smsService.sendMessage(mobile, msg);
     }
 
-    // =========================
-    // 3) 메모 저장(추가/삭제) - 한번에 반영
-    // =========================
     @Transactional
     public void saveMemos(Long targetMemberId, Long writerMemberId, SaveMemosRequest req) {
 
@@ -264,7 +276,6 @@ public class ClientDetailHomeService {
         Member writer = memberRepository.findById(writerMemberId)
             .orElseThrow(() -> new IllegalArgumentException("작성자 회원이 존재하지 않습니다. id=" + writerMemberId));
 
-        // delete
         if (req.getDeleteIds() != null) {
             for (Long id : req.getDeleteIds()) {
                 if (id == null) continue;
@@ -272,7 +283,6 @@ public class ClientDetailHomeService {
             }
         }
 
-        // add
         if (req.getAddContents() != null) {
             for (String c : req.getAddContents()) {
                 if (c == null) continue;
@@ -289,9 +299,6 @@ public class ClientDetailHomeService {
         }
     }
 
-    // =========================
-    // 4) 메모 전체보기(필터+페이지네이션)
-    // =========================
     @Transactional(readOnly = true)
     public MemoPageResponseDto getMemoPage(Long memberId, LocalDate from, LocalDate to, int page, int size) {
 
@@ -311,7 +318,7 @@ public class ClientDetailHomeService {
             .size(result.getSize())
             .totalElements(result.getTotalElements())
             .totalPages(result.getTotalPages())
-            .content(result.getContent().stream().map(m -> Item.builder()
+            .content(result.getContent().stream().map(m -> MemoPageResponseDto.Item.builder()
                 .id(m.getId())
                 .content(m.getContent())
                 .writerName(m.getWriterMember().getName())
@@ -321,9 +328,6 @@ public class ClientDetailHomeService {
             .build();
     }
 
-    // =========================
-    // 5) 바이어 딜러그레이드 변경
-    // =========================
     @Transactional
     public void updateBuyerGrade(Long memberId, UpdateBuyerGradeRequest req) {
         BuyerDealerProfile buyer = crmBuyerDealerProfileRepository.findByMember_Id(memberId)
@@ -338,9 +342,6 @@ public class ClientDetailHomeService {
         crmBuyerDealerProfileRepository.save(buyer);
     }
 
-    // =========================
-    // 6) 주소 변경
-    // =========================
     @Transactional
     public void updateMemberAddress(Long memberId, UpdateAddressRequest req) {
         Member m = memberRepository.findById(memberId)
@@ -373,208 +374,364 @@ public class ClientDetailHomeService {
             .detailAddress(nv(req.getDetailAddress()))
             .build());
 
-        memberRepository.save(m); // companyProfile은 연관관계에 따라 cascade 아니면 별도 repo 저장 필요하지만, 현재 구조상 member에 ManyToOne이라 이미 영속 상태이면 flush 됨
+        memberRepository.save(m);
     }
 
- // =========================
- // 7) 셀러 프로필 + 정산 + 카테고리권한 + 주소 저장(한번에)
- // =========================
- @Transactional
- public void updateSellerAll(Long memberId, UpdateSellerProfileRequest req) {
+    @Transactional
+    public void updateSellerAll(Long memberId, UpdateSellerProfileRequest req, MultipartFile logoFile) {
 
-     SellerDealerProfile seller = crmSellerDealerProfileRepository.findByMember_Id(memberId)
-         .orElseThrow(() -> new IllegalStateException("셀러 프로필이 없습니다."));
+        SellerDealerProfile seller = crmSellerDealerProfileRepository.findByMember_Id(memberId)
+            .orElseThrow(() -> new IllegalStateException("셀러 프로필이 없습니다."));
 
-     // 기본
-     seller.setShopName(nv(req.getShopName()));
-     seller.setTel(nv(req.getTel()));
-     seller.setFax(nv(req.getFax()));
-     seller.setHomepageUrl(nv(req.getHomepageUrl()));
-     seller.setProductTypeText(nv(req.getProductTypeText()));
+        validateAndApplySupplierCode(seller, req);
+        applySellerBasicFields(seller, req);
+        applySellerAddresses(seller, req);
 
-     if (req.getTradingStatus() != null && !req.getTradingStatus().trim().isEmpty()) {
-         seller.setTradingStatus(TradingStatus.valueOf(req.getTradingStatus().trim()));
-     }
-     if (req.getSupplyType() != null && !req.getSupplyType().trim().isEmpty()) {
-         seller.setSupplyType(SupplyType.valueOf(req.getSupplyType().trim()));
-     }
-     if (req.getSupplyStructure() != null && !req.getSupplyStructure().trim().isEmpty()) {
-         seller.setSupplyStructure(SupplyStructure.valueOf(req.getSupplyStructure().trim()));
-     }
+        Path newLogoPath = null;
+        Path oldLogoPath = toPathOrNull(seller.getLogoImagePath());
+        boolean deleteOldLogoAfterCommit = false;
 
-     seller.setDealStartDate(req.getDealStartDate());
-     seller.setDealStopDate(req.getDealStopDate());
+        String logoAction = normalizeLogoAction(req.getLogoAction());
 
-     // 주소(사업장)
-     if (req.getBusinessAddress() != null) {
-         seller.setBusinessAddress(Address.builder()
-             .postcode(nv(req.getBusinessAddress().getPostcode()))
-             .roadAddress(nv(req.getBusinessAddress().getRoadAddress()))
-             .jibunAddress(nv(req.getBusinessAddress().getJibunAddress()))
-             .detailAddress(nv(req.getBusinessAddress().getDetailAddress()))
-             .build());
-     }
+        if ("DELETE".equals(logoAction)) {
+            seller.setLogoImagePath(null);
+            seller.setLogoImageRoad(null);
+            deleteOldLogoAfterCommit = oldLogoPath != null;
+        } else if ("REPLACE".equals(logoAction)) {
+            if (logoFile == null || logoFile.isEmpty()) {
+                throw new IllegalArgumentException("로고 변경(REPLACE) 시 이미지 파일은 필수입니다.");
+            }
+            validateLogoFile(logoFile);
 
-     // 주소(반품)
-     if (req.getReturnAddress() != null) {
-         seller.setReturnAddress(Address.builder()
-             .postcode(nv(req.getReturnAddress().getPostcode()))
-             .roadAddress(nv(req.getReturnAddress().getRoadAddress()))
-             .jibunAddress(nv(req.getReturnAddress().getJibunAddress()))
-             .detailAddress(nv(req.getReturnAddress().getDetailAddress()))
-             .build());
-     }
+            newLogoPath = uploadPathHelper.saveSellerLogoForCustomer(memberId, logoFile);
+            seller.setLogoImagePath(newLogoPath.toString());
+            seller.setLogoImageRoad(uploadPathHelper.publicUrlOf(newLogoPath));
 
-     crmSellerDealerProfileRepository.save(seller);
+            deleteOldLogoAfterCommit = oldLogoPath != null;
+        }
 
-     // 정산
-     if (req.getSettlement() != null) {
-         DealerSettlementPolicy policy = crmDealerSettlementPolicyRepository
-             .findBySellerDealerProfile_Id(seller.getId())
-             .orElseGet(() -> DealerSettlementPolicy.builder()
-                 .sellerDealerProfile(seller)
-                 .commissionRate(req.getSettlement().getCommissionRate() != null ? req.getSettlement().getCommissionRate() : BigDecimal.ZERO)
-                 .cycle(req.getSettlement().getCycle() != null ? SettlementCycle.valueOf(req.getSettlement().getCycle()) : SettlementCycle.MONTH_END)
-                 .basis(req.getSettlement().getBasis() != null ? SettlementBasis.valueOf(req.getSettlement().getBasis()) : SettlementBasis.PAYMENT_COMPLETED)
-                 .nextSettlementDate(req.getSettlement().getNextSettlementDate())
-                 .build()
-             );
+        crmSellerDealerProfileRepository.save(seller);
 
-         if (req.getSettlement().getCommissionRate() != null) policy.setCommissionRate(req.getSettlement().getCommissionRate());
-         if (req.getSettlement().getCycle() != null && !req.getSettlement().getCycle().trim().isEmpty())
-             policy.setCycle(SettlementCycle.valueOf(req.getSettlement().getCycle().trim()));
-         if (req.getSettlement().getBasis() != null && !req.getSettlement().getBasis().trim().isEmpty())
-             policy.setBasis(SettlementBasis.valueOf(req.getSettlement().getBasis().trim()));
+        syncSettlementPolicy(seller, req.getSettlement());
+        syncSellerContacts(seller, req.getContacts());
+        syncCategoryPermissions(seller, req);
 
-         policy.setNextSettlementDate(req.getSettlement().getNextSettlementDate());
+        em.flush();
 
-         crmDealerSettlementPolicyRepository.save(policy);
-     }
+        registerLogoFileTransactionCallbacks(newLogoPath, oldLogoPath, deleteOldLogoAfterCommit);
+    }
 
-     // 카테고리 권한 삭제
-     if (req.getDeletePermissionIds() != null) {
-         for (Long id : req.getDeletePermissionIds()) {
-             if (id == null) continue;
-             crmDealerCategoryPermissionRepository.deleteByIdAndSellerDealerProfile_Id(id, seller.getId());
-         }
-     }
+    private void validateAndApplySupplierCode(SellerDealerProfile seller, UpdateSellerProfileRequest req) {
+        String supplierCode = req.getSupplierCode() == null ? "" : req.getSupplierCode().trim();
 
-     // 카테고리 권한 추가(large 필수 / medium 선택 / small 선택)
-     if (req.getAddPermissions() != null) {
+        if (!StringUtils.hasText(supplierCode)) {
+            throw new IllegalArgumentException("공급사 코드는 필수입니다.");
+        }
 
-         // ✅ 서버 정규화(와일드카드 우선 + 중복 제거)
-         // - [large]가 있으면 동일 large의 [large, medium], [large, medium, small]은 저장하지 않음
-         // - [large, medium]이 있으면 동일 large+medium의 [large, medium, small]은 저장하지 않음
-         // - 동일 조합 중복은 1건만 저장
-         final java.util.Set<Long> largeIds = new java.util.HashSet<>();
-         final java.util.Set<Long> largeAllSet = new java.util.HashSet<>(); // largeId
-         final java.util.Map<Long, java.util.Set<Long>> mediumAllByLarge = new java.util.HashMap<>(); // largeId -> mediumId set
-         final java.util.Map<Long, java.util.Map<Long, java.util.Set<Long>>> smallByLargeMedium = new java.util.HashMap<>(); // largeId -> (mediumId -> smallId set)
+        boolean duplicated = crmSellerDealerProfileRepository.existsBySupplierCodeAndIdNot(supplierCode, seller.getId());
+        if (duplicated) {
+            throw new IllegalArgumentException("이미 사용 중인 공급사 코드입니다.");
+        }
 
-         for (UpdateSellerProfileRequest.AddPermissionItem add : req.getAddPermissions()) {
-             if (add == null) continue;
-             if (add.getLargeId() == null) continue;
+        seller.setSupplierCode(supplierCode);
+    }
 
-             final Long largeId = add.getLargeId();
-             final Long mediumId = add.getMediumId();
-             final Long smallId = add.getSmallId();
+    private void applySellerBasicFields(SellerDealerProfile seller, UpdateSellerProfileRequest req) {
+        seller.setShopName(nv(req.getShopName()));
+        seller.setTel(nv(req.getTel()));
+        seller.setFax(nv(req.getFax()));
+        seller.setHomepageUrl(nv(req.getHomepageUrl()));
+        seller.setProductTypeText(nv(req.getProductTypeText()));
 
-             // small이 있으면 medium 필수
-             if (smallId != null && mediumId == null) {
-                 throw new IllegalArgumentException("소분류가 선택된 경우 중분류는 필수입니다.");
-             }
+        if (StringUtils.hasText(req.getTradingStatus())) {
+            seller.setTradingStatus(TradingStatus.valueOf(req.getTradingStatus().trim()));
+        }
+        if (StringUtils.hasText(req.getSupplyType())) {
+            seller.setSupplyType(SupplyType.valueOf(req.getSupplyType().trim()));
+        }
+        if (StringUtils.hasText(req.getSupplyStructure())) {
+            seller.setSupplyStructure(SupplyStructure.valueOf(req.getSupplyStructure().trim()));
+        }
 
-             largeIds.add(largeId);
+        seller.setDealStartDate(req.getDealStartDate());
+        seller.setDealStopDate(req.getDealStopDate());
+    }
 
-             // 1) [large]
-             if (mediumId == null && smallId == null) {
-                 largeAllSet.add(largeId);
-                 continue;
-             }
+    private void applySellerAddresses(SellerDealerProfile seller, UpdateSellerProfileRequest req) {
+        if (req.getBusinessAddress() != null) {
+            seller.setBusinessAddress(Address.builder()
+                .postcode(nv(req.getBusinessAddress().getPostcode()))
+                .roadAddress(nv(req.getBusinessAddress().getRoadAddress()))
+                .jibunAddress(nv(req.getBusinessAddress().getJibunAddress()))
+                .detailAddress(nv(req.getBusinessAddress().getDetailAddress()))
+                .build());
+        }
 
-             // 2) [large, medium]
-             if (mediumId != null && smallId == null) {
-                 mediumAllByLarge.computeIfAbsent(largeId, k -> new java.util.HashSet<>()).add(mediumId);
-                 continue;
-             }
+        if (req.getReturnAddress() != null) {
+            seller.setReturnAddress(Address.builder()
+                .postcode(nv(req.getReturnAddress().getPostcode()))
+                .roadAddress(nv(req.getReturnAddress().getRoadAddress()))
+                .jibunAddress(nv(req.getReturnAddress().getJibunAddress()))
+                .detailAddress(nv(req.getReturnAddress().getDetailAddress()))
+                .build());
+        }
+    }
 
-             // 3) [large, medium, small]
-             if (mediumId != null && smallId != null) {
-                 smallByLargeMedium
-                     .computeIfAbsent(largeId, k -> new java.util.HashMap<>())
-                     .computeIfAbsent(mediumId, k -> new java.util.HashSet<>())
-                     .add(smallId);
-             }
-         }
+    private void validateLogoFile(MultipartFile logoFile) {
+        String contentType = logoFile.getContentType();
+        if (!StringUtils.hasText(contentType) || !contentType.toLowerCase().startsWith("image/")) {
+            throw new IllegalArgumentException("로고 이미지는 이미지 파일만 업로드할 수 있습니다.");
+        }
+    }
 
-         // 정규화 결과로 저장
-         final java.util.List<Long> sortedLargeIds = new java.util.ArrayList<>(largeIds);
-         java.util.Collections.sort(sortedLargeIds);
+    private void syncSettlementPolicy(SellerDealerProfile seller, UpdateSellerProfileRequest.SettlementPart settlement) {
+        if (settlement == null) {
+            return;
+        }
 
-         for (Long largeId : sortedLargeIds) {
+        DealerSettlementPolicy policy = crmDealerSettlementPolicyRepository
+            .findBySellerDealerProfile_Id(seller.getId())
+            .orElseGet(() -> DealerSettlementPolicy.builder()
+                .sellerDealerProfile(seller)
+                .commissionRate(settlement.getCommissionRate() != null ? settlement.getCommissionRate() : BigDecimal.ZERO)
+                .cycle(settlement.getCycle() != null ? SettlementCycle.valueOf(settlement.getCycle()) : SettlementCycle.MONTH_END)
+                .basis(settlement.getBasis() != null ? SettlementBasis.valueOf(settlement.getBasis()) : SettlementBasis.PAYMENT_COMPLETED)
+                .nextSettlementDate(settlement.getNextSettlementDate())
+                .build()
+            );
 
-             // [large]가 있으면 해당 large는 large만 저장
-             if (largeAllSet.contains(largeId)) {
+        if (settlement.getCommissionRate() != null) {
+            policy.setCommissionRate(settlement.getCommissionRate());
+        }
+        if (StringUtils.hasText(settlement.getCycle())) {
+            policy.setCycle(SettlementCycle.valueOf(settlement.getCycle().trim()));
+        }
+        if (StringUtils.hasText(settlement.getBasis())) {
+            policy.setBasis(SettlementBasis.valueOf(settlement.getBasis().trim()));
+        }
 
-                 DealerCategoryPermission perm = DealerCategoryPermission.builder()
-                     .sellerDealerProfile(seller)
-                     .large(refCategoryLarge(largeId))
-                     .medium(null)
-                     .small(null)
-                     .build();
+        policy.setNextSettlementDate(settlement.getNextSettlementDate());
+        crmDealerSettlementPolicyRepository.save(policy);
+    }
 
-                 crmDealerCategoryPermissionRepository.save(perm);
-                 continue;
-             }
+    private void syncSellerContacts(SellerDealerProfile seller, List<UpdateSellerProfileRequest.ContactItem> reqContacts) {
+        List<SellerContact> existing = crmSellerContactRepository.findBySellerDealerProfile_IdOrderByIdAsc(seller.getId());
+        Map<Long, SellerContact> existingMap = existing.stream()
+            .collect(Collectors.toMap(SellerContact::getId, x -> x));
 
-             // [large, medium] 저장
-             final java.util.Set<Long> mediumAllSet = mediumAllByLarge.getOrDefault(largeId, java.util.Collections.emptySet());
-             final java.util.List<Long> sortedMediumIds = new java.util.ArrayList<>(mediumAllSet);
-             java.util.Collections.sort(sortedMediumIds);
+        Set<Long> keepIds = new HashSet<>();
 
-             for (Long mediumId : sortedMediumIds) {
+        if (reqContacts != null) {
+            for (UpdateSellerProfileRequest.ContactItem item : reqContacts) {
+                if (item == null) continue;
 
-                 DealerCategoryPermission perm = DealerCategoryPermission.builder()
-                     .sellerDealerProfile(seller)
-                     .large(refCategoryLarge(largeId))
-                     .medium(refCategoryMedium(mediumId))
-                     .small(null)
-                     .build();
+                String name = item.getName() == null ? "" : item.getName().trim();
+                String phone = item.getPhone() == null ? "" : item.getPhone().trim();
+                String email = item.getEmail() == null ? "" : item.getEmail().trim();
 
-                 crmDealerCategoryPermissionRepository.save(perm);
-             }
+                boolean hasAny = StringUtils.hasText(name) || StringUtils.hasText(phone) || StringUtils.hasText(email);
+                if (!hasAny) {
+                    continue;
+                }
 
-             // [large, medium, small] 저장(단, 같은 medium에 [large, medium]이 있으면 small들은 저장하지 않음)
-             final java.util.Map<Long, java.util.Set<Long>> smallMap = smallByLargeMedium.getOrDefault(largeId, java.util.Collections.emptyMap());
-             final java.util.List<Long> smallMediumIds = new java.util.ArrayList<>(smallMap.keySet());
-             java.util.Collections.sort(smallMediumIds);
+                if (!StringUtils.hasText(name)) {
+                    throw new IllegalArgumentException("담당자명은 필수입니다.");
+                }
 
-             for (Long mediumId : smallMediumIds) {
+                if (item.getId() != null) {
+                    SellerContact contact = existingMap.get(item.getId());
+                    if (contact == null) {
+                        throw new IllegalArgumentException("존재하지 않는 담당자입니다. id=" + item.getId());
+                    }
 
-                 // medium 전체가 있으면 해당 medium의 small은 불필요
-                 if (mediumAllSet.contains(mediumId)) continue;
+                    contact.setName(name);
+                    contact.setPhone(phone);
+                    contact.setEmail(email);
+                    crmSellerContactRepository.save(contact);
+                    keepIds.add(contact.getId());
+                } else {
+                    SellerContact newContact = SellerContact.builder()
+                        .sellerDealerProfile(seller)
+                        .name(name)
+                        .phone(phone)
+                        .email(email)
+                        .build();
 
-                 final java.util.List<Long> sortedSmallIds = new java.util.ArrayList<>(smallMap.getOrDefault(mediumId, java.util.Collections.emptySet()));
-                 java.util.Collections.sort(sortedSmallIds);
+                    SellerContact saved = crmSellerContactRepository.save(newContact);
+                    keepIds.add(saved.getId());
+                }
+            }
+        }
 
-                 for (Long smallId : sortedSmallIds) {
+        for (SellerContact old : existing) {
+            if (!keepIds.contains(old.getId())) {
+                crmSellerContactRepository.delete(old);
+            }
+        }
+    }
 
-                     DealerCategoryPermission perm = DealerCategoryPermission.builder()
-                         .sellerDealerProfile(seller)
-                         .large(refCategoryLarge(largeId))
-                         .medium(refCategoryMedium(mediumId))
-                         .small(refCategorySmall(smallId))
-                         .build();
+    private void syncCategoryPermissions(SellerDealerProfile seller, UpdateSellerProfileRequest req) {
 
-                     crmDealerCategoryPermissionRepository.save(perm);
-                 }
-             }
-         }
-     }
- }
-    // =========================
-    // 내부 유틸
-    // =========================
+        if (req.getDeletePermissionIds() != null) {
+            for (Long id : req.getDeletePermissionIds()) {
+                if (id == null) continue;
+                crmDealerCategoryPermissionRepository.deleteByIdAndSellerDealerProfile_Id(id, seller.getId());
+            }
+        }
+
+        if (req.getAddPermissions() == null) {
+            return;
+        }
+
+        final Set<Long> largeIds = new HashSet<>();
+        final Set<Long> largeAllSet = new HashSet<>();
+        final Map<Long, Set<Long>> mediumAllByLarge = new HashMap<>();
+        final Map<Long, Map<Long, Set<Long>>> smallByLargeMedium = new HashMap<>();
+
+        for (UpdateSellerProfileRequest.AddPermissionItem add : req.getAddPermissions()) {
+            if (add == null) continue;
+            if (add.getLargeId() == null) continue;
+
+            final Long largeId = add.getLargeId();
+            final Long mediumId = add.getMediumId();
+            final Long smallId = add.getSmallId();
+
+            if (smallId != null && mediumId == null) {
+                throw new IllegalArgumentException("소분류가 선택된 경우 중분류는 필수입니다.");
+            }
+
+            largeIds.add(largeId);
+
+            if (mediumId == null && smallId == null) {
+                largeAllSet.add(largeId);
+                continue;
+            }
+
+            if (mediumId != null && smallId == null) {
+                mediumAllByLarge.computeIfAbsent(largeId, k -> new HashSet<>()).add(mediumId);
+                continue;
+            }
+
+            if (mediumId != null && smallId != null) {
+                smallByLargeMedium
+                    .computeIfAbsent(largeId, k -> new HashMap<>())
+                    .computeIfAbsent(mediumId, k -> new HashSet<>())
+                    .add(smallId);
+            }
+        }
+
+        final List<Long> sortedLargeIds = new ArrayList<>(largeIds);
+        Collections.sort(sortedLargeIds);
+
+        for (Long largeId : sortedLargeIds) {
+
+            if (largeAllSet.contains(largeId)) {
+                DealerCategoryPermission perm = DealerCategoryPermission.builder()
+                    .sellerDealerProfile(seller)
+                    .large(refCategoryLarge(largeId))
+                    .medium(null)
+                    .small(null)
+                    .build();
+
+                crmDealerCategoryPermissionRepository.save(perm);
+                continue;
+            }
+
+            final Set<Long> mediumAllSet = mediumAllByLarge.getOrDefault(largeId, Collections.emptySet());
+            final List<Long> sortedMediumIds = new ArrayList<>(mediumAllSet);
+            Collections.sort(sortedMediumIds);
+
+            for (Long mediumId : sortedMediumIds) {
+                DealerCategoryPermission perm = DealerCategoryPermission.builder()
+                    .sellerDealerProfile(seller)
+                    .large(refCategoryLarge(largeId))
+                    .medium(refCategoryMedium(mediumId))
+                    .small(null)
+                    .build();
+
+                crmDealerCategoryPermissionRepository.save(perm);
+            }
+
+            final Map<Long, Set<Long>> smallMap = smallByLargeMedium.getOrDefault(largeId, Collections.emptyMap());
+            final List<Long> smallMediumIds = new ArrayList<>(smallMap.keySet());
+            Collections.sort(smallMediumIds);
+
+            for (Long mediumId : smallMediumIds) {
+                if (mediumAllSet.contains(mediumId)) continue;
+
+                final List<Long> sortedSmallIds = new ArrayList<>(smallMap.getOrDefault(mediumId, Collections.emptySet()));
+                Collections.sort(sortedSmallIds);
+
+                for (Long smallId : sortedSmallIds) {
+                    DealerCategoryPermission perm = DealerCategoryPermission.builder()
+                        .sellerDealerProfile(seller)
+                        .large(refCategoryLarge(largeId))
+                        .medium(refCategoryMedium(mediumId))
+                        .small(refCategorySmall(smallId))
+                        .build();
+
+                    crmDealerCategoryPermissionRepository.save(perm);
+                }
+            }
+        }
+    }
+
+    private void registerLogoFileTransactionCallbacks(Path newLogoPath, Path oldLogoPath, boolean deleteOldLogoAfterCommit) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            if (deleteOldLogoAfterCommit && oldLogoPath != null) {
+                uploadPathHelper.deleteIfExistsQuietly(oldLogoPath);
+            }
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                if (deleteOldLogoAfterCommit && oldLogoPath != null) {
+                    uploadPathHelper.deleteIfExistsQuietly(oldLogoPath);
+                }
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status != STATUS_COMMITTED && newLogoPath != null) {
+                    uploadPathHelper.deleteIfExistsQuietly(newLogoPath);
+                }
+            }
+        });
+    }
+
+    private String normalizeLogoAction(String logoAction) {
+        if (!StringUtils.hasText(logoAction)) {
+            return "KEEP";
+        }
+
+        String v = logoAction.trim().toUpperCase();
+        if (!"KEEP".equals(v) && !"DELETE".equals(v) && !"REPLACE".equals(v)) {
+            throw new IllegalArgumentException("유효하지 않은 로고 처리 모드입니다.");
+        }
+        return v;
+    }
+
+    private Path toPathOrNull(String pathText) {
+        if (!StringUtils.hasText(pathText)) {
+            return null;
+        }
+        return Paths.get(pathText);
+    }
+
+    private CategoryLarge refCategoryLarge(Long id) {
+        return em.getReference(CategoryLarge.class, id);
+    }
+
+    private CategoryMedium refCategoryMedium(Long id) {
+        return em.getReference(CategoryMedium.class, id);
+    }
+
+    private CategorySmall refCategorySmall(Long id) {
+        return em.getReference(CategorySmall.class, id);
+    }
+
     private static String nv(String s) {
         return s == null ? "" : s;
     }
@@ -587,31 +744,5 @@ public class ClientDetailHomeService {
             sb.append(chars.charAt(r.nextInt(chars.length())));
         }
         return sb.toString();
-    }
-
-    /**
-     * ⚠️ 카테고리 엔티티 패키지/구조를 여기서 “추측”하지 않기 위해,
-     * DealerCategoryPermission에 이미 사용 중인 CategoryLarge/Medium/Small 타입을 그대로 참조합니다.
-     * 아래 import 경로는 “프로젝트에서 실제 사용 중인 패키지”로 맞춰주셔야 합니다.
-     */
-    private com.dev.IbioScience.model.product.category.CategoryLarge refCategoryLarge(Long id) {
-        return jakarta.persistence.Persistence.getPersistenceUtil() != null
-            ? getReference(com.dev.IbioScience.model.product.category.CategoryLarge.class, id)
-            : getReference(com.dev.IbioScience.model.product.category.CategoryLarge.class, id);
-    }
-
-    private com.dev.IbioScience.model.product.category.CategoryMedium refCategoryMedium(Long id) {
-        return getReference(com.dev.IbioScience.model.product.category.CategoryMedium.class, id);
-    }
-
-    private com.dev.IbioScience.model.product.category.CategorySmall refCategorySmall(Long id) {
-        return getReference(com.dev.IbioScience.model.product.category.CategorySmall.class, id);
-    }
-
-    @jakarta.persistence.PersistenceContext
-    private jakarta.persistence.EntityManager em;
-
-    private <T> T getReference(Class<T> clazz, Long id) {
-        return em.getReference(clazz, id);
     }
 }

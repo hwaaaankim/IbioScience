@@ -17,21 +17,25 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UpdateSellerProfileRequest {
 
-	// ===== SellerDealerProfile editable fields =====
 	private String shopName;
+	private String supplierCode;
 	private String tel;
 	private String fax;
 	private String homepageUrl;
 	private String productTypeText;
 
-	private String tradingStatus; // TradingStatus
-	private String supplyType; // SupplyType
-	private String supplyStructure; // SupplyStructure
+	private String tradingStatus;
+	private String supplyType;
+	private String supplyStructure;
 
 	private LocalDate dealStartDate;
 	private LocalDate dealStopDate;
 
-	// ===== addresses =====
+	/**
+	 * KEEP / DELETE / REPLACE
+	 */
+	private String logoAction;
+
 	private UpdateAddressPart businessAddress;
 	private UpdateAddressPart returnAddress;
 
@@ -47,7 +51,6 @@ public class UpdateSellerProfileRequest {
 		private String detailAddress;
 	}
 
-	// ===== settlement =====
 	private SettlementPart settlement;
 
 	@Getter
@@ -57,12 +60,25 @@ public class UpdateSellerProfileRequest {
 	@AllArgsConstructor
 	public static class SettlementPart {
 		private BigDecimal commissionRate;
-		private String cycle; // SettlementCycle
-		private String basis; // SettlementBasis
+		private String cycle;
+		private String basis;
 		private LocalDate nextSettlementDate;
 	}
 
-	// ===== category permissions =====
+	private List<ContactItem> contacts;
+
+	@Getter
+	@Setter
+	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class ContactItem {
+		private Long id;
+		private String name;
+		private String phone;
+		private String email;
+	}
+
 	private List<AddPermissionItem> addPermissions;
 	private List<Long> deletePermissionIds;
 
@@ -73,7 +89,7 @@ public class UpdateSellerProfileRequest {
 	@AllArgsConstructor
 	public static class AddPermissionItem {
 		private Long largeId;
-		private Long mediumId; // nullable
-		private Long smallId; // nullable
+		private Long mediumId;
+		private Long smallId;
 	}
 }

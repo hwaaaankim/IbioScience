@@ -12,6 +12,12 @@
 		return h;
 	}
 
+	function headersOnlyCsrf() {
+		const h = {};
+		if (csrfToken && csrfHeader) h[csrfHeader] = csrfToken;
+		return h;
+	}
+
 	function apiUrl(path) {
 		return `/admin/root/api/clientDetail/${memberId}${path}`;
 	}
@@ -24,8 +30,34 @@
 		return res.json().catch(() => null);
 	}
 
+	function escapeHtml(str) {
+		return String(str)
+			.replaceAll('&', '&amp;')
+			.replaceAll('<', '&lt;')
+			.replaceAll('>', '&gt;')
+			.replaceAll('"', '&quot;')
+			.replaceAll("'", '&#039;');
+	}
+
+	function parseNullableNum(v) {
+		if (v === null || v === undefined) return null;
+		const s = String(v).trim();
+		if (s === '' || s.toLowerCase() === 'null' || s.toLowerCase() === 'undefined') return null;
+		const n = Number(s);
+		if (!Number.isFinite(n) || n <= 0) return null;
+		return n;
+	}
+
+	function nvText(id) {
+		return document.getElementById(id)?.innerText?.trim() || '';
+	}
+
+	function nvValue(id) {
+		return document.getElementById(id)?.value?.trim() || '';
+	}
+
 	// =========================
-	// Dirty flags (section buttons)
+	// Dirty flags
 	// =========================
 	const btnSaveMember = document.getElementById('client-detail-home-btn-save-member');
 	const btnSaveCompany = document.getElementById('client-detail-home-btn-save-company');
@@ -73,7 +105,7 @@
 	}
 
 	// =========================
-	// 2) Address Modal (Daum Postcode)
+	// 2) Address Modal
 	// =========================
 	const addressModalEl = document.getElementById('client-detail-home-address-modal');
 	const addressModal = addressModalEl ? new bootstrap.Modal(addressModalEl) : null;
@@ -107,59 +139,54 @@
 		addressModal.show();
 	}
 
-	// Member address edit
 	const btnEditMemberAddr = document.getElementById('client-detail-home-btn-edit-member-address');
 	if (btnEditMemberAddr) {
 		btnEditMemberAddr.addEventListener('click', () => {
 			openAddressModal('MEMBER', {
-				postcode: document.getElementById('client-detail-home-member-postcode')?.innerText,
-				roadAddress: document.getElementById('client-detail-home-member-road')?.innerText,
-				jibunAddress: document.getElementById('client-detail-home-member-jibun')?.innerText,
-				detailAddress: document.getElementById('client-detail-home-member-detail')?.innerText
+				postcode: nvText('client-detail-home-member-postcode'),
+				roadAddress: nvText('client-detail-home-member-road'),
+				jibunAddress: nvText('client-detail-home-member-jibun'),
+				detailAddress: nvText('client-detail-home-member-detail')
 			});
 		});
 	}
 
-	// Company address edit
 	const btnEditCompanyAddr = document.getElementById('client-detail-home-btn-edit-company-address');
 	if (btnEditCompanyAddr) {
 		btnEditCompanyAddr.addEventListener('click', () => {
 			openAddressModal('COMPANY', {
-				postcode: document.getElementById('client-detail-home-company-postcode')?.innerText,
-				roadAddress: document.getElementById('client-detail-home-company-road')?.innerText,
-				jibunAddress: document.getElementById('client-detail-home-company-jibun')?.innerText,
-				detailAddress: document.getElementById('client-detail-home-company-detail')?.innerText
+				postcode: nvText('client-detail-home-company-postcode'),
+				roadAddress: nvText('client-detail-home-company-road'),
+				jibunAddress: nvText('client-detail-home-company-jibun'),
+				detailAddress: nvText('client-detail-home-company-detail')
 			});
 		});
 	}
 
-	// Seller biz address edit
 	const btnEditSellerBizAddr = document.getElementById('client-detail-home-btn-edit-seller-biz-address');
 	if (btnEditSellerBizAddr) {
 		btnEditSellerBizAddr.addEventListener('click', () => {
 			openAddressModal('SELLER_BIZ', {
-				postcode: document.getElementById('client-detail-home-seller-biz-postcode')?.innerText,
-				roadAddress: document.getElementById('client-detail-home-seller-biz-road')?.innerText,
-				jibunAddress: document.getElementById('client-detail-home-seller-biz-jibun')?.innerText,
-				detailAddress: document.getElementById('client-detail-home-seller-biz-detail')?.innerText
+				postcode: nvText('client-detail-home-seller-biz-postcode'),
+				roadAddress: nvText('client-detail-home-seller-biz-road'),
+				jibunAddress: nvText('client-detail-home-seller-biz-jibun'),
+				detailAddress: nvText('client-detail-home-seller-biz-detail')
 			});
 		});
 	}
 
-	// Seller return address edit
 	const btnEditSellerReturnAddr = document.getElementById('client-detail-home-btn-edit-seller-return-address');
 	if (btnEditSellerReturnAddr) {
 		btnEditSellerReturnAddr.addEventListener('click', () => {
 			openAddressModal('SELLER_RETURN', {
-				postcode: document.getElementById('client-detail-home-seller-return-postcode')?.innerText,
-				roadAddress: document.getElementById('client-detail-home-seller-return-road')?.innerText,
-				jibunAddress: document.getElementById('client-detail-home-seller-return-jibun')?.innerText,
-				detailAddress: document.getElementById('client-detail-home-seller-return-detail')?.innerText
+				postcode: nvText('client-detail-home-seller-return-postcode'),
+				roadAddress: nvText('client-detail-home-seller-return-road'),
+				jibunAddress: nvText('client-detail-home-seller-return-jibun'),
+				detailAddress: nvText('client-detail-home-seller-return-detail')
 			});
 		});
 	}
 
-	// Apply address modal
 	const btnApplyAddress = document.getElementById('client-detail-home-btn-apply-address');
 	if (btnApplyAddress) {
 		btnApplyAddress.addEventListener('click', () => {
@@ -190,7 +217,7 @@
 				document.getElementById('client-detail-home-seller-biz-road').innerText = r;
 				document.getElementById('client-detail-home-seller-biz-jibun').innerText = j;
 				document.getElementById('client-detail-home-seller-biz-detail').innerText = d;
-				setDirty('seller', true);
+				refreshSellerDirty();
 			}
 
 			if (target === 'SELLER_RETURN') {
@@ -198,7 +225,7 @@
 				document.getElementById('client-detail-home-seller-return-road').innerText = r;
 				document.getElementById('client-detail-home-seller-return-jibun').innerText = j;
 				document.getElementById('client-detail-home-seller-return-detail').innerText = d;
-				setDirty('seller', true);
+				refreshSellerDirty();
 			}
 
 			addressModal.hide();
@@ -206,7 +233,7 @@
 	}
 
 	// =========================
-	// 3) Memo add/delete (save once)
+	// 3) Memo add/delete
 	// =========================
 	const memoTop5List = document.getElementById('client-detail-home-memo-top5-list');
 	const memoNewContent = document.getElementById('client-detail-home-memo-new-content');
@@ -223,10 +250,10 @@
 		const left = document.createElement('div');
 		left.className = 'me-3';
 		left.innerHTML = `
-            <div class="fw-semibold text-primary">신규 메모</div>
-            <div class="text-muted small">저장 대기</div>
-            <div class="mt-2"></div>
-        `;
+			<div class="fw-semibold text-primary">신규 메모</div>
+			<div class="text-muted small">저장 대기</div>
+			<div class="mt-2"></div>
+		`;
 		left.querySelector('.mt-2').innerText = content;
 
 		const btn = document.createElement('button');
@@ -242,7 +269,6 @@
 
 		li.appendChild(left);
 		li.appendChild(btn);
-
 		memoTop5List.insertBefore(li, memoTop5List.firstChild);
 	}
 
@@ -260,7 +286,6 @@
 		});
 	}
 
-	// delete existing memo (mark)
 	if (memoTop5List) {
 		memoTop5List.addEventListener('click', (e) => {
 			const btn = e.target.closest('.client-detail-home-btn-delete-memo');
@@ -282,7 +307,6 @@
 		});
 	}
 
-	// save memos
 	if (btnSaveMemos) {
 		btnSaveMemos.addEventListener('click', async () => {
 			if (!confirm('메모 변경사항을 저장하시겠습니까?')) return;
@@ -310,7 +334,7 @@
 	}
 
 	// =========================
-	// 4) Memo modal (filter + pagination)
+	// 4) Memo modal
 	// =========================
 	const memoModalEl = document.getElementById('client-detail-home-memo-modal');
 	const memoModal = memoModalEl ? new bootstrap.Modal(memoModalEl) : null;
@@ -352,13 +376,13 @@
 			memoTbody.innerHTML = data.content.map(x => {
 				const dt = x.createdAt ? String(x.createdAt).replace('T', ' ') : '';
 				return `
-                    <tr>
-                        <td>${x.id}</td>
-                        <td>${escapeHtml(x.writerName || '')}</td>
-                        <td>${escapeHtml(dt)}</td>
-                        <td style="white-space: pre-wrap;">${escapeHtml(x.content || '')}</td>
-                    </tr>
-                `;
+					<tr>
+						<td>${x.id}</td>
+						<td>${escapeHtml(x.writerName || '')}</td>
+						<td>${escapeHtml(dt)}</td>
+						<td style="white-space: pre-wrap;">${escapeHtml(x.content || '')}</td>
+					</tr>
+				`;
 			}).join('');
 		}
 
@@ -427,15 +451,6 @@
 		});
 	}
 
-	function escapeHtml(str) {
-		return String(str)
-			.replaceAll('&', '&amp;')
-			.replaceAll('<', '&lt;')
-			.replaceAll('>', '&gt;')
-			.replaceAll('"', '&quot;')
-			.replaceAll("'", '&#039;');
-	}
-
 	// =========================
 	// 5) Save Member Address
 	// =========================
@@ -444,10 +459,10 @@
 			if (!dirty.memberAddress) return;
 
 			const payload = {
-				postcode: document.getElementById('client-detail-home-member-postcode')?.innerText || '',
-				roadAddress: document.getElementById('client-detail-home-member-road')?.innerText || '',
-				jibunAddress: document.getElementById('client-detail-home-member-jibun')?.innerText || '',
-				detailAddress: document.getElementById('client-detail-home-member-detail')?.innerText || ''
+				postcode: nvText('client-detail-home-member-postcode'),
+				roadAddress: nvText('client-detail-home-member-road'),
+				jibunAddress: nvText('client-detail-home-member-jibun'),
+				detailAddress: nvText('client-detail-home-member-detail')
 			};
 
 			const res = await fetch(apiUrl('/member/address'), {
@@ -474,10 +489,10 @@
 			if (!dirty.companyAddress) return;
 
 			const payload = {
-				postcode: document.getElementById('client-detail-home-company-postcode')?.innerText || '',
-				roadAddress: document.getElementById('client-detail-home-company-road')?.innerText || '',
-				jibunAddress: document.getElementById('client-detail-home-company-jibun')?.innerText || '',
-				detailAddress: document.getElementById('client-detail-home-company-detail')?.innerText || ''
+				postcode: nvText('client-detail-home-company-postcode'),
+				roadAddress: nvText('client-detail-home-company-road'),
+				jibunAddress: nvText('client-detail-home-company-jibun'),
+				detailAddress: nvText('client-detail-home-company-detail')
 			};
 
 			const res = await fetch(apiUrl('/company/address'), {
@@ -497,7 +512,7 @@
 	}
 
 	// =========================
-	// 7) Buyer grade change + save
+	// 7) Buyer grade
 	// =========================
 	const buyerGradeSelect = document.getElementById('client-detail-home-buyer-grade');
 	if (buyerGradeSelect) {
@@ -529,10 +544,302 @@
 	}
 
 	// =========================
-	// 8) Seller section: change detection
+	// 8) Seller - logo / contacts / dirty detection
 	// =========================
+	const sellerLogoPreview = document.getElementById('client-detail-home-seller-logo-preview');
+	const sellerLogoEmpty = document.getElementById('client-detail-home-seller-logo-empty');
+	const sellerLogoFile = document.getElementById('client-detail-home-seller-logo-file');
+	const sellerLogoAction = document.getElementById('client-detail-home-seller-logo-action');
+	const sellerLogoOriginalRoad = document.getElementById('client-detail-home-seller-logo-original-road');
+	const btnDeleteSellerLogo = document.getElementById('client-detail-home-btn-delete-seller-logo');
+	const btnKeepSellerLogo = document.getElementById('client-detail-home-btn-keep-seller-logo');
+
+	const sellerContactTbody = document.getElementById('client-detail-home-seller-contact-tbody');
+	const btnAddSellerContact = document.getElementById('client-detail-home-btn-add-seller-contact');
+
+	let tempLogoObjectUrl = null;
+	let initialSellerSnapshot = null;
+	let initialPermState = [];
+
+	function revokeTempLogoObjectUrl() {
+		if (tempLogoObjectUrl) {
+			URL.revokeObjectURL(tempLogoObjectUrl);
+			tempLogoObjectUrl = null;
+		}
+	}
+
+	function setSellerLogoPreview(src) {
+		if (sellerLogoPreview) {
+			if (src) {
+				sellerLogoPreview.src = src;
+				sellerLogoPreview.classList.remove('d-none');
+			} else {
+				sellerLogoPreview.removeAttribute('src');
+				sellerLogoPreview.classList.add('d-none');
+			}
+		}
+		if (sellerLogoEmpty) {
+			if (src) sellerLogoEmpty.classList.add('d-none');
+			else sellerLogoEmpty.classList.remove('d-none');
+		}
+	}
+
+	function getOriginalSellerLogoRoad() {
+		return sellerLogoOriginalRoad?.value?.trim() || '';
+	}
+
+	function resetSellerLogoToOriginal() {
+		revokeTempLogoObjectUrl();
+		if (sellerLogoFile) sellerLogoFile.value = '';
+		if (sellerLogoAction) sellerLogoAction.value = 'KEEP';
+
+		const original = getOriginalSellerLogoRoad();
+		setSellerLogoPreview(original || '');
+		refreshSellerDirty();
+	}
+
+	if (sellerLogoFile) {
+		sellerLogoFile.addEventListener('change', () => {
+			revokeTempLogoObjectUrl();
+
+			const file = sellerLogoFile.files && sellerLogoFile.files[0] ? sellerLogoFile.files[0] : null;
+			if (!file) {
+				resetSellerLogoToOriginal();
+				return;
+			}
+
+			if (!file.type || !file.type.startsWith('image/')) {
+				showAlert('로고는 이미지 파일만 선택할 수 있습니다.');
+				sellerLogoFile.value = '';
+				resetSellerLogoToOriginal();
+				return;
+			}
+
+			tempLogoObjectUrl = URL.createObjectURL(file);
+			setSellerLogoPreview(tempLogoObjectUrl);
+			if (sellerLogoAction) sellerLogoAction.value = 'REPLACE';
+			refreshSellerDirty();
+		});
+	}
+
+	if (btnDeleteSellerLogo) {
+		btnDeleteSellerLogo.addEventListener('click', () => {
+			revokeTempLogoObjectUrl();
+			if (sellerLogoFile) sellerLogoFile.value = '';
+
+			const hasOriginal = !!getOriginalSellerLogoRoad();
+			if (!hasOriginal) {
+				setSellerLogoPreview('');
+				if (sellerLogoAction) sellerLogoAction.value = 'KEEP';
+				refreshSellerDirty();
+				return;
+			}
+
+			setSellerLogoPreview('');
+			if (sellerLogoAction) sellerLogoAction.value = 'DELETE';
+			refreshSellerDirty();
+		});
+	}
+
+	if (btnKeepSellerLogo) {
+		btnKeepSellerLogo.addEventListener('click', () => {
+			resetSellerLogoToOriginal();
+		});
+	}
+
+	function removeEmptyContactRow() {
+		const emptyRow = sellerContactTbody?.querySelector('.client-detail-home-seller-contact-empty-row');
+		if (emptyRow) emptyRow.remove();
+	}
+
+	function ensureEmptyContactRow() {
+		if (!sellerContactTbody) return;
+
+		const rows = sellerContactTbody.querySelectorAll('tr[data-contact-row="1"]');
+		const emptyRow = sellerContactTbody.querySelector('.client-detail-home-seller-contact-empty-row');
+
+		if (rows.length === 0 && !emptyRow) {
+			const tr = document.createElement('tr');
+			tr.className = 'client-detail-home-seller-contact-empty-row';
+			tr.innerHTML = `<td colspan="5" class="text-muted text-center">등록된 담당자가 없습니다.</td>`;
+			sellerContactTbody.appendChild(tr);
+		}
+
+		if (rows.length > 0 && emptyRow) {
+			emptyRow.remove();
+		}
+	}
+
+	function createSellerContactRow(contact) {
+		const tr = document.createElement('tr');
+		tr.setAttribute('data-contact-row', '1');
+		tr.setAttribute('data-contact-id', contact && contact.id ? String(contact.id) : '');
+
+		const idText = contact && contact.id ? String(contact.id) : 'NEW';
+
+		tr.innerHTML = `
+			<td class="text-center">${escapeHtml(idText)}</td>
+			<td>
+				<input type="text" class="form-control form-control-sm client-detail-home-seller-contact-name"
+					value="${escapeHtml(contact?.name || '')}">
+			</td>
+			<td>
+				<input type="text" class="form-control form-control-sm client-detail-home-seller-contact-phone"
+					value="${escapeHtml(contact?.phone || '')}">
+			</td>
+			<td>
+				<input type="text" class="form-control form-control-sm client-detail-home-seller-contact-email"
+					value="${escapeHtml(contact?.email || '')}">
+			</td>
+			<td class="text-center">
+				<button type="button" class="btn btn-outline-danger btn-sm client-detail-home-btn-delete-seller-contact">X</button>
+			</td>
+		`;
+
+		return tr;
+	}
+
+	if (btnAddSellerContact && sellerContactTbody) {
+		btnAddSellerContact.addEventListener('click', () => {
+			removeEmptyContactRow();
+			sellerContactTbody.appendChild(createSellerContactRow({
+				id: null,
+				name: '',
+				phone: '',
+				email: ''
+			}));
+			refreshSellerDirty();
+		});
+	}
+
+	if (sellerContactTbody) {
+		sellerContactTbody.addEventListener('click', (e) => {
+			const btn = e.target.closest('.client-detail-home-btn-delete-seller-contact');
+			if (!btn) return;
+
+			const row = btn.closest('tr[data-contact-row="1"]');
+			if (!row) return;
+
+			row.remove();
+			ensureEmptyContactRow();
+			refreshSellerDirty();
+		});
+
+		sellerContactTbody.addEventListener('input', (e) => {
+			if (
+				e.target.classList.contains('client-detail-home-seller-contact-name') ||
+				e.target.classList.contains('client-detail-home-seller-contact-phone') ||
+				e.target.classList.contains('client-detail-home-seller-contact-email')
+			) {
+				refreshSellerDirty();
+			}
+		});
+
+		sellerContactTbody.addEventListener('change', (e) => {
+			if (
+				e.target.classList.contains('client-detail-home-seller-contact-name') ||
+				e.target.classList.contains('client-detail-home-seller-contact-phone') ||
+				e.target.classList.contains('client-detail-home-seller-contact-email')
+			) {
+				refreshSellerDirty();
+			}
+		});
+	}
+
+	function collectSellerContactsForCompare() {
+		if (!sellerContactTbody) return [];
+		return Array.from(sellerContactTbody.querySelectorAll('tr[data-contact-row="1"]')).map(row => ({
+			id: parseNullableNum(row.getAttribute('data-contact-id')),
+			name: row.querySelector('.client-detail-home-seller-contact-name')?.value?.trim() || '',
+			phone: row.querySelector('.client-detail-home-seller-contact-phone')?.value?.trim() || '',
+			email: row.querySelector('.client-detail-home-seller-contact-email')?.value?.trim() || ''
+		}));
+	}
+
+	function collectSellerContactsForSave() {
+		if (!sellerContactTbody) return [];
+
+		const rows = Array.from(sellerContactTbody.querySelectorAll('tr[data-contact-row="1"]'));
+		const contacts = [];
+
+		for (const row of rows) {
+			const id = parseNullableNum(row.getAttribute('data-contact-id'));
+			const name = row.querySelector('.client-detail-home-seller-contact-name')?.value?.trim() || '';
+			const phone = row.querySelector('.client-detail-home-seller-contact-phone')?.value?.trim() || '';
+			const email = row.querySelector('.client-detail-home-seller-contact-email')?.value?.trim() || '';
+
+			const hasAny = !!(name || phone || email);
+			if (!hasAny) {
+				throw new Error('담당자 빈 행이 있습니다. 빈 행은 삭제하거나 내용을 입력해 주세요.');
+			}
+			if (!name) {
+				throw new Error('담당자명은 필수입니다.');
+			}
+
+			contacts.push({
+				id: id,
+				name: name,
+				phone: phone,
+				email: email
+			});
+		}
+
+		return contacts;
+	}
+
+	function normalizeObject(obj) {
+		return JSON.stringify(obj);
+	}
+
+	function captureCurrentSellerSnapshot() {
+		if (!btnSaveSeller) return null;
+
+		return {
+			shopName: nvValue('client-detail-home-seller-shopName'),
+			supplierCode: nvValue('client-detail-home-seller-supplierCode'),
+			homepageUrl: nvValue('client-detail-home-seller-homepageUrl'),
+			productTypeText: nvValue('client-detail-home-seller-productTypeText'),
+			tel: nvValue('client-detail-home-seller-tel'),
+			fax: nvValue('client-detail-home-seller-fax'),
+			tradingStatus: nvValue('client-detail-home-seller-tradingStatus'),
+			supplyType: nvValue('client-detail-home-seller-supplyType'),
+			supplyStructure: nvValue('client-detail-home-seller-supplyStructure'),
+			dealStartDate: nvValue('client-detail-home-seller-dealStartDate'),
+			dealStopDate: nvValue('client-detail-home-seller-dealStopDate'),
+			bizPostcode: nvText('client-detail-home-seller-biz-postcode'),
+			bizRoad: nvText('client-detail-home-seller-biz-road'),
+			bizJibun: nvText('client-detail-home-seller-biz-jibun'),
+			bizDetail: nvText('client-detail-home-seller-biz-detail'),
+			returnPostcode: nvText('client-detail-home-seller-return-postcode'),
+			returnRoad: nvText('client-detail-home-seller-return-road'),
+			returnJibun: nvText('client-detail-home-seller-return-jibun'),
+			returnDetail: nvText('client-detail-home-seller-return-detail'),
+			commissionRate: nvValue('client-detail-home-settle-commissionRate'),
+			cycle: nvValue('client-detail-home-settle-cycle'),
+			basis: nvValue('client-detail-home-settle-basis'),
+			nextSettlementDate: nvValue('client-detail-home-settle-nextDate'),
+			logoAction: sellerLogoAction?.value || 'KEEP',
+			logoFileName: sellerLogoFile?.files?.[0]?.name || '',
+			contacts: collectSellerContactsForCompare(),
+			permissions: normalizePermList((permState || []).map(x => ({
+				largeId: x.largeId,
+				mediumId: x.mediumId || null,
+				smallId: x.smallId || null
+			})))
+		};
+	}
+
+	function refreshSellerDirty() {
+		if (!btnSaveSeller) return;
+		if (!initialSellerSnapshot) return;
+
+		const current = captureCurrentSellerSnapshot();
+		setDirty('seller', normalizeObject(current) !== normalizeObject(initialSellerSnapshot));
+	}
+
 	const sellerInputs = [
 		'client-detail-home-seller-shopName',
+		'client-detail-home-seller-supplierCode',
 		'client-detail-home-seller-homepageUrl',
 		'client-detail-home-seller-productTypeText',
 		'client-detail-home-seller-tel',
@@ -551,17 +858,12 @@
 	sellerInputs.forEach(id => {
 		const el = document.getElementById(id);
 		if (!el) return;
-		el.addEventListener('change', () => setDirty('seller', true));
-		el.addEventListener('input', () => setDirty('seller', true));
+		el.addEventListener('change', refreshSellerDirty);
+		el.addEventListener('input', refreshSellerDirty);
 	});
 
 	// =========================
-	// 9) Category permission add/delete (와일드카드 규칙 적용)
-	// - [large]가 있으면 같은 large의 하위(medium/small) 추가 불가
-	// - [large, medium]이 있으면 같은 large+medium의 small 추가 불가
-	// - [large]를 추가하면 같은 large의 기존 권한(large/medium/small) 모두 제거 후 large만 남김
-	// - [large, medium]을 추가하면 같은 large+medium의 기존 권한(medium/small) 제거 후 medium만 남김
-	// - 저장 시(변경 발생 시) 기존 DB 권한 ID 전부 삭제 후, 화면 최종 리스트로 재등록(갈아엎기)
+	// 9) Category permission add/delete
 	// =========================
 	const permList = document.getElementById('client-detail-home-permission-list');
 
@@ -570,21 +872,8 @@
 	const selSmall = document.getElementById('client-detail-home-cat-small');
 	const btnAddPerm = document.getElementById('client-detail-home-btn-add-permission');
 
-	// ✅ 기존 DB 권한 ID들(저장 시 전부 삭제용)
 	const existingPermIds = [];
-	// ✅ 화면의 “최종 권한 상태”
-	let permState = []; // {largeId:number, mediumId:number|null, smallId:number|null}
-	// ✅ 권한 섹션 변경 여부(변경 시에만 갈아엎기)
-	let sellerPermChanged = false;
-
-	function parseNullableNum(v) {
-		if (v === null || v === undefined) return null;
-		const s = String(v).trim();
-		if (s === '' || s.toLowerCase() === 'null' || s.toLowerCase() === 'undefined') return null;
-		const n = Number(s);
-		if (!Number.isFinite(n) || n <= 0) return null;
-		return n;
-	}
+	let permState = [];
 
 	function keyOf(p) {
 		const m = p.mediumId ? String(p.mediumId) : '';
@@ -594,9 +883,9 @@
 
 	function normalizePermList(list) {
 		const largeIds = new Set();
-		const largeAllSet = new Set();          // largeId
-		const mediumAllSet = new Map();         // largeId -> Set(mediumId)
-		const smallSet = new Map();             // largeId -> Map(mediumId -> Set(smallId))
+		const largeAllSet = new Set();
+		const mediumAllSet = new Map();
+		const smallSet = new Map();
 
 		(list || []).forEach(p => {
 			if (!p || !p.largeId) return;
@@ -607,23 +896,19 @@
 
 			largeIds.add(largeId);
 
-			// invalid: small without medium
 			if (smallId && !mediumId) return;
 
-			// LARGE
 			if (!mediumId && !smallId) {
 				largeAllSet.add(largeId);
 				return;
 			}
 
-			// MEDIUM
 			if (mediumId && !smallId) {
 				if (!mediumAllSet.has(largeId)) mediumAllSet.set(largeId, new Set());
 				mediumAllSet.get(largeId).add(mediumId);
 				return;
 			}
 
-			// SMALL
 			if (mediumId && smallId) {
 				if (!smallSet.has(largeId)) smallSet.set(largeId, new Map());
 				const mm = smallSet.get(largeId);
@@ -636,7 +921,6 @@
 		const sortedLarge = Array.from(largeIds).sort((a, b) => a - b);
 
 		sortedLarge.forEach(largeId => {
-			// large 전체가 있으면 그 large는 large만 남김
 			if (largeAllSet.has(largeId)) {
 				out.push({ largeId, mediumId: null, smallId: null });
 				return;
@@ -652,7 +936,6 @@
 
 			const sortedMedium = Array.from(smallMap.keys()).sort((a, b) => a - b);
 			sortedMedium.forEach(mid => {
-				// medium 전체가 있으면 그 medium의 small들은 필요없음
 				if (mediumAllSet.get(largeId)?.has(mid)) return;
 				const sIds = Array.from(smallMap.get(mid)).sort((a, b) => a - b);
 				sIds.forEach(sid => {
@@ -661,7 +944,6 @@
 			});
 		});
 
-		// 완전 중복 제거
 		const seen = new Set();
 		const dedup = [];
 		out.forEach(p => {
@@ -730,7 +1012,6 @@
 	function initPermissionStateFromDom() {
 		if (!permList) return;
 
-		// 최초 로딩 시 서버 렌더된 기존 권한ID들을 수집(저장 시 전부 삭제용)
 		const lis = permList.querySelectorAll('li[data-perm-id]');
 		lis.forEach(li => {
 			const pid = parseNullableNum(li.getAttribute('data-perm-id'));
@@ -750,6 +1031,11 @@
 		});
 
 		permState = normalizePermList(permState);
+		initialPermState = normalizePermList((permState || []).map(x => ({
+			largeId: x.largeId,
+			mediumId: x.mediumId || null,
+			smallId: x.smallId || null
+		})));
 		renderPermissionList();
 	}
 
@@ -802,11 +1088,6 @@
 		await loadSmalls('');
 	}
 
-	function markSellerPermissionChanged() {
-		sellerPermChanged = true;
-		setDirty('seller', true);
-	}
-
 	function addCategoryPermissionWithRule() {
 		const largeId = selLarge.value ? Number(selLarge.value) : null;
 		const mediumId = selMedium.value ? Number(selMedium.value) : null;
@@ -823,20 +1104,16 @@
 
 		const level = smallId ? 'SMALL' : (mediumId ? 'MEDIUM' : 'LARGE');
 
-		// ✅ 규칙 적용(와일드카드)
 		if (level === 'LARGE') {
-			// 동일 large 전체가 이미 있으면 추가 불가
 			if (existsLargeAll(largeId)) {
 				showAlert('이미 해당 대분류 전체 권한이 등록되어 있습니다.');
 				return;
 			}
-			// large 등록 시: 동일 large의 기존 권한 전부 제거 후 large만 남김
 			removeByLarge(largeId);
 			permState.push({ largeId, mediumId: null, smallId: null });
 		}
 
 		if (level === 'MEDIUM') {
-			// large 전체가 있으면 medium 추가 불필요 -> 차단
 			if (existsLargeAll(largeId)) {
 				showAlert('이미 해당 대분류 전체 권한이 등록되어 있어, 중분류를 추가 등록할 필요가 없습니다.');
 				return;
@@ -845,13 +1122,11 @@
 				showAlert('중분류 선택이 올바르지 않습니다.');
 				return;
 			}
-			// medium 등록 시: 동일 large+medium 하위(small 포함) 제거 후 medium만 남김
 			removeByMedium(largeId, mediumId);
 			permState.push({ largeId, mediumId, smallId: null });
 		}
 
 		if (level === 'SMALL') {
-			// large 전체가 있으면 small 추가 불필요 -> 차단
 			if (existsLargeAll(largeId)) {
 				showAlert('이미 해당 대분류 전체 권한이 등록되어 있어, 소분류를 추가 등록할 필요가 없습니다.');
 				return;
@@ -860,7 +1135,6 @@
 				showAlert('소분류 등록은 중분류 선택이 필요합니다.');
 				return;
 			}
-			// medium 전체가 있으면 small 추가 불필요 -> 차단
 			if (existsMediumAll(largeId, mediumId)) {
 				showAlert('이미 해당 중분류 전체 권한이 등록되어 있어, 소분류를 추가 등록할 필요가 없습니다.');
 				return;
@@ -870,7 +1144,9 @@
 				return;
 			}
 
-			const existsExact = (permState || []).some(p => p.largeId === largeId && p.mediumId === mediumId && p.smallId === smallId);
+			const existsExact = (permState || []).some(p =>
+				p.largeId === largeId && p.mediumId === mediumId && p.smallId === smallId
+			);
 			if (existsExact) {
 				showAlert('이미 등록된 권한입니다.');
 				return;
@@ -878,12 +1154,10 @@
 			permState.push({ largeId, mediumId, smallId });
 		}
 
-		// 최종 정규화(중복/하위정리)
 		permState = normalizePermList(permState);
 		renderPermissionList();
-		markSellerPermissionChanged();
+		refreshSellerDirty();
 
-		// 셀렉트 초기화
 		selLarge.value = '';
 		selMedium.innerHTML = `<option value="">선택</option>`;
 		selSmall.innerHTML = `<option value="">선택</option>`;
@@ -895,7 +1169,6 @@
 		});
 	}
 
-	// 권한 삭제(즉시 반영: 저장 시 갈아엎기)
 	if (permList) {
 		permList.addEventListener('click', (e) => {
 			const btn = e.target.closest('.client-detail-home-btn-delete-permission');
@@ -908,11 +1181,18 @@
 
 			const k = li.getAttribute('data-perm-key');
 			permState = (permState || []).filter(p => keyOf(p) !== k);
-
 			permState = normalizePermList(permState);
 			renderPermissionList();
-			markSellerPermissionChanged();
+			refreshSellerDirty();
 		});
+	}
+
+	function isPermissionChanged() {
+		return normalizeObject(normalizePermList((permState || []).map(x => ({
+			largeId: x.largeId,
+			mediumId: x.mediumId || null,
+			smallId: x.smallId || null
+		})))) !== normalizeObject(initialPermState);
 	}
 
 	// =========================
@@ -921,33 +1201,44 @@
 	if (btnSaveSeller) {
 		btnSaveSeller.addEventListener('click', async () => {
 			if (!dirty.seller) return;
-			if (!confirm('셀러 변경사항(프로필/주소/정산/카테고리)을 저장하시겠습니까?')) return;
+			if (!confirm('셀러 변경사항(프로필/로고/주소/정산/담당자/카테고리)을 저장하시겠습니까?')) return;
+
+			let contacts;
+			try {
+				contacts = collectSellerContactsForSave();
+			} catch (e) {
+				showAlert(e.message || '담당자 입력값을 확인해 주세요.');
+				return;
+			}
 
 			const payload = {
-				shopName: document.getElementById('client-detail-home-seller-shopName')?.value || '',
-				tel: document.getElementById('client-detail-home-seller-tel')?.value || '',
-				fax: document.getElementById('client-detail-home-seller-fax')?.value || '',
-				homepageUrl: document.getElementById('client-detail-home-seller-homepageUrl')?.value || '',
-				productTypeText: document.getElementById('client-detail-home-seller-productTypeText')?.value || '',
+				shopName: nvValue('client-detail-home-seller-shopName'),
+				supplierCode: nvValue('client-detail-home-seller-supplierCode'),
+				tel: nvValue('client-detail-home-seller-tel'),
+				fax: nvValue('client-detail-home-seller-fax'),
+				homepageUrl: nvValue('client-detail-home-seller-homepageUrl'),
+				productTypeText: nvValue('client-detail-home-seller-productTypeText'),
 
-				tradingStatus: document.getElementById('client-detail-home-seller-tradingStatus')?.value || '',
-				supplyType: document.getElementById('client-detail-home-seller-supplyType')?.value || '',
-				supplyStructure: document.getElementById('client-detail-home-seller-supplyStructure')?.value || '',
+				tradingStatus: nvValue('client-detail-home-seller-tradingStatus'),
+				supplyType: nvValue('client-detail-home-seller-supplyType'),
+				supplyStructure: nvValue('client-detail-home-seller-supplyStructure'),
 
 				dealStartDate: document.getElementById('client-detail-home-seller-dealStartDate')?.value || null,
 				dealStopDate: document.getElementById('client-detail-home-seller-dealStopDate')?.value || null,
 
+				logoAction: sellerLogoAction?.value || 'KEEP',
+
 				businessAddress: {
-					postcode: document.getElementById('client-detail-home-seller-biz-postcode')?.innerText || '',
-					roadAddress: document.getElementById('client-detail-home-seller-biz-road')?.innerText || '',
-					jibunAddress: document.getElementById('client-detail-home-seller-biz-jibun')?.innerText || '',
-					detailAddress: document.getElementById('client-detail-home-seller-biz-detail')?.innerText || ''
+					postcode: nvText('client-detail-home-seller-biz-postcode'),
+					roadAddress: nvText('client-detail-home-seller-biz-road'),
+					jibunAddress: nvText('client-detail-home-seller-biz-jibun'),
+					detailAddress: nvText('client-detail-home-seller-biz-detail')
 				},
 				returnAddress: {
-					postcode: document.getElementById('client-detail-home-seller-return-postcode')?.innerText || '',
-					roadAddress: document.getElementById('client-detail-home-seller-return-road')?.innerText || '',
-					jibunAddress: document.getElementById('client-detail-home-seller-return-jibun')?.innerText || '',
-					detailAddress: document.getElementById('client-detail-home-seller-return-detail')?.innerText || ''
+					postcode: nvText('client-detail-home-seller-return-postcode'),
+					roadAddress: nvText('client-detail-home-seller-return-road'),
+					jibunAddress: nvText('client-detail-home-seller-return-jibun'),
+					detailAddress: nvText('client-detail-home-seller-return-detail')
 				},
 
 				settlement: {
@@ -955,12 +1246,13 @@
 					cycle: document.getElementById('client-detail-home-settle-cycle')?.value || null,
 					basis: document.getElementById('client-detail-home-settle-basis')?.value || null,
 					nextSettlementDate: document.getElementById('client-detail-home-settle-nextDate')?.value || null
-				}
+				},
+
+				contacts: contacts
 			};
 
-			// ✅ 카테고리 권한이 변경된 경우: “기존 권한ID 전부 삭제” + “최종 리스트로 재등록”(갈아엎기)
-			if (sellerPermChanged) {
-				payload.deletePermissionIds = existingPermIds.slice(); // 기존 DB건 전부 삭제
+			if (isPermissionChanged()) {
+				payload.deletePermissionIds = existingPermIds.slice();
 				payload.addPermissions = (permState || []).map(p => ({
 					largeId: p.largeId,
 					mediumId: p.mediumId || null,
@@ -968,10 +1260,22 @@
 				}));
 			}
 
+			const formData = new FormData();
+			formData.append('request', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+
+			const logoFile = sellerLogoFile?.files?.[0];
+			if ((sellerLogoAction?.value || 'KEEP') === 'REPLACE') {
+				if (!logoFile) {
+					showAlert('로고 변경으로 선택되었지만 업로드 파일이 없습니다.');
+					return;
+				}
+				formData.append('logoFile', logoFile);
+			}
+
 			const res = await fetch(apiUrl('/seller/saveAll'), {
 				method: 'POST',
-				headers: headersJson(),
-				body: JSON.stringify(payload)
+				headers: headersOnlyCsrf(),
+				body: formData
 			});
 
 			const body = await toJsonSafe(res);
@@ -990,5 +1294,8 @@
 	// =========================
 	initPermissionStateFromDom();
 	initCategorySelectors();
+	ensureEmptyContactRow();
+	initialSellerSnapshot = captureCurrentSellerSnapshot();
+	refreshSellerDirty();
 
 })();

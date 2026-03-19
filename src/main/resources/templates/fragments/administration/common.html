@@ -290,12 +290,14 @@
 				th:href="@{/admin/root/clientDetail/{id}/home(id=${memberId})}">
 				CRM 홈
 			</a>
-
+			
+			<!--
 			<a class="list-group-item list-group-item-action"
 				th:classappend="${activeTab == 'orderList'} ? ' active' : ''"
 				th:href="@{/admin/root/clientDetail/{id}/orderList(id=${memberId})}">
 				주문내역
 			</a>
+			-->
 
 			<a class="list-group-item list-group-item-action"
 				th:classappend="${activeTab == 'boardList'} ? ' active' : ''"

@@ -8,4 +8,6 @@ import com.dev.IbioScience.model.auth.SellerDealerProfile;
 
 public interface CrmSellerDealerProfileRepository extends JpaRepository<SellerDealerProfile, Long> {
     Optional<SellerDealerProfile> findByMember_Id(Long memberId);
+    
+	boolean existsBySupplierCodeAndIdNot(String supplierCode, Long id);
 }

@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -12,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Component
 public class UploadPathHelper {
+
+	private static final Logger log = LoggerFactory.getLogger(UploadPathHelper.class);
 
 	@Value("${spring.upload.path}")
 	private String uploadRoot;
@@ -36,9 +40,6 @@ public class UploadPathHelper {
 		}
 	}
 
-	/* =========================
-	 * 판매딜러 로고 파일 저장
-	 * ========================= */
 	public Path resolveSellerLogoBase(Long userId) {
 		return Paths.get(uploadRoot, "commonPath", "customer", String.valueOf(userId), "seller-logo");
 	}
@@ -62,5 +63,25 @@ public class UploadPathHelper {
 	public String publicUrlOf(Path savedPath) {
 		Path rel = Paths.get(uploadRoot).relativize(savedPath);
 		return "/upload/" + rel.toString().replace("\\", "/");
+	}
+
+	public void deleteIfExists(Path path) {
+		if (path == null) return;
+
+		try {
+			Files.deleteIfExists(path);
+		} catch (IOException e) {
+			throw new RuntimeException("파일 삭제 실패: " + path, e);
+		}
+	}
+
+	public void deleteIfExistsQuietly(Path path) {
+		if (path == null) return;
+
+		try {
+			Files.deleteIfExists(path);
+		} catch (Exception e) {
+			log.error("파일 삭제 실패 path={}", path, e);
+		}
 	}
 }
