@@ -2,9 +2,12 @@ package com.dev.IbioScience.service.order;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -22,6 +25,7 @@ import com.dev.IbioScience.enums.order.PaymentMethod;
 import com.dev.IbioScience.enums.order.ShippingMethod;
 import com.dev.IbioScience.enums.order.ShippingPayType;
 import com.dev.IbioScience.enums.product.CouponStatus;
+import com.dev.IbioScience.enums.product.PromotionType;
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.order.Order;
 import com.dev.IbioScience.model.order.OrderItem;
@@ -29,13 +33,16 @@ import com.dev.IbioScience.model.product.Coupon;
 import com.dev.IbioScience.model.product.Product;
 import com.dev.IbioScience.model.product.ProductOption;
 import com.dev.IbioScience.model.product.ProductOptionGroup;
+import com.dev.IbioScience.model.product.Promotion;
 import com.dev.IbioScience.model.product.relation.MemberCoupon;
+import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
 import com.dev.IbioScience.repository.auth.MemberCouponRepository;
 import com.dev.IbioScience.repository.auth.MemberRepository;
 import com.dev.IbioScience.repository.order.OrderRepository;
 import com.dev.IbioScience.repository.product.register.ProductOptionGroupRepository;
 import com.dev.IbioScience.repository.product.register.ProductOptionRepository;
 import com.dev.IbioScience.repository.product.register.ProductRepository;
+import com.dev.IbioScience.service.auth.crm.benefit.AdminClientBenefitService;
 
 @Service
 public class OrderService {
@@ -49,8 +56,8 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final ProductOptionGroupRepository productOptionGroupRepository;
     private final ProductOptionRepository productOptionRepository;
-
     private final MemberCouponRepository memberCouponRepository;
+    private final AdminClientBenefitService adminClientBenefitService;
 
     public OrderService(
             OrderRepository orderRepository,
@@ -58,7 +65,8 @@ public class OrderService {
             ProductRepository productRepository,
             ProductOptionGroupRepository productOptionGroupRepository,
             ProductOptionRepository productOptionRepository,
-            MemberCouponRepository memberCouponRepository
+            MemberCouponRepository memberCouponRepository,
+            AdminClientBenefitService adminClientBenefitService
     ) {
         this.orderRepository = orderRepository;
         this.memberRepository = memberRepository;
@@ -66,6 +74,7 @@ public class OrderService {
         this.productOptionGroupRepository = productOptionGroupRepository;
         this.productOptionRepository = productOptionRepository;
         this.memberCouponRepository = memberCouponRepository;
+        this.adminClientBenefitService = adminClientBenefitService;
     }
 
     // =========================
@@ -104,8 +113,12 @@ public class OrderService {
     @Transactional
     public OrderCreateResponseDTO createPendingOrder(Long loginMemberId, OrderCreateRequestDTO req) {
 
-        if (loginMemberId == null) throw new IllegalArgumentException("로그인이 필요합니다.");
-        if (req == null) throw new IllegalArgumentException("요청이 비어있습니다.");
+        if (loginMemberId == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
+        if (req == null) {
+            throw new IllegalArgumentException("요청이 비어있습니다.");
+        }
         if (req.getUserId() == null || !req.getUserId().equals(loginMemberId)) {
             throw new IllegalArgumentException("잘못된 사용자 정보입니다.");
         }
@@ -120,7 +133,6 @@ public class OrderService {
         ShippingMethod shippingMethod = parseShippingMethod(req.getShippingMethod());
         ShippingPayType shippingPayType = parseShippingPayType(req.getShippingPayType());
 
-        // 배송지 필수 검증(최소)
         requireText(req.getReceiverName(), "수령인 이름");
         requireText(req.getHp1(), "휴대폰(앞자리)");
         requireText(req.getHp2(), "휴대폰(중간)");
@@ -130,14 +142,18 @@ public class OrderService {
         requireText(req.getDetailAddress(), "상세주소");
 
         long sumPrice = 0L;
-
-        // 아이템 생성 (상품/옵션 FK 매핑 + 스냅샷)
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (OrderCreateItemDTO it : req.getItems()) {
-            if (it.getProductId() == null) throw new IllegalArgumentException("상품ID 누락");
-            if (it.getQuantity() == null || it.getQuantity() < 1) throw new IllegalArgumentException("수량 오류");
-            if (it.getUnitPrice() == null || it.getUnitPrice() < 0) throw new IllegalArgumentException("단가 오류");
+            if (it.getProductId() == null) {
+                throw new IllegalArgumentException("상품ID 누락");
+            }
+            if (it.getQuantity() == null || it.getQuantity() < 1) {
+                throw new IllegalArgumentException("수량 오류");
+            }
+            if (it.getUnitPrice() == null || it.getUnitPrice() < 0) {
+                throw new IllegalArgumentException("단가 오류");
+            }
 
             Product product = productRepository.findById(it.getProductId())
                     .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다. productId=" + it.getProductId()));
@@ -157,7 +173,6 @@ public class OrderService {
             long line = it.getUnitPrice() * it.getQuantity();
             sumPrice += line;
 
-            // ✅ 라인 적립금(제품별) = floor(linePrice * 10%)
             long itemEarnPoint = (long) Math.floor(line * EXPECT_POINT_RATE);
 
             OrderItem oi = OrderItem.builder()
@@ -179,54 +194,45 @@ public class OrderService {
             orderItems.add(oi);
         }
 
-        // 쿠폰 계산(금액형 쿠폰)
+        long baseDiscount = 0L;
+
         long couponDiscount = 0L;
         MemberCoupon memberCoupon = null;
         String couponCode = null;
         String couponName = null;
 
         if (req.getMemberCouponId() != null) {
-            memberCoupon = memberCouponRepository.findById(req.getMemberCouponId())
-                    .orElseThrow(() -> new IllegalArgumentException("선택한 쿠폰을 찾을 수 없습니다."));
+            memberCoupon = findUsableMemberCoupon(loginMemberId, req.getMemberCouponId());
 
-            // 본인 쿠폰인지 검증
             if (memberCoupon.getMember() == null || !Objects.equals(memberCoupon.getMember().getId(), loginMemberId)) {
                 throw new IllegalArgumentException("본인 쿠폰만 사용할 수 있습니다.");
             }
 
-            if (memberCoupon.getStatus() == null) {
-                throw new IllegalArgumentException("쿠폰 상태가 올바르지 않습니다.");
-            }
-
             Coupon coupon = memberCoupon.getCoupon();
-            if (coupon == null) throw new IllegalArgumentException("쿠폰 정보가 비어있습니다.");
+            validateCouponMasterPeriod(coupon);
 
             long min = safeLong(coupon.getMinPurchaseAmount());
             long amt = safeLong(coupon.getCouponAmount());
 
-            if (sumPrice >= min) {
-                couponDiscount = amt;
-                couponCode = coupon.getCouponCode();
-                couponName = coupon.getCouponName();
-            } else {
-                couponDiscount = 0L;
+            if (sumPrice < min) {
+                throw new IllegalArgumentException("쿠폰 최소 구매금액 조건을 만족하지 않습니다.");
             }
+
+            couponDiscount = amt;
+            couponCode = coupon.getCouponCode();
+            couponName = coupon.getCouponName();
         }
 
-        // 적립금 사용 (결제완료 전에는 차감하지 않고 Order에만 기록)
         long pointAvail = member.getPoint() == null ? 0L : member.getPoint();
         long pointUse = req.getPointUse() == null ? 0L : Math.max(0L, req.getPointUse());
-        if (pointUse > pointAvail) pointUse = pointAvail;
+        if (pointUse > pointAvail) {
+            pointUse = pointAvail;
+        }
 
         long shippingFee = calcShippingFee(shippingMethod);
-        long baseDiscount = 0L;
-
-        // ✅ 선불/착불에 따라 grandTotal에 배송비 포함 여부 결정
         long shipToPayNow = (shippingPayType == ShippingPayType.PREPAID) ? shippingFee : 0L;
-
         long grandTotal = Math.max(0L, sumPrice - baseDiscount - couponDiscount - pointUse + shipToPayNow);
 
-        // ✅ 주문 예상 적립포인트 = 라인 적립금 합(제품별)
         long expectPoint = orderItems.stream()
                 .mapToLong(oi -> oi.getItemEarnPoint() == null ? 0L : oi.getItemEarnPoint())
                 .sum();
@@ -269,7 +275,6 @@ public class OrderService {
 
                 .build();
 
-        // 아이템 연결
         for (OrderItem oi : orderItems) {
             order.addItem(oi);
         }
@@ -296,17 +301,25 @@ public class OrderService {
             throw new IllegalArgumentException("현재 상태에서는 결제완료 처리할 수 없습니다. status=" + order.getStatus());
         }
 
-        order.setStatus(OrderStatus.PRODUCT_PREPARING);
-        order.setPaidAt(LocalDateTime.now());
+        LocalDateTime paidAt = LocalDateTime.now();
 
-        // 쿠폰 사용 처리(선택)
-        if (order.getMemberCoupon() != null) {
-            MemberCoupon mc = order.getMemberCoupon();
-            mc.setUsedAt(LocalDateTime.now());
-            mc.setStatus(CouponStatus.USED); // 프로젝트 enum 값에 맞게 조정 필요
+        order.setStatus(OrderStatus.PRODUCT_PREPARING);
+        order.setPaidAt(paidAt);
+
+        // =========================
+        // 1) 실제 사용된 쿠폰만 USED 처리 + 사용이력 저장
+        // =========================
+        if (order.getMemberCoupon() != null && nvlLong(order.getCouponDiscount()) > 0L) {
+            MemberCoupon usedMemberCoupon = order.getMemberCoupon();
+            usedMemberCoupon.setUsedAt(paidAt);
+            usedMemberCoupon.setStatus(CouponStatus.USED);
+
+            adminClientBenefitService.recordCouponUse(usedMemberCoupon, order);
         }
 
-        // ✅ 포인트 차감 + 라인 적립금 합 적립
+        // =========================
+        // 2) 포인트 차감 + 적립
+        // =========================
         Member member = order.getMember();
         long cur = member.getPoint() == null ? 0L : member.getPoint();
         long used = order.getPointUsed() == null ? 0L : order.getPointUsed();
@@ -317,19 +330,135 @@ public class OrderService {
                     .mapToLong(oi -> oi.getItemEarnPoint() == null ? 0L : oi.getItemEarnPoint())
                     .sum();
         }
-        // order.expectPoint도 동일 의미로 유지
+
         order.setExpectPoint(earn);
 
         long next = cur - used + earn;
-        if (next < 0) next = 0;
+        if (next < 0) {
+            next = 0;
+        }
         member.setPoint(next);
+
+        // =========================
+        // 3) 구매 상품의 프로모션 중 쿠폰 타입이 있으면 회원쿠폰 발급 + 발급이력 저장
+        // =========================
+        issuePromotionCouponsByOrder(order, paidAt);
 
         return OrderStatusUpdateResponseDTO.builder()
                 .orderNo(order.getOrderNo())
                 .status(order.getStatus().name())
                 .build();
     }
+    
+    private void validateCouponMasterPeriod(Coupon coupon) {
+        if (coupon == null) {
+            throw new IllegalArgumentException("쿠폰 정보가 비어있습니다.");
+        }
 
+        LocalDate today = LocalDate.now();
+
+        if (coupon.getStartDate() != null && today.isBefore(coupon.getStartDate())) {
+            throw new IllegalArgumentException("아직 사용 시작 전인 쿠폰입니다.");
+        }
+
+        if (coupon.getEndDate() != null && today.isAfter(coupon.getEndDate())) {
+            throw new IllegalArgumentException("사용 기간이 종료된 쿠폰입니다.");
+        }
+    }
+    
+    private void issuePromotionCouponsByOrder(Order order, LocalDateTime issuedAt) {
+        if (order == null || order.getMember() == null || order.getMember().getId() == null) {
+            return;
+        }
+
+        if (order.getItems() == null || order.getItems().isEmpty()) {
+            return;
+        }
+
+        Long memberId = order.getMember().getId();
+        LocalDate baseDate = issuedAt != null ? issuedAt.toLocalDate() : LocalDate.now();
+
+        // 같은 주문에서 동일 coupon_id 중복 발급 방지
+        Set<Long> processedCouponIds = new HashSet<>();
+
+        for (OrderItem item : order.getItems()) {
+            if (item == null || item.getProduct() == null) {
+                continue;
+            }
+
+            Product product = item.getProduct();
+            if (product.getDiscountMappings() == null || product.getDiscountMappings().isEmpty()) {
+                continue;
+            }
+
+            for (ProductPromotionMapping mapping : product.getDiscountMappings()) {
+                if (mapping == null || mapping.getPromotion() == null) {
+                    continue;
+                }
+
+                Promotion promotion = mapping.getPromotion();
+
+                if (!isIssuableCouponPromotion(promotion, baseDate)) {
+                    continue;
+                }
+
+                Coupon coupon = promotion.getCoupon();
+                if (coupon == null || coupon.getId() == null) {
+                    continue;
+                }
+
+                // 같은 주문 내 같은 coupon 중복 처리 방지
+                if (!processedCouponIds.add(coupon.getId())) {
+                    continue;
+                }
+
+                // 현재 DB unique(member_id, coupon_id) 구조상 이미 있으면 재발급 불가
+                if (memberCouponRepository.existsByMember_IdAndCoupon_Id(memberId, coupon.getId())) {
+                    continue;
+                }
+
+                MemberCoupon memberCoupon = new MemberCoupon();
+                memberCoupon.setMember(order.getMember());
+                memberCoupon.setCoupon(coupon);
+                memberCoupon.setStatus(CouponStatus.ISSUED);
+                memberCoupon.setIssuedAt(issuedAt);
+                memberCoupon.setExpiredAt(coupon.getEndDate() != null ? coupon.getEndDate().atTime(LocalTime.MAX) : null);
+                memberCoupon.setDeletedYn(false);
+
+                MemberCoupon savedMemberCoupon = memberCouponRepository.save(memberCoupon);
+
+                adminClientBenefitService.recordCouponIssueByOrder(savedMemberCoupon, order);
+            }
+        }
+    }
+
+    private boolean isIssuableCouponPromotion(Promotion promotion, LocalDate baseDate) {
+        if (promotion == null) {
+            return false;
+        }
+
+        if (promotion.getType() != PromotionType.COUPON) {
+            return false;
+        }
+
+        if (!Boolean.TRUE.equals(promotion.getActive())) {
+            return false;
+        }
+
+        if (promotion.getCoupon() == null) {
+            return false;
+        }
+
+        if (promotion.getStartDate() != null && baseDate.isBefore(promotion.getStartDate())) {
+            return false;
+        }
+
+        if (promotion.getEndDate() != null && baseDate.isAfter(promotion.getEndDate())) {
+            return false;
+        }
+
+        return true;
+    }
     // =========================
     // 3) 결제에러 처리
     // =========================
@@ -465,5 +594,15 @@ public class OrderService {
         if (oi.getOptionCode() != null && !oi.getOptionCode().isBlank()) parts.add(oi.getOptionCode());
         String s = String.join(" / ", parts);
         return s.isBlank() ? "-" : s;
+    }
+    
+    private MemberCoupon findUsableMemberCoupon(Long loginMemberId, Long memberCouponId) {
+        return memberCouponRepository.findUsableMemberCouponForOrder(
+                        loginMemberId,
+                        memberCouponId,
+                        CouponStatus.ISSUED,
+                        LocalDateTime.now()
+                )
+                .orElseThrow(() -> new IllegalArgumentException("사용 가능한 쿠폰이 아니거나 삭제된 쿠폰입니다."));
     }
 }

@@ -33,6 +33,8 @@ import com.dev.IbioScience.dto.customer.auth.WithdrawMemberRowDto;
 import com.dev.IbioScience.dto.customer.auth.WithdrawSearchCondition;
 import com.dev.IbioScience.dto.customer.auth.crm.ClientDetailHomeDto;
 import com.dev.IbioScience.enums.auth.MemberStatus;
+import com.dev.IbioScience.enums.product.CouponPolicy;
+import com.dev.IbioScience.enums.product.CouponStatus;
 import com.dev.IbioScience.service.admin.client.ClientSearchService;
 import com.dev.IbioScience.service.auth.admin.client.ClientApplyManagerService;
 import com.dev.IbioScience.service.auth.admin.common.ClientWithdrawManagerService;
@@ -254,7 +256,6 @@ public class AdminClientController {
         return "administration/clientManager/detail/clientDetailHome";
     }
 
-    // 나머지 6개 페이지는 “라우팅/active 메뉴”만 먼저 잡아둡니다(내용은 다음 작업에서 채우면 됩니다).
     @GetMapping("/clientDetail/{memberId}/information")
     public String information(@PathVariable Long memberId, Model model) {
         model.addAttribute("memberId", memberId);
@@ -276,17 +277,19 @@ public class AdminClientController {
         return "administration/clientManager/detail/clientEstimateList";
     }
 
-    @GetMapping("/clientDetail/{memberId}/boardList")
-    public String boardList(@PathVariable Long memberId, Model model) {
+    @GetMapping("/clientDetail/{memberId}/reviewList")
+    public String reviewList(@PathVariable Long memberId, Model model) {
         model.addAttribute("memberId", memberId);
-        model.addAttribute("activeTab", "boardList");
-        return "administration/clientManager/detail/clientDetailBoardList";
+        model.addAttribute("activeTab", "reviewList");
+        return "administration/clientManager/detail/clientDetailReviewList";
     }
 
     @GetMapping("/clientDetail/{memberId}/benefit")
     public String benefit(@PathVariable Long memberId, Model model) {
         model.addAttribute("memberId", memberId);
         model.addAttribute("activeTab", "benefit");
+        model.addAttribute("couponPolicies", CouponPolicy.values());
+        model.addAttribute("couponStatuses", CouponStatus.values());
         return "administration/clientManager/detail/clientDetailBenefit";
     }
 

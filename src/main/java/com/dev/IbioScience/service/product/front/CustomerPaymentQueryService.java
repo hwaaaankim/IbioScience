@@ -4,7 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,76 +26,103 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomerPaymentQueryService {
 
-	private final MemberRepository memberRepository;
-	private final MemberCouponRepository memberCouponRepository;
+    private final MemberRepository memberRepository;
+    private final MemberCouponRepository memberCouponRepository;
 
-	@Transactional(readOnly = true)
-	public CustomerMemberMeResponse getMyMemberProfile(Long memberId) {
-		Member m = memberRepository.findById(memberId)
-				.orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다. memberId=" + memberId));
+    @Transactional(readOnly = true)
+    public CustomerMemberMeResponse getMyMemberProfile(Long memberId) {
+        Member m = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다. memberId=" + memberId));
 
-		return CustomerMemberMeResponse.builder()
-				.id(m.getId())
-				.name(m.getName())
-				.mobile(m.getMobile())
-				.tel(m.getTel())
-				.point(m.getPoint() == null ? 0L : m.getPoint())
-				.address(m.getAddress())
-				.build();
-	}
+        return CustomerMemberMeResponse.builder()
+                .id(m.getId())
+                .name(m.getName())
+                .mobile(m.getMobile())
+                .tel(m.getTel())
+                .point(m.getPoint() == null ? 0L : m.getPoint())
+                .address(m.getAddress())
+                .build();
+    }
 
-	@Transactional(readOnly = true)
-	public List<CustomerCouponResponse> getMyUsableCoupons(Long memberId, LocalDate issuedStart, LocalDate issuedEnd) {
+    @Transactional(readOnly = true)
+    public List<CustomerCouponResponse> getMyUsableCoupons(Long memberId, LocalDate issuedStart, LocalDate issuedEnd) {
 
-		LocalDate s = (issuedStart != null) ? issuedStart : LocalDate.of(0001, 1, 1);
-		LocalDate e = (issuedEnd != null) ? issuedEnd : LocalDate.of(9999, 12, 31);
+        LocalDate s = (issuedStart != null) ? issuedStart : LocalDate.of(1, 1, 1);
+        LocalDate e = (issuedEnd != null) ? issuedEnd : LocalDate.of(9999, 12, 31);
 
-		LocalDateTime startDt = LocalDateTime.of(s, LocalTime.MIN);
-		LocalDateTime endDt = LocalDateTime.of(e, LocalTime.MAX);
+        LocalDateTime startDt = LocalDateTime.of(s, LocalTime.MIN);
+        LocalDateTime endDt = LocalDateTime.of(e, LocalTime.MAX);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = LocalDate.now();
 
-		// ✅ 발급됨(ISSUED)만 “사용가능”으로 취급
-		List<MemberCoupon> list1 = memberCouponRepository.findIssuedByMemberAndIssuedAtBetween(
-				memberId, CouponStatus.ISSUED, startDt, endDt
-		);
+        // issuedAt 기준 조회
+        List<MemberCoupon> list1 = memberCouponRepository.findSearchableIssuedByMemberAndIssuedAtBetween(
+                memberId,
+                CouponStatus.ISSUED,
+                startDt,
+                endDt,
+                now
+        );
 
-		// issuedAt이 null이면 createdAt으로 필터
-		List<MemberCoupon> list2 = memberCouponRepository.findIssuedByMemberAndCreatedAtBetweenWhenIssuedAtNull(
-				memberId, CouponStatus.ISSUED, startDt, endDt
-		);
+        // issuedAt 이 null 인 데이터는 createdAt 기준 fallback 조회
+        List<MemberCoupon> list2 = memberCouponRepository.findSearchableIssuedByMemberAndCreatedAtBetweenWhenIssuedAtNull(
+                memberId,
+                CouponStatus.ISSUED,
+                startDt,
+                endDt,
+                now
+        );
 
-		List<MemberCoupon> all = new ArrayList<>();
-		all.addAll(list1);
-		all.addAll(list2);
+        List<MemberCoupon> all = new ArrayList<>();
+        all.addAll(list1);
+        all.addAll(list2);
 
-		LocalDate today = LocalDate.now();
+        // 방어적으로 중복 제거 (기존 기능은 유지하면서 dirty data 대비)
+        Map<Long, CustomerCouponResponse> resultMap = new LinkedHashMap<>();
 
-		List<CustomerCouponResponse> result = new ArrayList<>();
-		for (MemberCoupon mc : all) {
-			Coupon c = mc.getCoupon();
-			if (c == null) continue;
+        for (MemberCoupon mc : all) {
+            if (mc == null || mc.getId() == null) {
+                continue;
+            }
 
-			// ✅ 쿠폰 자체 기간(시작~종료) 유효한 것만 내려줌
-			if (c.getStartDate() != null && today.isBefore(c.getStartDate())) continue;
-			if (c.getEndDate() != null && today.isAfter(c.getEndDate())) continue;
+            Coupon c = mc.getCoupon();
+            if (c == null) {
+                continue;
+            }
 
-			String issuedDate = null;
-			if (mc.getIssuedAt() != null) issuedDate = mc.getIssuedAt().toLocalDate().toString();
-			else if (mc.getCreatedAt() != null) issuedDate = mc.getCreatedAt().toLocalDate().toString();
-			else issuedDate = "";
+            // 쿠폰 자체 기간도 여전히 체크
+            if (c.getStartDate() != null && today.isBefore(c.getStartDate())) {
+                continue;
+            }
+            if (c.getEndDate() != null && today.isAfter(c.getEndDate())) {
+                continue;
+            }
 
-			result.add(CustomerCouponResponse.builder()
-					.memberCouponId(mc.getId())
-					.couponId(c.getId())
-					.couponCode(c.getCouponCode())
-					.couponName(c.getCouponName())
-					.minPurchaseAmount(c.getMinPurchaseAmount())
-					.couponAmount(c.getCouponAmount())
-					.startDate(c.getStartDate() != null ? c.getStartDate().toString() : "")
-					.endDate(c.getEndDate() != null ? c.getEndDate().toString() : "")
-					.issuedDate(issuedDate)
-					.build());
-		}
+            String issuedDate;
+            if (mc.getIssuedAt() != null) {
+                issuedDate = mc.getIssuedAt().toLocalDate().toString();
+            } else if (mc.getCreatedAt() != null) {
+                issuedDate = mc.getCreatedAt().toLocalDate().toString();
+            } else {
+                issuedDate = "";
+            }
 
-		return result;
-	}
+            resultMap.putIfAbsent(
+                    mc.getId(),
+                    CustomerCouponResponse.builder()
+                            .memberCouponId(mc.getId())
+                            .couponId(c.getId())
+                            .couponCode(c.getCouponCode())
+                            .couponName(c.getCouponName())
+                            .minPurchaseAmount(c.getMinPurchaseAmount())
+                            .couponAmount(c.getCouponAmount())
+                            .startDate(c.getStartDate() != null ? c.getStartDate().toString() : "")
+                            .endDate(c.getEndDate() != null ? c.getEndDate().toString() : "")
+                            .issuedDate(issuedDate)
+                            .build()
+            );
+        }
+
+        return new ArrayList<>(resultMap.values());
+    }
 }

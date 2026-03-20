@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('고객회원관리상세 - 리뷰관리')}"></head>
+
+<body>
+	<div id="layout-wrapper" th:attr="data-member-id=${memberId}">
+		<meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+		<meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">고객회원관리상세</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">리뷰관리</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="row g-3">
+						<div class="col-xl-2 col-lg-3 col-md-4">
+							<div class="card h-100">
+								<div class="card-body">
+									<div
+										th:replace="~{fragments/administration/common :: clientDetailInnerMenu(${memberId}, ${activeTab})}">
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-10 col-lg-9 col-md-8">
+							<!-- 필터 -->
+							<div class="card">
+								<div class="card-header">
+									<h5 class="card-title mb-0">리뷰 검색</h5>
+								</div>
+								<div class="card-body">
+									<form id="client-detail-reviewlist-search-form" class="row g-3 align-items-end">
+										<div class="col-12 col-lg-2">
+											<label for="client-detail-reviewlist-size" class="form-label mb-1">페이지
+												크기</label>
+											<select id="client-detail-reviewlist-size" name="size"
+												class="form-select client-detail-reviewlist-form-control">
+												<option value="10" selected>10개</option>
+												<option value="30">30개</option>
+												<option value="50">50개</option>
+												<option value="70">70개</option>
+												<option value="100">100개</option>
+											</select>
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<label for="client-detail-reviewlist-from-date" class="form-label mb-1">등록일
+												From</label>
+											<input type="date" id="client-detail-reviewlist-from-date" name="fromDate"
+												class="form-control client-detail-reviewlist-form-control">
+										</div>
+
+										<div class="col-12 col-lg-3">
+											<label for="client-detail-reviewlist-to-date" class="form-label mb-1">등록일
+												To</label>
+											<input type="date" id="client-detail-reviewlist-to-date" name="toDate"
+												class="form-control client-detail-reviewlist-form-control">
+										</div>
+
+										<div class="col-12 col-lg-4">
+											<div class="d-flex justify-content-lg-end gap-2">
+												<button type="submit"
+													class="btn btn-primary client-detail-reviewlist-action-btn">
+													검색
+												</button>
+												<button type="button" id="client-detail-reviewlist-reset-btn"
+													class="btn btn-light client-detail-reviewlist-action-btn">
+													초기화
+												</button>
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+
+							<!-- 목록 -->
+							<div class="card">
+								<div class="card-header border-0 pb-0">
+									<div
+										class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-2">
+										<div class="d-flex align-items-center gap-2">
+											<h5 class="card-title mb-0">작성 리뷰 목록</h5>
+											<span id="client-detail-reviewlist-total-count"
+												class="badge bg-primary-subtle text-primary fs-12">총 0건</span>
+										</div>
+										<div class="d-flex justify-content-end">
+											<button type="button" id="client-detail-reviewlist-delete-btn"
+												class="btn btn-danger" disabled>
+												삭제
+											</button>
+										</div>
+									</div>
+								</div>
+
+								<div class="card-body pt-3">
+									<div class="table-responsive">
+										<table
+											class="table table-hover align-middle mb-0 client-detail-reviewlist-table">
+											<thead class="table-light">
+												<tr>
+													<th class="text-center client-detail-reviewlist-col-check">
+														<div
+															class="form-check d-inline-flex justify-content-center mb-0">
+															<input class="form-check-input" type="checkbox"
+																id="client-detail-reviewlist-check-all">
+														</div>
+													</th>
+													<th class="client-detail-reviewlist-col-author">작성자</th>
+													<th class="client-detail-reviewlist-col-image text-center">이미지</th>
+													<th class="client-detail-reviewlist-col-rating text-center">별점</th>
+													<th class="client-detail-reviewlist-col-created text-center">작성일
+													</th>
+													<th class="client-detail-reviewlist-col-remark text-center">비고</th>
+												</tr>
+											</thead>
+											<tbody id="client-detail-reviewlist-tbody">
+												<tr>
+													<td colspan="6" class="text-center py-5 text-muted">
+														데이터를 불러오는 중입니다.
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+
+									<div
+										class="d-flex flex-column flex-lg-row justify-content-between align-items-center gap-3 mt-4">
+										<div id="client-detail-reviewlist-page-info" class="text-muted small">
+											페이지 정보가 없습니다.
+										</div>
+										<nav aria-label="리뷰 목록 페이지네이션">
+											<ul id="client-detail-reviewlist-pagination"
+												class="pagination pagination-sm mb-0 client-detail-reviewlist-pagination">
+											</ul>
+										</nav>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/js/page/clientManager/detail/clientDetailReviewList.js"></script>
+
+	<style>
+		.client-detail-reviewlist-form-control,
+		.client-detail-reviewlist-action-btn {
+			height: 38px;
+		}
+
+		.client-detail-reviewlist-table thead th {
+			vertical-align: middle;
+			white-space: nowrap;
+			font-weight: 600;
+		}
+
+		.client-detail-reviewlist-main-row {
+			cursor: pointer;
+			transition: background-color 0.18s ease-in-out;
+		}
+
+		.client-detail-reviewlist-main-row:hover {
+			background-color: #f8fbff;
+		}
+
+		.client-detail-reviewlist-col-check {
+			width: 56px;
+			min-width: 56px;
+		}
+
+		.client-detail-reviewlist-col-image {
+			width: 140px;
+			min-width: 140px;
+		}
+
+		.client-detail-reviewlist-col-rating {
+			width: 150px;
+			min-width: 150px;
+		}
+
+		.client-detail-reviewlist-col-created {
+			width: 170px;
+			min-width: 170px;
+		}
+
+		.client-detail-reviewlist-col-remark {
+			width: 120px;
+			min-width: 120px;
+		}
+
+		.client-detail-reviewlist-thumbnail-wrap {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+		}
+
+		.client-detail-reviewlist-thumbnail {
+			width: 52px;
+			height: 52px;
+			border-radius: 0.5rem;
+			object-fit: cover;
+			border: 1px solid #dee2e6;
+			background-color: #fff;
+		}
+
+		.client-detail-reviewlist-no-image {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 52px;
+			height: 52px;
+			border-radius: 0.5rem;
+			border: 1px dashed #ced4da;
+			color: #868e96;
+			font-size: 12px;
+			background-color: #fafafa;
+		}
+
+		.client-detail-reviewlist-rating-text {
+			font-weight: 600;
+			color: #495057;
+			white-space: nowrap;
+		}
+
+		.client-detail-reviewlist-detail-row>td {
+			padding: 0 !important;
+			border-top: 0;
+			background-color: #fbfcfd;
+		}
+
+		.client-detail-reviewlist-detail-wrap {
+			display: none;
+			overflow: hidden;
+		}
+
+		.client-detail-reviewlist-detail-inner {
+			padding: 18px 20px;
+			border-top: 1px solid #edf0f2;
+		}
+
+		.client-detail-reviewlist-detail-label {
+			font-size: 12px;
+			font-weight: 700;
+			color: #6c757d;
+			margin-bottom: 8px;
+		}
+
+		.client-detail-reviewlist-detail-content {
+			white-space: normal;
+			line-height: 1.7;
+			color: #212529;
+			word-break: break-word;
+		}
+
+		.client-detail-reviewlist-pagination .page-link {
+			min-width: 36px;
+			text-align: center;
+		}
+
+		.client-detail-reviewlist-empty {
+			padding: 60px 0 !important;
+			color: #6c757d;
+		}
+	</style>
+</body>
+
+</html>

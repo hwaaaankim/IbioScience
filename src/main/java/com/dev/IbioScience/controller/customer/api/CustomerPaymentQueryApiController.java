@@ -25,78 +25,90 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomerPaymentQueryApiController {
 
-	private final CustomerPaymentQueryService customerPaymentQueryService;
+    private final CustomerPaymentQueryService customerPaymentQueryService;
 
-	@GetMapping("/member/me")
-	public CustomerMemberMeResponse getMyMemberMe() {
-		Long memberId = resolveLoginMemberId();
-		if (memberId == null) {
-			throw new IllegalStateException("로그인이 필요합니다.");
-		}
-		return customerPaymentQueryService.getMyMemberProfile(memberId);
-	}
+    @GetMapping("/member/me")
+    public CustomerMemberMeResponse getMyMemberMe() {
+        Long memberId = resolveLoginMemberId();
+        if (memberId == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+        return customerPaymentQueryService.getMyMemberProfile(memberId);
+    }
 
-	/**
-	 * ✅ 발급일(issuedAt/createdAt) 범위로 “사용가능(ISSUED)” 쿠폰 조회
-	 * - issuedStart, issuedEnd가 없으면 전체 기간
-	 * - 없으면 빈 배열 반환 (프론트에서 '없습니다' 표시)
-	 */
-	@GetMapping("/coupons")
-	public List<CustomerCouponResponse> getMyCoupons(
-			@RequestParam(value = "issuedStart", required = false)
-			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			LocalDate issuedStart,
+    /**
+     * 발급일(issuedAt / createdAt) 범위로 사용가능(ISSUED) 쿠폰 조회
+     * - issuedStart, issuedEnd 없으면 전체 기간
+     */
+    @GetMapping("/coupons")
+    public List<CustomerCouponResponse> getMyCoupons(
+            @RequestParam(value = "issuedStart", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate issuedStart,
 
-			@RequestParam(value = "issuedEnd", required = false)
-			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			LocalDate issuedEnd
-	) {
-		Long memberId = resolveLoginMemberId();
-		if (memberId == null) {
-			throw new IllegalStateException("로그인이 필요합니다.");
-		}
-		return customerPaymentQueryService.getMyUsableCoupons(memberId, issuedStart, issuedEnd);
-	}
+            @RequestParam(value = "issuedEnd", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate issuedEnd
+    ) {
+        Long memberId = resolveLoginMemberId();
+        if (memberId == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+        return customerPaymentQueryService.getMyUsableCoupons(memberId, issuedStart, issuedEnd);
+    }
 
-	// =========================
-	// resolveLoginMemberId (환님 제공 코드 그대로 포함)
-	// =========================
-	private Long resolveLoginMemberId() {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !auth.isAuthenticated()) return null;
+    private Long resolveLoginMemberId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
 
-		Object principal = auth.getPrincipal();
-		if (principal == null) return null;
+        Object principal = auth.getPrincipal();
+        if (principal == null) {
+            return null;
+        }
 
-		try {
-			BeanWrapper bw = new BeanWrapperImpl(principal);
+        try {
+            BeanWrapper bw = new BeanWrapperImpl(principal);
 
-			if (bw.isReadableProperty("member.id")) {
-				Object v = bw.getPropertyValue("member.id");
-				return toLong(v);
-			}
+            if (bw.isReadableProperty("member.id")) {
+                Object v = bw.getPropertyValue("member.id");
+                return toLong(v);
+            }
 
-			if (bw.isReadableProperty("id")) {
-				Object v = bw.getPropertyValue("id");
-				return toLong(v);
-			}
+            if (bw.isReadableProperty("id")) {
+                Object v = bw.getPropertyValue("id");
+                return toLong(v);
+            }
 
-		} catch (Exception ignored) {
-		}
-		return null;
-	}
+        } catch (Exception ignored) {
+        }
 
-	private Long toLong(Object v) {
-		if (v == null) return null;
-		if (v instanceof Long) return (Long) v;
-		if (v instanceof Integer) return ((Integer) v).longValue();
-		if (v instanceof Number) return ((Number) v).longValue();
-		try {
-			String s = String.valueOf(v).trim();
-			if (s.isEmpty()) return null;
-			return Long.parseLong(s);
-		} catch (Exception e) {
-			return null;
-		}
-	}
+        return null;
+    }
+
+    private Long toLong(Object v) {
+        if (v == null) {
+            return null;
+        }
+        if (v instanceof Long) {
+            return (Long) v;
+        }
+        if (v instanceof Integer) {
+            return ((Integer) v).longValue();
+        }
+        if (v instanceof Number) {
+            return ((Number) v).longValue();
+        }
+
+        try {
+            String s = String.valueOf(v).trim();
+            if (s.isEmpty()) {
+                return null;
+            }
+            return Long.parseLong(s);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

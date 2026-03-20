@@ -51,13 +51,40 @@ public class MemberCoupon {
 
     @Column
     private LocalDateTime expiredAt;
-    
+
     // === 생성일 추가 ===
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /** 소프트 삭제 여부 */
+    @Column(name = "deleted_yn", nullable = false)
+    private Boolean deletedYn = false;
+
+    /** 삭제일시 */
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    /** 삭제 관리자 username */
+    @Column(name = "deleted_by_admin_username", length = 100)
+    private String deletedByAdminUsername;
+
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        if (this.deletedYn == null) {
+            this.deletedYn = false;
+        }
+    }
+
+    public void markDeleted(String adminUsername) {
+        this.deletedYn = true;
+        this.deletedAt = LocalDateTime.now();
+        this.deletedByAdminUsername = adminUsername;
+    }
+
+    public boolean isDeleted() {
+        return Boolean.TRUE.equals(this.deletedYn);
     }
 }

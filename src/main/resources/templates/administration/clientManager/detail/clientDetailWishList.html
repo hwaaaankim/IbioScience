@@ -3,7 +3,7 @@
 	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
 	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<head th:replace="~{fragments/administration/common :: ibioAdminHead('고객회원관리상세')}"></head>
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('고객회원관리상세 - 관심상품')}"></head>
 
 <body>
 	<div id="layout-wrapper">
@@ -13,12 +13,12 @@
 
 		<div class="main-content">
 			<div class="page-content">
-				<div class="container-fluid">
+				<div class="container-fluid" id="client-detail-wishlist-page" th:attr="data-member-id=${memberId}">
 
 					<div class="row">
 						<div class="col-12">
 							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
-								<h4 class="mb-sm-0">고객회원관리상세</h4>
+								<h4 class="mb-sm-0">고객회원 관심상품</h4>
 								<div class="page-title-right">
 									<ol class="breadcrumb m-0">
 										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
@@ -29,10 +29,220 @@
 						</div>
 					</div>
 
+					<style>
+						.client-detail-wishlist-filter-label {
+							font-weight: 600;
+							margin-bottom: .45rem;
+						}
 
-					<div class="card">
-						<div class="card-body">
+						.client-detail-wishlist-filter-card .card-body,
+						.client-detail-wishlist-table-card .card-body {
+							padding: 1.25rem;
+						}
 
+						.client-detail-wishlist-table thead th,
+						.client-detail-wishlist-table tbody td {
+							vertical-align: middle;
+						}
+
+						.client-detail-wishlist-table tbody td {
+							height: 78px;
+						}
+
+						.client-detail-wishlist-thumbnail {
+							width: 64px;
+							height: 64px;
+							object-fit: cover;
+							border-radius: .5rem;
+							border: 1px solid #e9ebec;
+							background: #fff;
+						}
+
+						.client-detail-wishlist-no-image {
+							width: 64px;
+							height: 64px;
+							border-radius: .5rem;
+							border: 1px dashed #ced4da;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							color: #6c757d;
+							font-size: 12px;
+							background-color: #f8f9fa;
+						}
+
+						.client-detail-wishlist-category-text {
+							white-space: normal;
+							line-height: 1.45;
+						}
+
+						.client-detail-wishlist-header-tools {
+							gap: .75rem;
+						}
+
+						.client-detail-wishlist-pagination-wrap {
+							margin-top: 1rem;
+						}
+
+						.client-detail-wishlist-table th:nth-child(1),
+						.client-detail-wishlist-table td:nth-child(1) {
+							width: 56px;
+							text-align: center;
+						}
+
+						.client-detail-wishlist-table th:nth-child(5),
+						.client-detail-wishlist-table td:nth-child(5) {
+							width: 110px;
+							text-align: center;
+						}
+
+						.client-detail-wishlist-table th:nth-child(6),
+						.client-detail-wishlist-table td:nth-child(6) {
+							width: 110px;
+							text-align: center;
+						}
+					</style>
+					<div class="row">
+						<div class="col-xl-2 col-lg-3 col-md-4">
+							<div class="card">
+								<div class="card-body">
+									<div
+										th:replace="~{fragments/administration/common :: clientDetailInnerMenu(${memberId}, ${activeTab})}">
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-10 col-lg-9 col-md-8">
+							<div class="card client-detail-wishlist-filter-card">
+								<div class="card-header">
+									<h5 class="card-title mb-0">필터</h5>
+								</div>
+								<div class="card-body">
+									<form id="client-detail-wishlist-search-form">
+										<div class="row g-3 align-items-end">
+
+											<div class="col-lg-2 col-md-4">
+												<label for="client-detail-wishlist-size"
+													class="client-detail-wishlist-filter-label">페이지 사이즈</label>
+												<select id="client-detail-wishlist-size" class="form-select">
+													<option value="10" selected>10</option>
+													<option value="30">30</option>
+													<option value="50">50</option>
+													<option value="70">70</option>
+													<option value="100">100</option>
+												</select>
+											</div>
+
+											<div class="col-lg-2 col-md-4">
+												<label for="client-detail-wishlist-from-date"
+													class="client-detail-wishlist-filter-label">등록일 From</label>
+												<input type="date" id="client-detail-wishlist-from-date"
+													class="form-control">
+											</div>
+
+											<div class="col-lg-2 col-md-4">
+												<label for="client-detail-wishlist-to-date"
+													class="client-detail-wishlist-filter-label">등록일 To</label>
+												<input type="date" id="client-detail-wishlist-to-date"
+													class="form-control">
+											</div>
+
+											<div class="col-lg-2 col-md-4">
+												<label for="client-detail-wishlist-large-id"
+													class="client-detail-wishlist-filter-label">대분류</label>
+												<select id="client-detail-wishlist-large-id" class="form-select">
+													<option value="">전체</option>
+												</select>
+											</div>
+
+											<div class="col-lg-2 col-md-4">
+												<label for="client-detail-wishlist-medium-id"
+													class="client-detail-wishlist-filter-label">중분류</label>
+												<select id="client-detail-wishlist-medium-id" class="form-select">
+													<option value="">전체</option>
+												</select>
+											</div>
+
+											<div class="col-lg-2 col-md-4">
+												<label for="client-detail-wishlist-small-id"
+													class="client-detail-wishlist-filter-label">소분류</label>
+												<select id="client-detail-wishlist-small-id" class="form-select">
+													<option value="">전체</option>
+												</select>
+											</div>
+
+											<div class="col-lg-8 col-md-8">
+												<label for="client-detail-wishlist-product-name"
+													class="client-detail-wishlist-filter-label">제품명</label>
+												<input type="text" id="client-detail-wishlist-product-name"
+													class="form-control" placeholder="제품명을 입력해 주세요.">
+											</div>
+
+											<div class="col-lg-4 col-md-4">
+												<div class="d-flex justify-content-end gap-2">
+													<button type="button" id="client-detail-wishlist-reset-btn"
+														class="btn btn-light">초기화</button>
+													<button type="submit" id="client-detail-wishlist-search-btn"
+														class="btn btn-primary">
+														검색
+													</button>
+												</div>
+											</div>
+
+										</div>
+									</form>
+								</div>
+							</div>
+
+							<div class="card client-detail-wishlist-table-card">
+								<div class="card-header">
+									<div
+										class="d-flex justify-content-between align-items-center flex-wrap client-detail-wishlist-header-tools">
+										<div class="fw-semibold">
+											총 <span id="client-detail-wishlist-total-count">0</span>건
+										</div>
+										<button type="button" id="client-detail-wishlist-delete-btn"
+											class="btn btn-danger" disabled>
+											삭제
+										</button>
+									</div>
+								</div>
+
+								<div class="card-body">
+									<div class="table-responsive">
+										<table
+											class="table table-nowrap align-middle mb-0 client-detail-wishlist-table">
+											<thead class="table-light">
+												<tr>
+													<th>
+														<input type="checkbox" id="client-detail-wishlist-check-all"
+															class="form-check-input">
+													</th>
+													<th>제품명</th>
+													<th>분류</th>
+													<th>브랜드명</th>
+													<th>제품대표이미지</th>
+													<th>비고</th>
+												</tr>
+											</thead>
+											<tbody id="client-detail-wishlist-tbody">
+												<tr>
+													<td colspan="6" class="text-center text-muted py-5">데이터를 불러오는 중입니다.
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+
+									<div class="client-detail-wishlist-pagination-wrap">
+										<nav aria-label="관심상품 페이지네이션">
+											<ul id="client-detail-wishlist-pagination"
+												class="pagination justify-content-center mb-0"></ul>
+										</nav>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
