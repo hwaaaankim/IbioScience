@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('딜러 상품 상세관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">딜러 상품 상세관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item">판매딜러</li>
+										<li class="breadcrumb-item"><a th:href="@{/seller/page/product/list}">상품 리스트</a>
+										</li>
+										<li class="breadcrumb-item active">상품 상세관리</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card-body">
+
+							<form id="seller-product-detail-form" onsubmit="return false;">
+								<div class="row g-4">
+
+									<div class="col-12">
+										<div class="seller-product-detail-section-title">기본 정보</div>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">상품 ID</label>
+										<input type="text" id="seller-product-detail-id" class="form-control" readonly>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">진열상태</label>
+										<select id="seller-product-detail-displayStatus" class="form-select"></select>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">판매상태</label>
+										<select id="seller-product-detail-saleStatus" class="form-select"></select>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">상품상태</label>
+										<select id="seller-product-detail-state" class="form-select"></select>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">신상상태</label>
+										<select id="seller-product-detail-newState" class="form-select"></select>
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">상품명 <span class="text-danger">*</span></label>
+										<input type="text" id="seller-product-detail-name" class="form-control">
+									</div>
+
+									<div class="col-lg-3">
+										<label class="form-label">품목코드 <span class="text-danger">*</span></label>
+										<input type="text" id="seller-product-detail-code" class="form-control">
+									</div>
+
+									<div class="col-lg-3">
+										<label class="form-label">자체 상품코드</label>
+										<input type="text" id="seller-product-detail-internalProductCode"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">제조사명</label>
+										<input type="text" id="seller-product-detail-manufacturerText"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">공급사명</label>
+										<input type="text" id="seller-product-detail-supplierText" class="form-control">
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">상품 요약설명</label>
+										<input type="text" id="seller-product-detail-summaryDescription"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-12">
+										<label class="form-label">상품 간략설명</label>
+										<textarea id="seller-product-detail-shortDescription" class="form-control"
+											rows="3"></textarea>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-detail-section-title">카테고리 선택</div>
+									</div>
+
+									<div class="col-lg-4">
+										<label class="form-label">대분류</label>
+										<select id="seller-product-detail-largeCategory" class="form-select"></select>
+									</div>
+
+									<div class="col-lg-4">
+										<label class="form-label">중분류</label>
+										<select id="seller-product-detail-mediumCategory" class="form-select"></select>
+									</div>
+
+									<div class="col-lg-4">
+										<label class="form-label">소분류</label>
+										<select id="seller-product-detail-smallCategory" class="form-select"></select>
+									</div>
+
+									<div class="col-12">
+										<button type="button" id="seller-product-detail-addCategoryBtn"
+											class="btn btn-primary">
+											분류 추가
+										</button>
+									</div>
+
+									<div class="col-12">
+										<div id="seller-product-detail-selectedCategoryList"
+											class="seller-product-detail-selected-list"></div>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-detail-section-title">가격 / 기간</div>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">소비자가격</label>
+										<input type="number" id="seller-product-detail-consumerPrice"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">판매가격</label>
+										<input type="number" id="seller-product-detail-salePrice" class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">판매가격 노출대상</label>
+										<select id="seller-product-detail-priceExposeTarget"
+											class="form-select"></select>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">적립금 비율(%)</label>
+										<input type="number" step="0.01" id="seller-product-detail-rewardRate"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">유효기간 시작일</label>
+										<input type="date" id="seller-product-detail-validFrom" class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">유효기간 종료일</label>
+										<input type="date" id="seller-product-detail-validTo" class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">제조일자</label>
+										<input type="date" id="seller-product-detail-manufacturedAt"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">공급일자 / 유통기한</label>
+										<input type="date" id="seller-product-detail-expiredAt" class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">판매가 대체문구 사용</label>
+										<div class="seller-product-detail-choice-box">
+											<div class="form-check seller-product-detail-choice-check">
+												<input class="form-check-input seller-product-detail-radio-like"
+													type="checkbox" id="seller-product-detail-usePriceReplacementText">
+												<label class="form-check-label"
+													for="seller-product-detail-usePriceReplacementText">사용함</label>
+											</div>
+										</div>
+									</div>
+
+									<div class="col-lg-9 col-md-6">
+										<label class="form-label">판매가 대체문구</label>
+										<input type="text" id="seller-product-detail-priceReplacementText"
+											class="form-control">
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-detail-section-title">아이콘</div>
+									</div>
+
+									<div class="col-lg-3">
+										<label class="form-label">아이콘 이미지</label>
+										<input type="file" id="seller-product-detail-iconImage" class="form-control"
+											accept="image/*">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">아이콘 기간 사용</label>
+										<div class="seller-product-detail-choice-box">
+											<div class="form-check seller-product-detail-choice-check">
+												<input class="form-check-input seller-product-detail-radio-like"
+													type="checkbox" id="seller-product-detail-useIconPeriod">
+												<label class="form-check-label"
+													for="seller-product-detail-useIconPeriod">사용함</label>
+											</div>
+										</div>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">아이콘 시작일</label>
+										<input type="date" id="seller-product-detail-iconStartDate"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">아이콘 종료일</label>
+										<input type="date" id="seller-product-detail-iconEndDate" class="form-control">
+									</div>
+
+									<div class="col-12">
+										<div id="seller-product-detail-iconPreview"
+											class="seller-product-detail-preview-grid"></div>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-detail-section-title">상품 이미지</div>
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">대표 이미지 <span class="text-danger">*</span></label>
+										<input type="file" id="seller-product-detail-representativeImage"
+											class="form-control" accept="image/*">
+										<div class="form-text">대표 이미지는 1장만 유지됩니다.</div>
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">추가 이미지</label>
+										<input type="file" id="seller-product-detail-additionalImages"
+											class="form-control" accept="image/*" multiple>
+										<div class="form-text">기존 이미지와 신규 이미지를 함께 드래그하여 순서를 변경할 수 있습니다.</div>
+									</div>
+
+									<div class="col-lg-6">
+										<div id="seller-product-detail-representativePreview"
+											class="seller-product-detail-preview-grid"></div>
+									</div>
+
+									<div class="col-lg-6">
+										<div id="seller-product-detail-additionalPreview"
+											class="seller-product-detail-preview-grid"></div>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-detail-section-title">상세 설명</div>
+									</div>
+
+									<div class="col-12">
+										<textarea id="seller-product-detail-detailHtml"></textarea>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-detail-section-title">키워드 <span
+												class="text-danger">*</span></div>
+									</div>
+
+									<div class="col-12">
+										<input type="text" id="seller-product-detail-keywordInput" class="form-control"
+											placeholder="키워드를 입력 후 Enter 를 누르세요">
+									</div>
+
+									<div class="col-12">
+										<div id="seller-product-detail-keywordList"
+											class="seller-product-detail-chip-wrap"></div>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-detail-section-title">추가 입력 항목</div>
+									</div>
+
+									<div class="col-12">
+										<button type="button" id="seller-product-detail-addExtraFieldBtn"
+											class="btn btn-soft-primary">
+											추가 항목 추가
+										</button>
+									</div>
+
+									<div class="col-12">
+										<div id="seller-product-detail-extraFieldList"></div>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-detail-section-title">옵션 그룹 / 옵션</div>
+									</div>
+
+									<div class="col-12">
+										<button type="button" id="seller-product-detail-addOptionGroupBtn"
+											class="btn btn-soft-primary">
+											옵션 그룹 추가
+										</button>
+									</div>
+
+									<div class="col-12">
+										<div id="seller-product-detail-optionGroupList"></div>
+									</div>
+
+									<div class="col-12 text-end mt-4 d-flex justify-content-end gap-2">
+										<a th:href="@{/seller/page/product/list}" class="btn btn-light btn-lg">목록</a>
+										<button type="button" id="seller-product-detail-saveBtn"
+											class="btn btn-primary btn-lg">
+											상품 수정 저장
+										</button>
+									</div>
+
+								</div>
+							</form>
+
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		window.SELLER_PRODUCT_DETAIL_ID = /*[[${dealerProductId}]]*/ null;
+    /*]]>*/
+	</script>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+	<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+	<script src="/administration/assets/seller/product/productDetail.js"></script>
+
+	<style>
+		.seller-product-detail-section-title {
+			font-size: 1rem;
+			font-weight: 700;
+			padding-bottom: 8px;
+			border-bottom: 1px solid #e9ebec;
+			margin-bottom: 4px;
+		}
+
+		.seller-product-detail-selected-list,
+		.seller-product-detail-chip-wrap {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+
+		.seller-product-detail-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: #f3f6f9;
+			border: 1px solid #dfe2e6;
+			font-size: 13px;
+		}
+
+		.seller-product-detail-chip button {
+			border: none;
+			background: transparent;
+			font-size: 16px;
+			line-height: 1;
+			cursor: pointer;
+		}
+
+		.seller-product-detail-preview-grid {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 12px;
+			min-height: 40px;
+		}
+
+		.seller-product-detail-image-card {
+			position: relative;
+			width: 180px;
+			height: 180px;
+			border: 1px solid #dfe2e6;
+			border-radius: 12px;
+			overflow: hidden;
+			background: #fff;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.seller-product-detail-image-card img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.seller-product-detail-image-remove {
+			position: absolute;
+			top: 8px;
+			right: 8px;
+			width: 28px;
+			height: 28px;
+			border: none;
+			border-radius: 50%;
+			background: rgba(0, 0, 0, 0.7);
+			color: #fff;
+			cursor: pointer;
+			z-index: 2;
+		}
+
+		.seller-product-detail-image-badge {
+			position: absolute;
+			left: 8px;
+			bottom: 8px;
+			padding: 4px 8px;
+			font-size: 11px;
+			border-radius: 999px;
+			background: rgba(13, 110, 253, 0.9);
+			color: #fff;
+			z-index: 2;
+		}
+
+		.seller-product-detail-extra-row,
+		.seller-product-detail-option-row {
+			border: 1px solid #e9ebec;
+			border-radius: 12px;
+			padding: 16px;
+			background: #fff;
+			margin-bottom: 12px;
+		}
+
+		.seller-product-detail-option-group-card {
+			border: 1px solid #dfe2e6;
+			border-radius: 12px;
+			padding: 16px;
+			background: #f8f9fa;
+			margin-bottom: 16px;
+		}
+
+		.seller-product-detail-option-group-head {
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 16px;
+		}
+
+		.seller-product-detail-choice-box {
+			height: 38px;
+			border: 1px solid #ced4da;
+			border-radius: 0.375rem;
+			background: #fff;
+			padding: 0 12px;
+			display: flex;
+			align-items: center;
+		}
+
+		.seller-product-detail-choice-check {
+			margin-bottom: 0;
+			display: flex;
+			align-items: center;
+			min-height: 100%;
+		}
+
+		.seller-product-detail-choice-check .form-check-input {
+			margin-top: 0;
+			margin-right: 8px;
+		}
+
+		.seller-product-detail-radio-like {
+			border-radius: 50%;
+		}
+
+		.seller-product-detail-choice-check .form-check-label {
+			display: flex;
+			align-items: center;
+			height: 100%;
+			cursor: pointer;
+			margin-bottom: 0;
+		}
+	</style>
+</body>
+
+</html>

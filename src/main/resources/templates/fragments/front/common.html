@@ -127,10 +127,18 @@
 							</a>
 						</li>
 						<li class="front-header-item"
-							sec:authorize="isAuthenticated() and authentication.principal.uiMemberTypeName == 'STAFF'">
+							sec:authorize="isAuthenticated() and authentication.principal.staffPortalUser">
 							<a href="/admin" class="front-header-link" title="관리자">
 								<i class="fa fa-shield" aria-hidden="true"></i>
 								<span class="front-header-text">관리자</span>
+							</a>
+						</li>
+
+						<li class="front-header-item"
+							sec:authorize="isAuthenticated() and authentication.principal.sellerPortalUser">
+							<a href="/seller/page/main" class="front-header-link" title="판매관리">
+								<i class="fa fa-store" aria-hidden="true"></i>
+								<span class="front-header-text">판매관리</span>
 							</a>
 						</li>
 						<li class="front-header-item" sec:authorize="isAuthenticated()">
@@ -225,111 +233,6 @@
 												<li><a href="#" class="clearfix"><strong>이벤트</strong></a></li>
 												<li><a href="#" class="clearfix"><strong>딜러샾</strong></a></li>
 												<li><a href="#" class="clearfix"><strong>브랜드</strong></a></li>
-												<li class="with-sub-menu hover">
-													<p class="close-menu"></p>
-													<a href="#" class="clearfix">
-														<strong>페이지 샘플(HTML-DB X)</strong>
-														<b class="caret"></b>
-													</a>
-													<div class="sub-menu" style="width: 100%; ">
-														<div class="content">
-															<div class="row">
-																<div class="col-md-3">
-																	<ul class="row-list">
-																		<li><a class="subcategory_item"
-																				href="/productList">제품 리스트</a></li>
-
-																		<li><a class="subcategory_item"
-																				href="/dealerProductList">딜러샾(입점몰)</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/productDetail">제품상세페이지</a></li>
-																		<li><a class="subcategory_item"
-																				href="/noticeList">공지사항</a></li>
-																		<li><a class="subcategory_item"
-																				href="/noticeDetail">공지사항 상세페이지(C)</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/paymentStart">주문서작성</a></li>
-																	</ul>
-																</div>
-																<div class="col-md-3">
-																	<ul class="row-list">
-																		<li><a class="subcategory_item"
-																				href="/qna">QnA</a></li>
-																		<li><a class="subcategory_item"
-																				href="/eventList">이벤트</a>
-																		<li><a class="subcategory_item"
-																				href="/eventDetail">이벤트 상세(C)</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/myPage">마이페이지-메인</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/orderList">주문배송 조회</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/pointList">적립금 내역</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/paymentEnd">결제완료</a></li>
-																		<li><a class="subcategory_item"
-																				href="/receipt">영수증</a></li>
-																	</ul>
-																</div>
-																<div class="col-md-3">
-																	<ul class="row-list">
-																		<li><a class="subcategory_item"
-																				href="/estimateList">견적서내역</a></li>
-																		<li><a class="subcategory_item"
-																				href="/couponList">마이쿠폰</a>
-																		<li><a class="subcategory_item"
-																				href="/eventDetail">관심상품</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/cart">장바구니</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/reviewList">나의상품후기</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/exchangeReturnList">교환/반품신청
-																				내역</a>
-																		</li>
-																	</ul>
-																</div>
-																<div class="col-md-3">
-																	<ul class="row-list">
-																		<li><a class="subcategory_item"
-																				href="/inquiryList">1:1문의 내역</a></li>
-																		<li><a class="subcategory_item"
-																				href="/companyInfoUpdate">개인회원정보수정(C)</a>
-																		<li><a class="subcategory_item"
-																				href="/personalInfoUpdate">기업회원정보수정(C)</a>
-																		<li><a class="subcategory_item"
-																				href="/personalSignUp">개인회원가입(C)</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/companySignUp">기업회원가입(C)</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/signUpSuccess">회원가입완료(C)</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/signIn">로그인</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/inquiry">1:1 문의하기(C)</a>
-																		</li>
-																		<li><a class="subcategory_item"
-																				href="/exchangeReturn">교환/반품신청(C)</a>
-																		</li>
-																	</ul>
-																</div>
-															</div>
-														</div>
-													</div>
-												</li>
 											</ul>
 										</div>
 									</div>
@@ -411,11 +314,18 @@
 						<form id="logoutForm-mobile" th:action="@{/logout}" method="post" style="display:none;"></form>
 						<button class="ibio-index-m-btn ibio-index-m-btn-primary" id="logoutBtn-mobile">로그아웃</button>
 
-						<!-- ① 관리자 전용 버튼: 우리회사 직원(STAFF)일 때만 노출 -->
+						<!-- 관리자 -->
 						<a class="ibio-index-m-btn" href="/admin"
-							sec:authorize="authentication.principal.uiMemberTypeName == 'STAFF'">
+							sec:authorize="authentication.principal.staffPortalUser">
 							<i class="fas fa-user-shield" aria-hidden="true"></i>
 							관리자
+						</a>
+
+						<!-- 판매딜러 포털 -->
+						<a class="ibio-index-m-btn" href="/seller/page/main"
+							sec:authorize="authentication.principal.sellerPortalUser">
+							<i class="fas fa-store" aria-hidden="true"></i>
+							판매관리
 						</a>
 					</div>
 				</div>
@@ -561,11 +471,6 @@
 				<button id="ibio-index-m-search-close" class="ibio-index-m-search-close" aria-label="닫기">×</button>
 			</div>
 			<form id="ibio-index-m-search-form" class="ibio-index-m-search-form" action="#" method="GET">
-				<!--<select id="ibio-index-m-search-select" class="ibio-index-m-search-select" aria-label="검색 분류">
-					<option value="">전체</option>
-					<option value="product">제품</option>
-					<option value="brand">브랜드</option>
-				</select>-->
 				<input id="ibio-index-m-search-input" class="ibio-index-m-search-input" type="text"
 					placeholder="검색어를 입력하세요" name="search" autocomplete="off">
 				<button type="submit" class="ibio-index-m-search-btn"><i class="fa fa-search"></i></button>

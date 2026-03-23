@@ -27,8 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
 
     private final HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-
-    // ✅ 감사로그 서비스
     private final MemberAuditLogService memberAuditLogService;
 
     @Override
@@ -38,7 +36,6 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
         PrincipalDetails pd = (PrincipalDetails) authentication.getPrincipal();
         Member m = pd.getMember();
 
-        // ✅ 0) 로그인 성공 로깅 (흐름을 방해하지 않도록 방어)
         try {
             CustomerType ct = m.getCustomerType();
 
@@ -52,7 +49,6 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
                 memberAuditLogService.logEvent(m, MemberAuditAction.OTHER, "LOGIN_SUCCESS", m.getId());
             }
         } catch (Exception ignore) {
-            // 로깅 실패가 로그인 흐름을 막으면 안됨
         }
 
         // 1) 최초 로그인 시 비밀번호 변경 강제
@@ -87,8 +83,7 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
         // 2) SavedRequest 우선
         SavedRequest savedRequest = requestCache.getRequest(request, response);
         if (savedRequest != null) {
-            String targetUrl = savedRequest.getRedirectUrl();
-            response.sendRedirect(targetUrl);
+            response.sendRedirect(savedRequest.getRedirectUrl());
             return;
         }
 
@@ -104,6 +99,16 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
         }
 
         // 4) default
+        if (pd.isSellerPortalUser()) {
+            response.sendRedirect("/seller/page/main");
+            return;
+        }
+
+        if (pd.isStaffPortalUser()) {
+            response.sendRedirect("/admin/main");
+            return;
+        }
+
         response.sendRedirect("/");
     }
 }

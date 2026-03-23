@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('딜러 상품 등록')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">딜러 상품 등록</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item">판매딜러</li>
+										<li class="breadcrumb-item active">상품 등록</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card-body">
+
+							<form id="seller-product-insertForm-form" onsubmit="return false;">
+								<div class="row g-4">
+
+									<div class="col-12">
+										<div class="seller-product-insertForm-section-title">기본 정보</div>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">진열상태</label>
+										<select id="seller-product-insertForm-displayStatus"
+											class="form-select"></select>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">판매상태</label>
+										<select id="seller-product-insertForm-saleStatus" class="form-select"></select>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">상품상태</label>
+										<select id="seller-product-insertForm-state" class="form-select"></select>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">신상상태</label>
+										<select id="seller-product-insertForm-newState" class="form-select"></select>
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">상품명 <span class="text-danger">*</span></label>
+										<input type="text" id="seller-product-insertForm-name" class="form-control">
+									</div>
+
+									<div class="col-lg-3">
+										<label class="form-label">품목코드 <span class="text-danger">*</span></label>
+										<input type="text" id="seller-product-insertForm-code" class="form-control">
+									</div>
+
+									<div class="col-lg-3">
+										<label class="form-label">자체 상품코드</label>
+										<input type="text" id="seller-product-insertForm-internalProductCode"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">제조사명</label>
+										<input type="text" id="seller-product-insertForm-manufacturerText"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">공급사명</label>
+										<input type="text" id="seller-product-insertForm-supplierText"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">상품 요약설명</label>
+										<input type="text" id="seller-product-insertForm-summaryDescription"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-12">
+										<label class="form-label">상품 간략설명</label>
+										<textarea id="seller-product-insertForm-shortDescription" class="form-control"
+											rows="3"></textarea>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-insertForm-section-title">카테고리 선택</div>
+									</div>
+
+									<div class="col-lg-4">
+										<label class="form-label">대분류</label>
+										<select id="seller-product-insertForm-largeCategory"
+											class="form-select"></select>
+									</div>
+
+									<div class="col-lg-4">
+										<label class="form-label">중분류</label>
+										<select id="seller-product-insertForm-mediumCategory"
+											class="form-select"></select>
+									</div>
+
+									<div class="col-lg-4">
+										<label class="form-label">소분류</label>
+										<select id="seller-product-insertForm-smallCategory"
+											class="form-select"></select>
+									</div>
+
+									<div class="col-12">
+										<button type="button" id="seller-product-insertForm-addCategoryBtn"
+											class="btn btn-primary">
+											분류 추가
+										</button>
+									</div>
+
+									<div class="col-12">
+										<div id="seller-product-insertForm-selectedCategoryList"
+											class="seller-product-insertForm-selected-list"></div>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-insertForm-section-title">가격 / 기간</div>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">소비자가격</label>
+										<input type="number" id="seller-product-insertForm-consumerPrice"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">판매가격</label>
+										<input type="number" id="seller-product-insertForm-salePrice"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">판매가격 노출대상</label>
+										<select id="seller-product-insertForm-priceExposeTarget"
+											class="form-select"></select>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">적립금 비율(%)</label>
+										<input type="number" step="0.01" id="seller-product-insertForm-rewardRate"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">유효기간 시작일</label>
+										<input type="date" id="seller-product-insertForm-validFrom"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">유효기간 종료일</label>
+										<input type="date" id="seller-product-insertForm-validTo" class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">제조일자</label>
+										<input type="date" id="seller-product-insertForm-manufacturedAt"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">공급일자 / 유통기한</label>
+										<input type="date" id="seller-product-insertForm-expiredAt"
+											class="form-control">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">판매가 대체문구 사용</label>
+										<div class="seller-product-insertForm-toggle-control">
+											<div class="form-check form-switch mb-0">
+												<input class="form-check-input" type="checkbox"
+													id="seller-product-insertForm-usePriceReplacementText">
+												<label class="form-check-label"
+													for="seller-product-insertForm-usePriceReplacementText">사용함</label>
+											</div>
+										</div>
+									</div>
+
+									<div class="col-lg-9 col-md-6">
+										<label class="form-label">판매가 대체문구</label>
+										<input type="text" id="seller-product-insertForm-priceReplacementText"
+											class="form-control" disabled>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-insertForm-section-title">아이콘</div>
+									</div>
+
+									<div class="col-lg-3">
+										<label class="form-label">아이콘 이미지</label>
+										<input type="file" id="seller-product-insertForm-iconImage" class="form-control"
+											accept="image/*">
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">아이콘 기간 사용</label>
+										<div class="seller-product-insertForm-toggle-control">
+											<div class="form-check form-switch mb-0">
+												<input class="form-check-input" type="checkbox"
+													id="seller-product-insertForm-useIconPeriod">
+												<label class="form-check-label"
+													for="seller-product-insertForm-useIconPeriod">사용함</label>
+											</div>
+										</div>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">아이콘 시작일</label>
+										<input type="date" id="seller-product-insertForm-iconStartDate"
+											class="form-control" disabled>
+									</div>
+
+									<div class="col-lg-3 col-md-6">
+										<label class="form-label">아이콘 종료일</label>
+										<input type="date" id="seller-product-insertForm-iconEndDate"
+											class="form-control" disabled>
+									</div>
+
+									<div class="col-12">
+										<div id="seller-product-insertForm-iconPreview"
+											class="seller-product-insertForm-preview-grid"></div>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-insertForm-section-title">상품 이미지</div>
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">대표 이미지 <span class="text-danger">*</span></label>
+										<input type="file" id="seller-product-insertForm-representativeImage"
+											class="form-control" accept="image/*">
+										<div class="form-text">대표 이미지는 1장만 등록됩니다.</div>
+									</div>
+
+									<div class="col-lg-6">
+										<label class="form-label">추가 이미지</label>
+										<input type="file" id="seller-product-insertForm-additionalImages"
+											class="form-control" accept="image/*" multiple>
+										<div class="form-text">추가 이미지는 드래그하여 순서를 변경할 수 있습니다.</div>
+									</div>
+
+									<div class="col-lg-6">
+										<div id="seller-product-insertForm-representativePreview"
+											class="seller-product-insertForm-preview-grid"></div>
+									</div>
+
+									<div class="col-lg-6">
+										<div id="seller-product-insertForm-additionalPreview"
+											class="seller-product-insertForm-preview-grid"></div>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-insertForm-section-title">상세 설명</div>
+									</div>
+
+									<div class="col-12">
+										<textarea id="seller-product-insertForm-detailHtml"></textarea>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-insertForm-section-title">키워드 <span
+												class="text-danger">*</span></div>
+									</div>
+
+									<div class="col-12">
+										<input type="text" id="seller-product-insertForm-keywordInput"
+											class="form-control" placeholder="키워드를 입력 후 Enter 를 누르세요">
+									</div>
+
+									<div class="col-12">
+										<div id="seller-product-insertForm-keywordList"
+											class="seller-product-insertForm-chip-wrap"></div>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-insertForm-section-title">추가 입력 항목</div>
+									</div>
+
+									<div class="col-12">
+										<button type="button" id="seller-product-insertForm-addExtraFieldBtn"
+											class="btn btn-soft-primary">
+											추가 항목 추가
+										</button>
+									</div>
+
+									<div class="col-12">
+										<div id="seller-product-insertForm-extraFieldList"></div>
+									</div>
+
+									<div class="col-12 mt-2">
+										<div class="seller-product-insertForm-section-title">옵션 그룹 / 옵션</div>
+									</div>
+
+									<div class="col-12">
+										<button type="button" id="seller-product-insertForm-addOptionGroupBtn"
+											class="btn btn-soft-primary">
+											옵션 그룹 추가
+										</button>
+									</div>
+
+									<div class="col-12">
+										<div id="seller-product-insertForm-optionGroupList"></div>
+									</div>
+
+									<div class="col-12 text-end mt-4">
+										<button type="button" id="seller-product-insertForm-saveBtn"
+											class="btn btn-primary btn-lg">
+											상품 저장
+										</button>
+									</div>
+
+								</div>
+							</form>
+
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+	<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+	<script src="/administration/assets/seller/product/productInsertForm.js"></script>
+
+	<style>
+		.seller-product-insertForm-section-title {
+			font-size: 1rem;
+			font-weight: 700;
+			padding-bottom: 8px;
+			border-bottom: 1px solid #e9ebec;
+			margin-bottom: 4px;
+		}
+
+		.seller-product-insertForm-selected-list,
+		.seller-product-insertForm-chip-wrap {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+
+		.seller-product-insertForm-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: #f3f6f9;
+			border: 1px solid #dfe2e6;
+			font-size: 13px;
+		}
+
+		.seller-product-insertForm-chip button {
+			border: none;
+			background: transparent;
+			font-size: 16px;
+			line-height: 1;
+			cursor: pointer;
+		}
+
+		.seller-product-insertForm-preview-grid {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 12px;
+			min-height: 40px;
+		}
+
+		.seller-product-insertForm-image-card {
+			position: relative;
+			width: 180px;
+			height: 180px;
+			border: 1px solid #dfe2e6;
+			border-radius: 12px;
+			overflow: hidden;
+			background: #fff;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.seller-product-insertForm-image-card img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.seller-product-insertForm-image-remove {
+			position: absolute;
+			top: 8px;
+			right: 8px;
+			width: 28px;
+			height: 28px;
+			border: none;
+			border-radius: 50%;
+			background: rgba(0, 0, 0, 0.7);
+			color: #fff;
+			cursor: pointer;
+			z-index: 2;
+		}
+
+		.seller-product-insertForm-extra-row,
+		.seller-product-insertForm-option-row {
+			border: 1px solid #e9ebec;
+			border-radius: 12px;
+			padding: 16px;
+			background: #fff;
+			margin-bottom: 12px;
+		}
+
+		.seller-product-insertForm-option-group-card {
+			border: 1px solid #dfe2e6;
+			border-radius: 12px;
+			padding: 16px;
+			background: #f8f9fa;
+			margin-bottom: 16px;
+		}
+
+		.seller-product-insertForm-option-group-head {
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 16px;
+		}
+
+		.seller-product-insertForm-toggle-control {
+			display: flex;
+			align-items: center;
+			min-height: 38px;
+		}
+
+		.seller-product-insertForm-toggle-control .form-check {
+			display: flex;
+			align-items: center;
+			min-height: 38px;
+			margin-bottom: 0;
+		}
+
+		.seller-product-insertForm-toggle-control .form-check-input {
+			margin-top: 0;
+		}
+
+		.seller-product-insertForm-toggle-control .form-check-label {
+			margin-left: 8px;
+			margin-bottom: 0;
+		}
+	</style>
+</body>
+
+</html>

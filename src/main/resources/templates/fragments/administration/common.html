@@ -101,8 +101,11 @@
 				<div class="container-fluid">
 
 					<div id="two-column-menu"></div>
-					<ul class="navbar-nav" id="navbar-nav">
+					<!-- ✅ STAFF 전용 관리자 메뉴 -->
+					<ul class="navbar-nav" id="navbar-nav"
+						sec:authorize="isAuthenticated() and authentication.principal.staffPortalUser">
 						<li class="menu-title"><span data-key="t-menu">Menu</span></li>
+
 						<li class="nav-item">
 							<a class="nav-link menu-link" href="#sidebarDashboards" data-bs-toggle="collapse"
 								role="button" aria-expanded="false" aria-controls="sidebarDashboards">
@@ -111,36 +114,37 @@
 							<div class="collapse menu-dropdown" id="sidebarDashboards">
 								<ul class="nav nav-sm flex-column">
 									<li class="nav-item">
-										<a href="/brandManager" class="nav-link" data-key="t-ecommerce"> [브랜드관리] </a>
+										<a href="/brandManager" class="nav-link" data-key="t-ecommerce">[브랜드관리]</a>
 									</li>
 									<li class="nav-item">
 										<a href="/categoryManager" class="nav-link" data-key="t-analytics">[분류관리]</a>
 									</li>
 									<li class="nav-item">
-										<a href="/displayManager" class="nav-link" data-key="t-crm"> [공통표시요소관리] </a>
+										<a href="/displayManager" class="nav-link" data-key="t-crm">[공통표시요소관리]</a>
 									</li>
 									<li class="nav-item">
-										<a href="/couponManager" class="nav-link" data-key="t-ecommerce"> [쿠폰관리] </a>
+										<a href="/couponManager" class="nav-link" data-key="t-ecommerce">[쿠폰관리]</a>
 									</li>
 									<li class="nav-item">
-										<a href="/productPromotionManager" class="nav-link" data-key="t-ecommerce">
-											[프로모션관리] </a>
+										<a href="/productPromotionManager" class="nav-link"
+											data-key="t-ecommerce">[프로모션관리]</a>
 									</li>
 									<li class="nav-item">
-										<a href="/internalCategoryManager" class="nav-link" data-key="t-ecommerce">
-											[내부분류관리] </a>
+										<a href="/internalCategoryManager" class="nav-link"
+											data-key="t-ecommerce">[내부분류관리]</a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/productInsertForm" class="nav-link" data-key="t-ecommerce">
-											[상품등록] </a>
+										<a href="/admin/productInsertForm" class="nav-link"
+											data-key="t-ecommerce">[상품등록]</a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/productManager" class="nav-link" data-key="t-ecommerce"> [상품리스트]
-										</a>
+										<a href="/admin/productManager" class="nav-link"
+											data-key="t-ecommerce">[상품리스트]</a>
 									</li>
 								</ul>
 							</div>
 						</li>
+
 						<li class="nav-item">
 							<a class="nav-link menu-link" href="#sidebarCustomerDashboard" data-bs-toggle="collapse"
 								role="button" aria-expanded="false" aria-controls="sidebarCustomerDashboard">
@@ -149,36 +153,37 @@
 							<div class="collapse menu-dropdown" id="sidebarCustomerDashboard">
 								<ul class="nav nav-sm flex-column">
 									<li class="nav-item">
-										<a href="/admin/root/clientDashBoard" class="nav-link" data-key="t-ecommerce">
-											[회원대시보드] </a>
+										<a href="/admin/root/clientDashBoard" class="nav-link"
+											data-key="t-ecommerce">[회원대시보드]</a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/root/clientSearch" class="nav-link" data-key="t-ecommerce">
-											[회원조회] </a>
+										<a href="/admin/root/clientSearch" class="nav-link"
+											data-key="t-ecommerce">[회원조회]</a>
 									</li>
 									<li class="nav-item">
 										<a href="/admin/root/clientApplyManager" class="nav-link"
-											data-key="t-ecommerce"> [회원신청관리] </a>
+											data-key="t-ecommerce">[회원신청관리]</a>
 									</li>
 									<li class="nav-item">
 										<a href="/admin/root/clientCompanyTransferManager" class="nav-link"
-											data-key="t-ecommerce"> [기업회원전환관리] </a>
+											data-key="t-ecommerce">[기업회원전환관리]</a>
 									</li>
 									<li class="nav-item">
 										<a href="/admin/root/clientSellerTransferManager" class="nav-link"
-											data-key="t-ecommerce"> [판매딜러전환관리] </a>
+											data-key="t-ecommerce">[판매딜러전환관리]</a>
 									</li>
 									<li class="nav-item">
 										<a href="/admin/root/clientWithDrawManager" class="nav-link"
-											data-key="t-ecommerce"> [회원탈퇴관리] </a>
+											data-key="t-ecommerce">[회원탈퇴관리]</a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/root/sellerInsertForm" class="nav-link" data-key="t-ecommerce">
-											[입점몰등록] </a>
+										<a href="/admin/root/sellerInsertForm" class="nav-link"
+											data-key="t-ecommerce">[입점몰등록]</a>
 									</li>
 								</ul>
 							</div>
 						</li>
+
 						<li class="nav-item">
 							<a class="nav-link menu-link" href="#sidebarBoardDashboard" data-bs-toggle="collapse"
 								role="button" aria-expanded="false" aria-controls="sidebarBoardDashboard">
@@ -187,24 +192,25 @@
 							<div class="collapse menu-dropdown" id="sidebarBoardDashboard">
 								<ul class="nav nav-sm flex-column">
 									<li class="nav-item">
-										<a href="/admin/manager/eventManager" class="nav-link" data-key="t-ecommerce">
-											[이벤트관리] </a>
+										<a href="/admin/manager/eventManager" class="nav-link"
+											data-key="t-ecommerce">[이벤트관리]</a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/manager/noticeManager" class="nav-link" data-key="t-ecommerce">
-											[공지사항관리] </a>
+										<a href="/admin/manager/noticeManager" class="nav-link"
+											data-key="t-ecommerce">[공지사항관리]</a>
 									</li>
 									<li class="nav-item">
 										<a href="/admin/manager/qnaCategoryManager" class="nav-link"
-											data-key="t-ecommerce"> [QNA카테고리관리] </a>
+											data-key="t-ecommerce">[QNA카테고리관리]</a>
 									</li>
 									<li class="nav-item">
-										<a href="/admin/manager/qnaManager" class="nav-link" data-key="t-ecommerce">
-											[QNA관리] </a>
+										<a href="/admin/manager/qnaManager" class="nav-link"
+											data-key="t-ecommerce">[QNA관리]</a>
 									</li>
 								</ul>
 							</div>
 						</li>
+
 						<li class="nav-item">
 							<a class="nav-link menu-link" href="#sidebarUserDashboard" data-bs-toggle="collapse"
 								role="button" aria-expanded="false" aria-controls="sidebarUserDashboard">
@@ -213,12 +219,13 @@
 							<div class="collapse menu-dropdown" id="sidebarUserDashboard">
 								<ul class="nav nav-sm flex-column">
 									<li class="nav-item">
-										<a href="/admin/root/orderManager" class="nav-link" data-key="t-ecommerce">
-											[주문관리] </a>
+										<a href="/admin/root/orderManager" class="nav-link"
+											data-key="t-ecommerce">[주문관리]</a>
 									</li>
 								</ul>
 							</div>
 						</li>
+
 						<li class="nav-item">
 							<a class="nav-link menu-link" href="#sidebarShopManagerDashboard" data-bs-toggle="collapse"
 								role="button" aria-expanded="false" aria-controls="sidebarShopManagerDashboard">
@@ -227,8 +234,33 @@
 							<div class="collapse menu-dropdown" id="sidebarShopManagerDashboard">
 								<ul class="nav nav-sm flex-column">
 									<li class="nav-item">
-										<a href="/admin/root/memberInsertForm" class="nav-link" data-key="t-ecommerce">
-											[직원등록] </a>
+										<a href="/admin/root/memberInsertForm" class="nav-link"
+											data-key="t-ecommerce">[직원등록]</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+
+					<!-- ✅ 판매딜러 전용 사이드메뉴 -->
+					<ul class="navbar-nav" id="navbar-nav-seller"
+						sec:authorize="isAuthenticated() and authentication.principal.sellerPortalUser">
+						<li class="menu-title"><span data-key="t-menu">Seller Menu</span></li>
+
+						<li class="nav-item">
+							<a class="nav-link menu-link" href="#sidebarSellerProduct" data-bs-toggle="collapse"
+								role="button" aria-expanded="false" aria-controls="sidebarSellerProduct">
+								<i class="ri-store-2-line"></i> <span data-key="t-dashboards">[판매상품관리]</span>
+							</a>
+							<div class="collapse menu-dropdown show" id="sidebarSellerProduct">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item">
+										<a href="/seller/page/product/insert" class="nav-link"
+											data-key="t-ecommerce">[상품등록]</a>
+									</li>
+									<li class="nav-item">
+										<a href="/seller/page/product/list" class="nav-link"
+											data-key="t-ecommerce">[상품리스트]</a>
 									</li>
 								</ul>
 							</div>
@@ -290,7 +322,7 @@
 				th:href="@{/admin/root/clientDetail/{id}/home(id=${memberId})}">
 				CRM 홈
 			</a>
-			
+
 			<!--
 			<a class="list-group-item list-group-item-action"
 				th:classappend="${activeTab == 'orderList'} ? ' active' : ''"
@@ -304,7 +336,7 @@
 				th:href="@{/admin/root/clientDetail/{id}/reviewList(id=${memberId})}">
 				회원리뷰
 			</a>
-			
+
 			<a class="list-group-item list-group-item-action"
 				th:classappend="${activeTab == 'estimateList'} ? ' active' : ''"
 				th:href="@{/admin/root/clientDetail/{id}/estimateList(id=${memberId})}">

@@ -42,24 +42,31 @@ public class WebSecurityConfig {
             "/", "/index", "/signIn", "/signup",
             "/companySignUp", "/personalSignUp", "/error", "/signUpSuccess/**", "/upload/**",
             "/temp/api/**", "/api/customer/**", "/signUpProcess/personal", "/signUpProcess/company",
-            "/api/v1/productSelect/**","/api/v1/**", "/api/menu/**", "/api/category/**"
+            "/api/v1/productSelect/**", "/api/v1/**", "/api/menu/**", "/api/category/**"
     };
 
-    // 고객/내부 구간
-    private static final String[] CUSTOMER_URLS = { "/customer/**", "/mypage/**"};
-    private static final String[] SELLER_URLS   = { "/seller/**" };
+    // 고객 구간
+    private static final String[] CUSTOMER_URLS = { "/customer/**", "/mypage/**" };
+
+    // ✅ 판매딜러 포털 전용 구간
+    private static final String[] SELLER_ENTRY_URLS = { "/seller/page", "/seller/page/", "/seller/page/main" };
+    private static final String[] SELLER_PAGE_URLS  = { "/seller/page/**" };
+    private static final String[] SELLER_API_URLS   = { "/seller/api/**" };
 
     // 관리자 공통/등급별 구간
-    private static final String[] ADMIN_COMMON_URLS  = { "/admin/common/**" };
-    private static final String[] ADMIN_OPERATOR_URLS= { "/admin/operator/**" };
-    private static final String[] ADMIN_MANAGER_URLS = { "/admin/manager/**" , "/api/manager/**"};
-    private static final String[] ADMIN_MASTER_URLS  = { "/admin/master/**" };
-    private static final String[] ADMIN_ROOT_URLS    = { "/admin/root/**" };
+    private static final String[] ADMIN_COMMON_URLS   = { "/admin/common/**" };
+    private static final String[] ADMIN_OPERATOR_URLS = { "/admin/operator/**" };
+    private static final String[] ADMIN_MANAGER_URLS  = { "/admin/manager/**", "/api/manager/**" };
+    private static final String[] ADMIN_MASTER_URLS   = { "/admin/master/**" };
+    private static final String[] ADMIN_ROOT_URLS     = { "/admin/root/**" };
 
-    // ✅ 관리자 엔트리(URL): 헤더에서 사용하는 /admin/main 및 /admin → 동일 권한으로 허용
-    private static final String[] ADMIN_ENTRY_URLS   = { "/admin", "/admin/", "/admin/main" };
+    // ✅ 관리자 엔트리
+    private static final String[] ADMIN_ENTRY_URLS = { "/admin", "/admin/", "/admin/main" };
 
-    private static final String[] INTERNAL_API_URLS  = { };
+    // ✅ 누락 방지용: 나머지 모든 /admin/** 보호
+    private static final String[] ADMIN_ALL_URLS = { "/admin/**" };
+
+    private static final String[] INTERNAL_API_URLS = { };
 
     @Bean
     HttpSessionEventPublisher httpSessionEventPublisher() {
@@ -88,7 +95,6 @@ public class WebSecurityConfig {
         DaoAuthenticationProvider p = new DaoAuthenticationProvider();
         p.setUserDetailsService(principalDetailService);
         p.setPasswordEncoder(passwordEncoder());
-        // "아이디 없음" 예외를 마스킹하지 않도록
         p.setHideUserNotFoundExceptions(false);
         return p;
     }
@@ -100,11 +106,16 @@ public class WebSecurityConfig {
             .headers(h -> h.frameOptions(f -> f.disable()))
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-                // ✅ 관리자 엔트리(/admin, /admin/main) → 회사 직원 4권한 허용
+
+                // ✅ 판매딜러 포털
+                .requestMatchers(SELLER_ENTRY_URLS).hasRole("SELLER_PORTAL")
+                .requestMatchers(SELLER_PAGE_URLS).hasRole("SELLER_PORTAL")
+                .requestMatchers(SELLER_API_URLS).hasRole("SELLER_PORTAL")
+
+                // ✅ 관리자 엔트리/등급별
                 .requestMatchers(ADMIN_ENTRY_URLS)
                     .hasAnyRole("ADMIN", "OPERATOR", "MASTER", "ROOT")
 
-                // ✅ 관리자 공통/등급별
                 .requestMatchers(ADMIN_COMMON_URLS)
                     .hasAnyRole("ADMIN", "OPERATOR", "MASTER", "ROOT")
                 .requestMatchers(ADMIN_OPERATOR_URLS)
@@ -116,9 +127,11 @@ public class WebSecurityConfig {
                 .requestMatchers(ADMIN_ROOT_URLS)
                     .hasRole("ROOT")
 
-                // 판매/고객/내부 API
-                .requestMatchers(SELLER_URLS)
-                    .hasAnyRole("SELLER_DEALER", "OPERATOR", "MASTER", "ROOT", "ADMIN")
+                // ✅ 빠져나가는 /admin/** 전체 막기
+                .requestMatchers(ADMIN_ALL_URLS)
+                    .hasAnyRole("ADMIN", "OPERATOR", "MASTER", "ROOT")
+
+                // 고객/내부
                 .requestMatchers(CUSTOMER_URLS)
                     .hasAnyRole("USER", "BUYER_DEALER", "SELLER_DEALER", "ADMIN", "OPERATOR", "MASTER", "ROOT")
                 .requestMatchers(INTERNAL_API_URLS)
@@ -127,7 +140,6 @@ public class WebSecurityConfig {
                 // 화이트리스트
                 .requestMatchers(AUTH_WHITELIST).permitAll()
 
-                // 그 밖에는 일단 모두 허용(필요 시 authenticated()로 올리세요)
                 .anyRequest().permitAll()
             )
             .formLogin(form -> form

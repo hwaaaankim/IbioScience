@@ -23,9 +23,28 @@ public class PrincipalDetails implements UserDetails {
 	private static final long serialVersionUID = 2025L;
 
 	private final Member member;
+	private final boolean sellerPortalUser;
+	private final boolean staffPortalUser;
+
+	public PrincipalDetails(Member member) {
+		this.member = member;
+		this.staffPortalUser = member != null && member.getCustomerType() == CustomerType.STAFF;
+		this.sellerPortalUser =
+				member != null
+				&& member.getDealerType() == DealerType.SELLER
+				&& member.getSellerDealerProfile() != null;
+	}
 
 	public Member getMember() {
 		return member;
+	}
+
+	public boolean isSellerPortalUser() {
+		return sellerPortalUser;
+	}
+
+	public boolean isStaffPortalUser() {
+		return staffPortalUser;
 	}
 
 	/* =========================
@@ -62,24 +81,14 @@ public class PrincipalDetails implements UserDetails {
 		return member != null && member.getCustomerType() == CustomerType.STAFF;
 	}
 
-	/**
-	 * ✅ 공통 가격 정책 계산
-	 *
-	 * 전제:
-	 * - 로그인 가능 상태: ACTIVE, WITHDRAWN
-	 * - 그 외(PENDING/SUSPENDED/DORMANT/DELETED): 로그인 차단 → 여기서는 GUEST 처리
-	 */
 	public PricePolicy getPricePolicy() {
-
 		if (member == null) return PricePolicy.GUEST;
 
 		MemberStatus status = member.getStatus();
 		boolean loginAllowedStatus = (status == MemberStatus.ACTIVE || status == MemberStatus.WITHDRAWN);
 
-		// ✅ ACTIVE / WITHDRAWN 만 정상 처리, 나머지는 GUEST로 폴백
 		if (!loginAllowedStatus) return PricePolicy.GUEST;
 
-		// 직원 정책(필요 시 확장)
 		if (isStaff()) return PricePolicy.PERSONAL_NORMAL;
 
 		final boolean company = isEffectiveCompanyMember();
@@ -156,6 +165,11 @@ public class PrincipalDetails implements UserDetails {
 			auths.add(new SimpleGrantedAuthority("ROLE_BUYER_DEALER"));
 		}
 
+		// ✅ 실제 판매딜러 포털 접근권한
+		if (sellerPortalUser) {
+			auths.add(new SimpleGrantedAuthority("ROLE_SELLER_PORTAL"));
+		}
+
 		return new ArrayList<>(auths);
 	}
 
@@ -173,13 +187,6 @@ public class PrincipalDetails implements UserDetails {
 	@Override public boolean isAccountNonLocked() { return true; }
 	@Override public boolean isCredentialsNonExpired() { return true; }
 
-	/**
-	 * ✅ 로그인 가능 여부
-	 * 요구사항:
-	 * - ACTIVE: 로그인 가능
-	 * - WITHDRAWN: 로그인 가능
-	 * - PENDING/SUSPENDED/DORMANT/DELETED: 로그인 불가
-	 */
 	@Override
 	public boolean isEnabled() {
 		if (member == null) return false;

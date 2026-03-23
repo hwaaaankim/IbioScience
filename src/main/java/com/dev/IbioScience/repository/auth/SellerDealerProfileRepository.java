@@ -3,6 +3,8 @@ package com.dev.IbioScience.repository.auth;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.auth.SellerDealerProfile;
@@ -10,4 +12,14 @@ import com.dev.IbioScience.model.auth.SellerDealerProfile;
 public interface SellerDealerProfileRepository extends JpaRepository<SellerDealerProfile, Long> {
 	Optional<SellerDealerProfile> findByMember(Member member);
 	boolean existsBySupplierCode(String supplierCode);
+	
+	@Query("""
+        select s
+        from SellerDealerProfile s
+        join fetch s.member m
+        left join fetch s.companyProfile cp
+        where m.id = :memberId
+    """)
+    Optional<SellerDealerProfile> findByMemberIdWithMember(@Param("memberId") Long memberId);
+	Optional<SellerDealerProfile> findByMemberId(Long memberId);
 }
