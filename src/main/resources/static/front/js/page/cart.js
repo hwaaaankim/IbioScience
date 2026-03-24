@@ -5,6 +5,11 @@
 
 	var STORAGE_KEY_BASE = 'ibio_cart_v1';
 
+	var PRODUCT_TYPE = {
+		COMPANY: 'COMPANY',
+		DEALER: 'DEALER'
+	};
+
 	// =========================
 	// 유틸
 	// =========================
@@ -21,6 +26,43 @@
 		return Date.now();
 	}
 
+	function normalizeProductType(v) {
+		var s = safeString(v).toUpperCase();
+		return s === PRODUCT_TYPE.DEALER ? PRODUCT_TYPE.DEALER : PRODUCT_TYPE.COMPANY;
+	}
+
+	function createEmptyCart(memberId) {
+		return {
+			userId: memberId || null,
+			itemsByType: {
+				COMPANY: [],
+				DEALER: []
+			},
+			items: [],
+			totalQuantity: 0,
+			totalPrice: 0,
+			totalQuantityByType: {
+				COMPANY: 0,
+				DEALER: 0
+			},
+			totalPriceByType: {
+				COMPANY: 0,
+				DEALER: 0
+			}
+		};
+	}
+
+	function readProductTypeFromElement($el) {
+		if (!$el || !$el.length) return PRODUCT_TYPE.COMPANY;
+
+		var raw = $el.attr('data-product-type');
+		if (raw === undefined || raw === null || raw === '') {
+			raw = $el.data('product-type');
+		}
+
+		return normalizeProductType(raw);
+	}
+
 	// =========================
 	// 로그인 유저 정보 (frontScript에서 주입)
 	// =========================
@@ -29,7 +71,6 @@
 	}
 
 	function getCurrentMemberId() {
-		// 비로그인 안전
 		if (!isAuthenticated()) return null;
 
 		var v = window.__loginMemberId;
@@ -45,66 +86,92 @@
 		return STORAGE_KEY_BASE + '_u' + String(memberId);
 	}
 
+	function ensureCartShape(cart, memberId) {
+		if (!cart || typeof cart !== 'object') {
+			cart = createEmptyCart(memberId);
+		}
+
+		if (!cart.itemsByType || typeof cart.itemsByType !== 'object') {
+			cart.itemsByType = {
+				COMPANY: [],
+				DEALER: []
+			};
+		}
+
+		if (!Array.isArray(cart.itemsByType.COMPANY)) {
+			cart.itemsByType.COMPANY = [];
+		}
+		if (!Array.isArray(cart.itemsByType.DEALER)) {
+			cart.itemsByType.DEALER = [];
+		}
+
+		var hasBucketData =
+			cart.itemsByType.COMPANY.length > 0 ||
+			cart.itemsByType.DEALER.length > 0;
+
+		if (!hasBucketData && Array.isArray(cart.items) && cart.items.length > 0) {
+			cart.items.forEach(function(entry) {
+				var type = normalizeProductType(entry && entry.productType);
+				entry.productType = type;
+
+				if (type === PRODUCT_TYPE.DEALER) {
+					cart.itemsByType.DEALER.push(entry);
+				} else {
+					cart.itemsByType.COMPANY.push(entry);
+				}
+			});
+		}
+
+		cart.items = [];
+		cart.userId = memberId || cart.userId || null;
+
+		if (!cart.totalQuantityByType || typeof cart.totalQuantityByType !== 'object') {
+			cart.totalQuantityByType = {
+				COMPANY: 0,
+				DEALER: 0
+			};
+		}
+
+		if (!cart.totalPriceByType || typeof cart.totalPriceByType !== 'object') {
+			cart.totalPriceByType = {
+				COMPANY: 0,
+				DEALER: 0
+			};
+		}
+
+		return cart;
+	}
+
 	// =========================
-	// 장바구니 Core (Entry 단위: "담기 1회" = 1건)
+	// 장바구니 Core
 	// =========================
-	/**
-	 * cart 구조 (유저별 저장):
-	 * {
-	 *   userId: 123,
-	 *   items: [
-	 *     {
-	 *       cartEntryId: "E-...",
-	 *       userId: 123,
-	 *       productId: 10,
-	 *       productName: "...",
-	 *       productImageUrl: "...",
-	 *       createdAt: 1700000000000,
-	 *       options: [
-	 *         { optionGroupId, optionGroupName, optionId, optionName, optionCode, unit, unitPrice, quantity, linePrice }
-	 *       ],
-	 *       entryPrice: 12345
-	 *     }
-	 *   ],
-	 *   totalQuantity: 2, // ✅ "장바구니 건수" (Entry 개수)
-	 *   totalPrice: 99999
-	 * }
-	 */
 	var IbioCart = {
 
 		loadCart: function() {
 			var memberId = getCurrentMemberId();
 			if (!memberId) {
-				return { userId: null, items: [], totalQuantity: 0, totalPrice: 0 };
+				return createEmptyCart(null);
 			}
 
 			if (!window.localStorage) {
-				return { userId: memberId, items: [], totalQuantity: 0, totalPrice: 0 };
+				return createEmptyCart(memberId);
 			}
 
 			var key = getStorageKeyForUser(memberId);
 			var raw = localStorage.getItem(key);
 
 			if (!raw) {
-				return { userId: memberId, items: [], totalQuantity: 0, totalPrice: 0 };
+				return createEmptyCart(memberId);
 			}
 
 			try {
 				var cart = JSON.parse(raw);
-
-				if (!cart || !Array.isArray(cart.items)) {
-					return { userId: memberId, items: [], totalQuantity: 0, totalPrice: 0 };
-				}
-
-				if (Number(cart.userId) !== Number(memberId)) {
-					return { userId: memberId, items: [], totalQuantity: 0, totalPrice: 0 };
-				}
-
+				cart = ensureCartShape(cart, memberId);
 				this.recalcTotals(cart);
 				return cart;
 			} catch (e) {
 				console.error('[IbioCart] JSON parse error', e);
-				return { userId: memberId, items: [], totalQuantity: 0, totalPrice: 0 };
+				return createEmptyCart(memberId);
 			}
 		},
 
@@ -113,7 +180,7 @@
 			if (!memberId) return;
 			if (!window.localStorage) return;
 
-			cart = cart || { userId: memberId, items: [] };
+			cart = ensureCartShape(cart, memberId);
 			cart.userId = memberId;
 
 			this.recalcTotals(cart);
@@ -123,42 +190,70 @@
 		},
 
 		recalcTotals: function(cart) {
+			cart = ensureCartShape(cart, cart ? cart.userId : null);
+
 			var totalEntryCount = 0;
 			var totalPrice = 0;
 
-			(cart.items || []).forEach(function(entry) {
-				if (!Array.isArray(entry.options)) entry.options = [];
+			var totalQuantityByType = {
+				COMPANY: 0,
+				DEALER: 0
+			};
 
-				var entryPrice = 0;
+			var totalPriceByType = {
+				COMPANY: 0,
+				DEALER: 0
+			};
 
-				entry.options.forEach(function(opt) {
-					var q = safeParseInt(opt.quantity);
-					var up = safeParseInt(opt.unitPrice);
+			var flattened = [];
 
-					if (q < 1) q = 1;
+			[PRODUCT_TYPE.COMPANY, PRODUCT_TYPE.DEALER].forEach(function(bucketType) {
+				var list = cart.itemsByType[bucketType] || [];
 
-					opt.quantity = q;
-					opt.unitPrice = up;
-					opt.linePrice = q * up;
+				list.forEach(function(entry) {
+					if (!Array.isArray(entry.options)) entry.options = [];
 
-					entryPrice += opt.linePrice;
+					var entryType = normalizeProductType(entry.productType || bucketType);
+					entry.productType = entryType;
+
+					var entryPrice = 0;
+
+					entry.options.forEach(function(opt) {
+						var q = safeParseInt(opt.quantity);
+						var up = safeParseInt(opt.unitPrice);
+
+						if (q < 1) q = 1;
+
+						opt.quantity = q;
+						opt.unitPrice = up;
+						opt.linePrice = q * up;
+
+						entryPrice += opt.linePrice;
+					});
+
+					entry.entryPrice = entryPrice;
+
+					totalEntryCount += 1;
+					totalPrice += entryPrice;
+
+					totalQuantityByType[entryType] += 1;
+					totalPriceByType[entryType] += entryPrice;
+
+					flattened.push(entry);
 				});
-
-				entry.entryPrice = entryPrice;
-
-				totalEntryCount += 1; // ✅ "담기 1회" = 1건
-				totalPrice += entryPrice;
 			});
 
+			cart.items = flattened;
 			cart.totalQuantity = totalEntryCount;
 			cart.totalPrice = totalPrice;
+			cart.totalQuantityByType = totalQuantityByType;
+			cart.totalPriceByType = totalPriceByType;
 		},
 
 		getCart: function() {
 			return this.loadCart();
 		},
 
-		// ✅ 클릭 1회당 entry 1개 추가 (동일 제품이어도 합치지 않음)
 		addEntry: function(entry) {
 			var memberId = getCurrentMemberId();
 			if (!memberId) {
@@ -168,8 +263,11 @@
 
 			var cart = this.getCart();
 
+			var productType = normalizeProductType(entry.productType);
+
 			entry.userId = memberId;
-			entry.cartEntryId = 'E-' + memberId + '-' + nowTs() + '-' + Math.random().toString(16).slice(2);
+			entry.productType = productType;
+			entry.cartEntryId = 'E-' + productType + '-' + memberId + '-' + nowTs() + '-' + Math.random().toString(16).slice(2);
 			entry.createdAt = nowTs();
 
 			if (!Array.isArray(entry.options)) entry.options = [];
@@ -187,7 +285,11 @@
 				entry.entryPrice += opt.linePrice;
 			});
 
-			cart.items.push(entry);
+			if (!cart.itemsByType || !cart.itemsByType[productType]) {
+				cart = ensureCartShape(cart, memberId);
+			}
+
+			cart.itemsByType[productType].push(entry);
 
 			this.saveCart(cart);
 			return cart;
@@ -213,9 +315,6 @@
 			$('.front-header-cart-count').text(count);
 		},
 
-		// =========================
-		// DOM → Option 변환
-		// =========================
 		buildOptionFromRow: function($row) {
 			var $check = $row.find('.product-list-row-check');
 			if (!$check.length || !$check.is(':checked')) {
@@ -234,7 +333,6 @@
 			var optionName = $row.data('option-name') || '';
 			var optionCode = $row.data('option-code') || '';
 
-			// 단위: 4번째 칸(td index 3) 기준
 			var unit = '-';
 			var $tds = $row.find('td');
 			if ($tds.length >= 4) {
@@ -271,13 +369,53 @@
 			return options;
 		},
 
-		// =========================
-		// 이벤트 바인딩
-		// =========================
+		resolveProductInfo: function($trigger) {
+			var info = {
+				productId: null,
+				productName: '',
+				productImageUrl: '',
+				productType: PRODUCT_TYPE.COMPANY
+			};
+
+			var $layout = $trigger.closest('.product-layout');
+			if ($layout.length) {
+				var $listContainer = $layout.find('.product-item-container.list-container').first();
+				if ($listContainer.length) {
+					info.productId = $listContainer.data('product-id') || null;
+					info.productName = $.trim($listContainer.find('h4 a').first().text()) || '';
+					info.productType = readProductTypeFromElement($listContainer);
+
+					var $img = $listContainer.find('img').first();
+					if ($img.length) info.productImageUrl = $img.attr('src') || '';
+
+					return info;
+				}
+			}
+
+			var $prodBox = $('#product');
+			if ($prodBox.length) {
+				info.productId = $prodBox.data('product-id') || null;
+				info.productName = $.trim($('.title-product h1').first().text()) || '';
+				info.productType = readProductTypeFromElement($prodBox);
+
+				var $img2 = $('.content-product-left .large-image img').first();
+				if ($img2.length) info.productImageUrl = $img2.attr('src') || '';
+			}
+
+			return info;
+		},
+
+		resolveListContainer: function($trigger) {
+			var $layout = $trigger.closest('.product-layout');
+			if ($layout.length) {
+				return $layout.find('.product-item-container.list-container').first();
+			}
+			return $();
+		},
+
 		bindEvents: function() {
 			var self = this;
 
-			// 1) 리스트/상세 공통: 옵션 패널 안 "장바구니담기" 클릭 → Entry 1개 생성
 			$(document).on('click', '.product-list-option-panel .product-list-btn-buy', function(e) {
 				e.preventDefault();
 
@@ -289,35 +427,9 @@
 				var $btn = $(this);
 				var $panel = $btn.closest('.product-list-option-panel');
 
-				// 상품 정보 찾기 (리스트/상세 공통)
-				var productId = null;
-				var productName = '';
-				var productImageUrl = '';
+				var info = self.resolveProductInfo($btn);
 
-				// (A) 리스트 페이지
-				var $layout = $btn.closest('.product-layout');
-				if ($layout.length) {
-					var $listContainer = $layout.find('.product-item-container.list-container');
-					if ($listContainer.length) {
-						productId = $listContainer.data('product-id') || null;
-						productName = $.trim($listContainer.find('h4 a').first().text()) || '';
-						var $img = $listContainer.find('img').first();
-						if ($img.length) productImageUrl = $img.attr('src') || '';
-					}
-				}
-
-				// (B) 상세 페이지
-				if (!productId) {
-					var $prodBox = $('#product');
-					if ($prodBox.length) {
-						productId = $prodBox.data('product-id') || null;
-						productName = $.trim($('.title-product h1').first().text()) || '';
-						var $img2 = $('.content-product-left .large-image img').first();
-						if ($img2.length) productImageUrl = $img2.attr('src') || '';
-					}
-				}
-
-				if (!productId) {
+				if (!info.productId) {
 					alert('상품 정보를 찾을 수 없습니다.');
 					return;
 				}
@@ -328,11 +440,11 @@
 					return;
 				}
 
-				// ✅ 옵션이 몇 개든, 수량이 얼마든 "장바구니 1건"만 추가
 				self.addEntry({
-					productId: Number(productId),
-					productName: productName,
-					productImageUrl: productImageUrl,
+					productType: info.productType,
+					productId: Number(info.productId),
+					productName: info.productName,
+					productImageUrl: info.productImageUrl,
 					options: options
 				});
 
@@ -340,7 +452,63 @@
 				alert('장바구니에 담겼습니다.');
 			});
 
-			// 2) 상세페이지 상단 "장바구니담기" (#button-cart) - 옵션 없는 상품
+			$(document).on('click', '.product-list-cart-btn', function(e) {
+				e.preventDefault();
+
+				if (!getCurrentMemberId()) {
+					alert('로그인이 필요합니다.');
+					return;
+				}
+
+				var $btn = $(this);
+				var $layout = $btn.closest('.product-layout');
+				var $listContainer = self.resolveListContainer($btn);
+
+				if (!$layout.length || !$listContainer.length) {
+					alert('상품 정보를 찾을 수 없습니다.');
+					return;
+				}
+
+				var hasOptions = $layout.find('.product-list-option-panel .product-list-row-check').length > 0;
+				if (hasOptions) {
+					alert('옵션이 있는 상품입니다.\n옵션을 선택 후 장바구니에 담아 주세요.');
+					return;
+				}
+
+				var info = self.resolveProductInfo($btn);
+				if (!info.productId) {
+					alert('상품 정보를 찾을 수 없습니다.');
+					return;
+				}
+
+				var unitPrice = safeParseInt($listContainer.data('product-sale-price'));
+				if (unitPrice <= 0) {
+					alert('판매가격 정보가 없습니다.');
+					return;
+				}
+
+				self.addEntry({
+					productType: info.productType,
+					productId: Number(info.productId),
+					productName: info.productName,
+					productImageUrl: info.productImageUrl,
+					options: [{
+						optionGroupId: null,
+						optionGroupName: '',
+						optionId: null,
+						optionName: '',
+						optionCode: '',
+						unit: '-',
+						unitPrice: unitPrice,
+						quantity: 1,
+						linePrice: unitPrice
+					}]
+				});
+
+				self.updateHeaderCount();
+				alert('장바구니에 담겼습니다.');
+			});
+
 			$(document).on('click', '#button-cart', function(e) {
 				e.preventDefault();
 
@@ -361,7 +529,6 @@
 					return;
 				}
 
-				// 옵션 상품이면 옵션 탭에서 담도록 유도
 				var hasOptions = $('#tab-option .product-list-option-table .product-list-row-check').length > 0;
 				if (hasOptions) {
 					alert('옵션이 있는 상품입니다.\n옵션 탭에서 옵션을 선택한 후 장바구니에 담아 주세요.');
@@ -375,11 +542,12 @@
 				var productName = $.trim($('.title-product h1').first().text()) || '';
 				var $img = $('.content-product-left .large-image img').first();
 				var productImageUrl = $img.length ? ($img.attr('src') || '') : '';
+				var productType = readProductTypeFromElement($prodBox);
 
 				var unitPrice = safeParseInt($prodBox.data('product-sale-price'));
 
-				// ✅ 옵션 없는 상품도 entry 1건
 				self.addEntry({
+					productType: productType,
 					productId: Number(productId),
 					productName: productName,
 					productImageUrl: productImageUrl,
@@ -406,6 +574,9 @@
 			this.updateHeaderCount();
 		}
 	};
+
+	IbioCart.PRODUCT_TYPE = PRODUCT_TYPE;
+	IbioCart.normalizeProductType = normalizeProductType;
 
 	window.IbioCart = IbioCart;
 

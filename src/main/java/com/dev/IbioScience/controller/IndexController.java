@@ -32,10 +32,4 @@ public class IndexController {
 
         return "front/index";
     }
-    
-    @GetMapping("/productSelectApiTest")
-    public String productSelectApiTest() {
-    	
-    	return "front/console/productSelectApiTest";
-    }
 }

@@ -61,17 +61,21 @@
 
 			/** 교집합 제품 조회 */
 			async fetchProductsByScope({
-				largeId = null,
-				mediumId = null,
-				smallId = null,
-				brandId = null,
+			    largeId = null,
+			    mediumId = null,
+			    smallId = null,
+			    brandId = null,
 			}) {
-				const list = await jget(API.products({ largeId, mediumId, smallId, brandId }));
-				return list.map((p) => ({
-					id: p.id,
-					name: p.name,
-					brandId: p.brandId || null,
-				}));
+			    const list = await jget(API.products({ largeId, mediumId, smallId, brandId }));
+			    return list.map((p) => ({
+			        id: p.id,
+			        name: p.name,
+			        brandId: p.brandId || null,
+			        productSourceType: p.productSourceType || "COMPANY",
+			        productSourceLabel: p.productSourceLabel || "우리회사제품",
+			        productKey: p.productKey || `${p.productSourceType || "COMPANY"}_${p.id}`,
+			        detailUrl: p.detailUrl || `/productDetail/${encodeURIComponent(p.id)}`
+			    }));
 			},
 		};
 
@@ -579,22 +583,38 @@
 	}
 
 	function renderProducts(list, title) {
-		clear(ulProd);
-		ulProd.classList.remove("ibio-index-empty");
-
-		if (!list.length) {
-			setEmpty(ulProd, `${title}이(가) 없습니다.`);
-			return;
-		}
-
-		list.forEach((p) => {
-			const li = el("li", null);
-			const a = el("a", "ibio-index-text");
-			a.href = `/productDetail/${encodeURIComponent(p.id)}`;
-			a.textContent = p.name;
-			li.appendChild(a);
-			ulProd.appendChild(li);
-		});
+	    clear(ulProd);
+	    ulProd.classList.remove("ibio-index-empty");
+	
+	    if (!list.length) {
+	        setEmpty(ulProd, `${title}이(가) 없습니다.`);
+	        return;
+	    }
+	
+	    list.forEach((p) => {
+	        const li = el("li", null);
+	        const a = el("a", "ibio-index-text");
+	
+	        a.href = p.detailUrl || `/productDetail/${encodeURIComponent(p.id)}`;
+	        a.dataset.productId = String(p.id);
+	        a.dataset.productKey = p.productKey || `${p.productSourceType || "COMPANY"}_${p.id}`;
+	        a.dataset.productSourceType = p.productSourceType || "COMPANY";
+	        a.dataset.detailUrl = a.href;
+	
+	        const nameSpan = el("span", "ibio-index-menu-product-name");
+	        nameSpan.textContent = p.name;
+	
+	        const badge = el(
+	            "span",
+	            "ibio-index-menu-product-badge " + ((p.productSourceType === "DEALER") ? "is-dealer" : "is-company")
+	        );
+	        badge.textContent = p.productSourceLabel || ((p.productSourceType === "DEALER") ? "딜러제품" : "우리회사제품");
+	
+	        a.appendChild(nameSpan);
+	        a.appendChild(badge);
+	        li.appendChild(a);
+	        ulProd.appendChild(li);
+	    });
 	}
 
 	function renderBrands() {
@@ -934,24 +954,40 @@
 	}
 
 	async function renderMobileProductsInto(container, smallId) {
-		clear(container);
-		const list = applyBrandFilter(productsOfSmall(smallId));
-		if (!list.length) {
-			const empty = el("a", "ibio-index-m-prod");
-			empty.href = "javascript:void(0)";
-			empty.setAttribute("aria-disabled", "true");
-			empty.classList.add("is-empty");
-			empty.textContent = "해당 조건의 제품이 없습니다.";
-			container.appendChild(empty);
-			return;
-		}
-		list.forEach((p) => {
-			const pd = el("a", "ibio-index-m-prod");
-			pd.href = `/productDetail/${encodeURIComponent(p.id)}`;
-			pd.textContent =
-				p.name + (p.brandId != null ? ` (BRAND ${String(p.brandId).padStart(2, "0")})` : "");
-			container.appendChild(pd);
-		});
+	    clear(container);
+	    const list = applyBrandFilter(productsOfSmall(smallId));
+	
+	    if (!list.length) {
+	        const empty = el("a", "ibio-index-m-prod");
+	        empty.href = "javascript:void(0)";
+	        empty.setAttribute("aria-disabled", "true");
+	        empty.classList.add("is-empty");
+	        empty.textContent = "해당 조건의 제품이 없습니다.";
+	        container.appendChild(empty);
+	        return;
+	    }
+	
+	    list.forEach((p) => {
+	        const pd = el("a", "ibio-index-m-prod");
+	        pd.href = p.detailUrl || `/productDetail/${encodeURIComponent(p.id)}`;
+	        pd.dataset.productId = String(p.id);
+	        pd.dataset.productKey = p.productKey || `${p.productSourceType || "COMPANY"}_${p.id}`;
+	        pd.dataset.productSourceType = p.productSourceType || "COMPANY";
+	        pd.dataset.detailUrl = pd.href;
+	
+	        const nameSpan = el("span", "ibio-index-m-prod-name");
+	        nameSpan.textContent = p.name;
+	
+	        const badge = el(
+	            "span",
+	            "ibio-index-menu-product-badge " + ((p.productSourceType === "DEALER") ? "is-dealer" : "is-company")
+	        );
+	        badge.textContent = p.productSourceLabel || ((p.productSourceType === "DEALER") ? "딜러제품" : "우리회사제품");
+	
+	        pd.appendChild(nameSpan);
+	        pd.appendChild(badge);
+	        container.appendChild(pd);
+	    });
 	}
 
 	// 브랜드 모달(모바일) 및 토글시, 현재 열린 소분류 제품 리스트만 교체 렌더

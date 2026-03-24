@@ -6,6 +6,8 @@ import java.math.RoundingMode;
 import com.dev.IbioScience.enums.product.PriceSign;
 import com.dev.IbioScience.model.product.ProductOption;
 import com.dev.IbioScience.model.product.ProductOptionGroup;
+import com.dev.IbioScience.model.product.dealer.DealerProductOption;
+import com.dev.IbioScience.model.product.dealer.DealerProductOptionGroup;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -20,15 +22,19 @@ public class ProductOptionDto {
 
     // wishList.html에서 쓰는 필드명 그대로 맞춤
     private String optionName;   // opt.optionName
-    private String optionCode;   // opt.optionCode  (== value)
-    private Integer finalPrice;  // opt.finalPrice  (상품 salePrice +/- extraPrice)
+    private String optionCode;   // opt.optionCode
+    private Integer finalPrice;  // opt.finalPrice
 
     /**
+     * 우리회사 상품 옵션 -> DTO
+     *
      * @param opt       ProductOption 엔티티
-     * @param basePrice 상품의 salePrice (null이면 0)
+     * @param basePrice 상품의 salePrice
      */
     public static ProductOptionDto from(ProductOption opt, Integer basePrice) {
-        if (opt == null) return null;
+        if (opt == null) {
+            return null;
+        }
 
         Integer computedFinalPrice = computeFinalPrice(basePrice, opt.getExtraPrice(), opt.getSign());
 
@@ -41,7 +47,34 @@ public class ProductOptionDto {
                 .optionGroupId(groupId)
                 .optionGroupName(groupName)
                 .optionName(opt.getName())
-                .optionCode(opt.getValue()) // ✅ value를 CAT.NO(코드)로 사용
+                .optionCode(opt.getValue())
+                .finalPrice(computedFinalPrice)
+                .build();
+    }
+
+    /**
+     * 딜러 상품 옵션 -> DTO
+     *
+     * @param opt       DealerProductOption 엔티티
+     * @param basePrice 딜러상품의 salePrice
+     */
+    public static ProductOptionDto fromDealer(DealerProductOption opt, Integer basePrice) {
+        if (opt == null) {
+            return null;
+        }
+
+        Integer computedFinalPrice = computeFinalPrice(basePrice, opt.getExtraPrice(), opt.getSign());
+
+        DealerProductOptionGroup g = opt.getGroup();
+        Long groupId = (g != null ? g.getId() : null);
+        String groupName = (g != null ? g.getName() : null);
+
+        return ProductOptionDto.builder()
+                .optionId(opt.getId())
+                .optionGroupId(groupId)
+                .optionGroupName(groupName)
+                .optionName(opt.getName())
+                .optionCode(opt.getValue())
                 .finalPrice(computedFinalPrice)
                 .build();
     }
@@ -50,17 +83,16 @@ public class ProductOptionDto {
         int base = (basePrice == null ? 0 : basePrice.intValue());
 
         BigDecimal extra = (extraPrice == null ? BigDecimal.ZERO : extraPrice);
-
-        // extraPrice가 소수일 수도 있으니 원단위 반올림
         int extraInt = extra.setScale(0, RoundingMode.HALF_UP).intValue();
 
         if (sign == null || sign == PriceSign.PLUS) {
             return base + extraInt;
         }
+
         if (sign == PriceSign.MINUS) {
             return base - extraInt;
         }
-        // 혹시 enum이 확장되면 기본은 PLUS 처리
+
         return base + extraInt;
     }
 }

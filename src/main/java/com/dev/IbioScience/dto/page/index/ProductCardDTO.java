@@ -2,6 +2,8 @@ package com.dev.IbioScience.dto.page.index;
 
 import java.util.List;
 
+import com.dev.IbioScience.enums.product.dealer.ProductSourceType;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,28 +18,46 @@ import lombok.NoArgsConstructor;
  * - 평점/리뷰수
  * - 할인률(할인형 프로모션이면)
  * - 비할인 프로모션 라벨(여러 개 가능)
+ * - 상품 출처(우리회사/딜러)
+ * - 상세 URL
+ * - wishlist / recent-view 용 productKey
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductCardDTO {
+
     private Long id;
     private String name;
-
-    private Integer salePrice;       // 판매가(원가가 아님)
-    private Integer consumerPrice;   // 소비자가(할인 전 표시용)
-
+    private Integer salePrice;
+    private Integer consumerPrice;
     private Integer salesCount;
     private Integer viewCount;
-
-    private Double averageRating;    // 소수점 1자리까지 반환
+    private Double averageRating;
     private Integer reviewCount;
+    private Integer discountRate;
+    private Integer discountedPrice;
+    private String mainImageUrl;
+    private List<String> promotionLabels;
 
-    private Integer discountRate;    // null 이면 할인 없음
-    private Integer discountedPrice; // null 이면 할인 없음
+    /**
+     * COMPANY / DEALER
+     */
+    private ProductSourceType productSourceType;
 
-    private String mainImageUrl;     // 대표 이미지 URL (없으면 null)
+    /**
+     * "우리회사제품" / "딜러제품"
+     */
+    private String productSourceLabel;
 
-    private List<String> promotionLabels; // 할인 외 프로모션 이름들
+    /**
+     * COMPANY_1 / DEALER_10
+     */
+    private String productKey;
+
+    /**
+     * 프론트 상세 URL
+     */
+    private String detailUrl;
 }

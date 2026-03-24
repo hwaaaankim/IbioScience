@@ -7,11 +7,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dev.IbioScience.dto.customer.wishList.WishListRemoveBatchRequest;
+import com.dev.IbioScience.dto.customer.wishList.WishListTargetRequest;
 import com.dev.IbioScience.dto.order.WishToggleResponse;
+import com.dev.IbioScience.enums.product.dealer.WishListProductType;
 import com.dev.IbioScience.service.order.WishListService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +32,9 @@ public class CustomerWishListApiController {
     public ResponseEntity<Long> count(
             @AuthenticationPrincipal(expression = "member.id") Long loginMemberId
     ) {
-        if (loginMemberId == null) return ResponseEntity.ok(0L);
+        if (loginMemberId == null) {
+            return ResponseEntity.ok(0L);
+        }
         return ResponseEntity.ok(wishListService.countByMemberId(loginMemberId));
     }
 
@@ -36,25 +42,30 @@ public class CustomerWishListApiController {
     @PostMapping("/add")
     public ResponseEntity<Long> add(
             @AuthenticationPrincipal(expression = "member.id") Long loginMemberId,
-            @RequestParam("productId") Long productId
+            @RequestParam("productType") WishListProductType productType,
+            @RequestParam("targetId") Long targetId
     ) {
-        if (loginMemberId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(0L);
+        if (loginMemberId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(0L);
+        }
 
-        wishListService.add(loginMemberId, productId);
+        wishListService.add(loginMemberId, productType, targetId);
         return ResponseEntity.ok(wishListService.countByMemberId(loginMemberId));
     }
 
-    /** ✅ 전역용: "추가만" + action 포함 응답 (이미 있으면 EXISTS) */
+    /** 전역용: 추가만 수행 + ADDED/EXISTS 반환 */
     @PostMapping("/add-check")
     public ResponseEntity<WishToggleResponse> addCheck(
             @AuthenticationPrincipal(expression = "member.id") Long loginMemberId,
-            @RequestParam("productId") Long productId
+            @RequestParam("productType") WishListProductType productType,
+            @RequestParam("targetId") Long targetId
     ) {
         if (loginMemberId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new WishToggleResponse(0L, null));
         }
-        WishToggleResponse res = wishListService.addWithResult(loginMemberId, productId);
+
+        WishToggleResponse res = wishListService.addWithResult(loginMemberId, productType, targetId);
         return ResponseEntity.ok(res);
     }
 
@@ -62,38 +73,45 @@ public class CustomerWishListApiController {
     @PostMapping("/remove")
     public ResponseEntity<Long> remove(
             @AuthenticationPrincipal(expression = "member.id") Long loginMemberId,
-            @RequestParam("productId") Long productId
+            @RequestParam("productType") WishListProductType productType,
+            @RequestParam("targetId") Long targetId
     ) {
-        if (loginMemberId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(0L);
+        if (loginMemberId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(0L);
+        }
 
-        wishListService.remove(loginMemberId, productId);
+        wishListService.remove(loginMemberId, productType, targetId);
         return ResponseEntity.ok(wishListService.countByMemberId(loginMemberId));
     }
 
-    /** ✅ 토글(있으면 삭제, 없으면 추가) + action 포함 응답 */
+    /** 토글 */
     @PostMapping("/toggle")
     public ResponseEntity<WishToggleResponse> toggle(
             @AuthenticationPrincipal(expression = "member.id") Long loginMemberId,
-            @RequestParam("productId") Long productId
+            @RequestParam("productType") WishListProductType productType,
+            @RequestParam("targetId") Long targetId
     ) {
         if (loginMemberId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new WishToggleResponse(0L, null));
         }
 
-        WishToggleResponse res = wishListService.toggleWithResult(loginMemberId, productId);
+        WishToggleResponse res = wishListService.toggleWithResult(loginMemberId, productType, targetId);
         return ResponseEntity.ok(res);
     }
 
-    /** ✅ 선택삭제(배치) */
+    /** 선택삭제 */
     @PostMapping("/remove-batch")
     public ResponseEntity<Long> removeBatch(
             @AuthenticationPrincipal(expression = "member.id") Long loginMemberId,
-            @RequestParam("productIds") List<Long> productIds
+            @RequestBody WishListRemoveBatchRequest request
     ) {
-        if (loginMemberId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(0L);
+        if (loginMemberId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(0L);
+        }
 
-        long count = wishListService.removeBatch(loginMemberId, productIds);
+        List<WishListTargetRequest> items = (request == null ? null : request.getItems());
+        long count = wishListService.removeBatch(loginMemberId, items);
         return ResponseEntity.ok(count);
     }
 }

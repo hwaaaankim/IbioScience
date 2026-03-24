@@ -26,6 +26,7 @@ import com.dev.IbioScience.enums.order.ShippingMethod;
 import com.dev.IbioScience.enums.order.ShippingPayType;
 import com.dev.IbioScience.enums.product.CouponStatus;
 import com.dev.IbioScience.enums.product.PromotionType;
+import com.dev.IbioScience.enums.product.dealer.OrderItemProductType;
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.order.Order;
 import com.dev.IbioScience.model.order.OrderItem;
@@ -34,11 +35,17 @@ import com.dev.IbioScience.model.product.Product;
 import com.dev.IbioScience.model.product.ProductOption;
 import com.dev.IbioScience.model.product.ProductOptionGroup;
 import com.dev.IbioScience.model.product.Promotion;
+import com.dev.IbioScience.model.product.dealer.DealerProduct;
+import com.dev.IbioScience.model.product.dealer.DealerProductOption;
+import com.dev.IbioScience.model.product.dealer.DealerProductOptionGroup;
 import com.dev.IbioScience.model.product.relation.MemberCoupon;
 import com.dev.IbioScience.model.product.relation.ProductPromotionMapping;
 import com.dev.IbioScience.repository.auth.MemberCouponRepository;
 import com.dev.IbioScience.repository.auth.MemberRepository;
 import com.dev.IbioScience.repository.order.OrderRepository;
+import com.dev.IbioScience.repository.product.dealer.DealerProductOptionGroupRepository;
+import com.dev.IbioScience.repository.product.dealer.DealerProductOptionRepository;
+import com.dev.IbioScience.repository.product.dealer.DealerProductRepository;
 import com.dev.IbioScience.repository.product.register.ProductOptionGroupRepository;
 import com.dev.IbioScience.repository.product.register.ProductOptionRepository;
 import com.dev.IbioScience.repository.product.register.ProductRepository;
@@ -56,6 +63,11 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final ProductOptionGroupRepository productOptionGroupRepository;
     private final ProductOptionRepository productOptionRepository;
+
+    private final DealerProductRepository dealerProductRepository;
+    private final DealerProductOptionGroupRepository dealerProductOptionGroupRepository;
+    private final DealerProductOptionRepository dealerProductOptionRepository;
+
     private final MemberCouponRepository memberCouponRepository;
     private final AdminClientBenefitService adminClientBenefitService;
 
@@ -65,6 +77,9 @@ public class OrderService {
             ProductRepository productRepository,
             ProductOptionGroupRepository productOptionGroupRepository,
             ProductOptionRepository productOptionRepository,
+            DealerProductRepository dealerProductRepository,
+            DealerProductOptionGroupRepository dealerProductOptionGroupRepository,
+            DealerProductOptionRepository dealerProductOptionRepository,
             MemberCouponRepository memberCouponRepository,
             AdminClientBenefitService adminClientBenefitService
     ) {
@@ -73,6 +88,9 @@ public class OrderService {
         this.productRepository = productRepository;
         this.productOptionGroupRepository = productOptionGroupRepository;
         this.productOptionRepository = productOptionRepository;
+        this.dealerProductRepository = dealerProductRepository;
+        this.dealerProductOptionGroupRepository = dealerProductOptionGroupRepository;
+        this.dealerProductOptionRepository = dealerProductOptionRepository;
         this.memberCouponRepository = memberCouponRepository;
         this.adminClientBenefitService = adminClientBenefitService;
     }
@@ -93,7 +111,6 @@ public class OrderService {
     // 주문번호 생성 (중복 시 재시도)
     // =========================
     private String generateOrderNo() {
-        // 예: 20260102-AB12CD34
         String ymd = LocalDate.now().toString().replace("-", "");
         String rand = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
         return ymd + "-" + rand;
@@ -145,8 +162,8 @@ public class OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (OrderCreateItemDTO it : req.getItems()) {
-            if (it.getProductId() == null) {
-                throw new IllegalArgumentException("상품ID 누락");
+            if (it == null) {
+                throw new IllegalArgumentException("주문 상품 정보가 비어있습니다.");
             }
             if (it.getQuantity() == null || it.getQuantity() < 1) {
                 throw new IllegalArgumentException("수량 오류");
@@ -155,43 +172,112 @@ public class OrderService {
                 throw new IllegalArgumentException("단가 오류");
             }
 
-            Product product = productRepository.findById(it.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다. productId=" + it.getProductId()));
-
-            ProductOptionGroup og = null;
-            ProductOption op = null;
-
-            if (it.getOptionGroupId() != null) {
-                og = productOptionGroupRepository.findById(it.getOptionGroupId())
-                        .orElseThrow(() -> new IllegalArgumentException("옵션그룹을 찾을 수 없습니다. optionGroupId=" + it.getOptionGroupId()));
-            }
-            if (it.getOptionId() != null) {
-                op = productOptionRepository.findById(it.getOptionId())
-                        .orElseThrow(() -> new IllegalArgumentException("옵션을 찾을 수 없습니다. optionId=" + it.getOptionId()));
-            }
+            OrderItemProductType itemProductType = resolveItemProductType(it);
 
             long line = it.getUnitPrice() * it.getQuantity();
             sumPrice += line;
 
             long itemEarnPoint = (long) Math.floor(line * EXPECT_POINT_RATE);
 
-            OrderItem oi = OrderItem.builder()
-                    .product(product)
-                    .productOptionGroup(og)
-                    .productOption(op)
-                    .productName(nvl(it.getProductName(), product.getName()))
-                    .productImageUrl(nvl(it.getProductImageUrl(), ""))
-                    .optionGroupName(nvl(it.getOptionGroupName(), ""))
-                    .optionName(nvl(it.getOptionName(), ""))
-                    .optionCode(nvl(it.getOptionCode(), ""))
-                    .unitText(nvl(it.getUnit(), "-"))
-                    .unitPrice(it.getUnitPrice())
-                    .quantity(it.getQuantity())
-                    .linePrice(line)
-                    .itemEarnPoint(itemEarnPoint)
-                    .build();
+            if (itemProductType == OrderItemProductType.COMPANY) {
 
-            orderItems.add(oi);
+                Long productId = it.getProductId();
+                if (productId == null) {
+                    throw new IllegalArgumentException("회사상품 주문에는 productId 가 필요합니다.");
+                }
+
+                Product product = productRepository.findById(productId)
+                        .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다. productId=" + productId));
+
+                Long companyOptionGroupId = firstNotNull(it.getCompanyOptionGroupId(), it.getOptionGroupId());
+                Long companyOptionId = firstNotNull(it.getCompanyOptionId(), it.getOptionId());
+
+                ProductOptionGroup og = null;
+                ProductOption op = null;
+
+                if (companyOptionGroupId != null) {
+                    og = productOptionGroupRepository.findById(companyOptionGroupId)
+                            .orElseThrow(() -> new IllegalArgumentException("회사상품 옵션그룹을 찾을 수 없습니다. companyOptionGroupId=" + companyOptionGroupId));
+                }
+                if (companyOptionId != null) {
+                    op = productOptionRepository.findById(companyOptionId)
+                            .orElseThrow(() -> new IllegalArgumentException("회사상품 옵션을 찾을 수 없습니다. companyOptionId=" + companyOptionId));
+                }
+
+                OrderItem oi = OrderItem.builder()
+                        .itemProductType(OrderItemProductType.COMPANY)
+                        .product(product)
+                        .dealerProduct(null)
+                        .productOptionGroup(og)
+                        .productOption(op)
+                        .dealerProductOptionGroup(null)
+                        .dealerProductOption(null)
+                        .productName(nvl(it.getProductName(), product.getName()))
+                        .productImageUrl(nvl(it.getProductImageUrl(), ""))
+                        .optionGroupName(nvl(it.getOptionGroupName(), ""))
+                        .optionName(nvl(it.getOptionName(), ""))
+                        .optionCode(nvl(it.getOptionCode(), ""))
+                        .unitText(nvl(it.getUnit(), "-"))
+                        .unitPrice(it.getUnitPrice())
+                        .quantity(it.getQuantity())
+                        .linePrice(line)
+                        .itemEarnPoint(itemEarnPoint)
+                        .build();
+
+                orderItems.add(oi);
+                continue;
+            }
+
+            if (itemProductType == OrderItemProductType.DEALER) {
+
+                Long dealerProductId = it.getDealerProductId();
+                if (dealerProductId == null) {
+                    throw new IllegalArgumentException("딜러상품 주문에는 dealerProductId 가 필요합니다.");
+                }
+
+                DealerProduct dealerProduct = dealerProductRepository.findById(dealerProductId)
+                        .orElseThrow(() -> new IllegalArgumentException("딜러상품을 찾을 수 없습니다. dealerProductId=" + dealerProductId));
+
+                Long dealerOptionGroupId = firstNotNull(it.getDealerOptionGroupId(), it.getOptionGroupId());
+                Long dealerOptionId = firstNotNull(it.getDealerOptionId(), it.getOptionId());
+
+                DealerProductOptionGroup dog = null;
+                DealerProductOption dop = null;
+
+                if (dealerOptionGroupId != null) {
+                    dog = dealerProductOptionGroupRepository.findById(dealerOptionGroupId)
+                            .orElseThrow(() -> new IllegalArgumentException("딜러상품 옵션그룹을 찾을 수 없습니다. dealerOptionGroupId=" + dealerOptionGroupId));
+                }
+                if (dealerOptionId != null) {
+                    dop = dealerProductOptionRepository.findById(dealerOptionId)
+                            .orElseThrow(() -> new IllegalArgumentException("딜러상품 옵션을 찾을 수 없습니다. dealerOptionId=" + dealerOptionId));
+                }
+
+                OrderItem oi = OrderItem.builder()
+                        .itemProductType(OrderItemProductType.DEALER)
+                        .product(null)
+                        .dealerProduct(dealerProduct)
+                        .productOptionGroup(null)
+                        .productOption(null)
+                        .dealerProductOptionGroup(dog)
+                        .dealerProductOption(dop)
+                        .productName(nvl(it.getProductName(), dealerProduct.getName()))
+                        .productImageUrl(nvl(it.getProductImageUrl(), ""))
+                        .optionGroupName(nvl(it.getOptionGroupName(), ""))
+                        .optionName(nvl(it.getOptionName(), ""))
+                        .optionCode(nvl(it.getOptionCode(), ""))
+                        .unitText(nvl(it.getUnit(), "-"))
+                        .unitPrice(it.getUnitPrice())
+                        .quantity(it.getQuantity())
+                        .linePrice(line)
+                        .itemEarnPoint(itemEarnPoint)
+                        .build();
+
+                orderItems.add(oi);
+                continue;
+            }
+
+            throw new IllegalArgumentException("지원하지 않는 상품 타입입니다.");
         }
 
         long baseDiscount = 0L;
@@ -306,9 +392,6 @@ public class OrderService {
         order.setStatus(OrderStatus.PRODUCT_PREPARING);
         order.setPaidAt(paidAt);
 
-        // =========================
-        // 1) 실제 사용된 쿠폰만 USED 처리 + 사용이력 저장
-        // =========================
         if (order.getMemberCoupon() != null && nvlLong(order.getCouponDiscount()) > 0L) {
             MemberCoupon usedMemberCoupon = order.getMemberCoupon();
             usedMemberCoupon.setUsedAt(paidAt);
@@ -317,9 +400,6 @@ public class OrderService {
             adminClientBenefitService.recordCouponUse(usedMemberCoupon, order);
         }
 
-        // =========================
-        // 2) 포인트 차감 + 적립
-        // =========================
         Member member = order.getMember();
         long cur = member.getPoint() == null ? 0L : member.getPoint();
         long used = order.getPointUsed() == null ? 0L : order.getPointUsed();
@@ -339,9 +419,6 @@ public class OrderService {
         }
         member.setPoint(next);
 
-        // =========================
-        // 3) 구매 상품의 프로모션 중 쿠폰 타입이 있으면 회원쿠폰 발급 + 발급이력 저장
-        // =========================
         issuePromotionCouponsByOrder(order, paidAt);
 
         return OrderStatusUpdateResponseDTO.builder()
@@ -349,7 +426,7 @@ public class OrderService {
                 .status(order.getStatus().name())
                 .build();
     }
-    
+
     private void validateCouponMasterPeriod(Coupon coupon) {
         if (coupon == null) {
             throw new IllegalArgumentException("쿠폰 정보가 비어있습니다.");
@@ -365,7 +442,7 @@ public class OrderService {
             throw new IllegalArgumentException("사용 기간이 종료된 쿠폰입니다.");
         }
     }
-    
+
     private void issuePromotionCouponsByOrder(Order order, LocalDateTime issuedAt) {
         if (order == null || order.getMember() == null || order.getMember().getId() == null) {
             return;
@@ -378,11 +455,18 @@ public class OrderService {
         Long memberId = order.getMember().getId();
         LocalDate baseDate = issuedAt != null ? issuedAt.toLocalDate() : LocalDate.now();
 
-        // 같은 주문에서 동일 coupon_id 중복 발급 방지
         Set<Long> processedCouponIds = new HashSet<>();
 
         for (OrderItem item : order.getItems()) {
-            if (item == null || item.getProduct() == null) {
+            if (item == null) {
+                continue;
+            }
+
+            if (item.getItemProductType() != OrderItemProductType.COMPANY) {
+                continue;
+            }
+
+            if (item.getProduct() == null) {
                 continue;
             }
 
@@ -407,12 +491,10 @@ public class OrderService {
                     continue;
                 }
 
-                // 같은 주문 내 같은 coupon 중복 처리 방지
                 if (!processedCouponIds.add(coupon.getId())) {
                     continue;
                 }
 
-                // 현재 DB unique(member_id, coupon_id) 구조상 이미 있으면 재발급 불가
                 if (memberCouponRepository.existsByMember_IdAndCoupon_Id(memberId, coupon.getId())) {
                     continue;
                 }
@@ -459,6 +541,7 @@ public class OrderService {
 
         return true;
     }
+
     // =========================
     // 3) 결제에러 처리
     // =========================
@@ -496,8 +579,15 @@ public class OrderService {
                     String optLabel = buildOptionLabel(oi);
                     long subtotal = (oi.getUnitPrice() == null ? 0L : oi.getUnitPrice()) * (oi.getQuantity() == null ? 0 : oi.getQuantity());
 
+                    Long displayProductId = null;
+                    if (oi.getItemProductType() == OrderItemProductType.DEALER) {
+                        displayProductId = (oi.getDealerProduct() != null ? oi.getDealerProduct().getId() : null);
+                    } else {
+                        displayProductId = (oi.getProduct() != null ? oi.getProduct().getId() : null);
+                    }
+
                     return OrderDetailItemViewDTO.builder()
-                            .productId(oi.getProduct() != null ? oi.getProduct().getId() : null)
+                            .productId(displayProductId)
                             .productName(oi.getProductName())
                             .productImageUrl(nvl(oi.getProductImageUrl(), "/front/image/sample/100-100.png"))
                             .optionLabel(optLabel)
@@ -507,7 +597,7 @@ public class OrderService {
                             .discount(0L)
                             .subtotal(subtotal)
                             .itemEarnPoint(nvlLong(oi.getItemEarnPoint()))
-                            .shippingText("(공통)") // ✅ 라인 표기는 공통 처리
+                            .shippingText("(공통)")
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -564,6 +654,27 @@ public class OrderService {
         };
     }
 
+    private OrderItemProductType resolveItemProductType(OrderCreateItemDTO it) {
+        if (it == null) {
+            throw new IllegalArgumentException("주문 상품 정보가 비어있습니다.");
+        }
+
+        String raw = it.getItemProductType();
+        if (raw == null || raw.isBlank()) {
+            throw new IllegalArgumentException("itemProductType 은 필수입니다. (COMPANY / DEALER)");
+        }
+
+        return switch (raw.trim().toUpperCase()) {
+            case "COMPANY" -> OrderItemProductType.COMPANY;
+            case "DEALER" -> OrderItemProductType.DEALER;
+            default -> throw new IllegalArgumentException("지원하지 않는 itemProductType 입니다. value=" + raw);
+        };
+    }
+
+    private Long firstNotNull(Long a, Long b) {
+        return a != null ? a : b;
+    }
+
     private void requireText(String s, String label) {
         if (s == null || s.trim().isEmpty()) {
             throw new IllegalArgumentException(label + "은(는) 필수입니다.");
@@ -595,7 +706,7 @@ public class OrderService {
         String s = String.join(" / ", parts);
         return s.isBlank() ? "-" : s;
     }
-    
+
     private MemberCoupon findUsableMemberCoupon(Long loginMemberId, Long memberCouponId) {
         return memberCouponRepository.findUsableMemberCouponForOrder(
                         loginMemberId,

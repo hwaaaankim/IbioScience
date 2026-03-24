@@ -16,6 +16,14 @@
 		return isNaN(n) ? 0 : n;
 	}
 
+	function normalizeProductType(v) {
+		var type = String(v || '').toUpperCase();
+		if (type === 'DEALER') {
+			return 'DEALER';
+		}
+		return 'COMPANY';
+	}
+
 	function apiGetCount() {
 		return $.ajax({
 			url: '/api/customer/wishlist/count',
@@ -24,13 +32,15 @@
 		});
 	}
 
-	// ✅ "추가만" 하는 API (이미 있으면 EXISTS)
-	function apiAddCheck(productId) {
+	function apiAddCheck(productType, targetId) {
 		return $.ajax({
 			url: '/api/customer/wishlist/add-check',
 			method: 'POST',
 			dataType: 'json',
-			data: { productId: productId }
+			data: {
+				productType: productType,
+				targetId: targetId
+			}
 		});
 	}
 
@@ -52,17 +62,17 @@
 				.fail(function() { });
 		},
 
-		// ✅ 전역은 "추가만" 동작
-		add: function(productId) {
+		add: function(productType, targetId) {
 			if (!isAuthenticated()) {
 				alert('로그인이 필요합니다.');
 				return $.Deferred().reject().promise();
 			}
-			if (!productId) return $.Deferred().reject().promise();
+			if (!targetId) {
+				return $.Deferred().reject().promise();
+			}
 
-			return apiAddCheck(productId)
+			return apiAddCheck(productType, targetId)
 				.done(function(res) {
-					// res: { count, action }  action = ADDED | EXISTS
 					if (res && typeof res.count !== 'undefined') {
 						setHeaderCount(res.count);
 					}
@@ -76,23 +86,25 @@
 				e.preventDefault();
 
 				var $btn = $(this);
-				var pid = Number($btn.data('product-id'));
-				if (!pid) return;
+				var targetId = Number($btn.data('product-id'));
+				var productType = normalizeProductType($btn.data('product-source-type'));
 
-				self.add(pid)
+				if (!targetId) {
+					return;
+				}
+
+				self.add(productType, targetId)
 					.done(function(res) {
 						if (!res || !res.action) {
 							alert('처리 결과를 확인할 수 없습니다.');
 							return;
 						}
 
-						// ✅ 전역은 삭제하지 않음
 						if (res.action === 'ADDED') {
 							$btn.addClass('active');
 							alert('관심상품에 추가되었습니다.');
 						} else if (res.action === 'EXISTS') {
-							// 이미 담김: 안내만
-							$btn.addClass('active'); // 이미 담긴 상태를 확실히 표시
+							$btn.addClass('active');
 							alert('이미 관심상품에 담긴 상품입니다.');
 						} else {
 							alert('처리 중 오류가 발생했습니다.');

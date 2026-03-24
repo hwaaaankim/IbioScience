@@ -1,7 +1,9 @@
 package com.dev.IbioScience.controller.customerPage;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,12 +16,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.dev.IbioScience.dto.front.productDetail.ProductDetailResponseDto;
 import com.dev.IbioScience.dto.page.productList.ProductListItemDto;
+import com.dev.IbioScience.enums.front.dealerProductList.DealerProductListItemDto;
+import com.dev.IbioScience.enums.front.dealerProductList.DealerProductListSort;
 import com.dev.IbioScience.enums.page.list.ProductSortOption;
 import com.dev.IbioScience.exception.ProductNotDisplayableException;
 import com.dev.IbioScience.exception.ProductNotFoundException;
 import com.dev.IbioScience.model.auth.PrincipalDetails;
 import com.dev.IbioScience.service.page.list.FrontProductListService;
 import com.dev.IbioScience.service.product.front.ProductDetailService;
+import com.dev.IbioScience.service.product.front.dealer.FrontDealerProductListService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -34,6 +39,7 @@ public class ProductFrontController {
 	private final FrontProductListService productListService;
 	private final ObjectMapper objectMapper;
 	private final ProductDetailService productDetailService;
+	private final FrontDealerProductListService frontDealerProductListService;
 
 	@GetMapping("/productList")
 	public String productList(@RequestParam(required = false) Long largeId,
@@ -489,8 +495,52 @@ public class ProductFrontController {
 	
 	
 	@GetMapping("/dealerProductList")
-	public String dealerProductList() {
+    public String dealerProductList(
+            @RequestParam(name = "sort", required = false, defaultValue = "NAME_ASC") String sort,
+            @RequestParam(name = "size", required = false, defaultValue = "15") Integer size,
+            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+            Model model
+    ) {
+        Page<DealerProductListItemDto> productPage =
+                frontDealerProductListService.getDealerProductPage(sort, size, page);
 
-		return "front/product/dealerProductList";
-	}
+        int currentPage = productPage.getNumber();
+        int totalPages = productPage.getTotalPages();
+
+        int startPage = 0;
+        int endPage = -1;
+
+        if (totalPages > 0) {
+            startPage = (currentPage / 5) * 5;
+            endPage = Math.min(startPage + 4, totalPages - 1);
+        }
+
+        List<Integer> pageNumbers = new ArrayList<>();
+        for (int i = startPage; i <= endPage; i++) {
+            pageNumbers.add(i);
+        }
+
+        List<DealerProductListItemDto> sliderItems =
+                productPage.getContent().stream().limit(10).toList();
+
+        Set<String> brandNameSet = new LinkedHashSet<>();
+        for (DealerProductListItemDto item : productPage.getContent()) {
+            if (item.getBrandName() != null && !item.getBrandName().isBlank()) {
+                brandNameSet.add(item.getBrandName());
+            }
+            if (brandNameSet.size() >= 15) {
+                break;
+            }
+        }
+
+        model.addAttribute("productPage", productPage);
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("pageNumbers", pageNumbers);
+        model.addAttribute("sort", DealerProductListSort.from(sort).name());
+        model.addAttribute("size", size);
+        model.addAttribute("sliderItems", sliderItems);
+        model.addAttribute("brandNames", brandNameSet);
+
+        return "front/product/dealerProductList";
+    }
 }

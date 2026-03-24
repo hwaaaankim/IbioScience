@@ -355,23 +355,40 @@
 		const pointUse = Number(st.pointUse || 0);
 		const memberCouponId = (st.coupon && st.coupon.memberCouponId) ? Number(st.coupon.memberCouponId) : null;
 
-		// 아이템: 현재 화면의 st.payload.items를 기반으로 quantity는 DOM값 반영 필요
+		// 아이템
 		const items = [];
 		$$(".paymentSuccess-orderTable tbody tr").forEach((tr, idx) => {
-			// st.payload.items 순서대로 렌더링했으니 idx로 매칭
 			const origin = st.payload.items[idx];
 
 			const qty = Math.max(1, num(tr.querySelector(".paymentSuccess-qty-input")?.value));
-			const unitPrice = num(tr.querySelector(".ps-unitPrice")?.dataset?.value); // ✅ 단가
+			const unitPrice = num(tr.querySelector(".ps-unitPrice")?.dataset?.value);
+
+			const itemProductType = normalizeItemProductType(origin.productType);
+			const isDealer = itemProductType === 'DEALER';
+
+			const rawProductId = origin.productId != null ? Number(origin.productId) : null;
+			const rawOptionGroupId = origin.optionGroupId != null ? Number(origin.optionGroupId) : null;
+			const rawOptionId = origin.optionId != null ? Number(origin.optionId) : null;
 
 			items.push({
-				productId: origin.productId != null ? Number(origin.productId) : null,
-				optionGroupId: origin.optionGroupId != null ? Number(origin.optionGroupId) : null,
-				optionId: origin.optionId != null ? Number(origin.optionId) : null,
+				itemProductType: itemProductType,
+
+				// 명시 필드
+				productId: isDealer ? null : rawProductId,
+				dealerProductId: isDealer ? rawProductId : null,
+
+				companyOptionGroupId: isDealer ? null : rawOptionGroupId,
+				companyOptionId: isDealer ? null : rawOptionId,
+
+				dealerOptionGroupId: isDealer ? rawOptionGroupId : null,
+				dealerOptionId: isDealer ? rawOptionId : null,
+
+				// 하위 호환용 공통 필드도 같이 전송
+				optionGroupId: rawOptionGroupId,
+				optionId: rawOptionId,
 
 				productName: origin.productName || "",
 				productImageUrl: origin.productImageUrl || "",
-
 				optionGroupName: origin.optionGroupName || "",
 				optionName: origin.optionName || "",
 				optionCode: origin.optionCode || "",
@@ -1080,6 +1097,11 @@
 			e.preventDefault();
 			e.returnValue = '';
 		});
+	}
+
+	function normalizeItemProductType(v) {
+		const s = String(v || '').trim().toUpperCase();
+		return s === 'DEALER' ? 'DEALER' : 'COMPANY';
 	}
 
 	// =========================

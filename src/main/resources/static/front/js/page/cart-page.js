@@ -7,9 +7,6 @@
 		return;
 	}
 
-	// -------------------------
-	// 유틸
-	// -------------------------
 	function safeParseInt(v) {
 		var n = parseInt(v, 10);
 		return isNaN(n) ? 0 : n;
@@ -30,6 +27,16 @@
 			.replace(/'/g, '&#39;');
 	}
 
+	function normalizeProductType(v) {
+		var s = String(v == null ? '' : v).toUpperCase();
+		return s === 'DEALER' ? 'DEALER' : 'COMPANY';
+	}
+
+	function getProductTypeLabel(v) {
+		var type = normalizeProductType(v);
+		return type === 'DEALER' ? '딜러제품' : '우리회사제품';
+	}
+
 	function buildOptionLabel(opt) {
 		var parts = [];
 		if (opt.optionGroupName) parts.push(opt.optionGroupName);
@@ -43,7 +50,6 @@
 		return (opt && opt.unit) ? String(opt.unit) : '-';
 	}
 
-	// ✅ 옵션행만 대상으로 체크된 row key 수집
 	function getCheckedRowKeys() {
 		var keys = [];
 		$('#cart-tbody').find('tr[data-row-type="opt"]').each(function() {
@@ -59,7 +65,6 @@
 		return keys;
 	}
 
-	// ✅ paymentStart로 넘길 sessionStorage 키
 	function getPaymentSessionKey() {
 		var memberId = (window.IbioCart && window.IbioCart.getCart && window.IbioCart.getCart().userId)
 			? window.IbioCart.getCart().userId
@@ -67,9 +72,6 @@
 		return 'ibio_payment_payload_v1_u' + String(memberId || '');
 	}
 
-	// =========================
-	// ✅ (추가) 빈 장바구니 접근 차단
-	// =========================
 	function redirectToIndexWithMessage(msg) {
 		try { alert(msg); } catch (e) { }
 		window.location.href = '/';
@@ -78,13 +80,11 @@
 	function guardCartOrRedirect() {
 		var cart = window.IbioCart.getCart();
 
-		// 비로그인(또는 인증 플래그 누락 등으로 memberId 못가져오는 경우 포함)
 		if (!cart || !cart.userId) {
 			redirectToIndexWithMessage('로그인이 필요합니다.');
 			return false;
 		}
 
-		// 장바구니 비어있음
 		if (!Array.isArray(cart.items) || cart.items.length === 0) {
 			redirectToIndexWithMessage('장바구니에 담긴 상품이 없습니다.');
 			return false;
@@ -93,10 +93,6 @@
 		return true;
 	}
 
-	// -------------------------
-	// 렌더링(테이블)
-	// - ✅ 제품 묶음(rowspan) + divider 행 추가
-	// -------------------------
 	function renderCartTable() {
 		var cart = window.IbioCart.getCart();
 
@@ -114,6 +110,8 @@
 			var productId = entry.productId;
 			var productName = entry.productName || '';
 			var productImageUrl = entry.productImageUrl || '/front/image/sample/100-100.png';
+			var productType = normalizeProductType(entry.productType);
+			var productTypeLabel = getProductTypeLabel(productType);
 
 			var options = Array.isArray(entry.options) ? entry.options : [];
 			if (options.length === 0) {
@@ -128,14 +126,12 @@
 				}];
 			}
 
-			// ✅ divider (제품 묶음 사이 구분)
 			if (entryIndex > 0) {
 				var $div = $('<tr class="cart-entry-divider" data-row-type="divider"></tr>');
 				$div.append('<td colspan="8"><div class="divider-line"></div></td>');
 				$tbody.append($div);
 			}
 
-			// ✅ rowspan 적용: 첫 옵션행에만 상품정보 셀 출력
 			var rowSpan = options.length;
 
 			options.forEach(function(opt, optIndex) {
@@ -146,37 +142,30 @@
 				var $tr = $('<tr data-row-type="opt"></tr>');
 				$tr.attr('data-cart-entry-id', entryId);
 				$tr.attr('data-opt-index', optIndex);
+				$tr.attr('data-product-type', productType);
 
-				// 체크
 				var $tdCheck = $('<td class="col-check"></td>');
 				$tdCheck.append('<input type="checkbox" class="row-check">');
 
-				// 상품번호
 				var $tdCat = $('<td class="col-catno"></td>').text(productId != null ? String(productId) : '-');
 
-				// 상품명/썸네일
 				var $tdName = $('<td class="col-name"></td>');
 
-				// 옵션
 				var $tdOpt = $('<td class="col-calib"></td>');
 				var optLabel = buildOptionLabel(opt);
 				var $optInput = $('<input type="text" class="form-control form-control-sm option-input" readonly>');
 				$optInput.val(optLabel);
 				$tdOpt.append($optInput);
 
-				// 단가
 				var $tdPrice = $('<td class="col-price"></td>');
 				$tdPrice.append('<span class="price unit-price" data-value="' + unitPrice + '">' + formatMoney(unitPrice) + '</span>원');
 
-				// 딜러가
 				var $tdDealer = $('<td class="col-dealer"></td>');
 				$tdDealer.append('<strong class="dealer price" data-value="0">-</strong>');
 
-				// 단위
 				var unitText = buildUnitText(opt);
 				var $tdUnit = $('<td class="col-unit"></td>').text(unitText);
 
-				// 수량
 				var $tdQty = $('<td class="col-qty"></td>');
 				var qtyHtml = ''
 					+ '<div class="qty-stepper" data-min="1">'
@@ -188,30 +177,28 @@
 					+ '</div>';
 				$tdQty.html(qtyHtml);
 
-				// ✅ 첫 옵션행: 상품정보를 rowspan으로 묶어서 출력
 				if (optIndex === 0) {
 					var nameHtml = ''
 						+ '<div class="name-cell">'
 						+ '  <img src="' + escapeHtml(productImageUrl) + '" class="thumb" alt="">'
 						+ '  <div class="texts">'
-						+ '    <div class="brand">-</div>'
+						+ '    <div class="brand"></div>'
 						+ '    <div class="title"></div>'
 						+ '    <div class="cat">Product ID : <span></span></div>'
 						+ '    <div class="cart-entry-meta">옵션 <strong class="opt-count"></strong>개 담김</div>'
 						+ '  </div>'
 						+ '</div>';
 					$tdName.html(nameHtml);
+					$tdName.find('.brand').text(productTypeLabel);
 					$tdName.find('.title').text(productName || '-');
 					$tdName.find('.cat span').text(productId != null ? String(productId) : '-');
 					$tdName.find('.opt-count').text(String(rowSpan));
 
-					// rowspan 적용
 					$tdCat.attr('rowspan', rowSpan);
 					$tdName.attr('rowspan', rowSpan);
 
 					$tr.append($tdCheck, $tdCat, $tdName, $tdOpt, $tdPrice, $tdDealer, $tdUnit, $tdQty);
 				} else {
-					// ✅ 이후 옵션행: 상품번호/상품명 셀은 출력하지 않음 (rowspan으로 이미 위에 존재)
 					$tr.append($tdCheck, $tdOpt, $tdPrice, $tdDealer, $tdUnit, $tdQty);
 				}
 
@@ -225,9 +212,6 @@
 		updateCheckAllState();
 	}
 
-	// -------------------------
-	// 체크박스/합계
-	// -------------------------
 	function updateCheckAllState() {
 		var $rows = $('#cart-tbody').find('tr[data-row-type="opt"] .row-check');
 		if ($rows.length === 0) {
@@ -281,10 +265,6 @@
 		$('#m-total-final').text(formatMoney(t.finalTotal));
 	}
 
-	// =========================
-	// ✅ (추가) 모바일 상세내역 모달 렌더링
-	// - 현재 선택된 항목 기준으로 상세내역을 보여줌
-	// =========================
 	function renderMobileDetailModal() {
 		var t = calcSelectedTotalsFromDom();
 
@@ -306,9 +286,6 @@
 		$items.html(html);
 	}
 
-	// -------------------------
-	// localStorage 반영(삭제/수량)
-	// -------------------------
 	function applyDomQuantitiesToStorage() {
 		var cart = window.IbioCart.getCart();
 		if (!cart || !Array.isArray(cart.items)) return;
@@ -365,19 +342,26 @@
 			return entry.options.length > 0;
 		});
 
+		cart.itemsByType = {
+			COMPANY: [],
+			DEALER: []
+		};
+
+		cart.items.forEach(function(entry) {
+			var type = normalizeProductType(entry.productType);
+			entry.productType = type;
+			cart.itemsByType[type].push(entry);
+		});
+
 		window.IbioCart.saveCart(cart);
 		window.IbioCart.updateHeaderCount();
 		renderCartTable();
 
-		// ✅ 삭제 후 비었으면 바로 튕김 (단, 구매 이동 중이면 스킵)
 		if (!skipEmptyGuard) {
 			if (!guardCartOrRedirect()) return;
 		}
 	}
 
-	// =========================
-	// ✅ 주문서 payload 생성 + 이동 + 장바구니에서 제거
-	// =========================
 	function buildPaymentPayloadFromSelection() {
 		var cart = window.IbioCart.getCart();
 		var memberId = cart ? cart.userId : null;
@@ -406,6 +390,7 @@
 					cartEntryId: entry.cartEntryId,
 					optIndex: optIndex,
 
+					productType: normalizeProductType(entry.productType),
 					productId: entry.productId,
 					productName: entry.productName || '',
 					productImageUrl: entry.productImageUrl || '/front/image/sample/100-100.png',
@@ -463,9 +448,6 @@
 		window.location.href = '/customer/paymentStart';
 	}
 
-	// -------------------------
-	// 이벤트
-	// -------------------------
 	function bindEvents() {
 		$(document).on('change', '#cart-checkall', function() {
 			var checked = $(this).is(':checked');
@@ -514,8 +496,6 @@
 			deleteSelectedRowsFromStorage();
 		});
 
-		// ⚠️ "장바구니 비우기" 버튼은 현재 코드가 '선택 삭제'로만 동작하고 있습니다.
-		// 요구사항이 "전체 비우기"면 별도 함수가 필요하지만, 지금은 기존 기능 유지(환님 코드 유지).
 		$(document).on('click', '#btn-empty', function() {
 			deleteSelectedRowsFromStorage();
 		});
@@ -525,41 +505,34 @@
 		});
 
 		$(document).on('click', '#btn-buy-all', function() {
-			// ✅ 옵션행 전체 개수
 			var $rows = $('#cart-tbody').find('tr[data-row-type="opt"] .row-check');
 
-			// 안전장치: 행이 없으면 진행 불가
 			if ($rows.length === 0) {
 				alert('선택된 상품이 없습니다.');
 				return;
 			}
 
-			// ✅ 하나라도 체크가 안 되어 있으면 막기
 			var allChecked = true;
 			$rows.each(function() {
 				if (!$(this).is(':checked')) {
 					allChecked = false;
-					return false; // break
+					return false;
 				}
 			});
 
 			if (!allChecked) {
 				alert('모든 제품을 체크박스를 통해 선택 해 주세요');
-				return; // ✅ 구매페이지로 이동 금지
+				return;
 			}
 
-			// ✅ 모두 체크된 경우에만 기존 로직 수행
 			$('#cart-checkall').prop('checked', true).trigger('change');
 			goPaymentStart();
 		});
 
-
-		// ✅ 모달 열릴 때 상세내역 렌더링 (Bootstrap modal 이벤트)
 		$(document).on('show.bs.modal', '#detailModal', function() {
 			renderMobileDetailModal();
 		});
 
-		// ✅ 체크/수량 변경 시 모달 열려있으면 즉시 반영
 		$(document).on('change input', '#cart-checkall, #cart-tbody .row-check, #cart-tbody .qty-input', function() {
 			updateTotals();
 			if ($('#detailModal').hasClass('in') || $('#detailModal').is(':visible')) {
@@ -569,7 +542,6 @@
 	}
 
 	function init() {
-		// ✅ 진입 즉시 가드 (비었으면 안내 후 / 이동)
 		if (!guardCartOrRedirect()) return;
 
 		renderCartTable();

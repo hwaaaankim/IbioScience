@@ -6,44 +6,17 @@
 <body class="common-home res layout-1">
 
 	<div id="wrapper" class="wrapper-fluid banners-effect-3">
-		<header id="header" class=" typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
-		<!-- 상단 상품 슬라이더 -->
+		<header id="header" class="typeheader-1" th:replace="fragments/front/common :: frontHeader"></header>
+
 		<section class="dealer-productList-wrap mb-3">
 			<div class="dealer-productList-slider owl-carousel">
-				<!-- 10장 예시 (원하시는 만큼 반복) -->
-				<div class="dealer-productList-item">
-					<img src="/front/image/sample/450-300.png" alt="#" class="img-responsive" />
-				</div>
-				<div class="dealer-productList-item">
-					<img src="/front/image/sample/450-300.png" alt="#" class="img-responsive" />
-				</div>
-				<div class="dealer-productList-item">
-					<img src="/front/image/sample/450-300.png" alt="#" class="img-responsive" />
-				</div>
-				<div class="dealer-productList-item">
-					<img src="/front/image/sample/450-300.png" alt="#" class="img-responsive" />
-				</div>
-				<div class="dealer-productList-item">
-					<img src="/front/image/sample/450-300.png" alt="#" class="img-responsive" />
-				</div>
-				<div class="dealer-productList-item">
-					<img src="/front/image/sample/450-300.png" alt="#" class="img-responsive" />
-				</div>
-				<div class="dealer-productList-item">
-					<img src="/front/image/sample/450-300.png" alt="#" class="img-responsive" />
-				</div>
-				<div class="dealer-productList-item">
-					<img src="/front/image/sample/450-300.png" alt="#" class="img-responsive" />
-				</div>
-				<div class="dealer-productList-item">
-					<img src="/front/image/sample/450-300.png" alt="#" class="img-responsive" />
-				</div>
-				<div class="dealer-productList-item">
-					<img src="/front/image/sample/450-300.png" alt="#" class="img-responsive" />
+				<div class="dealer-productList-item" th:each="sliderItem : ${sliderItems}">
+					<a th:href="${sliderItem.detailUrl}">
+						<img th:src="${sliderItem.imageUrl}" th:alt="${sliderItem.name}" class="img-responsive" />
+					</a>
 				</div>
 			</div>
 
-			<!-- 컨트롤/페이지네이션 (슬라이더 하단 20px) -->
 			<div class="dealer-productList-controls">
 				<div class="dealer-productList-progress">
 					<div class="dealer-productList-progress-track"></div>
@@ -59,69 +32,69 @@
 
 		<section class="dealer-productList-brandWrap">
 			<div class="dealer-productList-brandSlider owl-carousel">
-				<!-- 15장 예시 (원하시는 만큼 반복 가능) -->
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
-				<div class="dealer-productList-brandItem"><img src="/front/image/sample/100-100.png" alt="#"></div>
+				<div class="dealer-productList-brandItem dealer-productList-brandItem--text"
+					th:each="brandName : ${brandNames}">
+					<span th:text="${brandName}">브랜드명</span>
+				</div>
 			</div>
 		</section>
 
 		<div class="main-container container mt-5">
 			<div class="row justify-content-center d-flex">
-
 				<div id="content" class="col-lg-10 col-md-12 col-sm-12">
 					<div class="products-category">
-						<div class="product-filter product-filter-top filters-panel">
-							<div class="row">
-								<div class="short-by-show form-inline text-right col-md-12 col-sm-12 col-xs-12">
-									<h3 class="title-category text-left">대/중/소분류 - 브랜드 [총 : ___개 상품 검색]</h3>
-									<div class="row product-list-filter">
-										<div class="form-group short-by">
-											<select class="form-control">
-												<option value="" selected="selected">조회조건</option>
-												<option value="">이름순</option>
-												<option value="">이름역순</option>
-												<option value="">가격순 (Low &gt; High)</option>
-												<option value="">가격순 (High &gt; Low)</option>
-												<option value="">별점순 (Highest)</option>
-												<option value="">별점순 (Lowest)</option>
-											</select>
-										</div>
-										<div class="form-group">
-											<select id="input-limit" class="form-control">
-												<option value="" selected="selected">15개씩 보기</option>
-												<option value="">25개씩 보기</option>
-												<option value="">50개씩 보기</option>
-												<option value="">75개씩 보기</option>
-												<option value="">100개씩 보기</option>
-											</select>
-										</div>
-										<div class="form-group list-view view-mode">
-											<button class="btn btn-default grid active" data-view="grid"
-												data-toggle="tooltip" data-original-title="Grid"><i
-													class="fa fa-th"></i></button>
-											<button class="btn btn-default list" data-view="list" data-toggle="tooltip"
-												data-original-title="List"><i class="fa fa-th-list"></i></button>
+
+						<form id="productListForm" th:action="@{/dealerProductList}" method="get">
+							<input type="hidden" name="page" th:value="${currentPage}">
+							<div class="product-filter product-filter-top filters-panel">
+								<div class="row">
+									<div class="short-by-show form-inline text-right col-md-12 col-sm-12 col-xs-12">
+										<h3 class="title-category text-left"
+											th:text="'딜러상품 [총 : ' + ${productPage.totalElements} + '개 상품 검색]'">
+											딜러상품 [총 : 0개 상품 검색]
+										</h3>
+
+										<div class="row product-list-filter">
+											<div class="form-group short-by">
+												<select name="sort" class="form-control">
+													<option value="NAME_ASC" th:selected="${sort == 'NAME_ASC'}">이름순
+													</option>
+													<option value="NAME_DESC" th:selected="${sort == 'NAME_DESC'}">이름역순
+													</option>
+													<option value="PRICE_ASC" th:selected="${sort == 'PRICE_ASC'}">가격순
+														(Low &gt; High)</option>
+													<option value="PRICE_DESC" th:selected="${sort == 'PRICE_DESC'}">가격순
+														(High &gt; Low)</option>
+												</select>
+											</div>
+
+											<div class="form-group">
+												<select name="size" id="input-limit" class="form-control">
+													<option value="15" th:selected="${size == 15}">15개씩 보기</option>
+													<option value="25" th:selected="${size == 25}">25개씩 보기</option>
+													<option value="50" th:selected="${size == 50}">50개씩 보기</option>
+													<option value="75" th:selected="${size == 75}">75개씩 보기</option>
+													<option value="100" th:selected="${size == 100}">100개씩 보기</option>
+												</select>
+											</div>
+
+											<div class="form-group list-view view-mode">
+												<button type="button" class="btn btn-default grid active"
+													data-view="grid" data-toggle="tooltip" data-original-title="Grid">
+													<i class="fa fa-th"></i>
+												</button>
+												<button type="button" class="btn btn-default list" data-view="list"
+													data-toggle="tooltip" data-original-title="List">
+													<i class="fa fa-th-list"></i>
+												</button>
+											</div>
 										</div>
 									</div>
 								</div>
 							</div>
-						</div>
+						</form>
 
 						<div class="products-list row nopadding-xs so-filter-gird">
-
 							<div class="row list-header">
 								<div class="col-lg-2 col-md-2 header-text">
 									<p>상품이미지</p>
@@ -139,251 +112,134 @@
 									<p>옵션</p>
 								</div>
 							</div>
-							<div class="product-layout col-lg-15 col-md-4 col-sm-6 col-xs-12">
-								<div class="product-item-container grid-container">
-									<div class="left-block left-b">
-										<div class="product-image-container">
-											<a href="#">
-												<img src="/front/image/catalog/demo/product/270/e3.jpg"
-													class="img-responsive" alt="image1">
-											</a>
-										</div>
-									</div>
-									<div class="right-block">
-										<div class="button-group so-quickview cartinfo--left">
-											<button type="button" class="addToCart">
-												<span>관심상품등록</span>
-											</button>
-											<button type="button" class="addToCart">
-												<span>상세사항확인</span>
-											</button>
-										</div>
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-										</div>
-										<p class="price">
-											<span class="price-new">제품판매가격 | 견적문의</span>
-										</p>
-										<div class="description item-desc">
-											<p>제품 설명 영역</p>
-										</div>
-									</div>
-								</div>
-								<!-- 상품 1개 블록 -->
-								<div class="product-item-container list-container row" data-product-id="P001">
-									<div class="col-lg-2 col-md-2 col-sm-6 col-xs-6">
-										<img src="/front/image/catalog/demo/product/270/e3.jpg" class="img-responsive">
-									</div>
-									<div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 m-h-100">
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-											<p>제품 설명 영역</p>
-										</div>
-										<div class="product-list-list-mobilebar">
-											<p class="product-list-list-price">
-												<span class="product-list-list-price-text">제품 판매가격</span>
-												<span class="product-list-list-pipe"> | </span>
-												<a href="#" class="product-list-grid-quote">견적 문의</a>
-											</p>
-											<div class="product-list-list-icons">
-												<!-- 하트 -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-list-wish"
-													aria-label="관심상품">
-													<i class="fa fa-heart-o" aria-hidden="true"></i>
-												</button>
-												<!-- 옵션보기(슬라이드 토글 트리거) -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-grid-option"
-													aria-label="옵션보기">
-													<i class="fa fa-angle-down" aria-hidden="true"></i>
-												</button>
-											</div>
-										</div>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>FALCON</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>제품 판매가격 | 견적 문의</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<button type="button" class="product-list-wish-btn">
-											<i class="fa fa-heart-o"></i><span> 관심상품등록</span>
-										</button>
-										<!-- ▼ 새로 추가 (옵션보기) : 기존 클래스 건드리지 않고 보조 클래스로만 제어 -->
-										<button type="button" class="product-list-option-btn">
-											<i class="fa fa-angle-down"></i><span> 옵션상세보기</span>
-										</button>
-									</div>
-								</div>
 
-								<!-- 옵션 패널 (위 상품 블록의 '다음 형제'로 위치) -->
-								<div class="product-list-option-panel" style="display:none;">
-									<div class="product-list-option-inner">
-										<div class="table-responsive">
-											<table class="table table-bordered product-list-option-table">
-												<thead>
-													<tr>
-														<th>Cat. No</th>
-														<th>품명</th>
-														<th class="text-right">판매가</th>
-														<th>단위</th>
-														<th class="product-list-qty">수량</th>
-														<th>선택</th>
-													</tr>
-												</thead>
-												<tbody>
-													<tr data-price="72405">
-														<td>357531</td>
-														<td>10mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">72,405</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="67400">
-														<td>357550</td>
-														<td>50mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">67,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="59400">
-														<td>357543</td>
-														<td>5mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">59,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-												</tbody>
-											</table>
-										</div>
-
-										<!-- 총금액 -->
-										<div class="product-list-total">
-											<span class="product-list-total-label">Total.</span>
-											<span class="product-list-total-price">59,400</span><span
-												class="product-list-won"> 원</span>
-										</div>
-
-										<!-- 안내 문구 -->
-										<ul class="product-list-notes">
-											<li>제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수 있습니다.</li>
-											<li>가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수 있습니다.</li>
-										</ul>
-
-										<!-- 하단 버튼 -->
-										<div class="product-list-bottom-btns">
-											<button type="button"
-												class="product-list-btn product-list-btn-quote">견적내기</button>
-											<button type="button"
-												class="product-list-btn product-list-btn-buy">바로구매</button>
-										</div>
-									</div>
+							<div class="col-xs-12" th:if="${productPage.empty}">
+								<div class="alert alert-info text-center">
+									등록된 딜러상품이 없습니다.
 								</div>
 							</div>
-							<div class="product-layout col-lg-15 col-md-4 col-sm-6 col-xs-12">
+
+							<div class="product-layout col-lg-15 col-md-4 col-sm-6 col-xs-12"
+								th:each="item : ${productPage.content}">
 								<div class="product-item-container grid-container">
 									<div class="left-block left-b">
 										<div class="product-image-container">
-											<a href="#">
-												<img src="/front/image/catalog/demo/product/270/e3.jpg"
-													class="img-responsive" alt="image1">
+											<a th:href="${item.detailUrl}">
+												<img th:src="${item.imageUrl}" th:alt="${item.name}"
+													class="img-responsive">
 											</a>
 										</div>
 									</div>
+
 									<div class="right-block">
 										<div class="button-group so-quickview cartinfo--left">
-											<button type="button" class="addToCart">
+											<button type="button" class="addToCart ibio-wish-toggle"
+												th:attr="data-product-id=${item.productId},data-product-source-type=${item.productType}">
 												<span>관심상품등록</span>
 											</button>
-											<button type="button" class="addToCart">
-												<span>상세사항확인</span>
+
+											<button type="button" th:if="${item.hasOptions}"
+												class="addToCart product-list-option-btn">
+												<span>옵션상세보기</span>
 											</button>
+
+											<button type="button" th:if="${!item.hasOptions}"
+												class="addToCart product-list-cart-btn">
+												<span>장바구니담기</span>
+											</button>
+
+											<a th:href="${item.detailUrl}" class="addToCart">
+												<span>상세사항확인</span>
+											</a>
 										</div>
+
 										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
+											<h4>
+												<a th:href="${item.detailUrl}" th:text="${item.name}">제품명</a>
+											</h4>
 										</div>
+
 										<p class="price">
-											<span class="price-new">제품판매가격 | 견적문의</span>
+											<span class="price-new" th:text="${item.displayPriceText}">제품판매가격</span>
 										</p>
+
 										<div class="description item-desc">
-											<p>제품 설명 영역</p>
+											<p th:text="${item.shortDescription}">제품 설명 영역</p>
 										</div>
 									</div>
 								</div>
-								<!-- 상품 1개 블록 -->
-								<div class="product-item-container list-container row" data-product-id="P001">
+
+								<div class="product-item-container list-container row" th:attr="data-product-id=${item.productId},
+                                              data-product-type=${item.productType},
+                                              data-product-sale-price=${item.salePrice}">
 									<div class="col-lg-2 col-md-2 col-sm-6 col-xs-6">
-										<img src="/front/image/catalog/demo/product/270/e3.jpg" class="img-responsive">
+										<a th:href="${item.detailUrl}">
+											<img th:src="${item.imageUrl}" th:alt="${item.name}" class="img-responsive">
+										</a>
 									</div>
+
 									<div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 m-h-100">
 										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-											<p>제품 설명 영역</p>
+											<h4>
+												<a th:href="${item.detailUrl}" th:text="${item.name}">제품명</a>
+											</h4>
+											<p th:text="${item.shortDescription}">제품 설명 영역</p>
 										</div>
+
 										<div class="product-list-list-mobilebar">
 											<p class="product-list-list-price">
-												<span class="product-list-list-price-text">제품 판매가격</span>
-												<span class="product-list-list-pipe"> | </span>
-												<a href="#" class="product-list-grid-quote">견적 문의</a>
+												<span class="product-list-list-price-text"
+													th:text="${item.displayPriceText}">제품 판매가격</span>
 											</p>
+
 											<div class="product-list-list-icons">
-												<!-- 하트 -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-list-wish"
-													aria-label="관심상품">
+												<button type="button" class="product-list-list-iconbtn ibio-wish-toggle"
+													aria-label="관심상품"
+													th:attr="data-product-id=${item.productId},data-product-source-type=${item.productType}">
 													<i class="fa fa-heart-o" aria-hidden="true"></i>
 												</button>
-												<!-- 옵션보기(슬라이드 토글 트리거) -->
-												<button type="button"
+
+												<button type="button" th:if="${item.hasOptions}"
 													class="product-list-list-iconbtn product-list-grid-option"
 													aria-label="옵션보기">
 													<i class="fa fa-angle-down" aria-hidden="true"></i>
 												</button>
+
+												<button type="button" th:if="${!item.hasOptions}"
+													class="product-list-list-iconbtn product-list-cart-btn"
+													aria-label="장바구니담기">
+													<i class="fa fa-shopping-cart" aria-hidden="true"></i>
+												</button>
 											</div>
 										</div>
 									</div>
+
 									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>FALCON</p>
+										<p th:text="${item.brandName}">브랜드명</p>
 									</div>
+
 									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>제품 판매가격 | 견적 문의</p>
+										<p th:text="${item.displayPriceText}">제품 판매가격</p>
 									</div>
+
 									<div class="col-lg-2 col-md-2 m-d-n">
-										<button type="button" class="product-list-wish-btn">
+										<button type="button" class="product-list-wish-btn ibio-wish-toggle"
+											th:attr="data-product-id=${item.productId},data-product-source-type=${item.productType}">
 											<i class="fa fa-heart-o"></i><span> 관심상품등록</span>
 										</button>
-										<!-- ▼ 새로 추가 (옵션보기) : 기존 클래스 건드리지 않고 보조 클래스로만 제어 -->
-										<button type="button" class="product-list-option-btn">
+
+										<button type="button" th:if="${item.hasOptions}"
+											class="product-list-option-btn">
 											<i class="fa fa-angle-down"></i><span> 옵션상세보기</span>
+										</button>
+
+										<button type="button" th:if="${!item.hasOptions}" class="product-list-cart-btn">
+											<i class="fa fa-shopping-cart"></i><span> 장바구니담기</span>
 										</button>
 									</div>
 								</div>
 
-								<!-- 옵션 패널 (위 상품 블록의 '다음 형제'로 위치) -->
-								<div class="product-list-option-panel" style="display:none;">
+								<div class="product-list-option-panel" style="display:none;" th:if="${item.hasOptions}">
 									<div class="product-list-option-inner">
 										<div class="table-responsive">
 											<table class="table table-bordered product-list-option-table">
@@ -398,913 +254,109 @@
 													</tr>
 												</thead>
 												<tbody>
-													<tr data-price="72405">
-														<td>357531</td>
-														<td>10mL Serological Pipet, PS, Individually Paper-Plastic wrap
+													<tr th:each="option : ${item.optionRows}" th:attr="data-price=${option.unitPrice},
+                                                                 data-option-id=${option.optionId},
+                                                                 data-option-group-id=${option.optionGroupId},
+                                                                 data-option-group-name=${option.optionGroupName},
+                                                                 data-option-name=${option.optionName},
+                                                                 data-option-code=${option.optionCode}">
+														<td th:text="${option.catNo}">357531</td>
+														<td th:text="${option.optionName}">옵션명</td>
+														<td class="text-right" th:text="${option.unitPriceText}">72,405원
 														</td>
-														<td class="text-right">72,405</td>
-														<td>50Bag/200CS</td>
+														<td th:text="${option.unit}">-</td>
 														<td class="product-list-qty">
 															<input type="number"
 																class="form-control input-sm product-list-qty-input"
 																value="1" min="1">
 														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="67400">
-														<td>357550</td>
-														<td>50mL Serological Pipet, PS, Individually Paper-Plastic wrap
+														<td class="text-center">
+															<input type="checkbox" class="product-list-row-check">
 														</td>
-														<td class="text-right">67,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="59400">
-														<td>357543</td>
-														<td>5mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">59,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
 													</tr>
 												</tbody>
 											</table>
 										</div>
 
-										<!-- 총금액 -->
 										<div class="product-list-total">
 											<span class="product-list-total-label">Total.</span>
-											<span class="product-list-total-price">59,400</span><span
+											<span class="product-list-total-price">0</span><span
 												class="product-list-won"> 원</span>
 										</div>
 
-										<!-- 안내 문구 -->
 										<ul class="product-list-notes">
-											<li>제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수 있습니다.</li>
+											<li>제품 가격 표시는 선택 옵션 기준으로 계산됩니다.</li>
 											<li>가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수 있습니다.</li>
 										</ul>
 
-										<!-- 하단 버튼 -->
 										<div class="product-list-bottom-btns">
+											<a th:href="${item.detailUrl}"
+												class="product-list-btn product-list-btn-quote">상세보기</a>
 											<button type="button"
-												class="product-list-btn product-list-btn-quote">견적내기</button>
-											<button type="button"
-												class="product-list-btn product-list-btn-buy">바로구매</button>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="product-layout col-lg-15 col-md-4 col-sm-6 col-xs-12">
-								<div class="product-item-container grid-container">
-									<div class="left-block left-b">
-										<div class="product-image-container">
-											<a href="#">
-												<img src="/front/image/catalog/demo/product/270/e3.jpg"
-													class="img-responsive" alt="image1">
-											</a>
-										</div>
-									</div>
-									<div class="right-block">
-										<div class="button-group so-quickview cartinfo--left">
-											<button type="button" class="addToCart">
-												<span>관심상품등록</span>
-											</button>
-											<button type="button" class="addToCart">
-												<span>상세사항확인</span>
-											</button>
-										</div>
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-										</div>
-										<p class="price">
-											<span class="price-new">제품판매가격 | 견적문의</span>
-										</p>
-										<div class="description item-desc">
-											<p>제품 설명 영역</p>
-										</div>
-									</div>
-								</div>
-								<!-- 상품 1개 블록 -->
-								<div class="product-item-container list-container row" data-product-id="P001">
-									<div class="col-lg-2 col-md-2 col-sm-6 col-xs-6">
-										<img src="/front/image/catalog/demo/product/270/e3.jpg" class="img-responsive">
-									</div>
-									<div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 m-h-100">
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-											<p>제품 설명 영역</p>
-										</div>
-										<div class="product-list-list-mobilebar">
-											<p class="product-list-list-price">
-												<span class="product-list-list-price-text">제품 판매가격</span>
-												<span class="product-list-list-pipe"> | </span>
-												<a href="#" class="product-list-grid-quote">견적 문의</a>
-											</p>
-											<div class="product-list-list-icons">
-												<!-- 하트 -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-list-wish"
-													aria-label="관심상품">
-													<i class="fa fa-heart-o" aria-hidden="true"></i>
-												</button>
-												<!-- 옵션보기(슬라이드 토글 트리거) -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-grid-option"
-													aria-label="옵션보기">
-													<i class="fa fa-angle-down" aria-hidden="true"></i>
-												</button>
-											</div>
-										</div>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>FALCON</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>제품 판매가격 | 견적 문의</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<button type="button" class="product-list-wish-btn">
-											<i class="fa fa-heart-o"></i><span> 관심상품등록</span>
-										</button>
-										<!-- ▼ 새로 추가 (옵션보기) : 기존 클래스 건드리지 않고 보조 클래스로만 제어 -->
-										<button type="button" class="product-list-option-btn">
-											<i class="fa fa-angle-down"></i><span> 옵션상세보기</span>
-										</button>
-									</div>
-								</div>
-
-								<!-- 옵션 패널 (위 상품 블록의 '다음 형제'로 위치) -->
-								<div class="product-list-option-panel" style="display:none;">
-									<div class="product-list-option-inner">
-										<div class="table-responsive">
-											<table class="table table-bordered product-list-option-table">
-												<thead>
-													<tr>
-														<th>Cat. No</th>
-														<th>품명</th>
-														<th class="text-right">판매가</th>
-														<th>단위</th>
-														<th class="product-list-qty">수량</th>
-														<th>선택</th>
-													</tr>
-												</thead>
-												<tbody>
-													<tr data-price="72405">
-														<td>357531</td>
-														<td>10mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">72,405</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="67400">
-														<td>357550</td>
-														<td>50mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">67,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="59400">
-														<td>357543</td>
-														<td>5mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">59,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-												</tbody>
-											</table>
-										</div>
-
-										<!-- 총금액 -->
-										<div class="product-list-total">
-											<span class="product-list-total-label">Total.</span>
-											<span class="product-list-total-price">59,400</span><span
-												class="product-list-won"> 원</span>
-										</div>
-
-										<!-- 안내 문구 -->
-										<ul class="product-list-notes">
-											<li>제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수 있습니다.</li>
-											<li>가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수 있습니다.</li>
-										</ul>
-
-										<!-- 하단 버튼 -->
-										<div class="product-list-bottom-btns">
-											<button type="button"
-												class="product-list-btn product-list-btn-quote">견적내기</button>
-											<button type="button"
-												class="product-list-btn product-list-btn-buy">바로구매</button>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="product-layout col-lg-15 col-md-4 col-sm-6 col-xs-12">
-								<div class="product-item-container grid-container">
-									<div class="left-block left-b">
-										<div class="product-image-container">
-											<a href="#">
-												<img src="/front/image/catalog/demo/product/270/e3.jpg"
-													class="img-responsive" alt="image1">
-											</a>
-										</div>
-									</div>
-									<div class="right-block">
-										<div class="button-group so-quickview cartinfo--left">
-											<button type="button" class="addToCart">
-												<span>관심상품등록</span>
-											</button>
-											<button type="button" class="addToCart">
-												<span>상세사항확인</span>
-											</button>
-										</div>
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-										</div>
-										<p class="price">
-											<span class="price-new">제품판매가격 | 견적문의</span>
-										</p>
-										<div class="description item-desc">
-											<p>제품 설명 영역</p>
-										</div>
-									</div>
-								</div>
-								<!-- 상품 1개 블록 -->
-								<div class="product-item-container list-container row" data-product-id="P001">
-									<div class="col-lg-2 col-md-2 col-sm-6 col-xs-6">
-										<img src="/front/image/catalog/demo/product/270/e3.jpg" class="img-responsive">
-									</div>
-									<div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 m-h-100">
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-											<p>제품 설명 영역</p>
-										</div>
-										<div class="product-list-list-mobilebar">
-											<p class="product-list-list-price">
-												<span class="product-list-list-price-text">제품 판매가격</span>
-												<span class="product-list-list-pipe"> | </span>
-												<a href="#" class="product-list-grid-quote">견적 문의</a>
-											</p>
-											<div class="product-list-list-icons">
-												<!-- 하트 -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-list-wish"
-													aria-label="관심상품">
-													<i class="fa fa-heart-o" aria-hidden="true"></i>
-												</button>
-												<!-- 옵션보기(슬라이드 토글 트리거) -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-grid-option"
-													aria-label="옵션보기">
-													<i class="fa fa-angle-down" aria-hidden="true"></i>
-												</button>
-											</div>
-										</div>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>FALCON</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>제품 판매가격 | 견적 문의</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<button type="button" class="product-list-wish-btn">
-											<i class="fa fa-heart-o"></i><span> 관심상품등록</span>
-										</button>
-										<!-- ▼ 새로 추가 (옵션보기) : 기존 클래스 건드리지 않고 보조 클래스로만 제어 -->
-										<button type="button" class="product-list-option-btn">
-											<i class="fa fa-angle-down"></i><span> 옵션상세보기</span>
-										</button>
-									</div>
-								</div>
-
-								<!-- 옵션 패널 (위 상품 블록의 '다음 형제'로 위치) -->
-								<div class="product-list-option-panel" style="display:none;">
-									<div class="product-list-option-inner">
-										<div class="table-responsive">
-											<table class="table table-bordered product-list-option-table">
-												<thead>
-													<tr>
-														<th>Cat. No</th>
-														<th>품명</th>
-														<th class="text-right">판매가</th>
-														<th>단위</th>
-														<th class="product-list-qty">수량</th>
-														<th>선택</th>
-													</tr>
-												</thead>
-												<tbody>
-													<tr data-price="72405">
-														<td>357531</td>
-														<td>10mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">72,405</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="67400">
-														<td>357550</td>
-														<td>50mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">67,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="59400">
-														<td>357543</td>
-														<td>5mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">59,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-												</tbody>
-											</table>
-										</div>
-
-										<!-- 총금액 -->
-										<div class="product-list-total">
-											<span class="product-list-total-label">Total.</span>
-											<span class="product-list-total-price">59,400</span><span
-												class="product-list-won"> 원</span>
-										</div>
-
-										<!-- 안내 문구 -->
-										<ul class="product-list-notes">
-											<li>제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수 있습니다.</li>
-											<li>가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수 있습니다.</li>
-										</ul>
-
-										<!-- 하단 버튼 -->
-										<div class="product-list-bottom-btns">
-											<button type="button"
-												class="product-list-btn product-list-btn-quote">견적내기</button>
-											<button type="button"
-												class="product-list-btn product-list-btn-buy">바로구매</button>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="product-layout col-lg-15 col-md-4 col-sm-6 col-xs-12">
-								<div class="product-item-container grid-container">
-									<div class="left-block left-b">
-										<div class="product-image-container">
-											<a href="#">
-												<img src="/front/image/catalog/demo/product/270/e3.jpg"
-													class="img-responsive" alt="image1">
-											</a>
-										</div>
-									</div>
-									<div class="right-block">
-										<div class="button-group so-quickview cartinfo--left">
-											<button type="button" class="addToCart">
-												<span>관심상품등록</span>
-											</button>
-											<button type="button" class="addToCart">
-												<span>상세사항확인</span>
-											</button>
-										</div>
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-										</div>
-										<p class="price">
-											<span class="price-new">제품판매가격 | 견적문의</span>
-										</p>
-										<div class="description item-desc">
-											<p>제품 설명 영역</p>
-										</div>
-									</div>
-								</div>
-								<!-- 상품 1개 블록 -->
-								<div class="product-item-container list-container row" data-product-id="P001">
-									<div class="col-lg-2 col-md-2 col-sm-6 col-xs-6">
-										<img src="/front/image/catalog/demo/product/270/e3.jpg" class="img-responsive">
-									</div>
-									<div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 m-h-100">
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-											<p>제품 설명 영역</p>
-										</div>
-										<div class="product-list-list-mobilebar">
-											<p class="product-list-list-price">
-												<span class="product-list-list-price-text">제품 판매가격</span>
-												<span class="product-list-list-pipe"> | </span>
-												<a href="#" class="product-list-grid-quote">견적 문의</a>
-											</p>
-											<div class="product-list-list-icons">
-												<!-- 하트 -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-list-wish"
-													aria-label="관심상품">
-													<i class="fa fa-heart-o" aria-hidden="true"></i>
-												</button>
-												<!-- 옵션보기(슬라이드 토글 트리거) -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-grid-option"
-													aria-label="옵션보기">
-													<i class="fa fa-angle-down" aria-hidden="true"></i>
-												</button>
-											</div>
-										</div>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>FALCON</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>제품 판매가격 | 견적 문의</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<button type="button" class="product-list-wish-btn">
-											<i class="fa fa-heart-o"></i><span> 관심상품등록</span>
-										</button>
-										<!-- ▼ 새로 추가 (옵션보기) : 기존 클래스 건드리지 않고 보조 클래스로만 제어 -->
-										<button type="button" class="product-list-option-btn">
-											<i class="fa fa-angle-down"></i><span> 옵션상세보기</span>
-										</button>
-									</div>
-								</div>
-
-								<!-- 옵션 패널 (위 상품 블록의 '다음 형제'로 위치) -->
-								<div class="product-list-option-panel" style="display:none;">
-									<div class="product-list-option-inner">
-										<div class="table-responsive">
-											<table class="table table-bordered product-list-option-table">
-												<thead>
-													<tr>
-														<th>Cat. No</th>
-														<th>품명</th>
-														<th class="text-right">판매가</th>
-														<th>단위</th>
-														<th class="product-list-qty">수량</th>
-														<th>선택</th>
-													</tr>
-												</thead>
-												<tbody>
-													<tr data-price="72405">
-														<td>357531</td>
-														<td>10mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">72,405</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="67400">
-														<td>357550</td>
-														<td>50mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">67,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="59400">
-														<td>357543</td>
-														<td>5mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">59,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-												</tbody>
-											</table>
-										</div>
-
-										<!-- 총금액 -->
-										<div class="product-list-total">
-											<span class="product-list-total-label">Total.</span>
-											<span class="product-list-total-price">59,400</span><span
-												class="product-list-won"> 원</span>
-										</div>
-
-										<!-- 안내 문구 -->
-										<ul class="product-list-notes">
-											<li>제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수 있습니다.</li>
-											<li>가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수 있습니다.</li>
-										</ul>
-
-										<!-- 하단 버튼 -->
-										<div class="product-list-bottom-btns">
-											<button type="button"
-												class="product-list-btn product-list-btn-quote">견적내기</button>
-											<button type="button"
-												class="product-list-btn product-list-btn-buy">바로구매</button>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="product-layout col-lg-15 col-md-4 col-sm-6 col-xs-12">
-								<div class="product-item-container grid-container">
-									<div class="left-block left-b">
-										<div class="product-image-container">
-											<a href="#">
-												<img src="/front/image/catalog/demo/product/270/e3.jpg"
-													class="img-responsive" alt="image1">
-											</a>
-										</div>
-									</div>
-									<div class="right-block">
-										<div class="button-group so-quickview cartinfo--left">
-											<button type="button" class="addToCart">
-												<span>관심상품등록</span>
-											</button>
-											<button type="button" class="addToCart">
-												<span>상세사항확인</span>
-											</button>
-										</div>
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-										</div>
-										<p class="price">
-											<span class="price-new">제품판매가격 | 견적문의</span>
-										</p>
-										<div class="description item-desc">
-											<p>제품 설명 영역</p>
-										</div>
-									</div>
-								</div>
-								<!-- 상품 1개 블록 -->
-								<div class="product-item-container list-container row" data-product-id="P001">
-									<div class="col-lg-2 col-md-2 col-sm-6 col-xs-6">
-										<img src="/front/image/catalog/demo/product/270/e3.jpg" class="img-responsive">
-									</div>
-									<div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 m-h-100">
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-											<p>제품 설명 영역</p>
-										</div>
-										<div class="product-list-list-mobilebar">
-											<p class="product-list-list-price">
-												<span class="product-list-list-price-text">제품 판매가격</span>
-												<span class="product-list-list-pipe"> | </span>
-												<a href="#" class="product-list-grid-quote">견적 문의</a>
-											</p>
-											<div class="product-list-list-icons">
-												<!-- 하트 -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-list-wish"
-													aria-label="관심상품">
-													<i class="fa fa-heart-o" aria-hidden="true"></i>
-												</button>
-												<!-- 옵션보기(슬라이드 토글 트리거) -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-grid-option"
-													aria-label="옵션보기">
-													<i class="fa fa-angle-down" aria-hidden="true"></i>
-												</button>
-											</div>
-										</div>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>FALCON</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>제품 판매가격 | 견적 문의</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<button type="button" class="product-list-wish-btn">
-											<i class="fa fa-heart-o"></i><span> 관심상품등록</span>
-										</button>
-										<!-- ▼ 새로 추가 (옵션보기) : 기존 클래스 건드리지 않고 보조 클래스로만 제어 -->
-										<button type="button" class="product-list-option-btn">
-											<i class="fa fa-angle-down"></i><span> 옵션상세보기</span>
-										</button>
-									</div>
-								</div>
-
-								<!-- 옵션 패널 (위 상품 블록의 '다음 형제'로 위치) -->
-								<div class="product-list-option-panel" style="display:none;">
-									<div class="product-list-option-inner">
-										<div class="table-responsive">
-											<table class="table table-bordered product-list-option-table">
-												<thead>
-													<tr>
-														<th>Cat. No</th>
-														<th>품명</th>
-														<th class="text-right">판매가</th>
-														<th>단위</th>
-														<th class="product-list-qty">수량</th>
-														<th>선택</th>
-													</tr>
-												</thead>
-												<tbody>
-													<tr data-price="72405">
-														<td>357531</td>
-														<td>10mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">72,405</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="67400">
-														<td>357550</td>
-														<td>50mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">67,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="59400">
-														<td>357543</td>
-														<td>5mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">59,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-												</tbody>
-											</table>
-										</div>
-
-										<!-- 총금액 -->
-										<div class="product-list-total">
-											<span class="product-list-total-label">Total.</span>
-											<span class="product-list-total-price">59,400</span><span
-												class="product-list-won"> 원</span>
-										</div>
-
-										<!-- 안내 문구 -->
-										<ul class="product-list-notes">
-											<li>제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수 있습니다.</li>
-											<li>가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수 있습니다.</li>
-										</ul>
-
-										<!-- 하단 버튼 -->
-										<div class="product-list-bottom-btns">
-											<button type="button"
-												class="product-list-btn product-list-btn-quote">견적내기</button>
-											<button type="button"
-												class="product-list-btn product-list-btn-buy">바로구매</button>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="product-layout col-lg-15 col-md-4 col-sm-6 col-xs-12">
-								<div class="product-item-container grid-container">
-									<div class="left-block left-b">
-										<div class="product-image-container">
-											<a href="#">
-												<img src="/front/image/catalog/demo/product/270/e3.jpg"
-													class="img-responsive" alt="image1">
-											</a>
-										</div>
-									</div>
-									<div class="right-block">
-										<div class="button-group so-quickview cartinfo--left">
-											<button type="button" class="addToCart">
-												<span>관심상품등록</span>
-											</button>
-											<button type="button" class="addToCart">
-												<span>상세사항확인</span>
-											</button>
-										</div>
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-										</div>
-										<p class="price">
-											<span class="price-new">제품판매가격 | 견적문의</span>
-										</p>
-										<div class="description item-desc">
-											<p>제품 설명 영역</p>
-										</div>
-									</div>
-								</div>
-								<!-- 상품 1개 블록 -->
-								<div class="product-item-container list-container row" data-product-id="P001">
-									<div class="col-lg-2 col-md-2 col-sm-6 col-xs-6">
-										<img src="/front/image/catalog/demo/product/270/e3.jpg" class="img-responsive">
-									</div>
-									<div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 m-h-100">
-										<div class="caption hide-cont">
-											<h4><a href="">제품명</a></h4>
-											<p>제품 설명 영역</p>
-										</div>
-										<div class="product-list-list-mobilebar">
-											<p class="product-list-list-price">
-												<span class="product-list-list-price-text">제품 판매가격</span>
-												<span class="product-list-list-pipe"> | </span>
-												<a href="#" class="product-list-grid-quote">견적 문의</a>
-											</p>
-											<div class="product-list-list-icons">
-												<!-- 하트 -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-list-wish"
-													aria-label="관심상품">
-													<i class="fa fa-heart-o" aria-hidden="true"></i>
-												</button>
-												<!-- 옵션보기(슬라이드 토글 트리거) -->
-												<button type="button"
-													class="product-list-list-iconbtn product-list-grid-option"
-													aria-label="옵션보기">
-													<i class="fa fa-angle-down" aria-hidden="true"></i>
-												</button>
-											</div>
-										</div>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>FALCON</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<p>제품 판매가격 | 견적 문의</p>
-									</div>
-									<div class="col-lg-2 col-md-2 m-d-n">
-										<button type="button" class="product-list-wish-btn">
-											<i class="fa fa-heart-o"></i><span> 관심상품등록</span>
-										</button>
-										<!-- ▼ 새로 추가 (옵션보기) : 기존 클래스 건드리지 않고 보조 클래스로만 제어 -->
-										<button type="button" class="product-list-option-btn">
-											<i class="fa fa-angle-down"></i><span> 옵션상세보기</span>
-										</button>
-									</div>
-								</div>
-
-								<!-- 옵션 패널 (위 상품 블록의 '다음 형제'로 위치) -->
-								<div class="product-list-option-panel" style="display:none;">
-									<div class="product-list-option-inner">
-										<div class="table-responsive">
-											<table class="table table-bordered product-list-option-table">
-												<thead>
-													<tr>
-														<th>Cat. No</th>
-														<th>품명</th>
-														<th class="text-right">판매가</th>
-														<th>단위</th>
-														<th class="product-list-qty">수량</th>
-														<th>선택</th>
-													</tr>
-												</thead>
-												<tbody>
-													<tr data-price="72405">
-														<td>357531</td>
-														<td>10mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">72,405</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="67400">
-														<td>357550</td>
-														<td>50mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">67,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-													<tr data-price="59400">
-														<td>357543</td>
-														<td>5mL Serological Pipet, PS, Individually Paper-Plastic wrap
-														</td>
-														<td class="text-right">59,400</td>
-														<td>50Bag/200CS</td>
-														<td class="product-list-qty">
-															<input type="number"
-																class="form-control input-sm product-list-qty-input"
-																value="1" min="1">
-														</td>
-														<td class="text-center"><input type="checkbox"
-																class="product-list-row-check"></td>
-													</tr>
-												</tbody>
-											</table>
-										</div>
-
-										<!-- 총금액 -->
-										<div class="product-list-total">
-											<span class="product-list-total-label">Total.</span>
-											<span class="product-list-total-price">59,400</span><span
-												class="product-list-won"> 원</span>
-										</div>
-
-										<!-- 안내 문구 -->
-										<ul class="product-list-notes">
-											<li>제품 가격 표시는 Cat. No. 단일 기준이며 옵션 총합과 다를 수 있습니다.</li>
-											<li>가격/사양은 제조/공급사의 정책 변경에 따라 사전 공지 없이 변경될 수 있습니다.</li>
-										</ul>
-
-										<!-- 하단 버튼 -->
-										<div class="product-list-bottom-btns">
-											<button type="button"
-												class="product-list-btn product-list-btn-quote">견적내기</button>
-											<button type="button"
-												class="product-list-btn product-list-btn-buy">바로구매</button>
+												class="product-list-btn product-list-btn-buy">장바구니담기</button>
 										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-						<div class="product-filter product-filter-bottom filters-panel">
+
+						<div class="product-filter product-filter-bottom filters-panel"
+							th:if="${productPage.totalPages > 0}">
 							<div class="row">
 								<div class="box-pagination col-md-12 col-sm-12 col-xs-12 text-center">
-									<ul class="pagination text-center justify-content-center d-flex">
-										<li><a href="">FIRST</a></li>
-										<li><a href="">1</a></li>
-										<li><a href="">2</a></li>
-										<li><a href="">3</a></li>
-										<li><a href="">LAST</a></li>
+									<ul class="pagination text-center justify-content-center d-flex product-pagination">
+										<li th:classappend="${currentPage == 0} ? 'disabled'">
+											<a href="#" data-page="0">FIRST</a>
+										</li>
+
+										<li th:classappend="${!productPage.hasPrevious()} ? 'disabled'">
+											<a href="#" th:attr="data-page=${currentPage - 1}">PREV</a>
+										</li>
+
+										<li th:each="pageNumber : ${pageNumbers}"
+											th:classappend="${pageNumber == currentPage} ? 'active'">
+											<a href="#" th:attr="data-page=${pageNumber}"
+												th:text="${pageNumber + 1}">1</a>
+										</li>
+
+										<li th:classappend="${!productPage.hasNext()} ? 'disabled'">
+											<a href="#" th:attr="data-page=${currentPage + 1}">NEXT</a>
+										</li>
+
+										<li th:classappend="${currentPage >= productPage.totalPages - 1} ? 'disabled'">
+											<a href="#" th:attr="data-page=${productPage.totalPages - 1}">LAST</a>
+										</li>
 									</ul>
 								</div>
 							</div>
 						</div>
+
+						<style>
+							.dealer-productList-brandItem--text {
+								display: flex;
+								align-items: center;
+								justify-content: center;
+								min-height: 100px;
+								padding: 12px;
+								background: #fff;
+								border: 1px solid #e5e5e5;
+								text-align: center;
+							}
+
+							.dealer-productList-brandItem--text span {
+								display: block;
+								font-size: 13px;
+								font-weight: 600;
+								color: #333;
+								word-break: keep-all;
+							}
+						</style>
+
 					</div>
 				</div>
 			</div>
 		</div>
+
 		<footer class="footer-container typefooter-1" th:replace="fragments/front/common :: frontFooter"></footer>
 	</div>
 

@@ -453,3 +453,36 @@
 	font-size: 12px;
 	color: #777;
 }
+
+.ibio-product-source-company {
+	background: #1f8b4c !important;
+	color: #fff !important;
+}
+
+.ibio-product-source-dealer {
+	background: #2f6bff !important;
+	color: #fff !important;
+}
+
+.ibio-index-menu-product-name,
+.ibio-index-m-prod-name {
+	margin-right: 6px;
+}
+
+.ibio-index-menu-product-badge {
+	display: inline-block;
+	padding: 1px 6px;
+	border-radius: 10px;
+	font-size: 11px;
+	line-height: 1.4;
+	color: #fff;
+	vertical-align: middle;
+}
+
+.ibio-index-menu-product-badge.is-company {
+	background: #1f8b4c;
+}
+
+.ibio-index-menu-product-badge.is-dealer {
+	background: #2f6bff;
+}

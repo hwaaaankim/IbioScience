@@ -26,7 +26,6 @@
 
 								<section class="wishList-table-section">
 
-									<!-- ✅ GET 폼으로 필터/사이즈/페이지 관리 -->
 									<form id="wishListForm"
 										th:action="@{'/customer/wishList/' + ${#authentication.principal.member.id}}"
 										method="get">
@@ -59,7 +58,7 @@
 												<col style="width:48px">
 												<col>
 												<col style="width:180px">
-												<col style="width:120px"><!-- 재고 -->
+												<col style="width:120px">
 												<col style="width:140px">
 												<col style="width:160px">
 											</colgroup>
@@ -77,17 +76,18 @@
 
 											<tbody id="wishList-tbody">
 
-												<!-- ✅ 비어있을 때 -->
 												<tr th:if="${wishPage == null or #lists.isEmpty(wishPage.content)}">
 													<td colspan="6" class="text-center">관심상품이 없습니다.</td>
 												</tr>
 
-												<!-- ✅ 목록 -->
 												<th:block th:each="row : ${wishPage.content}">
-													<tr class="wishList-row" th:attr="data-product-id=${row.productId}">
+													<tr class="wishList-row" th:attr="data-row-key=${row.rowKey},
+																 data-target-id=${row.targetId},
+																 data-product-type=${row.productType},
+																 data-detail-url=${row.detailUrl}">
 														<td>
-															<input type="checkbox" class="wishList-check"
-																th:attr="data-id=${row.productId}">
+															<input type="checkbox" class="wishList-check" th:attr="data-id=${row.targetId},
+																		 data-product-type=${row.productType}">
 														</td>
 
 														<td class="wishList-td-product">
@@ -97,21 +97,33 @@
 																		alt="thumb">
 																</div>
 																<div class="wishList-pinfo">
-																	<div class="wishList-pname"
-																		th:title="${row.productName}"
-																		th:text="${row.productName}">제품명</div>
+																	<div
+																		style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+																		<div class="wishList-pname"
+																			th:title="${row.productName}"
+																			th:text="${row.productName}">제품명</div>
+
+																		<span class="label label-primary"
+																			th:if="${row.productType != null and row.productType.name() == 'COMPANY'}">
+																			우리회사제품
+																		</span>
+
+																		<span class="label label-success"
+																			th:if="${row.productType != null and row.productType.name() == 'DEALER'}">
+																			딜러제품
+																		</span>
+																	</div>
+
 																	<div class="wishList-pbrand"
 																		th:text="${row.brandName}">브랜드</div>
 																</div>
 															</div>
 														</td>
 
-														<!-- ✅ 옵션: 옵션 코드/이름 대신 '옵션 개수' -->
 														<td class="wishList-td-option">
 															<span th:text="${row.optionCount + '개 옵션'}">0개 옵션</span>
 														</td>
 
-														<!-- ✅ 재고: 디자인 제거하고 0개 고정 -->
 														<td class="wishList-td-qty">
 															<span>0개</span>
 														</td>
@@ -125,24 +137,26 @@
 														<td class="wishList-td-actions">
 															<button type="button"
 																class="wishList-btn block wishList-go-detail"
-																th:attr="data-product-id=${row.productId}">
+																th:disabled="${row.detailUrl == null}"
+																th:attr="data-detail-url=${row.detailUrl}">
 																상품바로가기
 															</button>
 
 															<button type="button"
 																class="wishList-btn wishList-add-toggle-btn block"
-																th:attr="data-target=${row.productId},
-																	 aria-controls=${'wishList-add-panel-' + row.productId}">
+																th:disabled="${!row.optionPanelEnabled}" th:attr="data-target-key=${row.rowKey},
+																		 aria-controls=${'wishList-add-panel-' + row.rowKey}"
+																th:text="${row.optionPanelEnabled ? '옵션보기' : '옵션없음'}">
 																옵션보기
-																<span class="wishList-add-caret"
-																	aria-hidden="true"></span>
 															</button>
 														</td>
 													</tr>
 
-													<!-- ✅ 옵션 패널 -->
-													<tr class="wishList-add-optrow" th:attr="id=${'wishList-add-panel-' + row.productId},
-														 data-parent=${row.productId}" aria-hidden="true">
+													<tr class="wishList-add-optrow" th:if="${row.optionPanelEnabled}"
+														th:attr="id=${'wishList-add-panel-' + row.rowKey},
+																 data-row-key=${row.rowKey},
+																 data-parent-id=${row.targetId},
+																 data-product-type=${row.productType}" aria-hidden="true">
 														<td colspan="6">
 															<div class="wishList-add-optpanel">
 																<div class="wishList-add-scroll">
@@ -167,14 +181,12 @@
 																		</thead>
 
 																		<tbody>
-																			<!-- 옵션이 없을 때 -->
 																			<tr
 																				th:if="${row.optionGroups == null or #lists.isEmpty(row.optionGroups)}">
 																				<td colspan="6" class="text-center">등록된
 																					옵션이 없습니다.</td>
 																			</tr>
 
-																			<!-- 옵션 그룹/옵션 -->
 																			<th:block th:each="g : ${row.optionGroups}">
 																				<tr>
 																					<td colspan="6"
@@ -185,13 +197,12 @@
 
 																				<tr th:each="opt : ${g.options}"
 																					th:attr="
-																			data-option-id=${opt.optionId},
-																			data-option-group-id=${opt.optionGroupId},
-																			data-option-group-name=${opt.optionGroupName},
-																			data-option-name=${opt.optionName},
-																			data-option-code=${opt.optionCode},
-																			data-price=${opt.finalPrice}
-																		">
+																						data-option-id=${opt.optionId},
+																						data-option-group-id=${opt.optionGroupId},
+																						data-option-group-name=${opt.optionGroupName},
+																						data-option-name=${opt.optionName},
+																						data-option-code=${opt.optionCode},
+																						data-price=${opt.finalPrice}">
 																					<td class="col-pick">
 																						<input type="checkbox"
 																							class="wishList-add-optpick">
@@ -226,7 +237,6 @@
 																			</p>
 																		</div>
 																		<div class="wishList-add-optpanel-right">
-																			<!-- ✅ 미사용: 비활성화 -->
 																			<button type="button"
 																				class="wishList-btn outline"
 																				disabled>견적문의</button>
@@ -254,7 +264,6 @@
 											disabled>선택삭제</button>
 									</div>
 
-									<!-- ✅ 페이지네이션 -->
 									<nav class="d-flex justify-content-center"
 										th:if="${wishPage != null and wishPage.totalPages > 1}">
 										<ul class="pagination">

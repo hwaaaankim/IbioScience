@@ -85,26 +85,43 @@
 
 													<div class="left-block left-b">
 														<div class="box-label">
-															<span class="label-product label-sale"
-																th:if="${p.discountRate != null}"
-																th:text="${'-' + p.discountRate + '%'}">-0%</span>
-															<span class="label-product"
-																th:each="lbl : ${p.promotionLabels}"
-																th:text="${lbl}">LABEL</span>
+														    <span class="label-product"
+														          th:classappend="${p.productSourceType != null and p.productSourceType.name() == 'DEALER'} ? ' ibio-product-source-dealer' : ' ibio-product-source-company'"
+														          th:text="${p.productSourceLabel}">
+														        우리회사제품
+														    </span>
+														
+														    <span class="label-product label-sale"
+														          th:if="${p.discountRate != null}"
+														          th:text="${'-' + p.discountRate + '%'}">
+														        -0%
+														    </span>
+														
+														    <span class="label-product"
+														          th:each="lbl : ${p.promotionLabels}"
+														          th:text="${lbl}">
+														        LABEL
+														    </span>
 														</div>
 
 														<div class="product-image-container second_img">
-															<a th:href="@{${productDetailBase}+'/'+${p.id}}"
-																th:title="${p.name}" class="rvp-link" th:with="
-                                                                priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
-                                                                priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
-                                                           " th:attr="data-rvp-id=${p.id},
-                                                                    data-rvp-name=${p.name},
-                                                                    data-rvp-image=${p.mainImageUrl},
-                                                                    data-rvp-pricenew=${priceNew},
-                                                                    data-rvp-priceold=${priceOld},
-                                                                    data-rvp-rating=${p.averageRating},
-                                                                    data-rvp-review=${p.reviewCount}">
+															<a th:href="${p.detailUrl}"
+															   th:title="${p.name}"
+															   class="rvp-link"
+															   th:with="priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+															            priceOld=${p.discountedPrice != null ? p.consumerPrice : p.salePrice}"
+															   th:attr="data-rvp-id=${p.id},
+															            data-rvp-key=${p.productKey},
+															            data-rvp-product-key=${p.productKey},
+															            data-rvp-source-type=${p.productSourceType},
+															            data-rvp-source-label=${p.productSourceLabel},
+															            data-rvp-detail-url=${p.detailUrl},
+															            data-rvp-name=${p.name},
+															            data-rvp-image=${p.mainImageUrl},
+															            data-rvp-pricenew=${priceNew},
+															            data-rvp-priceold=${priceOld},
+															            data-rvp-rating=${p.averageRating},
+															            data-rvp-review=${p.reviewCount}">
 																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
 																	class="img-1 img-responsive" th:alt="${p.name}">
 																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
@@ -118,9 +135,15 @@
 
 															<!-- ✅ 관심상품등록: 로그인 사용자만 노출 -->
 															<th:block sec:authorize="isAuthenticated()">
-																<button type="button" class="addToCart ibio-wish-toggle"
-																	th:attr="data-product-id=${p.id}">
-																	<span>관심상품등록</span>
+																<button type="button"
+																        class="addToCart ibio-wish-toggle"
+																        th:attr="data-product-id=${p.id},
+																                 data-product-key=${p.productKey},
+																                 data-product-source-type=${p.productSourceType},
+																                 data-product-source-label=${p.productSourceLabel},
+																                 data-detail-url=${p.detailUrl},
+																                 data-product-name=${p.name}">
+																    <span>관심상품등록</span>
 																</button>
 															</th:block>
 
@@ -146,18 +169,26 @@
 															</div>
 
 															<h4>
-																<a th:href="@{${productDetailBase}+'/'+${p.id}}"
-																	th:title="${p.name}" th:text="${p.name}"
-																	class="rvp-link" th:with="
-                                                                    priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
-                                                                    priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
-                                                               " th:attr="data-rvp-id=${p.id},
-                                                                        data-rvp-name=${p.name},
-                                                                        data-rvp-image=${p.mainImageUrl},
-                                                                        data-rvp-pricenew=${priceNew},
-                                                                        data-rvp-priceold=${priceOld},
-                                                                        data-rvp-rating=${p.averageRating},
-                                                                        data-rvp-review=${p.reviewCount}">제품명</a>
+																<a th:href="${p.detailUrl}"
+																   th:title="${p.name}"
+																   th:text="${p.name}"
+																   class="rvp-link"
+																   th:with="priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+																            priceOld=${p.discountedPrice != null ? p.consumerPrice : p.salePrice}"
+																   th:attr="data-rvp-id=${p.id},
+																            data-rvp-key=${p.productKey},
+																            data-rvp-product-key=${p.productKey},
+																            data-rvp-source-type=${p.productSourceType},
+																            data-rvp-source-label=${p.productSourceLabel},
+																            data-rvp-detail-url=${p.detailUrl},
+																            data-rvp-name=${p.name},
+																            data-rvp-image=${p.mainImageUrl},
+																            data-rvp-pricenew=${priceNew},
+																            data-rvp-priceold=${priceOld},
+																            data-rvp-rating=${p.averageRating},
+																            data-rvp-review=${p.reviewCount}">
+																    제품명
+																</a>
 															</h4>
 														</div>
 
@@ -227,25 +258,42 @@
 
 													<div class="left-block left-b">
 														<div class="box-label">
-															<span class="label-product label-sale"
-																th:if="${p.discountRate != null}"
-																th:text="${'-' + p.discountRate + '%'}">-0%</span>
-															<span class="label-product"
-																th:each="lbl : ${p.promotionLabels}"
-																th:text="${lbl}">LABEL</span>
+														    <span class="label-product"
+														          th:classappend="${p.productSourceType != null and p.productSourceType.name() == 'DEALER'} ? ' ibio-product-source-dealer' : ' ibio-product-source-company'"
+														          th:text="${p.productSourceLabel}">
+														        우리회사제품
+														    </span>
+														
+														    <span class="label-product label-sale"
+														          th:if="${p.discountRate != null}"
+														          th:text="${'-' + p.discountRate + '%'}">
+														        -0%
+														    </span>
+														
+														    <span class="label-product"
+														          th:each="lbl : ${p.promotionLabels}"
+														          th:text="${lbl}">
+														        LABEL
+														    </span>
 														</div>
 														<div class="product-image-container second_img">
-															<a th:href="@{${productDetailBase}+'/'+${p.id}}"
-																th:title="${p.name}" class="rvp-link" th:with="
-                                                                priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
-                                                                priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
-                                                           " th:attr="data-rvp-id=${p.id},
-                                                                    data-rvp-name=${p.name},
-                                                                    data-rvp-image=${p.mainImageUrl},
-                                                                    data-rvp-pricenew=${priceNew},
-                                                                    data-rvp-priceold=${priceOld},
-                                                                    data-rvp-rating=${p.averageRating},
-                                                                    data-rvp-review=${p.reviewCount}">
+															<a th:href="${p.detailUrl}"
+															   th:title="${p.name}"
+															   class="rvp-link"
+															   th:with="priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+															            priceOld=${p.discountedPrice != null ? p.consumerPrice : p.salePrice}"
+															   th:attr="data-rvp-id=${p.id},
+															            data-rvp-key=${p.productKey},
+															            data-rvp-product-key=${p.productKey},
+															            data-rvp-source-type=${p.productSourceType},
+															            data-rvp-source-label=${p.productSourceLabel},
+															            data-rvp-detail-url=${p.detailUrl},
+															            data-rvp-name=${p.name},
+															            data-rvp-image=${p.mainImageUrl},
+															            data-rvp-pricenew=${priceNew},
+															            data-rvp-priceold=${priceOld},
+															            data-rvp-rating=${p.averageRating},
+															            data-rvp-review=${p.reviewCount}">
 																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
 																	class="img-1 img-responsive" th:alt="${p.name}">
 																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
@@ -259,9 +307,15 @@
 
 															<!-- ✅ 관심상품등록: 로그인 사용자만 노출 -->
 															<th:block sec:authorize="isAuthenticated()">
-																<button type="button" class="addToCart ibio-wish-toggle"
-																	th:attr="data-product-id=${p.id}">
-																	<span>관심상품등록</span>
+																<button type="button"
+																        class="addToCart ibio-wish-toggle"
+																        th:attr="data-product-id=${p.id},
+																                 data-product-key=${p.productKey},
+																                 data-product-source-type=${p.productSourceType},
+																                 data-product-source-label=${p.productSourceLabel},
+																                 data-detail-url=${p.detailUrl},
+																                 data-product-name=${p.name}">
+																    <span>관심상품등록</span>
 																</button>
 															</th:block>
 
@@ -286,18 +340,26 @@
 																	0 )</span>
 															</div>
 															<h4>
-																<a th:href="@{${productDetailBase}+'/'+${p.id}}"
-																	th:title="${p.name}" th:text="${p.name}"
-																	class="rvp-link" th:with="
-                                                                    priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
-                                                                    priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
-                                                               " th:attr="data-rvp-id=${p.id},
-                                                                        data-rvp-name=${p.name},
-                                                                        data-rvp-image=${p.mainImageUrl},
-                                                                        data-rvp-pricenew=${priceNew},
-                                                                        data-rvp-priceold=${priceOld},
-                                                                        data-rvp-rating=${p.averageRating},
-                                                                        data-rvp-review=${p.reviewCount}">제품명</a>
+																<a th:href="${p.detailUrl}"
+																   th:title="${p.name}"
+																   th:text="${p.name}"
+																   class="rvp-link"
+																   th:with="priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+																            priceOld=${p.discountedPrice != null ? p.consumerPrice : p.salePrice}"
+																   th:attr="data-rvp-id=${p.id},
+																            data-rvp-key=${p.productKey},
+																            data-rvp-product-key=${p.productKey},
+																            data-rvp-source-type=${p.productSourceType},
+																            data-rvp-source-label=${p.productSourceLabel},
+																            data-rvp-detail-url=${p.detailUrl},
+																            data-rvp-name=${p.name},
+																            data-rvp-image=${p.mainImageUrl},
+																            data-rvp-pricenew=${priceNew},
+																            data-rvp-priceold=${priceOld},
+																            data-rvp-rating=${p.averageRating},
+																            data-rvp-review=${p.reviewCount}">
+																    제품명
+																</a>
 															</h4>
 														</div>
 
@@ -358,25 +420,42 @@
 
 													<div class="left-block left-b">
 														<div class="box-label">
-															<span class="label-product label-sale"
-																th:if="${p.discountRate != null}"
-																th:text="${'-' + p.discountRate + '%'}">-0%</span>
-															<span class="label-product"
-																th:each="lbl : ${p.promotionLabels}"
-																th:text="${lbl}">LABEL</span>
+														    <span class="label-product"
+														          th:classappend="${p.productSourceType != null and p.productSourceType.name() == 'DEALER'} ? ' ibio-product-source-dealer' : ' ibio-product-source-company'"
+														          th:text="${p.productSourceLabel}">
+														        우리회사제품
+														    </span>
+														
+														    <span class="label-product label-sale"
+														          th:if="${p.discountRate != null}"
+														          th:text="${'-' + p.discountRate + '%'}">
+														        -0%
+														    </span>
+														
+														    <span class="label-product"
+														          th:each="lbl : ${p.promotionLabels}"
+														          th:text="${lbl}">
+														        LABEL
+														    </span>
 														</div>
 														<div class="product-image-container second_img">
-															<a th:href="@{${productDetailBase}+'/'+${p.id}}"
-																th:title="${p.name}" class="rvp-link" th:with="
-                                                                priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
-                                                                priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
-                                                           " th:attr="data-rvp-id=${p.id},
-                                                                    data-rvp-name=${p.name},
-                                                                    data-rvp-image=${p.mainImageUrl},
-                                                                    data-rvp-pricenew=${priceNew},
-                                                                    data-rvp-priceold=${priceOld},
-                                                                    data-rvp-rating=${p.averageRating},
-                                                                    data-rvp-review=${p.reviewCount}">
+															<a th:href="${p.detailUrl}"
+															   th:title="${p.name}"
+															   class="rvp-link"
+															   th:with="priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+															            priceOld=${p.discountedPrice != null ? p.consumerPrice : p.salePrice}"
+															   th:attr="data-rvp-id=${p.id},
+															            data-rvp-key=${p.productKey},
+															            data-rvp-product-key=${p.productKey},
+															            data-rvp-source-type=${p.productSourceType},
+															            data-rvp-source-label=${p.productSourceLabel},
+															            data-rvp-detail-url=${p.detailUrl},
+															            data-rvp-name=${p.name},
+															            data-rvp-image=${p.mainImageUrl},
+															            data-rvp-pricenew=${priceNew},
+															            data-rvp-priceold=${priceOld},
+															            data-rvp-rating=${p.averageRating},
+															            data-rvp-review=${p.reviewCount}">
 																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
 																	class="img-1 img-responsive" th:alt="${p.name}">
 																<img th:src="${p.mainImageUrl != null ? p.mainImageUrl : '/front/image/sample/270-270.png'}"
@@ -390,9 +469,15 @@
 
 															<!-- ✅ 관심상품등록: 로그인 사용자만 노출 -->
 															<th:block sec:authorize="isAuthenticated()">
-																<button type="button" class="addToCart ibio-wish-toggle"
-																	th:attr="data-product-id=${p.id}">
-																	<span>관심상품등록</span>
+																<button type="button"
+																        class="addToCart ibio-wish-toggle"
+																        th:attr="data-product-id=${p.id},
+																                 data-product-key=${p.productKey},
+																                 data-product-source-type=${p.productSourceType},
+																                 data-product-source-label=${p.productSourceLabel},
+																                 data-detail-url=${p.detailUrl},
+																                 data-product-name=${p.name}">
+																    <span>관심상품등록</span>
 																</button>
 															</th:block>
 
@@ -417,18 +502,26 @@
 																	0 )</span>
 															</div>
 															<h4>
-																<a th:href="@{${productDetailBase}+'/'+${p.id}}"
-																	th:title="${p.name}" th:text="${p.name}"
-																	class="rvp-link" th:with="
-                                                                    priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
-                                                                    priceOld=${p.discountedPrice != null ? p.consumerPrice  : p.salePrice}
-                                                               " th:attr="data-rvp-id=${p.id},
-                                                                        data-rvp-name=${p.name},
-                                                                        data-rvp-image=${p.mainImageUrl},
-                                                                        data-rvp-pricenew=${priceNew},
-                                                                        data-rvp-priceold=${priceOld},
-                                                                        data-rvp-rating=${p.averageRating},
-                                                                        data-rvp-review=${p.reviewCount}">제품명</a>
+																<a th:href="${p.detailUrl}"
+																   th:title="${p.name}"
+																   th:text="${p.name}"
+																   class="rvp-link"
+																   th:with="priceNew=${p.discountedPrice != null ? p.discountedPrice : p.salePrice},
+																            priceOld=${p.discountedPrice != null ? p.consumerPrice : p.salePrice}"
+																   th:attr="data-rvp-id=${p.id},
+																            data-rvp-key=${p.productKey},
+																            data-rvp-product-key=${p.productKey},
+																            data-rvp-source-type=${p.productSourceType},
+																            data-rvp-source-label=${p.productSourceLabel},
+																            data-rvp-detail-url=${p.detailUrl},
+																            data-rvp-name=${p.name},
+																            data-rvp-image=${p.mainImageUrl},
+																            data-rvp-pricenew=${priceNew},
+																            data-rvp-priceold=${priceOld},
+																            data-rvp-rating=${p.averageRating},
+																            data-rvp-review=${p.reviewCount}">
+																    제품명
+																</a>
 															</h4>
 														</div>
 

@@ -277,7 +277,8 @@
 
 									<!-- LIST 모드용 -->
 									<div class="product-item-container list-container row"
-										th:attr="data-product-id=${p.id}">
+											th:attr="data-product-id=${p.id}"
+											data-product-type="COMPANY">
 										<div class="col-lg-2 col-md-2 col-sm-6 col-xs-6">
 											<img th:src="${p.mainImageUrl != null} ? ${p.mainImageUrl} : '/front/image/catalog/demo/product/270/e3.jpg'"
 												class="img-responsive">
