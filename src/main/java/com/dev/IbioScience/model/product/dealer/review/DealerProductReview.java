@@ -1,10 +1,10 @@
-package com.dev.IbioScience.model.product.review;
+package com.dev.IbioScience.model.product.dealer.review;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dev.IbioScience.model.product.Product;
+import com.dev.IbioScience.model.product.dealer.DealerProduct;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -25,26 +25,26 @@ import lombok.Data;
 @Data
 @Entity
 @Table(
-    name = "tb_product_review",
+    name = "tb_dealer_product_review",
     indexes = {
-        @Index(name = "idx_review_product", columnList = "product_id"),
-        @Index(name = "idx_review_member", columnList = "member_id"),
-        @Index(name = "idx_review_created", columnList = "created_at"),
-        @Index(name = "idx_review_product_member", columnList = "product_id, member_id")
+        @Index(name = "idx_dealer_review_product", columnList = "dealer_product_id"),
+        @Index(name = "idx_dealer_review_member", columnList = "member_id"),
+        @Index(name = "idx_dealer_review_created", columnList = "created_at"),
+        @Index(name = "idx_dealer_review_product_member", columnList = "dealer_product_id, member_id")
     }
 )
-public class ProductReview {
+public class DealerProductReview {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 어떤 제품의 리뷰인지 */
+    /** 어떤 딜러상품의 리뷰인지 */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @JoinColumn(name = "dealer_product_id", nullable = false)
+    private DealerProduct dealerProduct;
 
-    /** 작성자 ID */
+    /** 작성자 회원 ID */
     @Column(name = "member_id", nullable = false)
     private Long memberId;
 
@@ -56,20 +56,21 @@ public class ProductReview {
     @Column(nullable = false)
     private Integer rating;
 
-    /** 내용 */
+    /** 리뷰 내용 */
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    /** 작성일/수정일 */
+    /** 작성일 */
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /** 수정일 */
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    /** 이미지 다중 첨부 */
+    /** 리뷰 이미지 */
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductReviewImage> images = new ArrayList<>();
+    private List<DealerProductReviewImage> images = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

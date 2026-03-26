@@ -138,19 +138,12 @@
 												<span>관심상품등록</span>
 											</button>
 
-											<button type="button" th:if="${item.hasOptions}"
-												class="addToCart product-list-option-btn">
-												<span>옵션상세보기</span>
+											<button type="button"
+											        class="addToCart ibio-wish-toggle"
+											        th:attr="data-detail-url=${item.detailUrl}"
+											        onclick="const url=this.dataset.detailUrl; if(url){ location.href=url; }">
+											    <span>상세사항확인</span>
 											</button>
-
-											<button type="button" th:if="${!item.hasOptions}"
-												class="addToCart product-list-cart-btn">
-												<span>장바구니담기</span>
-											</button>
-
-											<a th:href="${item.detailUrl}" class="addToCart">
-												<span>상세사항확인</span>
-											</a>
 										</div>
 
 										<div class="caption hide-cont">

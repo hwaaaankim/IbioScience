@@ -24,7 +24,9 @@ import com.dev.IbioScience.exception.ProductNotFoundException;
 import com.dev.IbioScience.model.auth.PrincipalDetails;
 import com.dev.IbioScience.service.page.list.FrontProductListService;
 import com.dev.IbioScience.service.product.front.ProductDetailService;
+import com.dev.IbioScience.service.product.front.dealer.DealerProductDetailService;
 import com.dev.IbioScience.service.product.front.dealer.FrontDealerProductListService;
+import com.dev.IbioScience.service.product.front.dealer.review.DealerProductReviewService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -40,6 +42,8 @@ public class ProductFrontController {
 	private final ObjectMapper objectMapper;
 	private final ProductDetailService productDetailService;
 	private final FrontDealerProductListService frontDealerProductListService;
+	private final DealerProductDetailService dealerProductDetailService;
+	private final DealerProductReviewService dealerProductReviewService;
 
 	@GetMapping("/productList")
 	public String productList(@RequestParam(required = false) Long largeId,
@@ -543,4 +547,63 @@ public class ProductFrontController {
 
         return "front/product/dealerProductList";
     }
+	
+	
+	/**
+	 * 딜러상품 상세 페이지
+	 *
+	 * - /dealerProductDetail/{id} 필수 사용 권장
+	 * - 잘못된 접근( id 없음 / 존재하지 않는 상품 / 진열 불가 상품 )은
+	 *   메시지 출력 후 메인으로 redirect
+	 */
+	@GetMapping({"/dealerProductDetail", "/dealerProductDetail/{id}"})
+	public String dealerProductDetail(@PathVariable(required = false) Long id,
+	                                  Model model,
+	                                  RedirectAttributes redirectAttributes,
+	                                  @AuthenticationPrincipal PrincipalDetails principal) {
+
+	    if (id == null) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "딜러상품 정보가 존재하지 않습니다.");
+	        return "redirect:/";
+	    }
+
+	    try {
+	        ProductDetailResponseDto detail = dealerProductDetailService.getDealerProductDetail(id);
+
+	        debugProductDetail(detail);
+
+	        Long loginMemberId = null;
+	        if (principal != null && principal.getMember() != null) {
+	            loginMemberId = principal.getMember().getId();
+	        }
+
+	        model.addAttribute("productId", id);
+	        model.addAttribute("productDetail", detail);
+	        model.addAttribute("loginMemberId", loginMemberId);
+
+	        // 리뷰는 딜러리뷰 서비스에서 별도 주입
+	        model.addAttribute("dealerReviewSummary", dealerProductReviewService.getReviewSummary(id));
+	        model.addAttribute("dealerReviews", dealerProductReviewService.getReviews(id));
+
+	        return "front/product/dealerProductDetail";
+
+	    } catch (ProductNotDisplayableException e) {
+	        log.warn("딜러상품 상세 진입 차단 - 진열 불가 상품. id={}, message={}", id, e.getMessage());
+	        redirectAttributes.addFlashAttribute(
+	                "errorMessage",
+	                e.getMessage() != null ? e.getMessage() : "진열하지 않는 딜러상품입니다."
+	        );
+	        return "redirect:/";
+
+	    } catch (ProductNotFoundException e) {
+	        log.warn("딜러상품 상세 진입 실패 - 상품 미존재. id={}", id);
+	        redirectAttributes.addFlashAttribute("errorMessage", "존재하지 않는 딜러상품입니다.");
+	        return "redirect:/";
+
+	    } catch (Exception e) {
+	        log.error("딜러상품 상세 진입 중 알 수 없는 오류 발생. id={}", id, e);
+	        redirectAttributes.addFlashAttribute("errorMessage", "딜러상품 상세 정보를 불러오는 중 오류가 발생했습니다.");
+	        return "redirect:/";
+	    }
+	}
 }

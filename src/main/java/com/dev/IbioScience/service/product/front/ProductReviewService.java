@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.dev.IbioScience.dto.front.productDetail.ReviewCreateResponse;
 import com.dev.IbioScience.dto.front.productDetail.ReviewPermissionResponse;
+import com.dev.IbioScience.enums.product.dealer.OrderItemProductType;
 import com.dev.IbioScience.model.product.Product;
 import com.dev.IbioScience.model.product.review.ProductReview;
 import com.dev.IbioScience.model.product.review.ProductReviewImage;
@@ -19,9 +20,10 @@ import com.dev.IbioScience.repository.product.review.ProductReviewImageRepositor
 import com.dev.IbioScience.repository.product.review.ProductReviewRepository;
 import com.dev.IbioScience.utils.FileStorageService;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,13 +34,22 @@ public class ProductReviewService {
     private final ProductReviewImageRepository productReviewImageRepository;
     private final FileStorageService fileStorageService;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     /**
      * 리뷰 작성 가능 여부 체크
      *
-     * - 로그인 x → canWrite=false, "로그인이 필요합니다."
-     * - 해당 상품 구매 이력 없음 → canWrite=false, "구매 후 작성 가능합니다."
-     * - 이미 리뷰 있음 → canWrite=false, "이미 작성하신 리뷰가 있습니다."
-     * - 나머지 → canWrite=true
+     * 기준:
+     * - 로그인 x → 작성 불가
+     * - 실제 결제 완료 주문 없음 → 작성 불가
+     * - 결제 완료 주문 횟수 <= 이미 작성한 리뷰 수 → 작성 불가
+     * - 결제 완료 주문 횟수 > 이미 작성한 리뷰 수 → 작성 가능
+     *
+     * 실제 구매 판정:
+     * - tb_order.paid_at is not null
+     * - 같은 상품을 여러 번 주문했더라도 "주문 1건 = 리뷰 1건"
+     * - 같은 주문 안에서 수량이 2개여도 리뷰는 1건만 가능
      */
     @Transactional(readOnly = true)
     public ReviewPermissionResponse checkPermission(Long productId, Long memberId) {
@@ -46,7 +57,6 @@ public class ProductReviewService {
             throw new IllegalArgumentException("상품 ID가 필요합니다.");
         }
 
-        // 비로그인
         if (memberId == null) {
             return ReviewPermissionResponse.builder()
                     .canWrite(false)
@@ -54,27 +64,30 @@ public class ProductReviewService {
                     .build();
         }
 
-        // TODO: 실제 구매 이력 체크 로직 (주문 테이블 기준)
-        boolean purchased = true; // 실제 구현에서 주문내역으로 검증
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
 
-        if (!purchased) {
+        long purchasedOrderCount = countPaidCompanyProductOrderCount(memberId, product.getId());
+        if (purchasedOrderCount <= 0L) {
             return ReviewPermissionResponse.builder()
                     .canWrite(false)
                     .message("상품 구매 후에만 리뷰를 작성할 수 있습니다.")
                     .build();
         }
 
-        boolean exists = productReviewRepository.existsByProductIdAndMemberId(productId, memberId);
-        if (exists) {
+        long writtenReviewCount = countProductReviewCount(memberId, product.getId());
+        if (writtenReviewCount >= purchasedOrderCount) {
             return ReviewPermissionResponse.builder()
                     .canWrite(false)
-                    .message("이미 이 상품에 대한 리뷰를 작성하셨습니다.")
+                    .message("구매하신 주문 건에 대한 리뷰를 모두 작성하셨습니다.")
                     .build();
         }
 
+        long remaining = purchasedOrderCount - writtenReviewCount;
+
         return ReviewPermissionResponse.builder()
                 .canWrite(true)
-                .message("리뷰를 작성할 수 있습니다.")
+                .message("리뷰를 작성할 수 있습니다. 남은 작성 가능 횟수: " + remaining + "건")
                 .build();
     }
 
@@ -92,7 +105,6 @@ public class ProductReviewService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
 
-        // 권한 재검사 (중복 작성 방지)
         ReviewPermissionResponse perm = checkPermission(productId, memberId);
         if (!perm.isCanWrite()) {
             throw new IllegalStateException(perm.getMessage());
@@ -102,13 +114,12 @@ public class ProductReviewService {
         review.setProduct(product);
         review.setMemberId(memberId);
         review.setRating(rating);
-        review.setContent(content);
+        review.setContent(content.trim());
         review.setCreatedAt(LocalDateTime.now());
         review.setUpdatedAt(LocalDateTime.now());
 
         productReviewRepository.save(review);
 
-        // 이미지 저장 (선택)
         if (images != null && !images.isEmpty()) {
             saveReviewImages(review, images);
         }
@@ -120,12 +131,6 @@ public class ProductReviewService {
 
     /**
      * 리뷰 수정
-     *
-     * - 본인 리뷰인지 확인
-     * - rating / content 필수
-     * - 이미지 처리:
-     *   * images == null or empty → 기존 이미지 전부 삭제
-     *   * images 존재 → 기존 이미지 전부 삭제 후 새로 저장
      */
     @Transactional
     public ReviewCreateResponse updateReview(Long productId,
@@ -148,13 +153,11 @@ public class ProductReviewService {
         }
 
         review.setRating(rating);
-        review.setContent(content);
+        review.setContent(content.trim());
         review.setUpdatedAt(LocalDateTime.now());
 
-        // 기존 이미지 전부 삭제
         deleteAllReviewImages(review);
 
-        // 새 이미지가 있으면 다시 저장
         if (images != null && !images.isEmpty()) {
             saveReviewImages(review, images);
         }
@@ -166,9 +169,6 @@ public class ProductReviewService {
 
     /**
      * 리뷰 삭제
-     *
-     * - 본인 리뷰인지 확인
-     * - 이미지(DB+파일) 먼저 삭제 후 리뷰 삭제
      */
     @Transactional
     public void deleteReview(Long productId,
@@ -185,10 +185,7 @@ public class ProductReviewService {
             throw new IllegalStateException("본인이 작성한 리뷰만 삭제할 수 있습니다.");
         }
 
-        // 이미지 삭제
         deleteAllReviewImages(review);
-
-        // 리뷰 삭제
         productReviewRepository.delete(review);
     }
 
@@ -196,9 +193,48 @@ public class ProductReviewService {
         if (rating == null || rating < 1 || rating > 5) {
             throw new IllegalArgumentException("별점은 1~5 사이의 값이어야 합니다.");
         }
+
         if (!StringUtils.hasText(content)) {
             throw new IllegalArgumentException("리뷰 내용을 입력해 주세요.");
         }
+    }
+
+    /**
+     * 회원이 실제 결제 완료한 "회사상품 주문 횟수"를 반환
+     *
+     * - distinct oi.order.id 로 계산
+     * - 같은 주문에서 수량이 여러 개여도 1건으로 처리
+     */
+    private long countPaidCompanyProductOrderCount(Long memberId, Long productId) {
+        Long count = entityManager.createQuery(
+                        "select count(distinct oi.order.id) " +
+                        "from OrderItem oi " +
+                        "where oi.order.member.id = :memberId " +
+                        "  and oi.order.paidAt is not null " +
+                        "  and oi.itemProductType = :itemProductType " +
+                        "  and oi.product.id = :productId", Long.class)
+                .setParameter("memberId", memberId)
+                .setParameter("itemProductType", OrderItemProductType.COMPANY)
+                .setParameter("productId", productId)
+                .getSingleResult();
+
+        return count != null ? count : 0L;
+    }
+
+    /**
+     * 회원이 해당 회사상품에 대해 작성한 리뷰 수
+     */
+    private long countProductReviewCount(Long memberId, Long productId) {
+        Long count = entityManager.createQuery(
+                        "select count(pr.id) " +
+                        "from ProductReview pr " +
+                        "where pr.memberId = :memberId " +
+                        "  and pr.product.id = :productId", Long.class)
+                .setParameter("memberId", memberId)
+                .setParameter("productId", productId)
+                .getSingleResult();
+
+        return count != null ? count : 0L;
     }
 
     /**
@@ -206,6 +242,7 @@ public class ProductReviewService {
      */
     private void deleteAllReviewImages(ProductReview review) throws IOException {
         List<ProductReviewImage> images = productReviewImageRepository.findByReviewId(review.getId());
+
         for (ProductReviewImage img : images) {
             if (StringUtils.hasText(img.getPath())) {
                 try {
@@ -215,17 +252,12 @@ public class ProductReviewService {
                 }
             }
         }
+
         productReviewImageRepository.deleteAll(images);
     }
 
     /**
      * 리뷰 이미지 저장 (파일 저장 + DB 저장)
-     *
-     * - 실제 파일은
-     *   {spring.upload.path}/product/{productId}/review/{memberId}/{yyyyMMdd}/{uuid}.ext
-     * - DB에는
-     *   path : 실제 전체 경로
-     *   url  : /upload/product/{productId}/review/{memberId}/{yyyyMMdd}/{uuid}.ext
      */
     private void saveReviewImages(ProductReview review, List<MultipartFile> images) throws IOException {
         int sort = 0;
@@ -234,15 +266,17 @@ public class ProductReviewService {
         Long reviewId = review.getId();
 
         for (MultipartFile file : images) {
-            if (file.isEmpty()) continue;
+            if (file == null || file.isEmpty()) {
+                continue;
+            }
 
             FileStorageService.FileSaveResult saveResult =
                     fileStorageService.saveReviewImage(productId, memberId, reviewId, file);
 
             ProductReviewImage img = new ProductReviewImage();
             img.setReview(review);
-            img.setPath(saveResult.getPath());      // 실제 파일 경로 or S3 key
-            img.setUrl(saveResult.getUrl());        // 접근 URL (/upload/...)
+            img.setPath(saveResult.getPath());
+            img.setUrl(saveResult.getUrl());
             img.setFileName(saveResult.getFileName());
             img.setOriginalFilename(file.getOriginalFilename());
             img.setSize((int) file.getSize());
@@ -253,4 +287,3 @@ public class ProductReviewService {
         }
     }
 }
-

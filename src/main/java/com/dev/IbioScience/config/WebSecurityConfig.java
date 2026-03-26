@@ -44,7 +44,7 @@ public class WebSecurityConfig {
             "/", "/index", "/signIn", "/signup",
             "/companySignUp", "/personalSignUp", "/error", "/signUpSuccess/**", "/upload/**",
             "/temp/api/**", "/api/customer/**", "/signUpProcess/personal", "/signUpProcess/company",
-            "/api/v1/productSelect/**", "/api/v1/**", "/api/menu/**", "/api/category/**"
+            "/api/v1/productSelect/**", "/api/v1/**", "/api/menu/**", "/api/category/**", "/api/front/**"
     };
 
     private static final String[] CUSTOMER_URLS = { "/customer/**", "/mypage/**" };

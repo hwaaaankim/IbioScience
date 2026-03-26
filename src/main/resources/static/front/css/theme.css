@@ -6193,7 +6193,7 @@ table.table-bordered thead>* {
 	margin: 0 auto;
 }
 
-#button-review {
+#button-review,  #button-review-cancel{
 	margin-top: 12px;
 	padding: 7px 12px;
 	margin-right: 10px;
