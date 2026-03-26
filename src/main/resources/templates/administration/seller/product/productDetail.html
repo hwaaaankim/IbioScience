@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
-	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('딜러 상품 상세관리')}"></head>
 
@@ -16,23 +17,29 @@
 
 					<div class="row">
 						<div class="col-12">
-							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
-								<h4 class="mb-sm-0">딜러 상품 상세관리</h4>
-								<div class="page-title-right">
-									<ol class="breadcrumb m-0">
-										<li class="breadcrumb-item">판매딜러</li>
-										<li class="breadcrumb-item"><a th:href="@{/seller/page/product/list}">상품 리스트</a>
-										</li>
-										<li class="breadcrumb-item active">상품 상세관리</li>
-									</ol>
-								</div>
+							<div class="page-title-right">
+								<ol class="breadcrumb m-0">
+									<li class="breadcrumb-item">판매딜러</li>
+
+									<li class="breadcrumb-item" sec:authorize="hasRole('SELLER_PORTAL')">
+										<a th:href="@{/seller/page/product/list}">상품 리스트</a>
+									</li>
+
+									<li class="breadcrumb-item" sec:authorize="!hasRole('SELLER_PORTAL')">
+										<a href="javascript:history.back()">이전 페이지</a>
+									</li>
+
+									<li class="breadcrumb-item active">상품 상세관리</li>
+								</ol>
 							</div>
 						</div>
 					</div>
 
 					<div class="card">
 						<div class="card-body">
-
+							<div class="alert alert-warning mb-4" sec:authorize="!hasRole('SELLER_PORTAL')">
+								현재 화면은 관리자/마스터/루트 전용 조회 모드입니다. 딜러상품 수정 및 저장은 허용되지 않습니다.
+							</div>
 							<form id="seller-product-detail-form" onsubmit="return false;">
 								<div class="row g-4">
 
@@ -321,9 +328,18 @@
 									</div>
 
 									<div class="col-12 text-end mt-4 d-flex justify-content-end gap-2">
-										<a th:href="@{/seller/page/product/list}" class="btn btn-light btn-lg">목록</a>
-										<button type="button" id="seller-product-detail-saveBtn"
-											class="btn btn-primary btn-lg">
+										<a sec:authorize="hasRole('SELLER_PORTAL')"
+											th:href="@{/seller/page/product/list}" class="btn btn-light btn-lg">
+											목록
+										</a>
+
+										<a sec:authorize="!hasRole('SELLER_PORTAL')" href="javascript:history.back()"
+											class="btn btn-light btn-lg">
+											이전
+										</a>
+
+										<button sec:authorize="hasRole('SELLER_PORTAL')" type="button"
+											id="seller-product-detail-saveBtn" class="btn btn-primary btn-lg">
 											상품 수정 저장
 										</button>
 									</div>
@@ -347,6 +363,13 @@
 	<script th:inline="javascript">
 		/*<![CDATA[*/
 		window.SELLER_PRODUCT_DETAIL_ID = /*[[${dealerProductId}]]*/ null;
+		window.SELLER_PRODUCT_DETAIL_READ_ONLY = true;
+    /*]]>*/
+	</script>
+
+	<script th:inline="javascript" sec:authorize="hasRole('SELLER_PORTAL')">
+		/*<![CDATA[*/
+		window.SELLER_PRODUCT_DETAIL_READ_ONLY = false;
     /*]]>*/
 	</script>
 
@@ -497,6 +520,19 @@
 			height: 100%;
 			cursor: pointer;
 			margin-bottom: 0;
+		}
+
+		body.seller-product-detail-readonly .seller-product-detail-image-remove,
+		body.seller-product-detail-readonly .seller-product-detail-remove-extra-btn,
+		body.seller-product-detail-readonly .seller-product-detail-remove-option-btn,
+		body.seller-product-detail-readonly .seller-product-detail-add-option-btn,
+		body.seller-product-detail-readonly .seller-product-detail-remove-group-btn,
+		body.seller-product-detail-readonly .seller-product-detail-chip button {
+			display: none !important;
+		}
+
+		body.seller-product-detail-readonly .ck-editor__top {
+			display: none !important;
 		}
 	</style>
 </body>

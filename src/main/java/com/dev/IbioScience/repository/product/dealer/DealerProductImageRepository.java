@@ -39,4 +39,18 @@ public interface DealerProductImageRepository extends JpaRepository<DealerProduc
     List<DealerProductImage> findMainImagesByDealerProductIds(
             @Param("dealerProductIds") List<Long> dealerProductIds
     );
+    
+    @Query("""
+            select img
+            from DealerProductImage img
+            where img.dealerProduct.id in :dealerProductIds
+              and img.type = :type
+            order by img.dealerProduct.id asc,
+                     case when img.sortOrder is null then 999999 else img.sortOrder end asc,
+                     img.id asc
+            """)
+    List<DealerProductImage> findMainImages(
+            @Param("dealerProductIds") List<Long> dealerProductIds,
+            @Param("type") ProductImageType type
+    );
 }

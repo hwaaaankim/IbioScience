@@ -76,4 +76,42 @@ public interface DealerMediumSmallProductCategoryRepository
                                             @Param("displayStatus") DisplayStatus displayStatus,
                                             @Param("saleStatus") SaleStatus saleStatus,
                                             @Param("state") ProductState state);
+    
+    
+    @Query("""
+            select distinct cm
+            from DealerMediumSmallProductCategory cm
+            join fetch cm.medium m
+            join fetch m.large l
+            join fetch cm.small s
+            join cm.dealerProduct dp
+            where dp.sellerDealerProfile.id = :sellerDealerProfileId
+              and dp.state = :state
+              and exists (
+                    select 1
+                    from DealerCategoryPermission dcp
+                    where dcp.sellerDealerProfile.id = :sellerDealerProfileId
+                      and dcp.large.id = l.id
+                      and (dcp.medium is null or dcp.medium.id = m.id)
+                      and (dcp.small is null or dcp.small.id = s.id)
+              )
+            order by l.name asc, m.name asc, s.name asc
+            """)
+    List<DealerMediumSmallProductCategory> findVisibleMappingsForSeller(
+            @Param("sellerDealerProfileId") Long sellerDealerProfileId,
+            @Param("state") ProductState state
+    );
+
+    @Query("""
+            select distinct cm
+            from DealerMediumSmallProductCategory cm
+            join fetch cm.medium m
+            join fetch m.large l
+            join fetch cm.small s
+            where cm.dealerProduct.id in :dealerProductIds
+            order by l.name asc, m.name asc, s.name asc
+            """)
+    List<DealerMediumSmallProductCategory> findAllByDealerProductIdsWithCategory(
+            @Param("dealerProductIds") List<Long> dealerProductIds
+    );
 }

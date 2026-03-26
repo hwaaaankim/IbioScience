@@ -2,6 +2,7 @@
 	'use strict';
 
 	const dealerProductId = Number(window.SELLER_PRODUCT_DETAIL_ID || 0);
+	const isReadOnly = !!window.SELLER_PRODUCT_DETAIL_READ_ONLY;
 
 	const state = {
 		meta: null,
@@ -29,10 +30,18 @@
 			}
 
 			bindEvents();
-			initSortables();
+
+			if (!isReadOnly) {
+				initSortables();
+			}
+
 			await loadMetaAndDetail();
 			await initEditor();
 			applyDetailToForm();
+
+			if (isReadOnly) {
+				applyReadOnlyMode();
+			}
 		} catch (e) {
 			console.error(e);
 			alert(e.message || '상품 상세 초기화 중 오류가 발생했습니다.');
@@ -40,6 +49,10 @@
 	});
 
 	function bindEvents() {
+		if (isReadOnly) {
+			return;
+		}
+
 		document.getElementById('seller-product-detail-largeCategory').addEventListener('change', renderMediumCategories);
 		document.getElementById('seller-product-detail-mediumCategory').addEventListener('change', renderSmallCategories);
 		document.getElementById('seller-product-detail-addCategoryBtn').addEventListener('click', addSelectedCategory);
@@ -59,8 +72,12 @@
 		document.getElementById('seller-product-detail-usePriceReplacementText').addEventListener('change', updatePriceReplacementEnabledState);
 		document.getElementById('seller-product-detail-useIconPeriod').addEventListener('change', updateIconPeriodEnabledState);
 
-		document.getElementById('seller-product-detail-saveBtn').addEventListener('click', submitUpdate);
+		const saveBtn = document.getElementById('seller-product-detail-saveBtn');
+		if (saveBtn) {
+			saveBtn.addEventListener('click', submitUpdate);
+		}
 	}
+
 	function initSortables() {
 		new Sortable(document.getElementById('seller-product-detail-additionalPreview'), {
 			animation: 150,
@@ -69,6 +86,29 @@
 	}
 
 	async function loadMetaAndDetail() {
+		if (isReadOnly) {
+			const detailResponse = await fetch(`/seller/api/products/${dealerProductId}`, {
+				method: 'GET',
+				headers: { 'Accept': 'application/json' }
+			});
+
+			if (!detailResponse.ok) {
+				throw new Error('상품 상세 데이터를 불러오지 못했습니다.');
+			}
+
+			state.meta = buildReadOnlyMeta();
+			state.detail = await detailResponse.json();
+
+			fillSingleSelectOption('seller-product-detail-displayStatus', state.detail.displayStatus);
+			fillSingleSelectOption('seller-product-detail-saleStatus', state.detail.saleStatus);
+			fillSingleSelectOption('seller-product-detail-state', state.detail.state);
+			fillSingleSelectOption('seller-product-detail-newState', state.detail.newState);
+			fillSingleSelectOption('seller-product-detail-priceExposeTarget', state.detail.priceExposeTarget);
+
+			renderLargeCategories();
+			return;
+		}
+
 		const [metaResponse, detailResponse] = await Promise.all([
 			fetch('/seller/api/products/form-meta', {
 				method: 'GET',
@@ -99,13 +139,48 @@
 		renderLargeCategories();
 	}
 
+	function buildReadOnlyMeta() {
+		return {
+			displayStatuses: [],
+			saleStatuses: [],
+			productStates: [],
+			newStates: [],
+			priceExposeTargets: [],
+			allowedCategories: [],
+			priceSigns: []
+		};
+	}
+
+	function fillSingleSelectOption(selectId, value) {
+		const select = document.getElementById(selectId);
+		if (!select) {
+			return;
+		}
+
+		select.innerHTML = '';
+
+		const option = document.createElement('option');
+		option.value = value ?? '';
+		option.textContent = value ?? '-';
+		option.selected = true;
+		select.appendChild(option);
+	}
+
 	async function initEditor() {
+		const config = isReadOnly
+			? {}
+			: {
+				extraPlugins: [sellerProductUploadAdapterPlugin]
+			};
+
 		state.editor = await ClassicEditor.create(
 			document.querySelector('#seller-product-detail-detailHtml'),
-			{
-				extraPlugins: [sellerProductUploadAdapterPlugin]
-			}
+			config
 		);
+
+		if (isReadOnly && typeof state.editor.enableReadOnlyMode === 'function') {
+			state.editor.enableReadOnlyMode('seller-product-detail-readonly');
+		}
 	}
 
 	function sellerProductUploadAdapterPlugin(editor) {
@@ -220,6 +295,19 @@
 		updateIconPeriodEnabledState();
 	}
 
+	function applyReadOnlyMode() {
+		document.body.classList.add('seller-product-detail-readonly');
+
+		const form = document.getElementById('seller-product-detail-form');
+		if (!form) {
+			return;
+		}
+
+		form.querySelectorAll('input, select, textarea, button').forEach(el => {
+			el.disabled = true;
+		});
+	}
+
 	function fillSelect(selectId, options) {
 		const select = document.getElementById(selectId);
 		select.innerHTML = '';
@@ -294,12 +382,11 @@
 		});
 	}
 
-
 	function updatePriceReplacementEnabledState() {
 		const enabled = document.getElementById('seller-product-detail-usePriceReplacementText').checked;
 		const input = document.getElementById('seller-product-detail-priceReplacementText');
 
-		input.disabled = !enabled;
+		input.disabled = !enabled || isReadOnly;
 
 		if (!enabled) {
 			input.value = '';
@@ -311,14 +398,15 @@
 		const startInput = document.getElementById('seller-product-detail-iconStartDate');
 		const endInput = document.getElementById('seller-product-detail-iconEndDate');
 
-		startInput.disabled = !enabled;
-		endInput.disabled = !enabled;
+		startInput.disabled = !enabled || isReadOnly;
+		endInput.disabled = !enabled || isReadOnly;
 
 		if (!enabled) {
 			startInput.value = '';
 			endInput.value = '';
 		}
 	}
+
 	function addSelectedCategory() {
 		const largeId = document.getElementById('seller-product-detail-largeCategory').value;
 		const mediumId = document.getElementById('seller-product-detail-mediumCategory').value;
@@ -739,7 +827,14 @@
 	}
 
 	function buildPriceSignOptions(selectedValue) {
-		return (state.meta.priceSigns || []).map(item => {
+		const signs = Array.isArray(state.meta?.priceSigns) ? state.meta.priceSigns : [];
+
+		if (!signs.length) {
+			const fallbackValue = selectedValue ?? '';
+			return `<option value="${escapeHtml(fallbackValue)}" selected>${escapeHtml(fallbackValue || '-')}</option>`;
+		}
+
+		return signs.map(item => {
 			const selected = String(item.value) === String(selectedValue || '') ? 'selected' : '';
 			return `<option value="${escapeHtml(item.value)}" ${selected}>${escapeHtml(item.label)}</option>`;
 		}).join('');
@@ -747,6 +842,10 @@
 
 	async function submitUpdate() {
 		try {
+			if (isReadOnly) {
+				throw new Error('관리자 조회 모드에서는 수정할 수 없습니다.');
+			}
+
 			if (!state.editor) {
 				throw new Error('에디터가 아직 준비되지 않았습니다.');
 			}

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,10 +85,19 @@ public class SellerProductApiController {
     @GetMapping("/{dealerProductId}")
     public ResponseEntity<SellerProductDetailResponse> getProductDetail(
             @PathVariable Long dealerProductId,
-            Authentication authentication
-    ) {
-        Long sellerMemberId = resolveSellerMemberId(authentication);
-        return ResponseEntity.ok(sellerProductService.getProductDetail(sellerMemberId, dealerProductId));
+            @AuthenticationPrincipal PrincipalDetails principal,
+            Authentication authentication) {
+
+        Long loginMemberId = (principal != null && principal.getMember() != null)
+                ? principal.getMember().getId()
+                : null;
+
+        boolean adminReadOnlyViewer = isAdminReadOnlyViewer(authentication);
+
+        SellerProductDetailResponse response =
+                sellerProductService.getProductDetailForViewer(dealerProductId, loginMemberId, adminReadOnlyViewer);
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping(value = "/{dealerProductId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -100,6 +110,10 @@ public class SellerProductApiController {
             @RequestPart(value = "newAdditionalImages", required = false) List<MultipartFile> newAdditionalImages,
             Authentication authentication
     ) {
+    	
+    	if (isAdminReadOnlyViewer(authentication)) {
+    	    throw new AccessDeniedException("관리자/마스터/루트 계정은 딜러상품을 수정할 수 없습니다.");
+    	}
         Long sellerMemberId = resolveSellerMemberId(authentication);
 
         sellerProductService.updateProduct(
@@ -133,5 +147,23 @@ public class SellerProductApiController {
         }
 
         return member.getId();
+    }
+    
+    private boolean isAdminReadOnlyViewer(Authentication authentication) {
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return false;
+        }
+
+        boolean hasSellerPortal = authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_SELLER_PORTAL".equals(a.getAuthority()));
+
+        boolean hasAdminViewerRole = authentication.getAuthorities().stream()
+                .anyMatch(a ->
+                        "ROLE_ADMIN".equals(a.getAuthority()) ||
+                        "ROLE_MASTER".equals(a.getAuthority()) ||
+                        "ROLE_ROOT".equals(a.getAuthority())
+                );
+
+        return !hasSellerPortal && hasAdminViewerRole;
     }
 }

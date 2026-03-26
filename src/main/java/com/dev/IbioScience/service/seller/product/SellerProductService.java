@@ -60,10 +60,132 @@ public class SellerProductService {
     private final KeywordRepository keywordRepository;
     private final SellerProductFileService sellerProductFileService;
 
+//    @Transactional(readOnly = true)
+//    public SellerProductDetailResponse getProductDetail(Long sellerMemberId, Long dealerProductId) {
+//        DealerProduct product = getOwnedProduct(sellerMemberId, dealerProductId);
+//
+//        DealerProductImage representativeImage = product.getImages().stream()
+//                .filter(image -> image.getType() == ProductImageType.MAIN)
+//                .findFirst()
+//                .orElse(null);
+//
+//        List<DealerProductImage> additionalImages = product.getImages().stream()
+//                .filter(image -> image.getType() == ProductImageType.ADDITIONAL)
+//                .sorted(Comparator.comparing(image -> image.getSortOrder() == null ? Integer.MAX_VALUE : image.getSortOrder()))
+//                .toList();
+//
+//        return SellerProductDetailResponse.builder()
+//                .id(product.getId())
+//                .displayStatus(product.getDisplayStatus())
+//                .saleStatus(product.getSaleStatus())
+//                .state(product.getState())
+//                .newState(product.getNewState())
+//                .name(product.getName())
+//                .code(product.getCode())
+//                .manufacturerText(product.getManufacturerText())
+//                .supplierText(product.getSupplierText())
+//                .manufacturedAt(product.getManufacturedAt())
+//                .expiredAt(product.getExpiredAt())
+//                .detailHtml(product.getDetailHtml())
+//                .summaryDescription(product.getSummaryDescription())
+//                .shortDescription(product.getShortDescription())
+//                .internalProductCode(product.getInternalProductCode())
+//                .consumerPrice(product.getConsumerPrice())
+//                .salePrice(product.getSalePrice())
+//                .priceExposeTarget(product.getPriceExposeTarget())
+//                .usePriceReplacementText(product.getUsePriceReplacementText())
+//                .priceReplacementText(product.getPriceReplacementText())
+//                .rewardRate(product.getRewardRate())
+//                .validFrom(product.getValidFrom())
+//                .validTo(product.getValidTo())
+//                .useIconPeriod(product.getUseIconPeriod())
+//                .iconStartDate(product.getIconStartDate())
+//                .iconEndDate(product.getIconEndDate())
+//                .representativeImage(representativeImage == null ? null :
+//                        SellerProductDetailResponse.SimpleImageResponse.builder()
+//                                .url(representativeImage.getUrl())
+//                                .fileName(representativeImage.getFileName())
+//                                .build())
+//                .iconImage(hasText(product.getIconUrl()) ?
+//                        SellerProductDetailResponse.SimpleImageResponse.builder()
+//                                .url(product.getIconUrl())
+//                                .fileName(product.getIconFileName())
+//                                .build() : null)
+//                .additionalImages(additionalImages.stream()
+//                        .map(image -> SellerProductDetailResponse.AdditionalImageResponse.builder()
+//                                .id(image.getId())
+//                                .url(image.getUrl())
+//                                .fileName(image.getFileName())
+//                                .sortOrder(image.getSortOrder())
+//                                .build())
+//                        .toList())
+//                .categoryMappings(product.getCategoryMappings().stream()
+//                        .map(mapping -> SellerProductDetailResponse.CategoryMappingResponse.builder()
+//                                .largeId(mapping.getMedium().getLarge().getId())
+//                                .largeName(mapping.getMedium().getLarge().getName())
+//                                .mediumId(mapping.getMedium().getId())
+//                                .mediumName(mapping.getMedium().getName())
+//                                .smallId(mapping.getSmall().getId())
+//                                .smallName(mapping.getSmall().getName())
+//                                .build())
+//                        .toList())
+//                .extraFields(product.getExtraFields().stream()
+//                        .map(field -> SellerProductDetailResponse.ExtraFieldResponse.builder()
+//                                .label(field.getLabel())
+//                                .value(field.getValue())
+//                                .build())
+//                        .toList())
+//                .keywords(product.getKeywordMappings().stream()
+//                        .map(mapping -> mapping.getKeyword().getWord())
+//                        .toList())
+//                .optionGroups(product.getOptionGroups().stream()
+//                        .sorted(Comparator.comparing(group -> group.getSortOrder() == null ? Integer.MAX_VALUE : group.getSortOrder()))
+//                        .map(group -> SellerProductDetailResponse.OptionGroupResponse.builder()
+//                                .name(group.getName())
+//                                .sortOrder(group.getSortOrder())
+//                                .options(group.getOptions().stream()
+//                                        .sorted(Comparator.comparing(option -> option.getSortOrder() == null ? Integer.MAX_VALUE : option.getSortOrder()))
+//                                        .map(option -> SellerProductDetailResponse.OptionResponse.builder()
+//                                                .name(option.getName())
+//                                                .value(option.getValue())
+//                                                .extraPrice(option.getExtraPrice())
+//                                                .sign(option.getSign())
+//                                                .sortOrder(option.getSortOrder())
+//                                                .build())
+//                                        .toList())
+//                                .build())
+//                        .toList())
+//                .build();
+//    }
+
     @Transactional(readOnly = true)
     public SellerProductDetailResponse getProductDetail(Long sellerMemberId, Long dealerProductId) {
         DealerProduct product = getOwnedProduct(sellerMemberId, dealerProductId);
+        return toSellerProductDetailResponse(product);
+    }
+    
+    
+    @Transactional(readOnly = true)
+    public SellerProductDetailResponse getProductDetailForViewer(Long dealerProductId,
+                                                                 Long loginMemberId,
+                                                                 boolean adminReadOnlyViewer) {
+        DealerProduct product;
 
+        if (adminReadOnlyViewer) {
+            product = dealerProductRepository.findById(dealerProductId)
+                    .orElseThrow(() -> new IllegalArgumentException("딜러상품이 존재하지 않습니다. id=" + dealerProductId));
+        } else {
+            if (loginMemberId == null) {
+                throw new IllegalArgumentException("로그인 회원 정보가 올바르지 않습니다.");
+            }
+
+            product = getOwnedProduct(loginMemberId, dealerProductId);
+        }
+
+        return toSellerProductDetailResponse(product);
+    }
+    
+    private SellerProductDetailResponse toSellerProductDetailResponse(DealerProduct product) {
         DealerProductImage representativeImage = product.getImages().stream()
                 .filter(image -> image.getType() == ProductImageType.MAIN)
                 .findFirst()
@@ -157,7 +279,7 @@ public class SellerProductService {
                         .toList())
                 .build();
     }
-
+    
     public void updateProduct(
             Long sellerMemberId,
             Long dealerProductId,

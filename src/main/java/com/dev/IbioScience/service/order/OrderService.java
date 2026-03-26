@@ -54,7 +54,7 @@ import com.dev.IbioScience.service.auth.crm.benefit.AdminClientBenefitService;
 @Service
 public class OrderService {
 
-    /** ✅ 적립률 10% */
+    /** ✅ 현재 백엔드 기준 적립률 10% */
     private static final double EXPECT_POINT_RATE = 0.10;
 
     private final OrderRepository orderRepository;
@@ -158,7 +158,11 @@ public class OrderService {
         requireText(req.getRoadAddress(), "도로명주소");
         requireText(req.getDetailAddress(), "상세주소");
 
-        long sumPrice = 0L;
+        long totalSumPrice = 0L;         // 전체 상품 합계(회사 + 딜러)
+        long companySumPrice = 0L;       // 회사상품 합계
+        long dealerSumPrice = 0L;        // 딜러상품 합계
+        long companyExpectPoint = 0L;    // 회사상품 적립 예정 포인트 합계
+
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (OrderCreateItemDTO it : req.getItems()) {
@@ -175,11 +179,14 @@ public class OrderService {
             OrderItemProductType itemProductType = resolveItemProductType(it);
 
             long line = it.getUnitPrice() * it.getQuantity();
-            sumPrice += line;
-
-            long itemEarnPoint = (long) Math.floor(line * EXPECT_POINT_RATE);
+            totalSumPrice += line;
 
             if (itemProductType == OrderItemProductType.COMPANY) {
+
+                companySumPrice += line;
+
+                long itemEarnPoint = (long) Math.floor(line * EXPECT_POINT_RATE);
+                companyExpectPoint += itemEarnPoint;
 
                 Long productId = it.getProductId();
                 if (productId == null) {
@@ -230,6 +237,8 @@ public class OrderService {
 
             if (itemProductType == OrderItemProductType.DEALER) {
 
+                dealerSumPrice += line;
+
                 Long dealerProductId = it.getDealerProductId();
                 if (dealerProductId == null) {
                     throw new IllegalArgumentException("딜러상품 주문에는 dealerProductId 가 필요합니다.");
@@ -270,7 +279,7 @@ public class OrderService {
                         .unitPrice(it.getUnitPrice())
                         .quantity(it.getQuantity())
                         .linePrice(line)
-                        .itemEarnPoint(itemEarnPoint)
+                        .itemEarnPoint(0L) // ✅ 딜러상품은 적립 없음
                         .build();
 
                 orderItems.add(oi);
@@ -288,6 +297,11 @@ public class OrderService {
         String couponName = null;
 
         if (req.getMemberCouponId() != null) {
+
+            if (companySumPrice <= 0L) {
+                throw new IllegalArgumentException("쿠폰은 우리회사 상품 주문에만 적용할 수 있습니다.");
+            }
+
             memberCoupon = findUsableMemberCoupon(loginMemberId, req.getMemberCouponId());
 
             if (memberCoupon.getMember() == null || !Objects.equals(memberCoupon.getMember().getId(), loginMemberId)) {
@@ -300,28 +314,41 @@ public class OrderService {
             long min = safeLong(coupon.getMinPurchaseAmount());
             long amt = safeLong(coupon.getCouponAmount());
 
-            if (sumPrice < min) {
-                throw new IllegalArgumentException("쿠폰 최소 구매금액 조건을 만족하지 않습니다.");
+            // ✅ 최소 구매금액도 회사상품 합계 기준
+            if (companySumPrice < min) {
+                throw new IllegalArgumentException("쿠폰 최소 구매금액 조건을 만족하지 않습니다. (회사상품 금액 기준)");
             }
 
-            couponDiscount = amt;
+            // ✅ 쿠폰도 회사상품 금액 안에서만 적용
+            long maxCouponApplicable = Math.max(0L, companySumPrice - baseDiscount);
+            if (maxCouponApplicable <= 0L) {
+                throw new IllegalArgumentException("쿠폰을 적용할 수 있는 우리회사 상품 금액이 없습니다.");
+            }
+
+            couponDiscount = Math.min(amt, maxCouponApplicable);
             couponCode = coupon.getCouponCode();
             couponName = coupon.getCouponName();
         }
 
         long pointAvail = member.getPoint() == null ? 0L : member.getPoint();
-        long pointUse = req.getPointUse() == null ? 0L : Math.max(0L, req.getPointUse());
-        if (pointUse > pointAvail) {
-            pointUse = pointAvail;
+        long requestedPointUse = req.getPointUse() == null ? 0L : Math.max(0L, req.getPointUse());
+
+        // ✅ 적립금도 회사상품 결제 가능 금액 범위 내에서만 사용 가능
+        long maxPointApplicable = Math.max(0L, companySumPrice - baseDiscount - couponDiscount);
+        long pointUse = Math.min(requestedPointUse, pointAvail);
+        if (pointUse > maxPointApplicable) {
+            pointUse = maxPointApplicable;
         }
 
         long shippingFee = calcShippingFee(shippingMethod);
         long shipToPayNow = (shippingPayType == ShippingPayType.PREPAID) ? shippingFee : 0L;
-        long grandTotal = Math.max(0L, sumPrice - baseDiscount - couponDiscount - pointUse + shipToPayNow);
 
-        long expectPoint = orderItems.stream()
-                .mapToLong(oi -> oi.getItemEarnPoint() == null ? 0L : oi.getItemEarnPoint())
-                .sum();
+        // ✅ 딜러상품은 무조건 정가 결제
+        long companyPayable = Math.max(0L, companySumPrice - baseDiscount - couponDiscount - pointUse);
+        long dealerPayable = Math.max(0L, dealerSumPrice);
+        long grandTotal = companyPayable + dealerPayable + shipToPayNow;
+
+        long expectPoint = companyExpectPoint;
 
         Order order = Order.builder()
                 .orderNo(generateUniqueOrderNo())
@@ -343,13 +370,13 @@ public class OrderService {
                 .detailAddress(req.getDetailAddress())
                 .shippingMemo(nvl(req.getShippingMemo(), ""))
 
-                .sumPrice(sumPrice)
+                .sumPrice(totalSumPrice)   // ✅ 전체 상품합계는 그대로 유지
                 .shippingFee(shippingFee)
                 .baseDiscount(baseDiscount)
-                .couponDiscount(couponDiscount)
-                .pointUsed(pointUse)
+                .couponDiscount(couponDiscount) // ✅ 회사상품 대상 할인만 저장
+                .pointUsed(pointUse)            // ✅ 회사상품 대상 사용분만 저장
                 .grandTotal(grandTotal)
-                .expectPoint(expectPoint)
+                .expectPoint(expectPoint)       // ✅ 회사상품 적립 예정 포인트만 저장
 
                 .memberCoupon(memberCoupon)
                 .couponCode(couponCode)

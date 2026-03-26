@@ -1,49 +1,469 @@
 <!doctype html>
-<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
-	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      data-layout="vertical"
+      data-topbar="light"
+      data-sidebar="dark"
+      data-sidebar-size="lg"
+      data-sidebar-image="none"
+      data-preloader="disable"
+      xmlns:th="http://www.thymeleaf.org">
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('상품 관리')}"></head>
 
 <body>
-	<div id="layout-wrapper">
-		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
-		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
-		<div class="vertical-overlay"></div>
+<div id="layout-wrapper">
+    <header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+    <div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+    <div class="vertical-overlay"></div>
 
-		<div class="main-content">
-			<div class="page-content">
-				<div class="container-fluid">
-					<div class="row">
-						<div class="col-12">
-							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
-								<h4 class="mb-sm-0">상품 관리</h4>
-								<div class="page-title-right">
-									<ol class="breadcrumb m-0">
-										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
-										<li class="breadcrumb-item active">상품 리스트</li>
-									</ol>
-								</div>
-							</div>
-						</div>
-					</div>
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
 
-					<div class="card">
-						<div class="card-body">
+                <style>
+                    .seller-product-manager-card {
+                        border: 1px solid #e9ebec;
+                        border-radius: 0.75rem;
+                    }
 
-						</div>
-					</div>
-				</div>
-			</div>
+                    .seller-product-manager-section-title {
+                        font-size: 0.875rem;
+                        font-weight: 700;
+                        color: #495057;
+                        margin-bottom: 0.5rem;
+                    }
 
-			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
-		</div>
-	</div>
+                    .seller-product-manager-label {
+                        display: block;
+                        margin-bottom: 0.45rem;
+                        font-size: 0.8125rem;
+                        font-weight: 600;
+                        color: #495057;
+                    }
 
-	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
-	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="/administration/assets/seller/product/productManager.js"></script>
+                    .seller-product-manager-control,
+                    .seller-product-manager-action-btn,
+                    .seller-product-manager-date-btn {
+                        height: 44px;
+                    }
 
+                    .seller-product-manager-checkbox-wrap {
+                        min-height: 44px;
+                        display: flex;
+                        align-items: center;
+                        gap: 1rem;
+                        flex-wrap: wrap;
+                        padding: 0 0.25rem;
+                        border: 1px solid #e9ebec;
+                        border-radius: 0.5rem;
+                        background: #fff;
+                    }
+
+                    .seller-product-manager-checkbox-inline {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        margin: 0;
+                        min-height: 44px;
+                    }
+
+                    .seller-product-manager-checkbox-inline .form-check-input {
+                        margin-top: 0;
+                        flex-shrink: 0;
+                    }
+
+                    .seller-product-manager-date-btn-group {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 0.5rem;
+                    }
+
+                    .seller-product-manager-toolbar {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 1rem;
+                        flex-wrap: wrap;
+                    }
+
+                    .seller-product-manager-total-text {
+                        font-size: 0.9375rem;
+                        font-weight: 600;
+                        color: #495057;
+                    }
+
+                    .seller-product-manager-delete-btn:disabled {
+                        opacity: 0.65;
+                        cursor: not-allowed;
+                    }
+
+                    .seller-product-manager-table thead th {
+                        vertical-align: middle;
+                        text-align: center;
+                        white-space: nowrap;
+                        background-color: #f8f9fa;
+                    }
+
+                    .seller-product-manager-table tbody td {
+                        vertical-align: middle;
+                    }
+
+                    .seller-product-manager-table .seller-product-manager-check-cell,
+                    .seller-product-manager-table .seller-product-manager-status-cell {
+                        text-align: center;
+                    }
+
+                    .seller-product-manager-row-check-wrap {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .seller-product-manager-thumb {
+                        width: 64px;
+                        height: 64px;
+                        border-radius: 0.5rem;
+                        overflow: hidden;
+                        border: 1px solid #e9ebec;
+                        background: #f8f9fa;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto;
+                    }
+
+                    .seller-product-manager-thumb img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                        display: block;
+                    }
+
+                    .seller-product-manager-thumb-empty {
+                        font-size: 0.72rem;
+                        font-weight: 700;
+                        color: #adb5bd;
+                        text-align: center;
+                        line-height: 1.2;
+                    }
+
+                    .seller-product-manager-name-link {
+                        color: #212529;
+                        font-weight: 600;
+                        text-decoration: none;
+                    }
+
+                    .seller-product-manager-name-link:hover {
+                        color: #405189;
+                        text-decoration: underline;
+                    }
+
+                    .seller-product-manager-category-list {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.35rem;
+                    }
+
+                    .seller-product-manager-category-item {
+                        display: inline-flex;
+                        align-items: center;
+                        width: fit-content;
+                        max-width: 100%;
+                        padding: 0.25rem 0.55rem;
+                        border-radius: 999px;
+                        background: #f3f6f9;
+                        color: #495057;
+                        font-size: 0.78rem;
+                        font-weight: 500;
+                        white-space: normal;
+                        word-break: break-word;
+                    }
+
+                    .seller-product-manager-price {
+                        font-weight: 600;
+                        color: #212529;
+                    }
+
+                    .seller-product-manager-empty-row {
+                        text-align: center;
+                        padding: 4rem 1rem !important;
+                        color: #6c757d;
+                        font-weight: 500;
+                    }
+
+                    .seller-product-manager-pagination-wrap {
+                        display: flex;
+                        justify-content: center;
+                        margin-top: 1.5rem;
+                    }
+
+                    .seller-product-manager-pagination .page-link {
+                        min-width: 40px;
+                        text-align: center;
+                    }
+
+                    .seller-product-manager-loading {
+                        text-align: center;
+                        padding: 3rem 1rem !important;
+                        color: #6c757d;
+                    }
+
+                    @media (max-width: 991.98px) {
+                        .seller-product-manager-date-btn-group {
+                            grid-template-columns: repeat(3, 1fr);
+                        }
+                    }
+
+                    @media (max-width: 575.98px) {
+                        .seller-product-manager-date-btn-group {
+                            grid-template-columns: 1fr;
+                        }
+
+                        .seller-product-manager-toolbar {
+                            flex-direction: column;
+                            align-items: stretch;
+                        }
+
+                        .seller-product-manager-delete-btn {
+                            width: 100%;
+                        }
+                    }
+                </style>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">상품 관리</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+                                    <li class="breadcrumb-item active">상품 리스트</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card seller-product-manager-card">
+                    <div class="card-body">
+
+                        <div class="seller-product-manager-section-title">검색 필터</div>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-lg-2 col-md-6">
+                                        <label for="seller-product-manager-date-type" class="seller-product-manager-label">날짜 기준</label>
+                                        <select id="seller-product-manager-date-type" class="form-select seller-product-manager-control">
+                                            <option value="CREATED_AT">등록일기준</option>
+                                            <option value="UPDATED_AT">수정일기준</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-6">
+                                        <label class="seller-product-manager-label">빠른 선택</label>
+                                        <div class="seller-product-manager-date-btn-group">
+                                            <button type="button"
+                                                    class="btn btn-light seller-product-manager-date-btn seller-product-manager-quick-date-btn"
+                                                    data-range="today">
+                                                오늘
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-light seller-product-manager-date-btn seller-product-manager-quick-date-btn"
+                                                    data-range="7days">
+                                                7일
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-light seller-product-manager-date-btn seller-product-manager-quick-date-btn"
+                                                    data-range="1month">
+                                                1개월
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-6">
+                                        <label for="seller-product-manager-start-date" class="seller-product-manager-label">시작일</label>
+                                        <input type="date" id="seller-product-manager-start-date" class="form-control seller-product-manager-control">
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-6">
+                                        <label for="seller-product-manager-end-date" class="seller-product-manager-label">종료일</label>
+                                        <input type="date" id="seller-product-manager-end-date" class="form-control seller-product-manager-control">
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-12">
+                                        <label class="seller-product-manager-label">진열상태</label>
+                                        <div class="seller-product-manager-checkbox-wrap">
+                                            <label class="form-check seller-product-manager-checkbox-inline">
+                                                <input class="form-check-input seller-product-manager-display-status"
+                                                       type="checkbox"
+                                                       value="ON"
+                                                       id="seller-product-manager-display-status-on">
+                                                <span class="form-check-label">진열함</span>
+                                            </label>
+
+                                            <label class="form-check seller-product-manager-checkbox-inline">
+                                                <input class="form-check-input seller-product-manager-display-status"
+                                                       type="checkbox"
+                                                       value="OFF"
+                                                       id="seller-product-manager-display-status-off">
+                                                <span class="form-check-label">진열안함</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-12">
+                                        <label class="seller-product-manager-label">판매상태</label>
+                                        <div class="seller-product-manager-checkbox-wrap">
+                                            <label class="form-check seller-product-manager-checkbox-inline">
+                                                <input class="form-check-input seller-product-manager-sale-status"
+                                                       type="checkbox"
+                                                       value="ON"
+                                                       id="seller-product-manager-sale-status-on">
+                                                <span class="form-check-label">판매함</span>
+                                            </label>
+
+                                            <label class="form-check seller-product-manager-checkbox-inline">
+                                                <input class="form-check-input seller-product-manager-sale-status"
+                                                       type="checkbox"
+                                                       value="OFF"
+                                                       id="seller-product-manager-sale-status-off">
+                                                <span class="form-check-label">판매안함</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-4">
+                                        <label for="seller-product-manager-search-type" class="seller-product-manager-label">텍스트 검색</label>
+                                        <select id="seller-product-manager-search-type" class="form-select seller-product-manager-control">
+                                            <option value="KEYWORD">키워드검색</option>
+                                            <option value="PRODUCT_NAME" selected>제품명검색</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-8">
+                                        <label for="seller-product-manager-keyword" class="seller-product-manager-label">검색어</label>
+                                        <input type="text"
+                                               id="seller-product-manager-keyword"
+                                               class="form-control seller-product-manager-control"
+                                               placeholder="검색어를 입력해 주세요.">
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-4">
+                                        <label for="seller-product-manager-large-id" class="seller-product-manager-label">대분류</label>
+                                        <select id="seller-product-manager-large-id" class="form-select seller-product-manager-control">
+                                            <option value="">전체</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-4">
+                                        <label for="seller-product-manager-medium-id" class="seller-product-manager-label">중분류</label>
+                                        <select id="seller-product-manager-medium-id" class="form-select seller-product-manager-control">
+                                            <option value="">전체</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-4">
+                                        <label for="seller-product-manager-small-id" class="seller-product-manager-label">소분류</label>
+                                        <select id="seller-product-manager-small-id" class="form-select seller-product-manager-control">
+                                            <option value="">전체</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-4">
+                                        <label for="seller-product-manager-page-size" class="seller-product-manager-label">페이지 사이즈</label>
+                                        <select id="seller-product-manager-page-size" class="form-select seller-product-manager-control">
+                                            <option value="10" selected>10개</option>
+                                            <option value="30">30개</option>
+                                            <option value="50">50개</option>
+                                            <option value="100">100개</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-8">
+                                        <label class="seller-product-manager-label">실행</label>
+                                        <div class="d-grid gap-2 d-md-flex">
+                                            <button type="button"
+                                                    id="seller-product-manager-search-btn"
+                                                    class="btn btn-primary seller-product-manager-action-btn flex-fill">
+                                                검색
+                                            </button>
+                                            <button type="button"
+                                                    id="seller-product-manager-reset-btn"
+                                                    class="btn btn-light seller-product-manager-action-btn flex-fill">
+                                                초기화
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="seller-product-manager-toolbar mb-3">
+                            <div class="seller-product-manager-total-text">
+                                총 <span id="seller-product-manager-total-count">0</span>건
+                            </div>
+
+                            <button type="button"
+                                    id="seller-product-manager-delete-btn"
+                                    class="btn btn-outline-danger seller-product-manager-delete-btn"
+                                    disabled>
+                                삭제
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle seller-product-manager-table mb-0">
+                                <thead>
+                                <tr>
+                                    <th style="width: 56px;">
+                                        <div class="seller-product-manager-row-check-wrap">
+                                            <input type="checkbox"
+                                                   id="seller-product-manager-check-all"
+                                                   class="form-check-input">
+                                        </div>
+                                    </th>
+                                    <th style="min-width: 130px;">제품코드</th>
+                                    <th style="min-width: 260px;">제품분류</th>
+                                    <th style="width: 96px;">대표이미지</th>
+                                    <th style="min-width: 220px;">제품명</th>
+                                    <th style="min-width: 130px;">소비자가격</th>
+                                    <th style="min-width: 130px;">판매가격</th>
+                                    <th style="width: 120px;">판매상태</th>
+                                    <th style="width: 120px;">진열상태</th>
+                                </tr>
+                                </thead>
+                                <tbody id="seller-product-manager-tbody">
+                                <tr>
+                                    <td colspan="9" class="seller-product-manager-loading">
+                                        데이터를 불러오는 중입니다.
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="seller-product-manager-pagination-wrap">
+                            <nav aria-label="상품 페이지네이션">
+                                <ul id="seller-product-manager-pagination" class="pagination pagination-separated seller-product-manager-pagination mb-0"></ul>
+                            </nav>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/administration/assets/seller/product/productManager.js"></script>
 </body>
-
 </html>

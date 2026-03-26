@@ -46,8 +46,7 @@ public class PaymentFrontController {
 	}
 
 	/**
-	 * principal에서 member.id 를 최대한 안전하게 꺼냅니다. - #authentication.principal.member.id
-	 * 를 타임리프에서 쓰고 계시므로, 동일 경로를 우선 시도합니다.
+	 * principal에서 member.id 를 최대한 안전하게 꺼내기위한 메서드
 	 */
 	private Long resolveLoginMemberId() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
