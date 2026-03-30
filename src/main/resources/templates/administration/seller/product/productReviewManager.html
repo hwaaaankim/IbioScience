@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="ko"
+      data-layout="vertical"
+      data-topbar="light"
+      data-sidebar="dark"
+      data-sidebar-size="lg"
+      data-sidebar-image="none"
+      data-preloader="disable"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('상품리뷰관리')}"></head>
+
+<body>
+<div id="layout-wrapper">
+    <header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+    <div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+    <div class="vertical-overlay"></div>
+
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">상품리뷰관리</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+                                    <li class="breadcrumb-item active">상품리뷰관리</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    .dealer-review-filter-card .form-label {
+                        font-weight: 600;
+                        margin-bottom: 0.45rem;
+                    }
+
+                    .dealer-review-toolbar {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        gap: 12px;
+                        margin-bottom: 16px;
+                    }
+
+                    .dealer-review-toolbar-left {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+
+                    .dealer-review-delete-btn:disabled {
+                        opacity: 0.55;
+                        cursor: not-allowed;
+                    }
+
+                    .dealer-review-table-wrapper {
+                        overflow-x: auto;
+                    }
+
+                    .dealer-review-table {
+                        min-width: 1180px;
+                        margin-bottom: 0;
+                    }
+
+                    .dealer-review-table thead th {
+                        vertical-align: middle;
+                        white-space: nowrap;
+                        background: #f8f9fa;
+                    }
+
+                    .dealer-review-table tbody td {
+                        vertical-align: middle;
+                    }
+
+                    .dealer-review-checkbox-col {
+                        width: 60px;
+                        text-align: center;
+                    }
+
+                    .dealer-review-reviewer-col {
+                        width: 180px;
+                    }
+
+                    .dealer-review-rating-col {
+                        width: 160px;
+                    }
+
+                    .dealer-review-image-col {
+                        width: 140px;
+                    }
+
+                    .dealer-review-content-col {
+                        min-width: 360px;
+                    }
+
+                    .dealer-review-date-col {
+                        width: 180px;
+                    }
+
+                    .dealer-review-button-col {
+                        width: 130px;
+                        text-align: center;
+                    }
+
+                    .dealer-review-sort-link {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        color: inherit;
+                        text-decoration: none;
+                        font-weight: 600;
+                    }
+
+                    .dealer-review-sort-link:hover {
+                        color: #405189;
+                    }
+
+                    .dealer-review-sort-arrows {
+                        display: inline-flex;
+                        flex-direction: column;
+                        line-height: 0.8;
+                        font-size: 10px;
+                        color: #adb5bd;
+                    }
+
+                    .dealer-review-sort-arrows .active {
+                        color: #405189;
+                        font-weight: 700;
+                    }
+
+                    .dealer-review-thumb-box {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+
+                    .dealer-review-thumb {
+                        width: 56px;
+                        height: 56px;
+                        object-fit: cover;
+                        border: 1px solid #dee2e6;
+                        border-radius: 8px;
+                        background: #fff;
+                    }
+
+                    .dealer-review-rating-wrap {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+
+                    .dealer-review-stars {
+                        color: #f7b84b;
+                        letter-spacing: 1px;
+                        font-size: 14px;
+                    }
+
+                    .dealer-review-content-toggle {
+                        display: block;
+                        width: 100%;
+                        background: transparent;
+                        border: none;
+                        padding: 0;
+                        text-align: left;
+                        color: inherit;
+                    }
+
+                    .dealer-review-content-toggle:hover .dealer-review-content-preview {
+                        color: #405189;
+                    }
+
+                    .dealer-review-content-preview {
+                        display: -webkit-box;
+                        -webkit-box-orient: vertical;
+                        -webkit-line-clamp: 2;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        word-break: break-word;
+                        white-space: normal;
+                        line-height: 1.5;
+                    }
+
+                    .dealer-review-content-preview-empty {
+                        color: #878a99;
+                    }
+
+                    .dealer-review-collapse-cell {
+                        padding: 0 !important;
+                        border-top: 0 !important;
+                    }
+
+                    .dealer-review-collapse-inner {
+                        padding: 18px 20px;
+                        background: #f8f9fa;
+                        border-top: 1px dashed #e2e5e8;
+                    }
+
+                    .dealer-review-collapse-title {
+                        font-size: 14px;
+                        font-weight: 700;
+                        margin-bottom: 10px;
+                        color: #495057;
+                    }
+
+                    .dealer-review-full-content {
+                        white-space: pre-wrap;
+                        word-break: break-word;
+                        line-height: 1.7;
+                        color: #212529;
+                    }
+
+                    .dealer-review-collapse-images {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 10px;
+                        margin-top: 14px;
+                    }
+
+                    .dealer-review-collapse-image {
+                        width: 84px;
+                        height: 84px;
+                        object-fit: cover;
+                        border-radius: 10px;
+                        border: 1px solid #dee2e6;
+                        background: #fff;
+                    }
+
+                    .dealer-review-empty-row td {
+                        text-align: center;
+                        padding: 48px 16px;
+                        color: #878a99;
+                    }
+
+                    .dealer-review-pagination-wrap {
+                        margin-top: 20px;
+                    }
+
+                    .dealer-review-pagination-wrap .pagination {
+                        margin-bottom: 0;
+                    }
+
+                    .dealer-review-pagination-wrap .page-link {
+                        min-width: 40px;
+                        text-align: center;
+                    }
+                </style>
+
+                <div class="card dealer-review-filter-card">
+                    <div class="card-body">
+                        <form id="dealer-review-filter-form"
+                              th:action="@{/seller/productReviewManager}"
+                              method="get"
+                              class="row g-3 align-items-end">
+
+                            <input type="hidden" name="page" id="dealer-review-page-input" th:value="${condition.page}">
+                            <input type="hidden" name="sortField" id="dealer-review-sort-field-input" th:value="${condition.sortField}">
+                            <input type="hidden" name="sortDir" id="dealer-review-sort-dir-input" th:value="${condition.sortDir}">
+
+                            <div class="col-md-2">
+                                <label for="dealer-review-size" class="form-label">페이지 사이즈</label>
+                                <select name="size" id="dealer-review-size" class="form-select">
+                                    <option value="10" th:selected="${condition.size == 10}">10</option>
+                                    <option value="30" th:selected="${condition.size == 30}">30</option>
+                                    <option value="50" th:selected="${condition.size == 50}">50</option>
+                                    <option value="100" th:selected="${condition.size == 100}">100</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="dealer-review-from-date" class="form-label">시작일</label>
+                                <input type="date"
+                                       class="form-control"
+                                       id="dealer-review-from-date"
+                                       name="fromDate"
+                                       th:value="${condition.fromDate}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="dealer-review-to-date" class="form-label">종료일</label>
+                                <input type="date"
+                                       class="form-control"
+                                       id="dealer-review-to-date"
+                                       name="toDate"
+                                       th:value="${condition.toDate}">
+                            </div>
+
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">검색</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+
+                        <div class="dealer-review-toolbar">
+                            <div class="dealer-review-toolbar-left">
+                                <button type="button"
+                                        id="dealer-review-delete-btn"
+                                        class="btn btn-danger dealer-review-delete-btn"
+                                        disabled>
+                                    선택 삭제
+                                </button>
+                            </div>
+                            <div class="text-muted small">
+                                전체 <span th:text="${reviewPage.totalElements}">0</span>건
+                            </div>
+                        </div>
+
+                        <div class="dealer-review-table-wrapper">
+                            <table class="table table-bordered align-middle dealer-review-table">
+                                <thead>
+                                <tr>
+                                    <th class="dealer-review-checkbox-col">
+                                        <input type="checkbox" id="dealer-review-check-all" class="form-check-input">
+                                    </th>
+
+                                    <th class="dealer-review-reviewer-col">
+                                        <a class="dealer-review-sort-link"
+                                           th:href="@{/seller/productReviewManager(
+                                               page=0,
+                                               size=${condition.size},
+                                               fromDate=${condition.fromDate},
+                                               toDate=${condition.toDate},
+                                               sortField='reviewerId',
+                                               sortDir=${condition.sortField == 'reviewerId' and condition.sortDir == 'asc' ? 'desc' : 'asc'}
+                                           )}">
+                                            <span>리뷰남긴사람 ID</span>
+                                            <span class="dealer-review-sort-arrows">
+                                                <span th:classappend="${condition.sortField == 'reviewerId' and condition.sortDir == 'asc'} ? 'active'">▲</span>
+                                                <span th:classappend="${condition.sortField == 'reviewerId' and condition.sortDir == 'desc'} ? 'active'">▼</span>
+                                            </span>
+                                        </a>
+                                    </th>
+
+                                    <th class="dealer-review-rating-col">
+                                        <a class="dealer-review-sort-link"
+                                           th:href="@{/seller/productReviewManager(
+                                               page=0,
+                                               size=${condition.size},
+                                               fromDate=${condition.fromDate},
+                                               toDate=${condition.toDate},
+                                               sortField='rating',
+                                               sortDir=${condition.sortField == 'rating' and condition.sortDir == 'asc' ? 'desc' : 'asc'}
+                                           )}">
+                                            <span>별점</span>
+                                            <span class="dealer-review-sort-arrows">
+                                                <span th:classappend="${condition.sortField == 'rating' and condition.sortDir == 'asc'} ? 'active'">▲</span>
+                                                <span th:classappend="${condition.sortField == 'rating' and condition.sortDir == 'desc'} ? 'active'">▼</span>
+                                            </span>
+                                        </a>
+                                    </th>
+
+                                    <th class="dealer-review-image-col">이미지</th>
+                                    <th class="dealer-review-content-col">내용</th>
+
+                                    <th class="dealer-review-date-col">
+                                        <a class="dealer-review-sort-link"
+                                           th:href="@{/seller/productReviewManager(
+                                               page=0,
+                                               size=${condition.size},
+                                               fromDate=${condition.fromDate},
+                                               toDate=${condition.toDate},
+                                               sortField='createdAt',
+                                               sortDir=${condition.sortField == 'createdAt' and condition.sortDir == 'asc' ? 'desc' : 'asc'}
+                                           )}">
+                                            <span>리뷰날짜</span>
+                                            <span class="dealer-review-sort-arrows">
+                                                <span th:classappend="${condition.sortField == 'createdAt' and condition.sortDir == 'asc'} ? 'active'">▲</span>
+                                                <span th:classappend="${condition.sortField == 'createdAt' and condition.sortDir == 'desc'} ? 'active'">▼</span>
+                                            </span>
+                                        </a>
+                                    </th>
+
+                                    <th class="dealer-review-button-col">버튼</th>
+                                </tr>
+                                </thead>
+
+                                <tbody th:if="${!reviewPage.isEmpty()}">
+                                <th:block th:each="item : ${reviewPage.content}">
+                                    <tr>
+                                        <td class="dealer-review-checkbox-col text-center">
+                                            <input type="checkbox"
+                                                   class="form-check-input dealer-review-check-item"
+                                                   th:value="${item.reviewId}">
+                                        </td>
+
+                                        <td class="dealer-review-reviewer-col">
+                                            <span th:text="${item.maskedReviewerId}">ab****</span>
+                                        </td>
+
+                                        <td class="dealer-review-rating-col">
+                                            <div class="dealer-review-rating-wrap">
+                                                <span class="fw-semibold" th:text="|${item.rating}/5|">5/5</span>
+                                                <span class="dealer-review-stars">
+                                                    <th:block th:each="star : ${#numbers.sequence(1,5)}">
+                                                        <span th:text="${star <= item.rating ? '★' : '☆'}">★</span>
+                                                    </th:block>
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <td class="dealer-review-image-col">
+                                            <th:block th:if="${item.hasImages}">
+                                                <div class="dealer-review-thumb-box">
+                                                    <img th:src="${item.firstImageUrl}"
+                                                         alt="리뷰 이미지"
+                                                         class="dealer-review-thumb">
+                                                    <span class="badge bg-light text-dark"
+                                                          th:text="${item.imageCount > 1 ? '+' + (item.imageCount - 1) : '1장'}">
+                                                        1장
+                                                    </span>
+                                                </div>
+                                            </th:block>
+                                            <th:block th:unless="${item.hasImages}">
+                                                <span class="text-muted">없음</span>
+                                            </th:block>
+                                        </td>
+
+                                        <td class="dealer-review-content-col">
+                                            <button type="button"
+                                                    class="dealer-review-content-toggle"
+                                                    data-bs-toggle="collapse"
+                                                    th:data-bs-target="|#dealer-review-collapse-${item.reviewId}|"
+                                                    aria-expanded="false"
+                                                    th:aria-controls="|dealer-review-collapse-${item.reviewId}|">
+                                                <span class="dealer-review-content-preview"
+                                                      th:text="${item.contentPreview}">리뷰 내용 미리보기</span>
+                                            </button>
+                                        </td>
+
+                                        <td class="dealer-review-date-col">
+                                            <span th:text="${#temporals.format(item.createdAt, 'yyyy-MM-dd HH:mm')}">2026-03-30 10:30</span>
+                                        </td>
+
+                                        <td class="dealer-review-button-col">
+                                            <a class="btn btn-sm btn-primary"
+                                               th:href="@{/dealerProductDetail/{dealerProductId}(dealerProductId=${item.dealerProductId})}">
+                                                상품보기
+                                            </a>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td colspan="7" class="dealer-review-collapse-cell">
+                                            <div class="collapse"
+                                                 th:id="|dealer-review-collapse-${item.reviewId}|">
+                                                <div class="dealer-review-collapse-inner">
+                                                    <div class="dealer-review-collapse-title">리뷰 전체 내용</div>
+                                                    <div class="dealer-review-full-content"
+                                                         th:text="${item.content}">리뷰 전문</div>
+
+                                                    <div class="dealer-review-collapse-images"
+                                                         th:if="${item.hasImages}">
+                                                        <img th:each="imageUrl : ${item.imageUrls}"
+                                                             th:src="${imageUrl}"
+                                                             alt="리뷰 이미지"
+                                                             class="dealer-review-collapse-image">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </th:block>
+                                </tbody>
+
+                                <tbody th:if="${reviewPage.isEmpty()}">
+                                <tr class="dealer-review-empty-row">
+                                    <td colspan="7">조회된 리뷰가 없습니다.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="dealer-review-pagination-wrap" th:if="${reviewPage.totalPages > 0}">
+                            <nav aria-label="리뷰 페이지네이션">
+                                <ul class="pagination justify-content-center">
+
+                                    <li class="page-item" th:classappend="${reviewPage.first} ? 'disabled'">
+                                        <a class="page-link"
+                                           th:href="@{/seller/productReviewManager(
+                                               page=0,
+                                               size=${condition.size},
+                                               fromDate=${condition.fromDate},
+                                               toDate=${condition.toDate},
+                                               sortField=${condition.sortField},
+                                               sortDir=${condition.sortDir}
+                                           )}">
+                                            FIRST
+                                        </a>
+                                    </li>
+
+                                    <li class="page-item" th:classappend="${reviewPage.first} ? 'disabled'">
+                                        <a class="page-link"
+                                           th:href="@{/seller/productReviewManager(
+                                               page=${reviewPage.first ? 0 : reviewPage.number - 1},
+                                               size=${condition.size},
+                                               fromDate=${condition.fromDate},
+                                               toDate=${condition.toDate},
+                                               sortField=${condition.sortField},
+                                               sortDir=${condition.sortDir}
+                                           )}">
+                                            PREV
+                                        </a>
+                                    </li>
+
+                                    <li class="page-item"
+                                        th:each="pageNumber : ${#numbers.sequence(startPage, endPage)}"
+                                        th:classappend="${pageNumber == reviewPage.number} ? 'active'">
+                                        <a class="page-link"
+                                           th:text="${pageNumber + 1}"
+                                           th:href="@{/seller/productReviewManager(
+                                               page=${pageNumber},
+                                               size=${condition.size},
+                                               fromDate=${condition.fromDate},
+                                               toDate=${condition.toDate},
+                                               sortField=${condition.sortField},
+                                               sortDir=${condition.sortDir}
+                                           )}">
+                                            1
+                                        </a>
+                                    </li>
+
+                                    <li class="page-item" th:classappend="${reviewPage.last} ? 'disabled'">
+                                        <a class="page-link"
+                                           th:href="@{/seller/productReviewManager(
+                                               page=${reviewPage.last ? reviewPage.totalPages - 1 : reviewPage.number + 1},
+                                               size=${condition.size},
+                                               fromDate=${condition.fromDate},
+                                               toDate=${condition.toDate},
+                                               sortField=${condition.sortField},
+                                               sortDir=${condition.sortDir}
+                                           )}">
+                                            NEXT
+                                        </a>
+                                    </li>
+
+                                    <li class="page-item" th:classappend="${reviewPage.last} ? 'disabled'">
+                                        <a class="page-link"
+                                           th:href="@{/seller/productReviewManager(
+                                               page=${reviewPage.totalPages - 1},
+                                               size=${condition.size},
+                                               fromDate=${condition.fromDate},
+                                               toDate=${condition.toDate},
+                                               sortField=${condition.sortField},
+                                               sortDir=${condition.sortDir}
+                                           )}">
+                                            LAST
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/administration/assets/seller/product/productReviewManager.js"></script>
+</body>
+</html>

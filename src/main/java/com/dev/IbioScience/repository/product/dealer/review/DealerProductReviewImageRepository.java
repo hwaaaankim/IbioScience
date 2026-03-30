@@ -14,4 +14,8 @@ public interface DealerProductReviewImageRepository extends JpaRepository<Dealer
     List<DealerProductReviewImage> findByReviewIdOrderBySortOrderAscIdAsc(Long reviewId);
 
     List<DealerProductReviewImage> findByIdInAndReviewId(Collection<Long> ids, Long reviewId);
+    
+    List<DealerProductReviewImage> findByReview_IdInOrderBySortOrderAscIdAsc(List<Long> reviewIds);
+
+    List<DealerProductReviewImage> findByReview_IdOrderBySortOrderAscIdAsc(Long reviewId);
 }

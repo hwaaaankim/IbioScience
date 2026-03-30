@@ -1,5 +1,6 @@
 package com.dev.IbioScience.repository.order;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,4 +51,38 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
             where o.id = :orderId
             """)
     Optional<Order> findDetailById(@Param("orderId") Long orderId);
+
+    @Override
+    @EntityGraph(attributePaths = {
+        "member",
+        "member.companyProfile",
+        "member.sellerDealerProfile"
+    })
+    Optional<Order> findById(Long id);
+
+    @Query("""
+        select distinct o.id
+        from Order o
+        join o.items oi
+        join oi.dealerProduct dp
+        join dp.sellerDealerProfile sdp
+        join sdp.member sm
+        where sm.id = :sellerMemberId
+          and o.id in :orderIds
+    """)
+    List<Long> findVisibleOrderIdsForSeller(@Param("sellerMemberId") Long sellerMemberId,
+                                            @Param("orderIds") Collection<Long> orderIds);
+
+    @Query("""
+        select distinct o.id
+        from Order o
+        join o.items oi
+        join oi.dealerProduct dp
+        join dp.sellerDealerProfile sdp
+        join sdp.member sm
+        where sm.id = :sellerMemberId
+          and o.id = :orderId
+    """)
+    Optional<Long> findVisibleOrderIdForSeller(@Param("sellerMemberId") Long sellerMemberId,
+                                               @Param("orderId") Long orderId);
 }

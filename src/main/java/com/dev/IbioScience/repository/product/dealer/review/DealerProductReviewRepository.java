@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.dev.IbioScience.model.product.dealer.review.DealerProductReview;
 
-public interface DealerProductReviewRepository extends JpaRepository<DealerProductReview, Long> {
+public interface DealerProductReviewRepository extends JpaRepository<DealerProductReview, Long>, DealerProductReviewRepositoryCustom  {
 
     boolean existsByDealerProductIdAndMemberId(Long dealerProductId, Long memberId);
 

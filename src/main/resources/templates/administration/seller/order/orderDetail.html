@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ko"
+      data-layout="vertical"
+      data-topbar="light"
+      data-sidebar="dark"
+      data-sidebar-size="lg"
+      data-sidebar-image="none"
+      data-preloader="disable"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('딜러 주문상세')}"></head>
+
+<body>
+<div id="layout-wrapper">
+    <header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+    <div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+    <div class="vertical-overlay"></div>
+
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">딜러 주문상세</h4>
+                            <div class="page-title-right">
+                                <ol class="breadcrumb m-0">
+                                    <li class="breadcrumb-item"><a th:href="@{/seller/orderManager}">주문관리</a></li>
+                                    <li class="breadcrumb-item active">주문상세</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    .seller-order-detail-card .card-header h5 {
+                        margin-bottom: 0;
+                        font-weight: 700;
+                    }
+
+                    .seller-order-detail-readonly {
+                        background-color: #f8f9fa;
+                    }
+
+                    .seller-order-detail-label {
+                        font-weight: 600;
+                        margin-bottom: .45rem;
+                    }
+
+                    .seller-order-detail-summary-box {
+                        min-height: 100%;
+                        background: #f8f9fa;
+                        border-radius: .5rem;
+                        padding: 1rem;
+                    }
+
+                    .seller-order-detail-table td,
+                    .seller-order-detail-table th {
+                        vertical-align: middle;
+                        white-space: nowrap;
+                    }
+
+                    .seller-order-detail-table td.seller-order-detail-product-name {
+                        white-space: normal;
+                        word-break: break-word;
+                        min-width: 220px;
+                    }
+
+                    .seller-order-detail-link-btn {
+                        min-width: 88px;
+                    }
+
+                    @media (max-width: 991.98px) {
+                        .seller-order-detail-table {
+                            min-width: 1180px;
+                        }
+                    }
+                </style>
+
+                <div class="card seller-order-detail-card">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5>주문상태</h5>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/seller/orderManager}" class="btn btn-light">목록</a>
+                            <button type="button" class="btn btn-primary" id="seller-order-detail-save-status-btn" disabled>상태변경</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-lg-4">
+                                <label class="seller-order-detail-label" for="seller-order-detail-status-select">주문상태</label>
+                                <select class="form-select" id="seller-order-detail-status-select">
+                                    <option value="ORDER_COMPLETED">주문완료</option>
+                                    <option value="PRODUCT_PREPARING">상품준비중</option>
+                                    <option value="DELIVERING">배송중</option>
+                                    <option value="CANCEL_FINISHED">취소완료</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="seller-order-detail-summary-box">
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <div class="text-muted mb-1">주문번호</div>
+                                            <div class="fw-semibold" id="detail-order-no">-</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-muted mb-1">주문일</div>
+                                            <div class="fw-semibold" id="detail-ordered-at">-</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-muted mb-1">해당 딜러 상품 합계</div>
+                                            <div class="fw-semibold" id="detail-visible-sum-price">0원</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card seller-order-detail-card">
+                    <div class="card-header">
+                        <h5>주문정보</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">주문자명</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-orderer-name" readonly>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">회원아이디</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-orderer-username" readonly>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">연락처</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-contact" readonly>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">이메일</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-email" readonly>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">주문자 분류</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-dealer-type-label" readonly>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">업체명</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-company-name" readonly>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">입점몰명</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-shop-name" readonly>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">결제완료일시</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-paid-at" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card seller-order-detail-card">
+                    <div class="card-header">
+                        <h5>배송지 · 결제정보</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">수령인</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-receiver-name" readonly>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">휴대폰</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-hp" readonly>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">유선전화</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-tel" readonly>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="seller-order-detail-label">우편번호</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-postcode" readonly>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <label class="seller-order-detail-label">도로명주소</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-road-address" readonly>
+                            </div>
+                            <div class="col-lg-6">
+                                <label class="seller-order-detail-label">상세주소</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-detail-address" readonly>
+                            </div>
+
+                            <div class="col-lg-4 col-md-6">
+                                <label class="seller-order-detail-label">결제수단</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-payment-method" readonly>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <label class="seller-order-detail-label">배송방법</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-shipping-method" readonly>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <label class="seller-order-detail-label">배송비 구분</label>
+                                <input type="text" class="form-control seller-order-detail-readonly" id="detail-shipping-pay-type" readonly>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="seller-order-detail-label">배송메모</label>
+                                <textarea class="form-control seller-order-detail-readonly" id="detail-shipping-memo" rows="3" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card seller-order-detail-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>주문상품</h5>
+                        <span class="badge bg-primary-subtle text-primary" id="detail-visible-item-count-badge">0건</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle mb-0 seller-order-detail-table">
+                                <thead class="table-light">
+                                <tr>
+                                    <th style="width: 110px;">상품아이디</th>
+                                    <th style="min-width: 220px;">상품명</th>
+                                    <th style="width: 180px;">옵션그룹</th>
+                                    <th style="width: 180px;">옵션명</th>
+                                    <th style="width: 140px;">단가</th>
+                                    <th style="width: 100px;">수량</th>
+                                    <th style="width: 160px;">수량*단가</th>
+                                    <th style="width: 120px;">상세이동</th>
+                                </tr>
+                                </thead>
+                                <tbody id="seller-order-detail-items-body">
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-5">조회 중입니다.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.SELLER_ORDER_DETAIL_ORDER_ID = /*[[${orderId}]]*/ null;
+    /*]]>*/
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/administration/assets/seller/order/orderDetail.js"></script>
+</body>
+</html>
