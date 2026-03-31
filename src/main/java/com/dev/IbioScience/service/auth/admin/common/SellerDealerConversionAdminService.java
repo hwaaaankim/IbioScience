@@ -546,7 +546,7 @@ public class SellerDealerConversionAdminService {
 			return today.withDayOfMonth(today.lengthOfMonth());
 		}
 
-		int day = cycle.day; // 1/5/10/15/20/25
+		int day = cycle.getDay(); // 1/5/10/15/20/25
 		LocalDate candidate = today.withDayOfMonth(Math.min(day, today.lengthOfMonth()));
 
 		if (!candidate.isBefore(today)) {

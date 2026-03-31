@@ -59,6 +59,7 @@ import com.dev.IbioScience.repository.auth.crm.CrmDealerCategoryPermissionReposi
 import com.dev.IbioScience.repository.auth.crm.CrmDealerSettlementPolicyRepository;
 import com.dev.IbioScience.repository.auth.crm.CrmSellerContactRepository;
 import com.dev.IbioScience.repository.auth.crm.CrmSellerDealerProfileRepository;
+import com.dev.IbioScience.service.settlement.DealerSettlementPolicyHistoryService;
 import com.dev.IbioScience.service.util.SMSService;
 import com.dev.IbioScience.utils.UploadPathHelper;
 
@@ -77,7 +78,7 @@ public class ClientDetailHomeService {
     private final CrmSellerContactRepository crmSellerContactRepository;
     private final CrmDealerSettlementPolicyRepository crmDealerSettlementPolicyRepository;
     private final CrmDealerCategoryPermissionRepository crmDealerCategoryPermissionRepository;
-
+    private final DealerSettlementPolicyHistoryService dealerSettlementPolicyHistoryService;
     private final MemberMemoRepository memberMemoRepository;
 
     private final PasswordEncoder passwordEncoder;
@@ -378,7 +379,7 @@ public class ClientDetailHomeService {
     }
 
     @Transactional
-    public void updateSellerAll(Long memberId, UpdateSellerProfileRequest req, MultipartFile logoFile) {
+    public void updateSellerAll(Long memberId, UpdateSellerProfileRequest req, MultipartFile logoFile, Long changedByMemberId) {
 
         SellerDealerProfile seller = crmSellerDealerProfileRepository.findByMember_Id(memberId)
             .orElseThrow(() -> new IllegalStateException("셀러 프로필이 없습니다."));
@@ -412,7 +413,7 @@ public class ClientDetailHomeService {
 
         crmSellerDealerProfileRepository.save(seller);
 
-        syncSettlementPolicy(seller, req.getSettlement());
+        syncSettlementPolicy(seller, req.getSettlement(), changedByMemberId);
         syncSellerContacts(seller, req.getContacts());
         syncCategoryPermissions(seller, req);
 
@@ -484,35 +485,45 @@ public class ClientDetailHomeService {
         }
     }
 
-    private void syncSettlementPolicy(SellerDealerProfile seller, UpdateSellerProfileRequest.SettlementPart settlement) {
-        if (settlement == null) {
-            return;
-        }
+    private void syncSettlementPolicy(
+	    SellerDealerProfile seller,
+	    UpdateSellerProfileRequest.SettlementPart settlement,
+	    Long changedByMemberId
+	) {
+	    if (settlement == null) {
+	        return;
+	    }
 
-        DealerSettlementPolicy policy = crmDealerSettlementPolicyRepository
-            .findBySellerDealerProfile_Id(seller.getId())
-            .orElseGet(() -> DealerSettlementPolicy.builder()
-                .sellerDealerProfile(seller)
-                .commissionRate(settlement.getCommissionRate() != null ? settlement.getCommissionRate() : BigDecimal.ZERO)
-                .cycle(settlement.getCycle() != null ? SettlementCycle.valueOf(settlement.getCycle()) : SettlementCycle.MONTH_END)
-                .basis(settlement.getBasis() != null ? SettlementBasis.valueOf(settlement.getBasis()) : SettlementBasis.PAYMENT_COMPLETED)
-                .nextSettlementDate(settlement.getNextSettlementDate())
-                .build()
-            );
+	    DealerSettlementPolicy policy = crmDealerSettlementPolicyRepository
+	        .findBySellerDealerProfile_Id(seller.getId())
+	        .orElseGet(() -> DealerSettlementPolicy.builder()
+	            .sellerDealerProfile(seller)
+	            .commissionRate(settlement.getCommissionRate() != null ? settlement.getCommissionRate() : BigDecimal.ZERO)
+	            .cycle(settlement.getCycle() != null ? SettlementCycle.valueOf(settlement.getCycle()) : SettlementCycle.MONTH_END)
+	            .basis(settlement.getBasis() != null ? SettlementBasis.valueOf(settlement.getBasis()) : SettlementBasis.PAYMENT_COMPLETED)
+	            .nextSettlementDate(settlement.getNextSettlementDate())
+	            .build()
+	        );
 
-        if (settlement.getCommissionRate() != null) {
-            policy.setCommissionRate(settlement.getCommissionRate());
-        }
-        if (StringUtils.hasText(settlement.getCycle())) {
-            policy.setCycle(SettlementCycle.valueOf(settlement.getCycle().trim()));
-        }
-        if (StringUtils.hasText(settlement.getBasis())) {
-            policy.setBasis(SettlementBasis.valueOf(settlement.getBasis().trim()));
-        }
+	    if (settlement.getCommissionRate() != null) {
+	        policy.setCommissionRate(settlement.getCommissionRate());
+	    }
+	    if (StringUtils.hasText(settlement.getCycle())) {
+	        policy.setCycle(SettlementCycle.valueOf(settlement.getCycle().trim()));
+	    }
+	    if (StringUtils.hasText(settlement.getBasis())) {
+	        policy.setBasis(SettlementBasis.valueOf(settlement.getBasis().trim()));
+	    }
 
-        policy.setNextSettlementDate(settlement.getNextSettlementDate());
-        crmDealerSettlementPolicyRepository.save(policy);
-    }
+	    policy.setNextSettlementDate(settlement.getNextSettlementDate());
+	    DealerSettlementPolicy savedPolicy = crmDealerSettlementPolicyRepository.save(policy);
+
+	    dealerSettlementPolicyHistoryService.syncHistoryOnPolicySave(
+	        seller,
+	        savedPolicy,
+	        changedByMemberId
+	    );
+	}
 
     private void syncSellerContacts(SellerDealerProfile seller, List<UpdateSellerProfileRequest.ContactItem> reqContacts) {
         List<SellerContact> existing = crmSellerContactRepository.findBySellerDealerProfile_IdOrderByIdAsc(seller.getId());

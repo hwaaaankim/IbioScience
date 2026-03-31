@@ -197,4 +197,12 @@ public class Order extends BaseTimeEntity {
         item.setOrder(this);
         this.items.add(item);
     }
+    
+    /** 배송완료 일시 */
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
+    /** 구매확정 일시 */
+    @Column(name = "purchase_confirmed_at")
+    private LocalDateTime purchaseConfirmedAt;
 }

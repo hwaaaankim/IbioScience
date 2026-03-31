@@ -94,10 +94,12 @@ public class ClientDetailCrmApiController {
     @PostMapping(value = "/seller/saveAll", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public CommonAPIResponse<Void> saveSellerAll(
         @PathVariable Long memberId,
+        @AuthenticationPrincipal PrincipalDetails pd,
         @RequestPart("request") UpdateSellerProfileRequest req,
         @RequestPart(value = "logoFile", required = false) MultipartFile logoFile
     ) {
-        clientDetailHomeService.updateSellerAll(memberId, req, logoFile);
+        Long changedByMemberId = (pd != null && pd.getMember() != null) ? pd.getMember().getId() : null;
+        clientDetailHomeService.updateSellerAll(memberId, req, logoFile, changedByMemberId);
         return CommonAPIResponse.ok("셀러 변경사항 저장 완료", null);
     }
 }

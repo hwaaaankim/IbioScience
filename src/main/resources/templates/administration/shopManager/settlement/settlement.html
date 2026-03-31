@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('정산실행')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">정산실행</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">정산</a></li>
+										<li class="breadcrumb-item active">정산실행</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<style>
+						.settlement-excute-filter-card .form-label {
+							font-size: 0.85rem;
+							font-weight: 600;
+							margin-bottom: 0.35rem;
+						}
+
+						.settlement-excute-checkbox-wrap {
+							min-height: 38px;
+							display: flex;
+							flex-wrap: wrap;
+							gap: 0.5rem;
+							align-items: center;
+							padding: 0.45rem 0.75rem;
+							border: 1px solid #dee2e6;
+							border-radius: 0.5rem;
+						}
+
+						.settlement-excute-toolbar {
+							display: flex;
+							gap: 0.5rem;
+							justify-content: flex-end;
+							align-items: end;
+							height: 100%;
+						}
+
+						.settlement-excute-summary-box {
+							border: 1px solid #e9ecef;
+							border-radius: 0.75rem;
+							padding: 1rem;
+							background: #f8f9fa;
+						}
+
+						.settlement-excute-loading-overlay {
+							position: fixed;
+							inset: 0;
+							z-index: 2000;
+							background: rgba(0, 0, 0, 0.45);
+							display: none;
+							align-items: center;
+							justify-content: center;
+						}
+
+						.settlement-excute-loading-card {
+							min-width: 340px;
+							max-width: 520px;
+							background: #fff;
+							border-radius: 1rem;
+							padding: 1.5rem;
+							text-align: center;
+							box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.2);
+						}
+
+						.settlement-excute-result-table th,
+						.settlement-excute-result-table td {
+							vertical-align: middle;
+							white-space: nowrap;
+						}
+					</style>
+
+					<div class="card settlement-excute-filter-card">
+						<div class="card-body">
+							<div class="row g-3">
+								<div class="col-lg-2">
+									<label class="form-label" for="settlement-excute-from-date">From</label>
+									<input type="date" class="form-control" id="settlement-excute-from-date">
+								</div>
+								<div class="col-lg-2">
+									<label class="form-label" for="settlement-excute-to-date">To</label>
+									<input type="date" class="form-control" id="settlement-excute-to-date">
+								</div>
+
+								<div class="col-lg-4">
+									<label class="form-label">정산주기</label>
+									<div class="settlement-excute-checkbox-wrap">
+										<div class="form-check form-check-inline mb-0"><input class="form-check-input"
+												type="checkbox" value="DAY_1" id="settlement-excute-cycle-1"><label
+												class="form-check-label" for="settlement-excute-cycle-1">1일</label>
+										</div>
+										<div class="form-check form-check-inline mb-0"><input class="form-check-input"
+												type="checkbox" value="DAY_5" id="settlement-excute-cycle-5"><label
+												class="form-check-label" for="settlement-excute-cycle-5">5일</label>
+										</div>
+										<div class="form-check form-check-inline mb-0"><input class="form-check-input"
+												type="checkbox" value="DAY_10" id="settlement-excute-cycle-10"><label
+												class="form-check-label" for="settlement-excute-cycle-10">10일</label>
+										</div>
+										<div class="form-check form-check-inline mb-0"><input class="form-check-input"
+												type="checkbox" value="DAY_15" id="settlement-excute-cycle-15"><label
+												class="form-check-label" for="settlement-excute-cycle-15">15일</label>
+										</div>
+										<div class="form-check form-check-inline mb-0"><input class="form-check-input"
+												type="checkbox" value="DAY_20" id="settlement-excute-cycle-20"><label
+												class="form-check-label" for="settlement-excute-cycle-20">20일</label>
+										</div>
+										<div class="form-check form-check-inline mb-0"><input class="form-check-input"
+												type="checkbox" value="DAY_25" id="settlement-excute-cycle-25"><label
+												class="form-check-label" for="settlement-excute-cycle-25">25일</label>
+										</div>
+										<div class="form-check form-check-inline mb-0"><input class="form-check-input"
+												type="checkbox" value="MONTH_END"
+												id="settlement-excute-cycle-end"><label class="form-check-label"
+												for="settlement-excute-cycle-end">말일</label></div>
+									</div>
+								</div>
+
+								<div class="col-lg-4">
+									<label class="form-label">정산기준</label>
+									<div class="settlement-excute-checkbox-wrap">
+										<div class="form-check form-check-inline mb-0"><input class="form-check-input"
+												type="checkbox" value="PAYMENT_COMPLETED"
+												id="settlement-excute-basis-payment"><label class="form-check-label"
+												for="settlement-excute-basis-payment">결제완료</label></div>
+										<div class="form-check form-check-inline mb-0"><input class="form-check-input"
+												type="checkbox" value="DELIVERY_COMPLETED"
+												id="settlement-excute-basis-delivery"><label class="form-check-label"
+												for="settlement-excute-basis-delivery">배송완료</label></div>
+										<div class="form-check form-check-inline mb-0"><input class="form-check-input"
+												type="checkbox" value="PURCHASE_CONFIRMED"
+												id="settlement-excute-basis-purchase"><label class="form-check-label"
+												for="settlement-excute-basis-purchase">구매확정</label></div>
+									</div>
+								</div>
+
+								<div class="col-lg-8">
+									<label class="form-label" for="settlement-excute-keyword">키워드검색</label>
+									<input type="text" class="form-control" id="settlement-excute-keyword"
+										placeholder="컴퍼니명, 멤버이름, 멤버유저네임, 셀러프로필이름, 멤버 연락처, 멤버 이메일">
+								</div>
+
+								<div class="col-lg-4">
+									<div class="settlement-excute-toolbar">
+										<button type="button" class="btn btn-outline-secondary w-100"
+											id="settlement-excute-btn-reset">초기화</button>
+										<button type="button" class="btn btn-primary w-100"
+											id="settlement-excute-btn-search">검색</button>
+										<button type="button" class="btn btn-success w-100"
+											id="settlement-excute-btn-run">정산실행</button>
+									</div>
+								</div>
+							</div>
+
+							<div class="alert alert-warning mt-3 mb-0">
+								전체기간 또는 장기간 정산 실행 시 조회/생성 시간이 길어질 수 있습니다. 실행 중에는 페이지를 이동하거나 새로고침하지 마십시오.
+								<br>
+								이미 정산에 포함된 주문은 자동 제외됩니다.
+							</div>
+						</div>
+					</div>
+
+					<div class="row g-3 mb-3">
+						<div class="col-lg-3">
+							<div class="settlement-excute-summary-box">
+								<div class="text-muted small">생성 예정 건수</div>
+								<div class="fs-4 fw-bold" id="settlement-excute-summary-count">0</div>
+							</div>
+						</div>
+						<div class="col-lg-3">
+							<div class="settlement-excute-summary-box">
+								<div class="text-muted small">총 판매금액</div>
+								<div class="fs-4 fw-bold" id="settlement-excute-summary-gross">0</div>
+							</div>
+						</div>
+						<div class="col-lg-3">
+							<div class="settlement-excute-summary-box">
+								<div class="text-muted small">총 수수료</div>
+								<div class="fs-4 fw-bold text-danger" id="settlement-excute-summary-commission">0</div>
+							</div>
+						</div>
+						<div class="col-lg-3">
+							<div class="settlement-excute-summary-box">
+								<div class="text-muted small">총 정산금액</div>
+								<div class="fs-4 fw-bold text-success" id="settlement-excute-summary-settlement">0</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card-body">
+							<div class="table-responsive">
+								<table class="table table-bordered align-middle settlement-excute-result-table">
+									<thead class="table-light">
+										<tr>
+											<th>유저정보</th>
+											<th style="width: 120px;">정산주기</th>
+											<th style="width: 140px;">정산기준</th>
+											<th style="width: 200px;">정산기간</th>
+											<th style="width: 120px;">주문수</th>
+											<th style="width: 120px;">아이템수</th>
+											<th style="width: 140px;">판매금액</th>
+											<th style="width: 140px;">수수료</th>
+											<th style="width: 140px;">정산금액</th>
+										</tr>
+									</thead>
+									<tbody id="settlement-excute-tbody">
+										<tr>
+											<td colspan="9" class="text-center text-muted py-5">검색 후 생성 예정 정산내역이 표시됩니다.
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<div class="settlement-excute-loading-overlay" id="settlement-excute-loading-overlay">
+		<div class="settlement-excute-loading-card">
+			<div class="spinner-border text-primary mb-3" role="status"></div>
+			<h5 class="mb-2">정산 실행 중입니다</h5>
+			<div class="text-muted" id="settlement-excute-loading-message">대상 내역을 계산하고 정산 데이터를 생성하고 있습니다.</div>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/js/page/shopManager/settlement/settlement.js"></script>
+</body>
+
+</html>
