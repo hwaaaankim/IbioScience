@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
@@ -256,12 +257,11 @@ public class SettlementExecuteService {
     }
 
     /**
-     * 핵심 흐름
-     * 1. 주문이 있는 셀러를 먼저 찾음
-     * 2. 현재 policy 의 cycle/basis 로 정산기간을 구성
-     * 3. DealerSettlement 로 이미 생성된 기간 제거
-     * 4. DealerSettlementOrder 로 이미 포함된 주문 제거
-     * 5. PolicyHistory 는 날짜별 수수료 계산용으로만 사용
+     * 핵심 규칙
+     * 1. 검색 날짜에 해당하는 오더를 조회한다. fromDate 가 없으면 전체 기간 조회다.
+     * 2. 전체 기간 조회 시 셀러별 정산 시작일은 SellerDealerProfile.dealStartDate 이다.
+     * 3. 중복 정산 판단은 DealerSettlement / DealerSettlementOrder 로만 한다.
+     * 4. PolicyHistory 는 지급완료 판단 기준이 아니라, 날짜별 정책 변경 반영과 참조 스냅샷용이다.
      */
     private List<Candidate> buildCandidates(SettlementExecuteSearchRequest request, ExecutionCondition condition) {
         LocalDateTime fromDateTime = condition.getEffectiveFromDate() != null
@@ -330,28 +330,16 @@ public class SettlementExecuteService {
                 + ", hasCurrentPolicy=" + (currentPolicy != null)
                 + ", historyCount=" + histories.size());
 
-            ExecutionPolicy executionPolicy = resolveExecutionPolicy(currentPolicy, histories, condition.getEffectiveToDate());
-            if (executionPolicy == null) {
-                debug("[SETTLEMENT][SELLER] executionPolicy is null -> skip sellerDealerProfileId=" + sellerDealerProfileId);
-                continue;
-            }
-
-            debug("[SETTLEMENT][SELLER] executionPolicy sellerDealerProfileId=" + sellerDealerProfileId
-                + ", cycle=" + executionPolicy.getCycle()
-                + ", basis=" + executionPolicy.getBasis()
-                + ", memberUsername=" + executionPolicy.getMemberUsername());
-
-            if (!matchesRequestedFilters(executionPolicy, request)) {
-                debug("[SETTLEMENT][SELLER] requested filter mismatch -> skip sellerDealerProfileId=" + sellerDealerProfileId);
+            if (currentPolicy == null || currentPolicy.getSellerDealerProfile() == null) {
+                debug("[SETTLEMENT][SELLER] currentPolicy 또는 sellerDealerProfile 없음 -> skip sellerDealerProfileId=" + sellerDealerProfileId);
                 continue;
             }
 
             addCandidatesForSeller(
-                sellerDealerProfileId,
+                request,
+                condition,
                 currentPolicy,
                 histories,
-                executionPolicy,
-                condition,
                 candidates
             );
         }
@@ -367,40 +355,27 @@ public class SettlementExecuteService {
     }
 
     private void addCandidatesForSeller(
-        Long sellerDealerProfileId,
+        SettlementExecuteSearchRequest request,
+        ExecutionCondition condition,
         DealerSettlementPolicy currentPolicy,
         List<DealerSettlementPolicyHistory> histories,
-        ExecutionPolicy executionPolicy,
-        ExecutionCondition condition,
         List<Candidate> candidates
     ) {
-        SellerDealerProfile sellerDealerProfile = resolveSellerDealerProfile(currentPolicy, histories);
-        if (sellerDealerProfile == null || sellerDealerProfileId == null) {
-            debug("[SETTLEMENT][SELLER-CANDIDATE] sellerDealerProfile null -> skip sellerDealerProfileId=" + sellerDealerProfileId);
+        SellerDealerProfile sellerDealerProfile = currentPolicy.getSellerDealerProfile();
+        Long sellerDealerProfileId = sellerDealerProfile.getId();
+
+        if (sellerDealerProfileId == null) {
+            debug("[SETTLEMENT][SELLER-CANDIDATE] sellerDealerProfileId null -> skip");
             return;
         }
 
-        List<SettlementOrderSummarySourceDto> allOrderSummaries = settlementOrderSourceQueryRepository.findDealerOrderSummaries(
-            sellerDealerProfileId,
-            executionPolicy.getBasis(),
-            condition.getEffectiveFromDate() != null ? condition.getEffectiveFromDate().atStartOfDay() : null,
-            condition.getEffectiveToDate().plusDays(1).atStartOfDay()
-        );
-
-        debug("[SETTLEMENT][SELLER-CANDIDATE] sellerDealerProfileId=" + sellerDealerProfileId
-            + ", allOrderSummaries.size=" + (allOrderSummaries != null ? allOrderSummaries.size() : 0));
-
-        if (allOrderSummaries == null || allOrderSummaries.isEmpty()) {
-            debug("[SETTLEMENT][SELLER-CANDIDATE] allOrderSummaries empty -> skip sellerDealerProfileId=" + sellerDealerProfileId);
-            return;
-        }
-
-        LocalDate effectiveStart = resolveSellerSettlementStartDate(condition, histories, allOrderSummaries);
+        LocalDate effectiveStart = resolveSellerSettlementStartDate(condition, sellerDealerProfile);
         LocalDate effectiveEnd = condition.getEffectiveToDate();
 
         debug("[SETTLEMENT][SELLER-CANDIDATE] sellerDealerProfileId=" + sellerDealerProfileId
             + ", effectiveStart=" + effectiveStart
-            + ", effectiveEnd=" + effectiveEnd);
+            + ", effectiveEnd=" + effectiveEnd
+            + ", dealStartDate=" + sellerDealerProfile.getDealStartDate());
 
         if (effectiveStart == null || effectiveEnd.isBefore(effectiveStart)) {
             debug("[SETTLEMENT][SELLER-CANDIDATE] invalid effective range -> skip sellerDealerProfileId=" + sellerDealerProfileId);
@@ -416,18 +391,60 @@ public class SettlementExecuteService {
         debug("[SETTLEMENT][SELLER-CANDIDATE] sellerDealerProfileId=" + sellerDealerProfileId
             + ", overlappingSettlements.size=" + (overlappingSettlements != null ? overlappingSettlements.size() : 0));
 
-        if (overlappingSettlements != null) {
-            for (DealerSettlement ds : overlappingSettlements) {
-                debug("[SETTLEMENT][OVERLAP] sellerDealerProfileId=" + sellerDealerProfileId
-                    + ", settlementId=" + ds.getId()
-                    + ", basis=" + ds.getSettlementBasis()
-                    + ", period=" + ds.getPeriodStartDate() + " ~ " + ds.getPeriodEndDate());
-            }
+        List<PolicyWindow> policyWindows = resolvePolicyWindows(
+            request,
+            currentPolicy,
+            histories,
+            effectiveStart,
+            effectiveEnd
+        );
+
+        debug("[SETTLEMENT][SELLER-CANDIDATE] sellerDealerProfileId=" + sellerDealerProfileId
+            + ", policyWindows.size=" + policyWindows.size());
+
+        for (PolicyWindow policyWindow : policyWindows) {
+            addCandidatesForPolicyWindow(
+                sellerDealerProfile,
+                currentPolicy,
+                overlappingSettlements,
+                policyWindow,
+                effectiveEnd,
+                candidates
+            );
+        }
+    }
+
+    private void addCandidatesForPolicyWindow(
+        SellerDealerProfile sellerDealerProfile,
+        DealerSettlementPolicy currentPolicy,
+        List<DealerSettlement> overlappingSettlements,
+        PolicyWindow policyWindow,
+        LocalDate effectiveEnd,
+        List<Candidate> candidates
+    ) {
+        Long sellerDealerProfileId = sellerDealerProfile.getId();
+
+        List<SettlementOrderSummarySourceDto> orderSummaries = settlementOrderSourceQueryRepository.findDealerOrderSummaries(
+            sellerDealerProfileId,
+            policyWindow.getBasis(),
+            policyWindow.getWindowStartDate().atStartOfDay(),
+            policyWindow.getWindowEndDate().plusDays(1).atStartOfDay()
+        );
+
+        debug("[SETTLEMENT][POLICY-WINDOW] sellerDealerProfileId=" + sellerDealerProfileId
+            + ", window=" + policyWindow.getWindowStartDate() + " ~ " + policyWindow.getWindowEndDate()
+            + ", cycle=" + policyWindow.getCycle()
+            + ", basis=" + policyWindow.getBasis()
+            + ", commissionRate=" + policyWindow.getCommissionRate()
+            + ", orderSummaries.size=" + (orderSummaries != null ? orderSummaries.size() : 0));
+
+        if (orderSummaries == null || orderSummaries.isEmpty()) {
+            return;
         }
 
         Map<PeriodKey, List<SettlementOrderSummarySourceDto>> ordersByClosedPeriod = new LinkedHashMap<>();
 
-        for (SettlementOrderSummarySourceDto orderSummary : allOrderSummaries) {
+        for (SettlementOrderSummarySourceDto orderSummary : orderSummaries) {
             if (orderSummary == null || orderSummary.getOrderId() == null || orderSummary.getBasisDate() == null) {
                 debug("[SETTLEMENT][ORDER-SKIP] null summary data sellerDealerProfileId=" + sellerDealerProfileId);
                 continue;
@@ -435,21 +452,21 @@ public class SettlementExecuteService {
 
             LocalDate basisDate = orderSummary.getBasisDate().toLocalDate();
 
-            if (basisDate.isBefore(effectiveStart) || basisDate.isAfter(effectiveEnd)) {
-                debug("[SETTLEMENT][ORDER-SKIP] out of effective range sellerDealerProfileId=" + sellerDealerProfileId
+            if (basisDate.isBefore(policyWindow.getWindowStartDate()) || basisDate.isAfter(policyWindow.getWindowEndDate())) {
+                debug("[SETTLEMENT][ORDER-SKIP] out of policy window sellerDealerProfileId=" + sellerDealerProfileId
                     + ", orderId=" + orderSummary.getOrderId()
                     + ", basisDate=" + basisDate);
                 continue;
             }
 
-            PeriodKey rawPeriod = resolveCyclePeriod(executionPolicy.getCycle(), basisDate);
+            PeriodKey rawPeriod = resolveCyclePeriod(policyWindow.getCycle(), basisDate);
 
             debug("[SETTLEMENT][ORDER-PERIOD] sellerDealerProfileId=" + sellerDealerProfileId
                 + ", orderId=" + orderSummary.getOrderId()
                 + ", basisDate=" + basisDate
-                + ", rawPeriod=" + rawPeriod.getStartDate() + " ~ " + rawPeriod.getEndDate());
+                + ", rawPeriod=" + rawPeriod.getStartDate() + " ~ " + rawPeriod.getEndDate()
+                + ", policyWindow=" + policyWindow.getWindowStartDate() + " ~ " + policyWindow.getWindowEndDate());
 
-            // 아직 닫히지 않은 정산기간은 조회/실행 제외
             if (rawPeriod.getEndDate().isAfter(effectiveEnd)) {
                 debug("[SETTLEMENT][ORDER-SKIP] raw period not closed sellerDealerProfileId=" + sellerDealerProfileId
                     + ", orderId=" + orderSummary.getOrderId()
@@ -458,8 +475,8 @@ public class SettlementExecuteService {
                 continue;
             }
 
-            LocalDate periodStart = max(effectiveStart, rawPeriod.getStartDate());
-            LocalDate periodEnd = min(effectiveEnd, rawPeriod.getEndDate());
+            LocalDate periodStart = max(policyWindow.getWindowStartDate(), rawPeriod.getStartDate());
+            LocalDate periodEnd = min(policyWindow.getWindowEndDate(), rawPeriod.getEndDate());
 
             if (periodEnd.isBefore(periodStart)) {
                 debug("[SETTLEMENT][ORDER-SKIP] clipped period invalid sellerDealerProfileId=" + sellerDealerProfileId
@@ -472,16 +489,12 @@ public class SettlementExecuteService {
             ordersByClosedPeriod.computeIfAbsent(closedPeriod, key -> new ArrayList<>()).add(orderSummary);
         }
 
-        debug("[SETTLEMENT][SELLER-CANDIDATE] sellerDealerProfileId=" + sellerDealerProfileId
+        debug("[SETTLEMENT][POLICY-WINDOW] sellerDealerProfileId=" + sellerDealerProfileId
             + ", closedPeriodCount=" + ordersByClosedPeriod.size());
 
         for (Map.Entry<PeriodKey, List<SettlementOrderSummarySourceDto>> entry : ordersByClosedPeriod.entrySet()) {
             PeriodKey closedPeriod = entry.getKey();
             List<SettlementOrderSummarySourceDto> periodOrders = entry.getValue();
-
-            debug("[SETTLEMENT][CLOSED-PERIOD] sellerDealerProfileId=" + sellerDealerProfileId
-                + ", closedPeriod=" + closedPeriod.getStartDate() + " ~ " + closedPeriod.getEndDate()
-                + ", periodOrders.size=" + (periodOrders != null ? periodOrders.size() : 0));
 
             if (periodOrders == null || periodOrders.isEmpty()) {
                 continue;
@@ -498,9 +511,6 @@ public class SettlementExecuteService {
                 + ", unpaidSegments.size=" + unpaidSegments.size());
 
             for (PeriodKey unpaidSegment : unpaidSegments) {
-                debug("[SETTLEMENT][UNPAID-SEGMENT] sellerDealerProfileId=" + sellerDealerProfileId
-                    + ", unpaidSegment=" + unpaidSegment.getStartDate() + " ~ " + unpaidSegment.getEndDate());
-
                 List<SettlementOrderSummarySourceDto> segmentOrders = periodOrders.stream()
                     .filter(summary -> {
                         LocalDate basisDate = summary.getBasisDate().toLocalDate();
@@ -558,38 +568,36 @@ public class SettlementExecuteService {
 
                 int orderCount = unsettledOrders.size();
 
-                long commissionAmount = calculateCommissionAmount(unsettledOrders, histories, currentPolicy);
+                long commissionAmount = calculateCommissionAmount(unsettledOrders, policyWindow.getCommissionRate());
                 long settlementAmount = grossAmount - commissionAmount;
                 BigDecimal effectiveCommissionRate = calculateEffectiveCommissionRate(grossAmount, commissionAmount);
 
-                DealerSettlementPolicyHistory referenceHistory = findEffectiveHistory(histories, unpaidSegment.getEndDate());
-
                 debug("[SETTLEMENT][CANDIDATE-CREATED] sellerDealerProfileId=" + sellerDealerProfileId
-                    + ", cycle=" + executionPolicy.getCycle()
-                    + ", basis=" + executionPolicy.getBasis()
+                    + ", cycle=" + policyWindow.getCycle()
+                    + ", basis=" + policyWindow.getBasis()
                     + ", period=" + unpaidSegment.getStartDate() + " ~ " + unpaidSegment.getEndDate()
                     + ", grossAmount=" + grossAmount
                     + ", commissionAmount=" + commissionAmount
                     + ", settlementAmount=" + settlementAmount
                     + ", effectiveCommissionRate=" + effectiveCommissionRate
-                    + ", referenceHistoryId=" + (referenceHistory != null ? referenceHistory.getId() : null));
+                    + ", referenceHistoryId=" + (policyWindow.getReferenceHistory() != null ? policyWindow.getReferenceHistory().getId() : null));
 
                 candidates.add(
                     Candidate.builder()
                         .sellerDealerProfile(sellerDealerProfile)
-                        .history(referenceHistory)
+                        .history(policyWindow.getReferenceHistory())
                         .currentPolicy(currentPolicy)
-                        .cycle(executionPolicy.getCycle())
-                        .basis(executionPolicy.getBasis())
+                        .cycle(policyWindow.getCycle())
+                        .basis(policyWindow.getBasis())
                         .commissionRate(effectiveCommissionRate)
-                        .sellerMemberIdSnapshot(executionPolicy.getSellerMemberId())
-                        .memberUsername(executionPolicy.getMemberUsername())
-                        .memberName(executionPolicy.getMemberName())
-                        .memberEmail(executionPolicy.getMemberEmail())
-                        .memberMobile(executionPolicy.getMemberMobile())
-                        .companyName(executionPolicy.getCompanyName())
-                        .shopName(executionPolicy.getShopName())
-                        .supplierCode(executionPolicy.getSupplierCode())
+                        .sellerMemberIdSnapshot(policyWindow.getSellerMemberId())
+                        .memberUsername(policyWindow.getMemberUsername())
+                        .memberName(policyWindow.getMemberName())
+                        .memberEmail(policyWindow.getMemberEmail())
+                        .memberMobile(policyWindow.getMemberMobile())
+                        .companyName(policyWindow.getCompanyName())
+                        .shopName(policyWindow.getShopName())
+                        .supplierCode(policyWindow.getSupplierCode())
                         .periodStartDate(unpaidSegment.getStartDate())
                         .periodEndDate(unpaidSegment.getEndDate())
                         .orderSummaries(unsettledOrders)
@@ -604,98 +612,219 @@ public class SettlementExecuteService {
         }
     }
 
-    private ExecutionPolicy resolveExecutionPolicy(
+    private List<PolicyWindow> resolvePolicyWindows(
+        SettlementExecuteSearchRequest request,
         DealerSettlementPolicy currentPolicy,
         List<DealerSettlementPolicyHistory> histories,
-        LocalDate targetDate
+        LocalDate rangeStart,
+        LocalDate rangeEnd
     ) {
-        if (currentPolicy != null
-            && currentPolicy.getCycle() != null
-            && currentPolicy.getBasis() != null
-            && currentPolicy.getSellerDealerProfile() != null) {
-
-            SellerDealerProfile seller = currentPolicy.getSellerDealerProfile();
-            Member sellerMember = seller.getMember();
-
-            return ExecutionPolicy.builder()
-                .cycle(currentPolicy.getCycle())
-                .basis(currentPolicy.getBasis())
-                .sellerMemberId(sellerMember != null ? sellerMember.getId() : null)
-                .memberUsername(sellerMember != null ? sellerMember.getUsername() : null)
-                .memberName(sellerMember != null ? sellerMember.getName() : null)
-                .memberEmail(sellerMember != null ? sellerMember.getEmail() : null)
-                .memberMobile(sellerMember != null ? sellerMember.getMobile() : null)
-                .companyName(seller.getCompanyProfile() != null ? seller.getCompanyProfile().getCompanyName() : null)
-                .shopName(seller.getShopName())
-                .supplierCode(seller.getSupplierCode())
-                .build();
+        if (currentPolicy == null || currentPolicy.getSellerDealerProfile() == null) {
+            return List.of();
         }
 
-        DealerSettlementPolicyHistory effectiveHistory = findEffectiveHistory(histories, targetDate);
-        if (effectiveHistory == null) {
-            return null;
-        }
+        TreeSet<LocalDate> boundaries = new TreeSet<>();
+        boundaries.add(rangeStart);
+        boundaries.add(rangeEnd.plusDays(1));
 
-        return ExecutionPolicy.builder()
-            .cycle(effectiveHistory.getCycle())
-            .basis(effectiveHistory.getBasis())
-            .sellerMemberId(effectiveHistory.getSellerMemberIdSnapshot())
-            .memberUsername(effectiveHistory.getMemberUsernameSnapshot())
-            .memberName(effectiveHistory.getMemberNameSnapshot())
-            .memberEmail(effectiveHistory.getMemberEmailSnapshot())
-            .memberMobile(effectiveHistory.getMemberMobileSnapshot())
-            .companyName(effectiveHistory.getCompanyNameSnapshot())
-            .shopName(effectiveHistory.getShopNameSnapshot())
-            .supplierCode(effectiveHistory.getSupplierCodeSnapshot())
-            .build();
-    }
+        if (histories != null) {
+            for (DealerSettlementPolicyHistory history : histories) {
+                if (history == null || history.getApplyStartDate() == null) {
+                    continue;
+                }
 
-    private SellerDealerProfile resolveSellerDealerProfile(
-        DealerSettlementPolicy currentPolicy,
-        List<DealerSettlementPolicyHistory> histories
-    ) {
-        if (currentPolicy != null && currentPolicy.getSellerDealerProfile() != null) {
-            return currentPolicy.getSellerDealerProfile();
-        }
+                LocalDate historyStart = max(rangeStart, history.getApplyStartDate());
+                LocalDate rawHistoryEnd = history.getApplyEndDate() != null ? history.getApplyEndDate() : rangeEnd;
+                LocalDate historyEnd = min(rangeEnd, rawHistoryEnd);
 
-        if (histories == null || histories.isEmpty()) {
-            return null;
-        }
+                if (historyEnd.isBefore(historyStart)) {
+                    continue;
+                }
 
-        for (DealerSettlementPolicyHistory history : histories) {
-            if (history != null && history.getSellerDealerProfile() != null) {
-                return history.getSellerDealerProfile();
+                boundaries.add(historyStart);
+                boundaries.add(historyEnd.plusDays(1));
             }
         }
 
-        return null;
+        List<LocalDate> boundaryList = new ArrayList<>(boundaries);
+        List<PolicyWindow> windows = new ArrayList<>();
+
+        for (int i = 0; i < boundaryList.size() - 1; i++) {
+            LocalDate windowStart = boundaryList.get(i);
+            LocalDate windowEnd = boundaryList.get(i + 1).minusDays(1);
+
+            if (windowEnd.isBefore(windowStart)) {
+                continue;
+            }
+
+            DealerSettlementPolicyHistory effectiveHistory = findEffectiveHistory(histories, windowStart);
+
+            SettlementCycle cycle = effectiveHistory != null && effectiveHistory.getCycle() != null
+                ? effectiveHistory.getCycle()
+                : currentPolicy.getCycle();
+
+            SettlementBasis basis = effectiveHistory != null && effectiveHistory.getBasis() != null
+                ? effectiveHistory.getBasis()
+                : currentPolicy.getBasis();
+
+            BigDecimal commissionRate = effectiveHistory != null && effectiveHistory.getCommissionRate() != null
+                ? effectiveHistory.getCommissionRate()
+                : currentPolicy.getCommissionRate();
+
+            if (cycle == null || basis == null) {
+                debug("[SETTLEMENT][POLICY-WINDOW-SKIP] cycle or basis null, sellerDealerProfileId="
+                    + currentPolicy.getSellerDealerProfile().getId()
+                    + ", window=" + windowStart + " ~ " + windowEnd);
+                continue;
+            }
+
+            if (!matchesRequestedFilters(cycle, basis, request)) {
+                debug("[SETTLEMENT][POLICY-WINDOW-SKIP] requested filter mismatch, sellerDealerProfileId="
+                    + currentPolicy.getSellerDealerProfile().getId()
+                    + ", window=" + windowStart + " ~ " + windowEnd
+                    + ", cycle=" + cycle
+                    + ", basis=" + basis);
+                continue;
+            }
+
+            windows.add(buildPolicyWindow(currentPolicy, effectiveHistory, windowStart, windowEnd, cycle, basis, commissionRate));
+        }
+
+        return mergeAdjacentPolicyWindows(windows);
+    }
+
+    private PolicyWindow buildPolicyWindow(
+        DealerSettlementPolicy currentPolicy,
+        DealerSettlementPolicyHistory effectiveHistory,
+        LocalDate windowStart,
+        LocalDate windowEnd,
+        SettlementCycle cycle,
+        SettlementBasis basis,
+        BigDecimal commissionRate
+    ) {
+        SellerDealerProfile seller = currentPolicy.getSellerDealerProfile();
+        Member sellerMember = seller.getMember();
+
+        return PolicyWindow.builder()
+            .windowStartDate(windowStart)
+            .windowEndDate(windowEnd)
+            .referenceHistory(effectiveHistory)
+            .cycle(cycle)
+            .basis(basis)
+            .commissionRate(commissionRate != null ? commissionRate : BigDecimal.ZERO)
+            .sellerMemberId(
+                effectiveHistory != null && effectiveHistory.getSellerMemberIdSnapshot() != null
+                    ? effectiveHistory.getSellerMemberIdSnapshot()
+                    : sellerMember != null ? sellerMember.getId() : null
+            )
+            .memberUsername(
+                effectiveHistory != null && StringUtils.hasText(effectiveHistory.getMemberUsernameSnapshot())
+                    ? effectiveHistory.getMemberUsernameSnapshot()
+                    : sellerMember != null ? sellerMember.getUsername() : null
+            )
+            .memberName(
+                effectiveHistory != null && StringUtils.hasText(effectiveHistory.getMemberNameSnapshot())
+                    ? effectiveHistory.getMemberNameSnapshot()
+                    : sellerMember != null ? sellerMember.getName() : null
+            )
+            .memberEmail(
+                effectiveHistory != null && StringUtils.hasText(effectiveHistory.getMemberEmailSnapshot())
+                    ? effectiveHistory.getMemberEmailSnapshot()
+                    : sellerMember != null ? sellerMember.getEmail() : null
+            )
+            .memberMobile(
+                effectiveHistory != null && StringUtils.hasText(effectiveHistory.getMemberMobileSnapshot())
+                    ? effectiveHistory.getMemberMobileSnapshot()
+                    : sellerMember != null ? sellerMember.getMobile() : null
+            )
+            .companyName(
+                effectiveHistory != null && StringUtils.hasText(effectiveHistory.getCompanyNameSnapshot())
+                    ? effectiveHistory.getCompanyNameSnapshot()
+                    : seller.getCompanyProfile() != null ? seller.getCompanyProfile().getCompanyName() : null
+            )
+            .shopName(
+                effectiveHistory != null && StringUtils.hasText(effectiveHistory.getShopNameSnapshot())
+                    ? effectiveHistory.getShopNameSnapshot()
+                    : seller.getShopName()
+            )
+            .supplierCode(
+                effectiveHistory != null && StringUtils.hasText(effectiveHistory.getSupplierCodeSnapshot())
+                    ? effectiveHistory.getSupplierCodeSnapshot()
+                    : seller.getSupplierCode()
+            )
+            .build();
+    }
+
+    private List<PolicyWindow> mergeAdjacentPolicyWindows(List<PolicyWindow> windows) {
+        if (windows == null || windows.isEmpty()) {
+            return List.of();
+        }
+
+        List<PolicyWindow> sorted = windows.stream()
+            .sorted(
+                Comparator.comparing(PolicyWindow::getWindowStartDate)
+                    .thenComparing(PolicyWindow::getWindowEndDate)
+                    .thenComparing(window -> window.getBasis().name())
+                    .thenComparing(window -> window.getCycle().name())
+            )
+            .collect(Collectors.toList());
+
+        List<PolicyWindow> merged = new ArrayList<>();
+        PolicyWindow current = sorted.get(0);
+
+        for (int i = 1; i < sorted.size(); i++) {
+            PolicyWindow next = sorted.get(i);
+
+            if (canMergePolicyWindow(current, next)) {
+                current = current.toBuilder()
+                    .windowEndDate(next.getWindowEndDate())
+                    .build();
+            } else {
+                merged.add(current);
+                current = next;
+            }
+        }
+
+        merged.add(current);
+        return merged;
+    }
+
+    private boolean canMergePolicyWindow(PolicyWindow left, PolicyWindow right) {
+        if (left == null || right == null) {
+            return false;
+        }
+
+        Long leftHistoryId = left.getReferenceHistory() != null ? left.getReferenceHistory().getId() : null;
+        Long rightHistoryId = right.getReferenceHistory() != null ? right.getReferenceHistory().getId() : null;
+
+        return left.getWindowEndDate().plusDays(1).isEqual(right.getWindowStartDate())
+            && left.getCycle() == right.getCycle()
+            && left.getBasis() == right.getBasis()
+            && Objects.equals(left.getCommissionRate(), right.getCommissionRate())
+            && Objects.equals(leftHistoryId, rightHistoryId)
+            && Objects.equals(left.getSellerMemberId(), right.getSellerMemberId())
+            && Objects.equals(left.getMemberUsername(), right.getMemberUsername())
+            && Objects.equals(left.getMemberName(), right.getMemberName())
+            && Objects.equals(left.getMemberEmail(), right.getMemberEmail())
+            && Objects.equals(left.getMemberMobile(), right.getMemberMobile())
+            && Objects.equals(left.getCompanyName(), right.getCompanyName())
+            && Objects.equals(left.getShopName(), right.getShopName())
+            && Objects.equals(left.getSupplierCode(), right.getSupplierCode());
     }
 
     private LocalDate resolveSellerSettlementStartDate(
         ExecutionCondition condition,
-        List<DealerSettlementPolicyHistory> histories,
-        List<SettlementOrderSummarySourceDto> orderSummaries
+        SellerDealerProfile sellerDealerProfile
     ) {
         if (condition.getEffectiveFromDate() != null) {
             return condition.getEffectiveFromDate();
         }
 
-        LocalDate earliestHistoryStart = histories == null ? null : histories.stream()
-            .map(DealerSettlementPolicyHistory::getApplyStartDate)
-            .filter(Objects::nonNull)
-            .min(LocalDate::compareTo)
-            .orElse(null);
-
-        if (earliestHistoryStart != null) {
-            return earliestHistoryStart;
+        if (sellerDealerProfile == null) {
+            return null;
         }
 
-        return orderSummaries.stream()
-            .map(SettlementOrderSummarySourceDto::getBasisDate)
-            .filter(Objects::nonNull)
-            .map(LocalDateTime::toLocalDate)
-            .min(LocalDate::compareTo)
-            .orElse(null);
+        return sellerDealerProfile.getDealStartDate();
     }
 
     private DealerSettlementPolicyHistory findEffectiveHistory(
@@ -720,41 +849,17 @@ public class SettlementExecuteService {
 
     private long calculateCommissionAmount(
         List<SettlementOrderSummarySourceDto> unsettledOrders,
-        List<DealerSettlementPolicyHistory> histories,
-        DealerSettlementPolicy currentPolicy
+        BigDecimal commissionRate
     ) {
         long totalCommissionAmount = 0L;
 
         for (SettlementOrderSummarySourceDto orderSummary : unsettledOrders) {
-            LocalDate basisDate = orderSummary.getBasisDate().toLocalDate();
-            BigDecimal commissionRate = resolveCommissionRateAtDate(histories, currentPolicy, basisDate);
             totalCommissionAmount += calculateCommissionAmount(orderSummary.getDealerAmount(), commissionRate);
         }
 
         return totalCommissionAmount;
     }
 
-    private BigDecimal resolveCommissionRateAtDate(
-        List<DealerSettlementPolicyHistory> histories,
-        DealerSettlementPolicy currentPolicy,
-        LocalDate targetDate
-    ) {
-        DealerSettlementPolicyHistory effectiveHistory = findEffectiveHistory(histories, targetDate);
-        if (effectiveHistory != null && effectiveHistory.getCommissionRate() != null) {
-            return effectiveHistory.getCommissionRate();
-        }
-
-        if (currentPolicy != null && currentPolicy.getCommissionRate() != null) {
-            return currentPolicy.getCommissionRate();
-        }
-
-        return BigDecimal.ZERO;
-    }
-
-    /**
-     * 기간 내 여러 수수료율이 섞일 수 있으므로,
-     * settlement.commissionRate 는 가중평균 개념의 표시용 스냅샷으로 저장합니다.
-     */
     private BigDecimal calculateEffectiveCommissionRate(long grossAmount, long commissionAmount) {
         if (grossAmount <= 0L || commissionAmount <= 0L) {
             return BigDecimal.ZERO.setScale(2, RoundingMode.DOWN);
@@ -841,20 +946,20 @@ public class SettlementExecuteService {
         return result;
     }
 
-    private boolean matchesRequestedFilters(ExecutionPolicy executionPolicy, SettlementExecuteSearchRequest request) {
-        if (executionPolicy == null) {
-            return false;
-        }
-
+    private boolean matchesRequestedFilters(
+        SettlementCycle cycle,
+        SettlementBasis basis,
+        SettlementExecuteSearchRequest request
+    ) {
         if (request.getCycles() != null
             && !request.getCycles().isEmpty()
-            && !request.getCycles().contains(executionPolicy.getCycle())) {
+            && !request.getCycles().contains(cycle)) {
             return false;
         }
 
         if (request.getBases() != null
             && !request.getBases().isEmpty()
-            && !request.getBases().contains(executionPolicy.getBasis())) {
+            && !request.getBases().contains(basis)) {
             return false;
         }
 
@@ -1032,21 +1137,6 @@ public class SettlementExecuteService {
 
     @Getter
     @Builder
-    private static class ExecutionPolicy {
-        private SettlementCycle cycle;
-        private SettlementBasis basis;
-        private Long sellerMemberId;
-        private String memberUsername;
-        private String memberName;
-        private String memberEmail;
-        private String memberMobile;
-        private String companyName;
-        private String shopName;
-        private String supplierCode;
-    }
-
-    @Getter
-    @Builder
     private static class Candidate {
         private SellerDealerProfile sellerDealerProfile;
         private DealerSettlementPolicyHistory history;
@@ -1070,6 +1160,25 @@ public class SettlementExecuteService {
         private long settlementAmount;
         private int orderCount;
         private int itemCount;
+    }
+
+    @Getter
+    @Builder(toBuilder = true)
+    private static class PolicyWindow {
+        private LocalDate windowStartDate;
+        private LocalDate windowEndDate;
+        private DealerSettlementPolicyHistory referenceHistory;
+        private SettlementCycle cycle;
+        private SettlementBasis basis;
+        private BigDecimal commissionRate;
+        private Long sellerMemberId;
+        private String memberUsername;
+        private String memberName;
+        private String memberEmail;
+        private String memberMobile;
+        private String companyName;
+        private String shopName;
+        private String supplierCode;
     }
 
     @Getter
