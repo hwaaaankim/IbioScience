@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -72,4 +74,31 @@ public interface DealerSettlementRepository extends JpaRepository<DealerSettleme
         @Param("fromDate") LocalDate fromDate,
         @Param("toDate") LocalDate toDate
     );
+    
+    @Query(
+	    value = """
+	        select ds
+	        from DealerSettlement ds
+	        join ds.sellerDealerProfile sdp
+	        join sdp.member m
+	        where m.username = :username
+	          and (:fromDate is null or ds.periodEndDate >= :fromDate)
+	          and (:toDate is null or ds.periodStartDate <= :toDate)
+	        """,
+	    countQuery = """
+	        select count(ds)
+	        from DealerSettlement ds
+	        join ds.sellerDealerProfile sdp
+	        join sdp.member m
+	        where m.username = :username
+	          and (:fromDate is null or ds.periodEndDate >= :fromDate)
+	          and (:toDate is null or ds.periodStartDate <= :toDate)
+	        """
+	)
+	Page<DealerSettlement> searchPageForSeller(@Param("username") String username,
+	                                           @Param("fromDate") LocalDate fromDate,
+	                                           @Param("toDate") LocalDate toDate,
+	                                           Pageable pageable);
+
+	Optional<DealerSettlement> findByIdAndSellerDealerProfile_Member_Username(Long id, String username);
 }

@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.dev.IbioScience.enums.auth.DealerGrade;
 import com.dev.IbioScience.enums.auth.MemberStatus;
 import com.dev.IbioScience.enums.product.OrganizationCategory;
+import com.dev.IbioScience.enums.product.SettlementBasis;
+import com.dev.IbioScience.enums.product.SettlementCycle;
 import com.dev.IbioScience.enums.product.SupplyStructure;
 import com.dev.IbioScience.enums.product.SupplyType;
 import com.dev.IbioScience.enums.product.TradingStatus;
@@ -108,6 +110,13 @@ public class AdminSellerCreateRequest {
 	private LocalDate dealStopDate;
 
 	private MultipartFile sellerLogoFile;
+
+	/* =========================
+	 * 4-1. DealerSettlementPolicy
+	 * ========================= */
+	private BigDecimal settlementCommissionRate;
+	private SettlementCycle settlementCycle;
+	private SettlementBasis settlementBasis;
 
 	/* =========================
 	 * 5. DealerCategoryPermission

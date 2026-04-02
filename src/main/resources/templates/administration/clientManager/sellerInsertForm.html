@@ -719,7 +719,54 @@
 										</div>
 									</div>
 								</div>
+								<!-- Settlement Policy -->
+								<div class="col-12">
+									<div class="card seller-insert-form-card">
+										<div class="card-header">
+											<h5 class="seller-insert-form-section-title">판매딜러 정산 정책</h5>
+										</div>
+										<div class="card-body">
+											<div class="alert alert-info mb-3">
+												<div class="fw-semibold mb-1">최초 정산 정책 저장 안내</div>
+												<div class="mb-0">
+													등록 시 <strong>dealer_settlement_policy</strong> 생성 후
+													최초 정책 히스토리가 함께 저장됩니다.
+													거래 시작일을 입력하면 그 날짜를 기준으로 최초 히스토리 적용 시작일이 저장되고,
+													거래 시작일이 없으면 등록일 기준으로 저장됩니다.
+												</div>
+											</div>
 
+											<div class="row g-3">
+												<div class="col-lg-4">
+													<label class="form-label">수수료율(%)</label>
+													<input type="number" class="form-control"
+														name="settlementCommissionRate" min="0" max="100" step="0.01"
+														required>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">정산주기</label>
+													<select class="form-select" name="settlementCycle" required>
+														<option value="">선택</option>
+														<option
+															th:each="item : ${T(com.dev.IbioScience.enums.product.SettlementCycle).values()}"
+															th:value="${item.name()}" th:text="${item.name()}"></option>
+													</select>
+												</div>
+
+												<div class="col-lg-4">
+													<label class="form-label">정산기준</label>
+													<select class="form-select" name="settlementBasis" required>
+														<option value="">선택</option>
+														<option
+															th:each="item : ${T(com.dev.IbioScience.enums.product.SettlementBasis).values()}"
+															th:value="${item.name()}" th:text="${item.name()}"></option>
+													</select>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
 								<div class="col-12 seller-insert-form-sticky-submit">
 									<div class="card seller-insert-form-card">
 										<div class="card-body">

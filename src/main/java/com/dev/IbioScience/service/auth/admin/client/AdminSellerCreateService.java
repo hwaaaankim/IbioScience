@@ -1,5 +1,6 @@
 package com.dev.IbioScience.service.auth.admin.client;
 
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,9 +25,12 @@ import com.dev.IbioScience.enums.auth.DealerType;
 import com.dev.IbioScience.enums.auth.MemberDomain;
 import com.dev.IbioScience.enums.auth.MemberRole;
 import com.dev.IbioScience.enums.auth.MemberStatus;
+import com.dev.IbioScience.enums.product.SettlementBasis;
+import com.dev.IbioScience.enums.product.SettlementCycle;
 import com.dev.IbioScience.model.auth.BuyerDealerProfile;
 import com.dev.IbioScience.model.auth.CompanyProfile;
 import com.dev.IbioScience.model.auth.DealerCategoryPermission;
+import com.dev.IbioScience.model.auth.DealerSettlementPolicy;
 import com.dev.IbioScience.model.auth.Member;
 import com.dev.IbioScience.model.auth.SellerDealerProfile;
 import com.dev.IbioScience.model.auth.embedded.Address;
@@ -41,10 +45,12 @@ import com.dev.IbioScience.repository.category.CategoryLargeRepository;
 import com.dev.IbioScience.repository.category.CategoryMediumRepository;
 import com.dev.IbioScience.repository.category.CategorySmallRepository;
 import com.dev.IbioScience.repository.category.MediumSmallProductCategoryRepository;
+import com.dev.IbioScience.service.settlement.DealerSettlementPolicyHistoryService;
 import com.dev.IbioScience.utils.UploadPathHelper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -66,9 +72,11 @@ public class AdminSellerCreateService {
 
 	private final PasswordEncoder passwordEncoder;
 	private final UploadPathHelper uploadPathHelper;
+	private final DealerSettlementPolicyHistoryService dealerSettlementPolicyHistoryService;
+	private final EntityManager em;
 
 	@Transactional
-	public Long createSeller(AdminSellerCreateRequest request) {
+	public Long createSeller(AdminSellerCreateRequest request, String createdByUsername) {
 		validateRequest(request);
 
 		List<AdminSellerCategoryPermissionRequest> rawPermissions = parsePermissions(request.getCategoryPermissionsJson());
@@ -76,6 +84,17 @@ public class AdminSellerCreateService {
 
 		if (normalizedPermissions.isEmpty()) {
 			throw new IllegalArgumentException("판매 가능 카테고리를 1개 이상 등록해 주세요.");
+		}
+
+		BigDecimal settlementCommissionRate = normalizeSettlementCommissionRate(request.getSettlementCommissionRate());
+		SettlementCycle settlementCycle = Optional.ofNullable(request.getSettlementCycle())
+				.orElseThrow(() -> new IllegalArgumentException("정산주기를 선택해 주세요."));
+		SettlementBasis settlementBasis = Optional.ofNullable(request.getSettlementBasis())
+				.orElseThrow(() -> new IllegalArgumentException("정산기준을 선택해 주세요."));
+
+		LocalDate effectiveDealStartDate = request.getDealStartDate() == null ? LocalDate.now() : request.getDealStartDate();
+		if (request.getDealStopDate() != null && request.getDealStopDate().isBefore(effectiveDealStartDate)) {
+			throw new IllegalArgumentException("거래 중지일은 거래 시작일보다 빠를 수 없습니다.");
 		}
 
 		CompanyProfile companyProfile = new CompanyProfile();
@@ -87,7 +106,9 @@ public class AdminSellerCreateService {
 		companyProfile.setRepresentativeTel(formatPhone(request.getRepresentativeTel()));
 		companyProfile.setFax(formatPhone(request.getFax()));
 		companyProfile.setInvoiceEmail(req(request.getInvoiceEmail(), "계산서 이메일은 필수입니다."));
-		companyProfile.setBusinessRegistrationNumber(formatBusinessNumber(req(request.getBusinessRegistrationNumber(), "사업자등록번호는 필수입니다.")));
+		companyProfile.setBusinessRegistrationNumber(
+				formatBusinessNumber(req(request.getBusinessRegistrationNumber(), "사업자등록번호는 필수입니다."))
+		);
 		companyProfile.setBusinessRegImagePath(null);
 		companyProfile.setBusinessRegImageRoad(null);
 		companyProfile.setCompanyAddress(buildAddress(
@@ -194,10 +215,27 @@ public class AdminSellerCreateService {
 				request.getRDetailAddress()
 		));
 		sellerDealerProfile.setHomepageUrl(nvl(request.getSellerHomepageUrl()));
-		sellerDealerProfile.setDealStartDate(request.getDealStartDate());
+		sellerDealerProfile.setDealStartDate(effectiveDealStartDate);
 		sellerDealerProfile.setDealStopDate(request.getDealStopDate());
 
 		sellerDealerProfile = sellerDealerProfileRepository.save(sellerDealerProfile);
+
+		DealerSettlementPolicy dealerSettlementPolicy = DealerSettlementPolicy.builder()
+				.sellerDealerProfile(sellerDealerProfile)
+				.commissionRate(settlementCommissionRate)
+				.cycle(settlementCycle)
+				.basis(settlementBasis)
+				.nextSettlementDate(calculateNextSettlementDate(effectiveDealStartDate, settlementCycle))
+				.build();
+		em.persist(dealerSettlementPolicy);
+		em.flush();
+
+		Long createdByMemberId = resolveMemberIdByUsername(createdByUsername);
+		dealerSettlementPolicyHistoryService.syncHistoryOnPolicySave(
+				sellerDealerProfile,
+				dealerSettlementPolicy,
+				createdByMemberId
+		);
 
 		List<DealerCategoryPermission> permissionEntities = new ArrayList<>();
 		for (AdminSellerCategoryPermissionRequest item : normalizedPermissions) {
@@ -419,6 +457,53 @@ public class AdminSellerCreateService {
 				.jibunAddress(nvl(jibunAddress))
 				.detailAddress(nvl(detailAddress))
 				.build();
+	}
+
+	private BigDecimal normalizeSettlementCommissionRate(BigDecimal commissionRate) {
+		if (commissionRate == null) {
+			throw new IllegalArgumentException("수수료율은 필수입니다.");
+		}
+		if (commissionRate.compareTo(BigDecimal.ZERO) < 0 || commissionRate.compareTo(new BigDecimal("100")) > 0) {
+			throw new IllegalArgumentException("수수료율은 0~100 범위여야 합니다.");
+		}
+		return commissionRate;
+	}
+
+	private LocalDate calculateNextSettlementDate(LocalDate baseDate, SettlementCycle cycle) {
+		if (baseDate == null) {
+			baseDate = LocalDate.now();
+		}
+
+		if (cycle == SettlementCycle.MONTH_END) {
+			return baseDate.withDayOfMonth(baseDate.lengthOfMonth());
+		}
+
+		int day = cycle.getDay();
+		LocalDate candidate = baseDate.withDayOfMonth(Math.min(day, baseDate.lengthOfMonth()));
+
+		if (!candidate.isBefore(baseDate)) {
+			return candidate;
+		}
+
+		LocalDate nextMonth = baseDate.plusMonths(1);
+		return nextMonth.withDayOfMonth(Math.min(day, nextMonth.lengthOfMonth()));
+	}
+
+	private Long resolveMemberIdByUsername(String username) {
+		String normalizedUsername = nvl(username);
+		if (!StringUtils.hasText(normalizedUsername)) {
+			return null;
+		}
+
+		List<Long> ids = em.createQuery(
+				"select m.id from Member m where m.username = :username",
+				Long.class
+		)
+		.setParameter("username", normalizedUsername)
+		.setMaxResults(1)
+		.getResultList();
+
+		return ids.isEmpty() ? null : ids.get(0);
 	}
 
 	private String formatBusinessNumber(String value) {
