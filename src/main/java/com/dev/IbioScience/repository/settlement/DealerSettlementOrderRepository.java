@@ -24,4 +24,5 @@ public interface DealerSettlementOrderRepository extends JpaRepository<DealerSet
         @Param("sellerDealerProfileId") Long sellerDealerProfileId,
         @Param("orderIds") Collection<Long> orderIds
     );
+    
 }

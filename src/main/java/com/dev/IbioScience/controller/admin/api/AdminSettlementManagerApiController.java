@@ -3,6 +3,7 @@ package com.dev.IbioScience.controller.admin.api;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import com.dev.IbioScience.dto.common.CommonAPIResponse;
 import com.dev.IbioScience.dto.settlement.SettlementManagerPageResponse;
 import com.dev.IbioScience.dto.settlement.SettlementManagerSearchRequest;
 import com.dev.IbioScience.dto.settlement.SettlementOrderModalDto;
+import com.dev.IbioScience.dto.settlement.SettlementOrderUpdateRequest;
 import com.dev.IbioScience.dto.settlement.SettlementStatusUpdateRequest;
 import com.dev.IbioScience.service.settlement.SettlementManagerService;
 
@@ -34,7 +36,16 @@ public class AdminSettlementManagerApiController {
         return CommonAPIResponse.ok(settlementManagerService.getSettlementOrders(settlementId));
     }
 
-    @org.springframework.web.bind.annotation.PatchMapping("/status")
+    @PatchMapping("/{settlementId}/orders")
+    public CommonAPIResponse<Void> updateOrders(
+        @PathVariable Long settlementId,
+        @RequestBody SettlementOrderUpdateRequest request
+    ) {
+        settlementManagerService.updateSettlementOrders(settlementId, request);
+        return CommonAPIResponse.ok("주문 반영 및 정산 재계산 완료", null);
+    }
+
+    @PatchMapping("/status")
     public CommonAPIResponse<Void> updateStatus(@RequestBody SettlementStatusUpdateRequest request) {
         settlementManagerService.updateStatuses(request);
         return CommonAPIResponse.ok("상태 변경 완료", null);

@@ -97,8 +97,12 @@ public class SellerSettlementManagerService {
                 .orderNoSnapshot(order.getOrderNoSnapshot())
                 .ordererNameSnapshot(order.getOrdererNameSnapshot())
                 .basisDateSnapshot(order.getBasisDateSnapshot())
+                .inclusionStatus(order.getInclusionStatus())
                 .dealerItemAmount(order.getDealerItemAmount())
+                .commissionAmount(order.getCommissionAmount())
+                .settlementAmount(order.getSettlementAmount())
                 .dealerItemCount(order.getDealerItemCount())
+                .memo(order.getMemo())
                 .build())
             .collect(Collectors.toList());
 

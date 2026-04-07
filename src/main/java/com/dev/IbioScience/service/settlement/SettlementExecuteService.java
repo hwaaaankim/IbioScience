@@ -28,6 +28,7 @@ import com.dev.IbioScience.dto.settlement.SettlementOrderSummarySourceDto;
 import com.dev.IbioScience.enums.product.SettlementBasis;
 import com.dev.IbioScience.enums.product.SettlementCycle;
 import com.dev.IbioScience.enums.settlement.SettlementBatchStatus;
+import com.dev.IbioScience.enums.settlement.SettlementOrderInclusionStatus;
 import com.dev.IbioScience.enums.settlement.SettlementPayStatus;
 import com.dev.IbioScience.model.auth.DealerSettlementPolicy;
 import com.dev.IbioScience.model.auth.Member;
@@ -93,7 +94,8 @@ public class SettlementExecuteService {
                 + ", itemCount=" + candidate.getItemCount()
                 + ", gross=" + candidate.getGrossAmount()
                 + ", commission=" + candidate.getCommissionAmount()
-                + ", settlement=" + candidate.getSettlementAmount());
+                + ", settlement=" + candidate.getSettlementAmount()
+                + ", commissionRate=" + candidate.getCommissionRate());
         }
         debug("[SETTLEMENT][PREVIEW] END");
         debug("==================================================");
@@ -194,9 +196,16 @@ public class SettlementExecuteService {
                 + ", sellerDealerProfileId=" + candidate.getSellerDealerProfile().getId()
                 + ", period=" + candidate.getPeriodStartDate() + " ~ " + candidate.getPeriodEndDate()
                 + ", basis=" + candidate.getBasis()
-                + ", cycle=" + candidate.getCycle());
+                + ", cycle=" + candidate.getCycle()
+                + ", commissionRate=" + candidate.getCommissionRate());
 
             for (SettlementOrderSummarySourceDto orderSummary : candidate.getOrderSummaries()) {
+                long orderCommissionAmount = calculateCommissionAmount(
+                    orderSummary.getDealerAmount(),
+                    candidate.getCommissionRate()
+                );
+                long orderSettlementAmount = orderSummary.getDealerAmount() - orderCommissionAmount;
+
                 DealerSettlementOrder settlementOrder = DealerSettlementOrder.builder()
                     .settlement(saved)
                     .order(em.getReference(Order.class, orderSummary.getOrderId()))
@@ -204,8 +213,12 @@ public class SettlementExecuteService {
                     .orderNoSnapshot(orderSummary.getOrderNo())
                     .ordererNameSnapshot(orderSummary.getOrdererName())
                     .basisDateSnapshot(orderSummary.getBasisDate())
+                    .inclusionStatus(SettlementOrderInclusionStatus.NORMAL)
                     .dealerItemAmount(orderSummary.getDealerAmount())
+                    .commissionAmount(orderCommissionAmount)
+                    .settlementAmount(orderSettlementAmount)
                     .dealerItemCount(orderSummary.getDealerItemCount().intValue())
+                    .memo(null)
                     .build();
 
                 settlementOrderRepository.save(settlementOrder);
@@ -214,7 +227,10 @@ public class SettlementExecuteService {
                     + ", orderId=" + orderSummary.getOrderId()
                     + ", orderNo=" + orderSummary.getOrderNo()
                     + ", basisDate=" + orderSummary.getBasisDate()
+                    + ", inclusionStatus=" + SettlementOrderInclusionStatus.NORMAL
                     + ", dealerAmount=" + orderSummary.getDealerAmount()
+                    + ", commissionAmount=" + orderCommissionAmount
+                    + ", settlementAmount=" + orderSettlementAmount
                     + ", dealerItemCount=" + orderSummary.getDealerItemCount());
             }
 
@@ -570,7 +586,6 @@ public class SettlementExecuteService {
 
                 long commissionAmount = calculateCommissionAmount(unsettledOrders, policyWindow.getCommissionRate());
                 long settlementAmount = grossAmount - commissionAmount;
-                BigDecimal effectiveCommissionRate = calculateEffectiveCommissionRate(grossAmount, commissionAmount);
 
                 debug("[SETTLEMENT][CANDIDATE-CREATED] sellerDealerProfileId=" + sellerDealerProfileId
                     + ", cycle=" + policyWindow.getCycle()
@@ -579,7 +594,7 @@ public class SettlementExecuteService {
                     + ", grossAmount=" + grossAmount
                     + ", commissionAmount=" + commissionAmount
                     + ", settlementAmount=" + settlementAmount
-                    + ", effectiveCommissionRate=" + effectiveCommissionRate
+                    + ", commissionRate=" + policyWindow.getCommissionRate()
                     + ", referenceHistoryId=" + (policyWindow.getReferenceHistory() != null ? policyWindow.getReferenceHistory().getId() : null));
 
                 candidates.add(
@@ -589,7 +604,7 @@ public class SettlementExecuteService {
                         .currentPolicy(currentPolicy)
                         .cycle(policyWindow.getCycle())
                         .basis(policyWindow.getBasis())
-                        .commissionRate(effectiveCommissionRate)
+                        .commissionRate(policyWindow.getCommissionRate())
                         .sellerMemberIdSnapshot(policyWindow.getSellerMemberId())
                         .memberUsername(policyWindow.getMemberUsername())
                         .memberName(policyWindow.getMemberName())
@@ -858,16 +873,6 @@ public class SettlementExecuteService {
         }
 
         return totalCommissionAmount;
-    }
-
-    private BigDecimal calculateEffectiveCommissionRate(long grossAmount, long commissionAmount) {
-        if (grossAmount <= 0L || commissionAmount <= 0L) {
-            return BigDecimal.ZERO.setScale(2, RoundingMode.DOWN);
-        }
-
-        return BigDecimal.valueOf(commissionAmount)
-            .multiply(BigDecimal.valueOf(100))
-            .divide(BigDecimal.valueOf(grossAmount), 2, RoundingMode.DOWN);
     }
 
     private List<PeriodKey> subtractSettledPeriods(

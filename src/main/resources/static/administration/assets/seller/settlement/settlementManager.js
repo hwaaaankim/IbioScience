@@ -161,7 +161,7 @@
             setLoading(true);
             elements.orderTbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="py-5 text-muted">불러오는 중입니다.</td>
+                    <td colspan="10" class="py-5 text-muted">불러오는 중입니다.</td>
                 </tr>
             `;
             elements.orderSummaryLeft.innerHTML = '';
@@ -257,7 +257,7 @@
         if (!orders.length) {
             elements.orderTbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="py-5 text-muted">해당 정산에 포함된 주문이 없습니다.</td>
+                    <td colspan="10" class="py-5 text-muted">해당 정산에 포함된 주문이 없습니다.</td>
                 </tr>
             `;
             return;
@@ -270,8 +270,12 @@
                     <td class="fw-semibold">${escapeHtml(order.orderNoSnapshot)}</td>
                     <td>${escapeHtml(order.ordererNameSnapshot || '-')}</td>
                     <td>${formatDateTime(order.basisDateSnapshot)}</td>
+                    <td>${renderOrderInclusionStatusBadge(order.inclusionStatus)}</td>
                     <td>${formatNumber(order.dealerItemCount)}</td>
                     <td class="text-end">${formatMoney(order.dealerItemAmount)}</td>
+                    <td class="text-end">${formatMoney(order.commissionAmount)}</td>
+                    <td class="text-end fw-semibold text-primary">${formatMoney(order.settlementAmount)}</td>
+                    <td class="seller-settlement-manager-order-memo-cell">${formatMemoHtml(order.memo)}</td>
                 </tr>
             `;
         }).join('');
@@ -331,7 +335,16 @@
             ? 'bg-success-subtle text-success-emphasis'
             : 'bg-warning-subtle text-warning-emphasis';
 
-        return `<span class="badge ${cls} rounded-pill px-3 py-2">${text}</span>`;
+        return `<span class="badge ${cls} rounded-pill px-3 py-2">${escapeHtml(text)}</span>`;
+    }
+
+    function renderOrderInclusionStatusBadge(inclusionStatus) {
+        const text = formatOrderInclusionStatusText(inclusionStatus);
+        const cls = inclusionStatus === 'NORMAL'
+            ? 'bg-success-subtle text-success-emphasis'
+            : 'bg-secondary-subtle text-secondary-emphasis';
+
+        return `<span class="badge ${cls} rounded-pill px-3 py-2">${escapeHtml(text)}</span>`;
     }
 
     function formatSettlementBasis(value) {
@@ -360,6 +373,13 @@
         const map = {
             UNPAID: '미지급',
             PAID: '지급완료'
+        };
+        return map[value] || value || '-';
+    }
+
+    function formatOrderInclusionStatusText(value) {
+        const map = {
+            NORMAL: '정상'
         };
         return map[value] || value || '-';
     }
@@ -397,6 +417,14 @@
             return '-';
         }
         return `${value}%`;
+    }
+
+    function formatMemoHtml(value) {
+        if (value === null || value === undefined || value === '') {
+            return '-';
+        }
+
+        return escapeHtml(String(value)).replaceAll('\n', '<br>');
     }
 
     function setLoading(show) {
