@@ -4,7 +4,11 @@
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('상품 관리')}"></head>
 
-<body>
+<body
+	th:with="
+        canCreate=${@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_INSERT)},
+        canUpdate=${@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_LIST)},
+        canDelete=${@adminMenuFacade.canDeleteByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_LIST)}">
 	<div id="layout-wrapper">
 		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
 		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
@@ -13,6 +17,10 @@
 		<div class="main-content">
 			<div class="page-content">
 				<div class="container-fluid">
+					<div id="product-list-permission" th:attr="
+        data-can-create=${canCreate},
+        data-can-update=${canUpdate},
+        data-can-delete=${canDelete}" style="display:none;"></div>
 					<div class="row">
 						<div class="col-12">
 							<div class="page-title-box d-sm-flex align-items-center justify-content-between">

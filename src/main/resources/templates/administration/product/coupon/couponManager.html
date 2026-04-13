@@ -4,7 +4,7 @@
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
 
-<body>
+<body th:with="canCreate=${@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_COUPON_MANAGER)}">
 <div id="layout-wrapper">
     <header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
     <div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
@@ -72,7 +72,7 @@
                             <div class="col-md-1 d-flex align-items-end gap-2">
                                 <button type="submit" class="btn btn-primary w-100">검색</button>
                             </div>
-                            <div class="col-md-1 d-flex align-items-end gap-2">
+                            <div class="col-md-1 d-flex align-items-end gap-2" th:if="${canCreate}">
                                 <a class="btn btn-success w-100" th:href="@{/couponInsertForm}">쿠폰등록</a>
                             </div>
                         </form>

@@ -44,42 +44,161 @@
 					</div>
 
 					<div class="d-flex align-items-center">
-
-						<div class="dropdown ms-sm-3 header-item topbar-user">
-							<button type="button" class="btn" id="page-header-user-dropdown" data-bs-toggle="dropdown"
-								aria-haspopup="true" aria-expanded="false">
+						<div class="dropdown ms-sm-3 header-item topbar-user topbar-user-dropdown"
+							id="topbarUserDropdown">
+							<button type="button" class="btn topbar-user-toggle" id="page-header-user-dropdown"
+								aria-haspopup="true" aria-expanded="false" aria-controls="topbar-user-menu">
 								<span class="d-flex align-items-center">
 									<span class="text-start ms-xl-2">
-										<span
-											class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">[사용자명]</span>
-										<span class="d-none d-xl-block ms-1 fs-12 user-name-sub-text">[사용자등급]</span>
+										<span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text"
+											th:text="${#authentication.principal.member.username}">
+											사용자아이디
+										</span>
+
+										<span class="d-none d-xl-block ms-1 fs-12 user-name-sub-text"
+											th:text="${'ROLE_' + #authentication.principal.member.role.name()}">
+											ROLE_ADMIN
+										</span>
 									</span>
 								</span>
 							</button>
-							<div class="dropdown-menu dropdown-menu-end">
-								<!-- item-->
-								<a class="dropdown-item" href="#"><i
-										class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span
-										class="align-middle">[개인메뉴]</span></a>
-								<a class="dropdown-item" href="#"><i
-										class="mdi mdi-message-text-outline text-muted fs-16 align-middle me-1"></i>
-									<span class="align-middle">[개인메뉴]</span></a>
-								<a class="dropdown-item" href="#"><i
-										class="mdi mdi-calendar-check-outline text-muted fs-16 align-middle me-1"></i>
-									<span class="align-middle">[개인메뉴]</span></a>
-								<a class="dropdown-item" href="#"><i
-										class="mdi mdi-lifebuoy text-muted fs-16 align-middle me-1"></i> <span
-										class="align-middle">[개인메뉴]</span></a>
-								<div class="dropdown-divider"></div>
-								<a class="dropdown-item" href="#"><i
-										class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> <span
-										class="align-middle" data-key="t-logout">[로그아웃]</span></a>
+
+							<div class="dropdown-menu dropdown-menu-end topbar-user-menu" id="topbar-user-menu">
+								<a class="dropdown-item"
+									th:if="${@adminMenuFacade.canView('/admin/common/memberDetail/' + #authentication.principal.member.id)}"
+									th:href="@{/admin/common/memberDetail/{id}(id=${#authentication.principal.member.id})}">
+									<i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i>
+									<span class="align-middle">내정보</span>
+								</a>
+
+								<div class="dropdown-divider"
+									th:if="${@adminMenuFacade.canView('/admin/common/memberDetail/' + #authentication.principal.member.id)}">
+								</div>
+
+								<a class="dropdown-item" href="/logout">
+									<i class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i>
+									<span class="align-middle" data-key="t-logout">로그아웃</span>
+								</a>
 							</div>
 						</div>
 					</div>
+
+					<script>
+						document.addEventListener('DOMContentLoaded', function () {
+							const dropdownWrap = document.getElementById('topbarUserDropdown');
+							const toggleBtn = document.getElementById('page-header-user-dropdown');
+							const menu = document.getElementById('topbar-user-menu');
+
+							if (!dropdownWrap || !toggleBtn || !menu) {
+								return;
+							}
+
+							function openMenu() {
+								dropdownWrap.classList.add('open');
+								toggleBtn.setAttribute('aria-expanded', 'true');
+								menu.style.maxHeight = menu.scrollHeight + 'px';
+							}
+
+							function closeMenu() {
+								menu.style.maxHeight = menu.scrollHeight + 'px';
+								requestAnimationFrame(function () {
+									dropdownWrap.classList.remove('open');
+									toggleBtn.setAttribute('aria-expanded', 'false');
+									menu.style.maxHeight = '0px';
+								});
+							}
+
+							function toggleMenu() {
+								if (dropdownWrap.classList.contains('open')) {
+									closeMenu();
+								} else {
+									openMenu();
+								}
+							}
+
+							toggleBtn.addEventListener('click', function (e) {
+								e.preventDefault();
+								e.stopPropagation();
+								toggleMenu();
+							});
+
+							menu.addEventListener('click', function (e) {
+								e.stopPropagation();
+							});
+
+							document.addEventListener('click', function (e) {
+								if (!dropdownWrap.contains(e.target)) {
+									closeMenu();
+								}
+							});
+
+							document.addEventListener('keydown', function (e) {
+								if (e.key === 'Escape') {
+									closeMenu();
+								}
+							});
+
+							window.addEventListener('resize', function () {
+								if (dropdownWrap.classList.contains('open')) {
+									menu.style.maxHeight = menu.scrollHeight + 'px';
+								}
+							});
+						});
+					</script>
+					<style>
+						.topbar-user-dropdown {
+							position: relative;
+						}
+
+						.topbar-user-dropdown .topbar-user-toggle {
+							border: 0;
+							box-shadow: none;
+						}
+
+						.topbar-user-dropdown .topbar-user-toggle:focus {
+							box-shadow: none;
+						}
+
+						.topbar-user-dropdown .topbar-user-menu {
+							display: block;
+							top: calc(100% + 8px);
+							right: 0;
+							left: auto;
+							margin-top: 0;
+							min-width: 180px;
+							padding: 8px 0;
+							border-radius: 10px;
+
+							opacity: 0;
+							visibility: hidden;
+							pointer-events: none;
+							transform: translateY(-8px);
+							max-height: 0;
+							overflow: hidden;
+
+							transition:
+								max-height 0.28s ease,
+								opacity 0.22s ease,
+								transform 0.22s ease,
+								visibility 0s linear 0.28s;
+						}
+
+						.topbar-user-dropdown.open .topbar-user-menu {
+							opacity: 1;
+							visibility: visible;
+							pointer-events: auto;
+							transform: translateY(0);
+							transition:
+								max-height 0.28s ease,
+								opacity 0.22s ease,
+								transform 0.22s ease,
+								visibility 0s linear 0s;
+						}
+					</style>
 				</div>
 			</div>
 		</header>
+
 		<div class="app-menu navbar-menu" th:fragment="ibioAdminSideMenu">
 			<!-- LOGO -->
 			<div class="navbar-brand-box">
@@ -101,154 +220,36 @@
 				<div class="container-fluid">
 
 					<div id="two-column-menu"></div>
+
 					<!-- ✅ STAFF 전용 관리자 메뉴 -->
-					<ul class="navbar-nav" id="navbar-nav"
-						sec:authorize="isAuthenticated() and authentication.principal.staffPortalUser">
-						<li class="menu-title"><span data-key="t-menu">Menu</span></li>
+					<th:block sec:authorize="isAuthenticated() and authentication.principal.staffPortalUser"
+						th:with="adminMenuGroups=${@adminMenuFacade.getVisibleAdminMenuGroups()}">
 
-						<li class="nav-item">
-							<a class="nav-link menu-link" href="#sidebarDashboards" data-bs-toggle="collapse"
-								role="button" aria-expanded="false" aria-controls="sidebarDashboards">
-								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[상품관리]</span>
-							</a>
-							<div class="collapse menu-dropdown" id="sidebarDashboards">
-								<ul class="nav nav-sm flex-column">
-									<li class="nav-item">
-										<a href="/brandManager" class="nav-link" data-key="t-ecommerce">[브랜드관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/categoryManager" class="nav-link" data-key="t-analytics">[분류관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/displayManager" class="nav-link" data-key="t-crm">[공통표시요소관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/couponManager" class="nav-link" data-key="t-ecommerce">[쿠폰관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/productPromotionManager" class="nav-link"
-											data-key="t-ecommerce">[프로모션관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/internalCategoryManager" class="nav-link"
-											data-key="t-ecommerce">[내부분류관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/productInsertForm" class="nav-link"
-											data-key="t-ecommerce">[상품등록]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/productManager" class="nav-link"
-											data-key="t-ecommerce">[상품리스트]</a>
-									</li>
-								</ul>
-							</div>
-						</li>
+						<ul class="navbar-nav" id="navbar-nav" th:if="${!#lists.isEmpty(adminMenuGroups)}">
+							<li class="menu-title">
+								<span data-key="t-menu">Menu</span>
+							</li>
 
-						<li class="nav-item">
-							<a class="nav-link menu-link" href="#sidebarCustomerDashboard" data-bs-toggle="collapse"
-								role="button" aria-expanded="false" aria-controls="sidebarCustomerDashboard">
-								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[회원관리]</span>
-							</a>
-							<div class="collapse menu-dropdown" id="sidebarCustomerDashboard">
-								<ul class="nav nav-sm flex-column">
-									<li class="nav-item">
-										<a href="/admin/root/clientDashBoard" class="nav-link"
-											data-key="t-ecommerce">[회원대시보드]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/root/clientSearch" class="nav-link"
-											data-key="t-ecommerce">[회원조회]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/root/clientApplyManager" class="nav-link"
-											data-key="t-ecommerce">[회원신청관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/root/clientCompanyTransferManager" class="nav-link"
-											data-key="t-ecommerce">[기업회원전환관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/root/clientSellerTransferManager" class="nav-link"
-											data-key="t-ecommerce">[판매딜러전환관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/root/clientWithDrawManager" class="nav-link"
-											data-key="t-ecommerce">[회원탈퇴관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/root/sellerInsertForm" class="nav-link"
-											data-key="t-ecommerce">[입점몰등록]</a>
-									</li>
-								</ul>
-							</div>
-						</li>
+							<li class="nav-item" th:each="menuGroup : ${adminMenuGroups}">
+								<a class="nav-link menu-link" th:href="${'#' + menuGroup.collapseId}"
+									data-bs-toggle="collapse" role="button" aria-expanded="false"
+									th:attr="aria-controls=${menuGroup.collapseId}">
+									<i th:class="${menuGroup.iconClass}"></i>
+									<span data-key="t-dashboards"
+										th:text="${'[' + menuGroup.groupName + ']'}">[메뉴그룹]</span>
+								</a>
 
-						<li class="nav-item">
-							<a class="nav-link menu-link" href="#sidebarBoardDashboard" data-bs-toggle="collapse"
-								role="button" aria-expanded="false" aria-controls="sidebarBoardDashboard">
-								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[사이트관리]</span>
-							</a>
-							<div class="collapse menu-dropdown" id="sidebarBoardDashboard">
-								<ul class="nav nav-sm flex-column">
-									<li class="nav-item">
-										<a href="/admin/manager/eventManager" class="nav-link"
-											data-key="t-ecommerce">[이벤트관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/manager/noticeManager" class="nav-link"
-											data-key="t-ecommerce">[공지사항관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/manager/qnaCategoryManager" class="nav-link"
-											data-key="t-ecommerce">[QNA카테고리관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/manager/qnaManager" class="nav-link"
-											data-key="t-ecommerce">[QNA관리]</a>
-									</li>
-								</ul>
-							</div>
-						</li>
-
-						<li class="nav-item">
-							<a class="nav-link menu-link" href="#sidebarUserDashboard" data-bs-toggle="collapse"
-								role="button" aria-expanded="false" aria-controls="sidebarUserDashboard">
-								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[주문관리]</span>
-							</a>
-							<div class="collapse menu-dropdown" id="sidebarUserDashboard">
-								<ul class="nav nav-sm flex-column">
-									<li class="nav-item">
-										<a href="/admin/root/orderManager" class="nav-link"
-											data-key="t-ecommerce">[주문관리]</a>
-									</li>
-								</ul>
-							</div>
-						</li>
-
-						<li class="nav-item">
-							<a class="nav-link menu-link" href="#sidebarShopManagerDashboard" data-bs-toggle="collapse"
-								role="button" aria-expanded="false" aria-controls="sidebarShopManagerDashboard">
-								<i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">[쇼핑몰관리]</span>
-							</a>
-							<div class="collapse menu-dropdown" id="sidebarShopManagerDashboard">
-								<ul class="nav nav-sm flex-column">
-									<li class="nav-item">
-										<a href="/admin/root/memberInsertForm" class="nav-link"
-											data-key="t-ecommerce">[직원등록]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/root/settlementManager" class="nav-link"
-											data-key="t-ecommerce">[정산관리]</a>
-									</li>
-									<li class="nav-item">
-										<a href="/admin/root/settlement" class="nav-link"
-											data-key="t-ecommerce">[정산실행]</a>
-									</li>
-								</ul>
-							</div>
-						</li>
-					</ul>
+								<div class="collapse menu-dropdown" th:id="${menuGroup.collapseId}">
+									<ul class="nav nav-sm flex-column">
+										<li class="nav-item" th:each="menu : ${menuGroup.items}">
+											<a th:href="${menu.pageUrl}" class="nav-link" data-key="t-ecommerce"
+												th:text="${'[' + menu.pageName + ']'}">[메뉴명]</a>
+										</li>
+									</ul>
+								</div>
+							</li>
+						</ul>
+					</th:block>
 
 					<!-- ✅ 판매딜러 전용 사이드메뉴 -->
 					<ul class="navbar-nav" id="navbar-nav-seller"
@@ -292,7 +293,6 @@
 		</div>
 	</div>
 
-
 	<th:block th:fragment="ibioAdminButton">
 		<button onclick="topFunction()" class="btn btn-danger btn-icon" id="back-to-top">
 			<i class="ri-arrow-up-line"></i>
@@ -306,6 +306,7 @@
 			</div>
 		</div>
 	</th:block>
+
 	<footer class="footer" th:fragment="ibioAdminFooter">
 		<div class="container-fluid">
 			<div class="row">
@@ -320,6 +321,7 @@
 			</div>
 		</div>
 	</footer>
+
 	<th:block th:fragment="ibioAdminScript">
 		<script src="/administration/assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
 		<script src="/administration/assets/libs/simplebar/simplebar.min.js"></script>
@@ -338,38 +340,50 @@
 
 	<div th:fragment="clientDetailInnerMenu(memberId, activeTab)">
 		<div class="client-detail-home-inner-menu list-group">
-			<a class="list-group-item list-group-item-action" th:classappend="${activeTab == 'home'} ? ' active' : ''"
+			<a class="list-group-item list-group-item-action"
+				th:if="${@adminMenuFacade.canView('/admin/root/clientDetail/' + memberId + '/home')}"
+				th:classappend="${activeTab == 'home'} ? ' active' : ''"
 				th:href="@{/admin/root/clientDetail/{id}/home(id=${memberId})}">
 				CRM 홈
 			</a>
 
-			<!--
 			<a class="list-group-item list-group-item-action"
+				th:if="${@adminMenuFacade.canView('/admin/root/clientDetail/' + memberId + '/information')}"
+				th:classappend="${activeTab == 'information'} ? ' active' : ''"
+				th:href="@{/admin/root/clientDetail/{id}/information(id=${memberId})}">
+				회원기본정보
+			</a>
+
+			<a class="list-group-item list-group-item-action"
+				th:if="${@adminMenuFacade.canView('/admin/root/clientDetail/' + memberId + '/orderList')}"
 				th:classappend="${activeTab == 'orderList'} ? ' active' : ''"
 				th:href="@{/admin/root/clientDetail/{id}/orderList(id=${memberId})}">
 				주문내역
 			</a>
-			-->
 
 			<a class="list-group-item list-group-item-action"
+				th:if="${@adminMenuFacade.canView('/admin/root/clientDetail/' + memberId + '/reviewList')}"
 				th:classappend="${activeTab == 'reviewList'} ? ' active' : ''"
 				th:href="@{/admin/root/clientDetail/{id}/reviewList(id=${memberId})}">
 				회원리뷰
 			</a>
 
 			<a class="list-group-item list-group-item-action"
+				th:if="${@adminMenuFacade.canView('/admin/root/clientDetail/' + memberId + '/estimateList')}"
 				th:classappend="${activeTab == 'estimateList'} ? ' active' : ''"
 				th:href="@{/admin/root/clientDetail/{id}/estimateList(id=${memberId})}">
 				견적서문의
 			</a>
 
 			<a class="list-group-item list-group-item-action"
+				th:if="${@adminMenuFacade.canView('/admin/root/clientDetail/' + memberId + '/benefit')}"
 				th:classappend="${activeTab == 'benefit'} ? ' active' : ''"
 				th:href="@{/admin/root/clientDetail/{id}/benefit(id=${memberId})}">
 				적립금 및 쿠폰
 			</a>
 
 			<a class="list-group-item list-group-item-action"
+				th:if="${@adminMenuFacade.canView('/admin/root/clientDetail/' + memberId + '/wishList')}"
 				th:classappend="${activeTab == 'wishList'} ? ' active' : ''"
 				th:href="@{/admin/root/clientDetail/{id}/wishList(id=${memberId})}">
 				관심상품열람

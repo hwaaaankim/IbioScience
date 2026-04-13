@@ -12,7 +12,12 @@
 
     <div class="main-content">
         <div class="page-content">
-            <div class="container-fluid">
+            <div class="container-fluid"
+                 th:with="
+                    canView=${@adminMenuFacade.canViewByPageCode('SITE_QNA_MANAGER')},
+                    canCreate=${@adminMenuFacade.canCreateByPageCode('SITE_QNA_MANAGER')},
+                    canDelete=${@adminMenuFacade.canDeleteByPageCode('SITE_QNA_MANAGER')}
+                 ">
 
                 <div class="row">
                     <div class="col-12">
@@ -31,7 +36,6 @@
                 <div class="card">
                     <div class="card-body">
 
-                        <!-- 필터 -->
                         <form method="get" action="/admin/manager/qnaManager"
                               class="row g-2 align-items-end qna-manager-filter-form">
 
@@ -71,20 +75,19 @@
                                     </button>
                                 </div>
                                 <div>
-                                    <a class="btn btn-success qna-manager-btn-insert"
+                                    <a th:if="${canCreate}"
+                                       class="btn btn-success qna-manager-btn-insert"
                                        href="/admin/manager/qnaInsertForm">
                                         QNA 등록
                                     </a>
                                 </div>
                             </div>
 
-                            <!-- page는 페이징 링크에서만 사용, 검색시 0으로 -->
                             <input type="hidden" name="page" value="0"/>
                         </form>
 
                         <hr class="my-4"/>
 
-                        <!-- 리스트 테이블 -->
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover align-middle qna-manager-table">
                                 <thead class="table-light">
@@ -107,17 +110,23 @@
                                 <tr th:each="q : ${qnaPage.content}">
                                     <td th:text="${q.id}">1</td>
                                     <td>
-                                        <a th:href="@{/admin/manager/qnaDetail/{id}(id=${q.id})}"
+                                        <a th:if="${canView}"
+                                           th:href="@{/admin/manager/qnaDetail/{id}(id=${q.id})}"
                                            th:text="${q.title}">제목</a>
+                                        <span th:unless="${canView}" th:text="${q.title}"></span>
                                     </td>
                                     <td th:text="${q.viewCount}">0</td>
                                     <td th:text="${#temporals.format(q.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
                                     <td th:text="${#temporals.format(q.updatedAt, 'yyyy-MM-dd HH:mm')}"></td>
                                     <td>
                                         <div class="d-flex gap-2 justify-content-center">
-                                            <a class="btn btn-sm btn-outline-primary"
-                                               th:href="@{/admin/manager/qnaDetail/{id}(id=${q.id})}">상세</a>
-                                            <button type="button"
+                                            <a th:if="${canView}"
+                                               class="btn btn-sm btn-outline-primary"
+                                               th:href="@{/admin/manager/qnaDetail/{id}(id=${q.id})}">
+                                                상세
+                                            </a>
+                                            <button th:if="${canDelete}"
+                                                    type="button"
                                                     class="btn btn-sm btn-outline-danger qna-manager-btn-delete"
                                                     th:attr="data-qna-id=${q.id}">
                                                 삭제
@@ -129,7 +138,6 @@
                             </table>
                         </div>
 
-                        <!-- 페이지네이션 -->
                         <nav th:if="${qnaPage != null and qnaPage.totalPages > 1}" class="mt-3">
                             <ul class="pagination justify-content-center qna-manager-pagination">
 

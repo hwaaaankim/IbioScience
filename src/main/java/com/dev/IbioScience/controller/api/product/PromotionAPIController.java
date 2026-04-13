@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,13 +33,13 @@ public class PromotionAPIController {
     @Value("${spring.upload.path}")
     private String uploadRootPath;
 
+    @PreAuthorize("@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PROMOTION_MANAGER)")
     @PostMapping
     public ResponseEntity<?> registerPromotion(@ModelAttribute PromotionRegisterRequest req) {
         productPromotionService.savePromotion(req);
         return ResponseEntity.ok().build();
     }
-    
-    /** ✅ 경로 수정: /api/promotion/search 로 노출되도록 */
+
     @GetMapping("/search")
     public ResponseEntity<List<PromotionSearchDTO>> searchPromotion(
             @RequestParam(required = false) String name,

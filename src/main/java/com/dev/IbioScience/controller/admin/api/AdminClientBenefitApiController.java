@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,13 +33,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminClientBenefitApiController {
 
+    private static final String PAGE_CODE = "CRM_BENEFIT";
+
     private final AdminClientBenefitService adminClientBenefitService;
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/point-summary")
     public PointSummaryResponse getPointSummary(@PathVariable Long memberId) {
         return adminClientBenefitService.getPointSummary(memberId);
     }
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/point-histories")
     public BenefitPageResponse<PointHistoryRowResponse> getPointHistories(
             @PathVariable Long memberId,
@@ -49,6 +54,7 @@ public class AdminClientBenefitApiController {
         return adminClientBenefitService.getPointHistories(memberId, fromDate, toDate, page);
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode('" + PAGE_CODE + "')")
     @PostMapping("/point/grant")
     public PointSummaryResponse grantPoint(
             @PathVariable Long memberId,
@@ -57,6 +63,7 @@ public class AdminClientBenefitApiController {
         return adminClientBenefitService.grantPoint(memberId, request);
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode('" + PAGE_CODE + "')")
     @PostMapping("/point/deduct")
     public PointSummaryResponse deductPoint(
             @PathVariable Long memberId,
@@ -65,6 +72,7 @@ public class AdminClientBenefitApiController {
         return adminClientBenefitService.deductPoint(memberId, request);
     }
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/coupons")
     public BenefitPageResponse<CouponRowResponse> getCoupons(
             @PathVariable Long memberId,
@@ -76,6 +84,7 @@ public class AdminClientBenefitApiController {
         return adminClientBenefitService.getCoupons(memberId, fromDate, toDate, statuses, page);
     }
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/coupons/{memberCouponId}/source")
     public CouponSourceDetailResponse getCouponSourceDetail(
             @PathVariable Long memberId,
@@ -84,6 +93,7 @@ public class AdminClientBenefitApiController {
         return adminClientBenefitService.getCouponSourceDetail(memberId, memberCouponId);
     }
 
+    @PreAuthorize("@adminMenuFacade.canCreateByPageCode('" + PAGE_CODE + "')")
     @PostMapping("/coupons/grant")
     public AdminBenefitActionResponse grantCoupon(
             @PathVariable Long memberId,
@@ -95,6 +105,7 @@ public class AdminClientBenefitApiController {
                 .build();
     }
 
+    @PreAuthorize("@adminMenuFacade.canDeleteByPageCode('" + PAGE_CODE + "')")
     @DeleteMapping("/coupons/{memberCouponId}")
     public AdminBenefitActionResponse deleteCoupon(
             @PathVariable Long memberId,

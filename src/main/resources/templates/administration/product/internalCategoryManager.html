@@ -4,7 +4,11 @@
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
 
-<body>
+<body
+	th:with="
+        canCreate=${@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)},
+        canUpdate=${@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)},
+        canDelete=${@adminMenuFacade.canDeleteByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)}">
 	<div id="layout-wrapper">
 		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
 		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
@@ -12,6 +16,10 @@
 		<div class="main-content">
 			<div class="page-content">
 				<div class="container-fluid">
+					<div id="internal-category-permission" th:attr="
+        data-can-create=${canCreate},
+        data-can-update=${canUpdate},
+        data-can-delete=${canDelete}" style="display:none;"></div>
 					<div class="page-title-box d-sm-flex align-items-center justify-content-between">
 						<h4 class="mb-sm-0">내부분류관리</h4>
 						<div class="page-title-right">
@@ -30,8 +38,8 @@
 									<div class="internal-category-form-row d-flex">
 										<input type="text" id="internal-category-large-name" class="form-control"
 											placeholder="대분류명 입력">
-										<button class="btn btn-primary ms-2"
-											id="internal-category-large-add-btn">등록</button>
+										<button class="btn btn-primary ms-2" id="internal-category-large-add-btn"
+											th:if="${canCreate}">등록</button>
 									</div>
 									<div class="internal-category-list internal-category-scroll-thin"
 										id="internal-category-large-list">
@@ -48,8 +56,8 @@
 										</select>
 										<input type="text" id="internal-category-medium-name" class="form-control"
 											placeholder="중분류명 입력">
-										<button class="btn btn-primary ms-2"
-											id="internal-category-medium-add-btn">등록</button>
+										<button class="btn btn-primary ms-2" id="internal-category-medium-add-btn"
+											th:if="${canCreate}">등록</button>
 									</div>
 									<div class="internal-category-list internal-category-scroll-thin"
 										id="internal-category-medium-list">
@@ -70,8 +78,8 @@
 										</select>
 										<input type="text" id="internal-category-small-name" class="form-control"
 											placeholder="소분류명 입력">
-										<button class="btn btn-primary ms-2"
-											id="internal-category-small-add-btn">등록</button>
+										<button class="btn btn-primary ms-2" id="internal-category-small-add-btn"
+											th:if="${canCreate}">등록</button>
 									</div>
 									<div class="internal-category-list internal-category-scroll-thin"
 										id="internal-category-small-list">

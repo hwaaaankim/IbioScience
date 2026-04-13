@@ -12,7 +12,12 @@
 
     <div class="main-content">
         <div class="page-content">
-            <div class="container-fluid">
+            <div class="container-fluid"
+                 th:with="
+                    canView=${@adminMenuFacade.canViewByPageCode('SITE_NOTICE_MANAGER')},
+                    canCreate=${@adminMenuFacade.canCreateByPageCode('SITE_NOTICE_MANAGER')},
+                    canDelete=${@adminMenuFacade.canDeleteByPageCode('SITE_NOTICE_MANAGER')}
+                 ">
 
                 <div class="row">
                     <div class="col-12">
@@ -66,13 +71,14 @@
                                     <button type="submit" class="btn btn-primary notice-manager-search-btn">
                                         검색
                                     </button>
-                                    <a href="/admin/manager/noticeInsertForm" class="btn btn-success notice-manager-insert-btn">
+                                    <a th:if="${canCreate}"
+                                       href="/admin/manager/noticeInsertForm"
+                                       class="btn btn-success notice-manager-insert-btn">
                                         공지사항 등록
                                     </a>
                                 </div>
                             </div>
 
-                            <!-- page는 검색 시 0으로 초기화 -->
                             <input type="hidden" name="page" value="0"/>
                         </form>
 
@@ -100,24 +106,26 @@
                                     <td th:text="${n.id}"></td>
 
                                     <td>
-                                        <a class="notice-manager-title-link"
+                                        <a th:if="${canView}"
+                                           class="notice-manager-title-link"
                                            th:href="@{/admin/manager/noticeDetail/{id}(id=${n.id})}"
                                            th:text="${n.title}"></a>
+                                        <span th:unless="${canView}" th:text="${n.title}"></span>
                                     </td>
 
                                     <td th:text="${n.writerName != null ? n.writerName : '-'}"></td>
-
                                     <td th:text="${n.createdAt != null ? #temporals.format(n.createdAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
                                     <td th:text="${n.updatedAt != null ? #temporals.format(n.updatedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
-
                                     <td th:text="${n.viewCount}"></td>
 
                                     <td class="text-end">
-                                        <a class="btn btn-sm btn-soft-primary"
+                                        <a th:if="${canView}"
+                                           class="btn btn-sm btn-soft-primary"
                                            th:href="@{/admin/manager/noticeDetail/{id}(id=${n.id})}">
                                             상세
                                         </a>
-                                        <button type="button"
+                                        <button th:if="${canDelete}"
+                                                type="button"
                                                 class="btn btn-sm btn-soft-danger notice-manager-delete-btn"
                                                 th:attr="data-id=${n.id}">
                                             삭제
@@ -128,7 +136,6 @@
                             </table>
                         </div>
 
-                        <!-- 페이지네이션 -->
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <div class="text-muted notice-manager-pageinfo"
                                  th:if="${noticePage != null}">

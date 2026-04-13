@@ -40,7 +40,8 @@
 										th:value="${selectedDate}">
 								</div>
 								<div class="col-12 col-lg-2">
-									<button type="button" class="btn btn-primary w-100" id="client-dashboard-btn-search">
+									<button type="button" class="btn btn-primary w-100"
+										id="client-dashboard-btn-search">
 										조회
 									</button>
 								</div>
@@ -135,8 +136,69 @@
 		/*]]>*/
 	</script>
 
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		window.ADMIN_PAGE_PERMISSION = {
+			canView: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canViewByPageCode(#authentication.principal.member, 'MEM_CLIENT_DASHBOARD')}]]*/ false,
+			canCreate: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canCreateByPageCode(#authentication.principal.member, 'MEM_CLIENT_DASHBOARD')}]]*/ false,
+			canUpdate: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canUpdateByPageCode(#authentication.principal.member, 'MEM_CLIENT_DASHBOARD')}]]*/ false,
+			canDelete: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canDeleteByPageCode(#authentication.principal.member, 'MEM_CLIENT_DASHBOARD')}]]*/ false
+		};
+
+		(function () {
+			function hideElements(selectors) {
+				selectors.forEach(function (selector) {
+					document.querySelectorAll(selector).forEach(function (el) {
+						el.classList.add('d-none');
+						if ('disabled' in el) {
+							el.disabled = true;
+						}
+					});
+				});
+			}
+
+			function applyPermissionUi() {
+				var permission = window.ADMIN_PAGE_PERMISSION || {};
+
+				if (!permission.canView) {
+					hideElements([
+						'#client-dashboard-btn-search',
+						'#client-dashboard-summary-cards',
+						'#client-dashboard-pagination'
+					]);
+
+					var detailTbody = document.getElementById('client-dashboard-detail-tbody');
+					if (detailTbody) {
+						detailTbody.innerHTML =
+							'<tr><td colspan="7" class="text-center text-muted py-5">조회 권한이 없습니다.</td></tr>';
+					}
+
+					var detailSubtitle = document.getElementById('client-dashboard-detail-subtitle');
+					if (detailSubtitle) {
+						detailSubtitle.textContent = '조회 권한이 없습니다.';
+					}
+				}
+			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				applyPermissionUi();
+
+				var observer = new MutationObserver(function () {
+					applyPermissionUi();
+				});
+
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true
+				});
+			});
+		})();
+/*]]>*/
+	</script>
+
 	<link rel="stylesheet" href="/administration/assets/css/page/clientManager/clientDashBoard.css">
 	<script src="/administration/assets/js/page/clientManager/clientDashBoard.js"></script>
 
 </body>
+
 </html>

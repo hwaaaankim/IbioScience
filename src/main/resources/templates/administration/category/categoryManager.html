@@ -1,13 +1,6 @@
 <!doctype html>
-<html 
-lang="ko" 
-data-layout="vertical" 
-data-topbar="light" 
-data-sidebar="dark" 
-data-sidebar-size="lg"
-data-sidebar-image="none" 
-data-preloader="disable" 
-xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('카테고리 관리')}"></head>
 
@@ -46,7 +39,8 @@ xmlns:th="http://www.thymeleaf.org">
 								<div class="card-body category-manager-card-body">
 									<p class="text-muted">대분류 카테고리를 등록/수정/삭제할 수 있습니다.</p>
 									<form id="largeForm" class="mb-3 d-flex">
-										<input id="largeName" class="form-control me-2" placeholder="대분류명" maxlength="30">
+										<input id="largeName" class="form-control me-2" placeholder="대분류명"
+											maxlength="30">
 										<button class="btn btn-primary" type="submit">등록</button>
 									</form>
 									<ul class="list-group category-list category-manager-list" id="largeList"></ul>
@@ -63,7 +57,8 @@ xmlns:th="http://www.thymeleaf.org">
 									<p class="text-muted">중분류 카테고리를 등록/수정/삭제할 수 있습니다.</p>
 									<form id="mediumForm" class="mb-3 d-flex">
 										<select id="largeSelect" class="form-select me-2"></select>
-										<input id="mediumName" class="form-control me-2" placeholder="중분류명" maxlength="30">
+										<input id="mediumName" class="form-control me-2" placeholder="중분류명"
+											maxlength="30">
 										<button class="btn btn-primary" type="submit">등록</button>
 									</form>
 									<ul class="list-group category-list category-manager-list" id="mediumList"></ul>
@@ -85,7 +80,8 @@ xmlns:th="http://www.thymeleaf.org">
 								<div class="card-body category-manager-card-body">
 									<p class="text-muted">소분류 카테고리를 등록/수정/삭제할 수 있습니다.</p>
 									<form id="smallForm" class="mb-3 d-flex">
-										<input id="smallName" class="form-control me-2" placeholder="소분류명" maxlength="30">
+										<input id="smallName" class="form-control me-2" placeholder="소분류명"
+											maxlength="30">
 										<button class="btn btn-primary" type="submit">등록</button>
 									</form>
 									<ul class="list-group category-list category-manager-list" id="smallList"></ul>
@@ -122,6 +118,56 @@ xmlns:th="http://www.thymeleaf.org">
 	</div>
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		window.ADMIN_PAGE_PERMISSION = {
+			canView: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canViewByPageCode(#authentication.principal.member, 'PROD_CATEGORY_MANAGER')}]]*/ false,
+			canCreate: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canCreateByPageCode(#authentication.principal.member, 'PROD_CATEGORY_MANAGER')}]]*/ false,
+			canUpdate: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canUpdateByPageCode(#authentication.principal.member, 'PROD_CATEGORY_MANAGER')}]]*/ false,
+			canDelete: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canDeleteByPageCode(#authentication.principal.member, 'PROD_CATEGORY_MANAGER')}]]*/ false
+		};
+
+		(function () {
+			function hideElements(selectors) {
+				selectors.forEach(function (selector) {
+					document.querySelectorAll(selector).forEach(function (el) {
+						el.classList.add('d-none');
+						if ('disabled' in el) {
+							el.disabled = true;
+						}
+					});
+				});
+			}
+
+			function applyPermissionUi() {
+				var permission = window.ADMIN_PAGE_PERMISSION || {};
+
+				if (!permission.canCreate) {
+					hideElements([
+						'#largeForm button[type="submit"]',
+						'#mediumForm button[type="submit"]',
+						'#smallForm button[type="submit"]',
+						'#mappingBtn'
+					]);
+				}
+			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				applyPermissionUi();
+
+				var observer = new MutationObserver(function () {
+					applyPermissionUi();
+				});
+
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true
+				});
+			});
+		})();
+/*]]>*/
+	</script>
 	<script src="/administration/assets/category/categoryManager.js"></script>
 </body>
+
 </html>

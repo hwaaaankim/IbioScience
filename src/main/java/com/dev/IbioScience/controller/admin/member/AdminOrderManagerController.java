@@ -1,6 +1,7 @@
 package com.dev.IbioScience.controller.admin.member;
 
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,8 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.dev.IbioScience.dto.admin.order.AdminOrderSearchRequest;
-import com.dev.IbioScience.enums.auth.DealerType;
 import com.dev.IbioScience.enums.order.OrderStatus;
+import com.dev.IbioScience.enums.auth.DealerType;
 import com.dev.IbioScience.enums.order.PaymentMethod;
 import com.dev.IbioScience.enums.order.ShippingMethod;
 import com.dev.IbioScience.enums.order.ShippingPayType;
@@ -26,6 +27,7 @@ public class AdminOrderManagerController {
 
     private final AdminOrderManagerService adminOrderManagerService;
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).ORDER_MANAGER)")
     @GetMapping("/orderManager")
     public String orderManager(
             @ModelAttribute("search") AdminOrderSearchRequest search,
@@ -59,6 +61,7 @@ public class AdminOrderManagerController {
         return "administration/orderManager/orderManager";
     }
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).ORDER_MANAGER)")
     @GetMapping("/orderDetail/{id}")
     public String orderDetail(
             @PathVariable Long id,

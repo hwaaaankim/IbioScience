@@ -4,7 +4,10 @@
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
 
-<body>
+<body
+	th:with="
+        canCreate=${@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PROMOTION_MANAGER)},
+        canDelete=${@adminMenuFacade.canDeleteByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PROMOTION_MANAGER)}">
 	<div id="layout-wrapper">
 		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
 		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
@@ -64,7 +67,8 @@
 									<button class="btn btn-outline-secondary" type="button"
 										id="filter-reset">초기화</button>
 									<button class="btn btn-primary" type="submit">검색</button>
-									<a class="btn btn-success" href="/productPromotionInsertForm">+ 신규 등록</a>
+									<a class="btn btn-success" href="/productPromotionInsertForm" th:if="${canCreate}">+
+										신규 등록</a>
 								</div>
 							</div>
 						</div>
@@ -105,11 +109,13 @@
 
 											<td th:text="${p.type.label}">타입</td>
 											<td>
-												<form th:action="@{|/productPromotionDelete/${p.id}|}" method="post"
+												<form th:if="${canDelete}"
+													th:action="@{|/productPromotionDelete/${p.id}|}" method="post"
 													onsubmit="return confirm('삭제하시겠습니까?');">
 													<button type="submit"
 														class="btn btn-sm btn-outline-danger">삭제</button>
 												</form>
+												<span th:unless="${canDelete}">-</span>
 											</td>
 										</tr>
 										<tr th:if="${page.totalElements == 0}">

@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/administration/common :: ibioAdminHead('권한관리')}"></head>
+
+<body>
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">권한관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript:void(0);">관리</a></li>
+										<li class="breadcrumb-item active">권한관리</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card-body">
+							<div class="admin-role-manager-page-wrap">
+
+								<div class="row g-3 admin-role-manager-summary-row">
+									<div class="col-lg-8 col-12">
+										<div class="admin-role-manager-summary-box">
+											<div class="admin-role-manager-summary-title">페이지 권한 관리</div>
+											<div class="admin-role-manager-summary-desc">
+												ROOT 전용 관리 화면입니다. MASTER / OPERATOR / EMPLOY 별로
+												조회 / 등록 / 수정 / 삭제 권한을 페이지 단위로 관리합니다.
+											</div>
+										</div>
+									</div>
+
+									<div class="col-lg-4 col-12">
+										<div class="admin-role-manager-action-box">
+											<button type="button"
+												class="btn btn-outline-secondary admin-role-manager-btn"
+												id="admin-role-manager-reload-btn">
+												새로고침
+											</button>
+											<button type="button" class="btn btn-primary admin-role-manager-btn"
+												id="admin-role-manager-save-btn">
+												저장
+											</button>
+										</div>
+									</div>
+								</div>
+
+								<div class="admin-role-manager-bulk-box mt-3">
+									<div class="row g-3">
+										<div class="col-lg-4 col-md-6 col-12">
+											<div class="admin-role-manager-bulk-card">
+												<div class="admin-role-manager-bulk-role">MASTER</div>
+												<div class="admin-role-manager-bulk-btn-wrap">
+													<button type="button"
+														class="btn btn-sm btn-soft-success admin-role-manager-bulk-btn"
+														data-role-key="master" data-bulk-value="true">
+														모두허용
+													</button>
+													<button type="button"
+														class="btn btn-sm btn-soft-danger admin-role-manager-bulk-btn"
+														data-role-key="master" data-bulk-value="false">
+														모두불허
+													</button>
+												</div>
+											</div>
+										</div>
+
+										<div class="col-lg-4 col-md-6 col-12">
+											<div class="admin-role-manager-bulk-card">
+												<div class="admin-role-manager-bulk-role">OPERATOR</div>
+												<div class="admin-role-manager-bulk-btn-wrap">
+													<button type="button"
+														class="btn btn-sm btn-soft-success admin-role-manager-bulk-btn"
+														data-role-key="operator" data-bulk-value="true">
+														모두허용
+													</button>
+													<button type="button"
+														class="btn btn-sm btn-soft-danger admin-role-manager-bulk-btn"
+														data-role-key="operator" data-bulk-value="false">
+														모두불허
+													</button>
+												</div>
+											</div>
+										</div>
+
+										<div class="col-lg-4 col-md-12 col-12">
+											<div class="admin-role-manager-bulk-card">
+												<div class="admin-role-manager-bulk-role">EMPLOY</div>
+												<div class="admin-role-manager-bulk-btn-wrap">
+													<button type="button"
+														class="btn btn-sm btn-soft-success admin-role-manager-bulk-btn"
+														data-role-key="employ" data-bulk-value="true">
+														모두허용
+													</button>
+													<button type="button"
+														class="btn btn-sm btn-soft-danger admin-role-manager-bulk-btn"
+														data-role-key="employ" data-bulk-value="false">
+														모두불허
+													</button>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<div class="admin-role-manager-status-row mt-3">
+									<div id="admin-role-manager-message-box"
+										class="admin-role-manager-message-box d-none"></div>
+									<div id="admin-role-manager-dirty-badge"
+										class="badge bg-warning-subtle text-warning-emphasis admin-role-manager-dirty-badge d-none">
+										저장되지 않은 변경사항이 있습니다.
+									</div>
+								</div>
+
+								<div id="admin-role-manager-loading-box" class="admin-role-manager-loading-box mt-4">
+									<div class="spinner-border text-primary" role="status"></div>
+									<div class="mt-2">권한 목록을 불러오는 중입니다.</div>
+								</div>
+
+								<div id="admin-role-manager-group-container" class="mt-4 d-none"></div>
+
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/js/page/shopManager/roleManager.js"></script>
+
+	<style>
+		.admin-role-manager-page-wrap {
+			width: 100%;
+		}
+
+		.admin-role-manager-summary-box,
+		.admin-role-manager-action-box,
+		.admin-role-manager-bulk-card {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			min-height: 88px;
+			padding: 18px 20px;
+			border: 1px solid #e9ebec;
+			border-radius: 12px;
+			background: #fff;
+		}
+
+		.admin-role-manager-summary-box {
+			flex-direction: column;
+			align-items: flex-start;
+			justify-content: center;
+		}
+
+		.admin-role-manager-summary-title {
+			font-size: 16px;
+			font-weight: 700;
+			color: #212529;
+			line-height: 1.4;
+		}
+
+		.admin-role-manager-summary-desc {
+			font-size: 13px;
+			color: #6c757d;
+			line-height: 1.5;
+		}
+
+		.admin-role-manager-action-box {
+			justify-content: flex-end;
+		}
+
+		.admin-role-manager-btn {
+			min-width: 120px;
+			height: 44px;
+			border-radius: 10px;
+			font-weight: 600;
+		}
+
+		.admin-role-manager-bulk-role {
+			font-size: 15px;
+			font-weight: 700;
+			color: #212529;
+			min-width: 90px;
+			text-align: center;
+		}
+
+		.admin-role-manager-bulk-btn-wrap {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			flex-wrap: wrap;
+			justify-content: flex-end;
+			width: 100%;
+		}
+
+		.admin-role-manager-bulk-btn {
+			min-width: 108px;
+			height: 40px;
+			border-radius: 10px;
+			font-weight: 600;
+		}
+
+		.admin-role-manager-message-box {
+			padding: 14px 16px;
+			border-radius: 10px;
+			font-size: 14px;
+			font-weight: 600;
+		}
+
+		.admin-role-manager-message-box.admin-role-manager-success {
+			background: rgba(10, 179, 156, 0.12);
+			color: #087e6f;
+			border: 1px solid rgba(10, 179, 156, 0.2);
+		}
+
+		.admin-role-manager-message-box.admin-role-manager-error {
+			background: rgba(240, 101, 72, 0.12);
+			color: #b02a37;
+			border: 1px solid rgba(240, 101, 72, 0.2);
+		}
+
+		.admin-role-manager-dirty-badge {
+			padding: 10px 14px;
+			font-size: 12px;
+			font-weight: 700;
+			border-radius: 999px;
+		}
+
+		.admin-role-manager-loading-box {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			min-height: 180px;
+			color: #6c757d;
+		}
+
+		.admin-role-manager-group-card {
+			border: 1px solid #e9ebec;
+			border-radius: 14px;
+			background: #fff;
+			margin-bottom: 20px;
+			overflow: hidden;
+		}
+
+		.admin-role-manager-group-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			padding: 16px 20px;
+			background: #f8f9fa;
+			border-bottom: 1px solid #e9ebec;
+		}
+
+		.admin-role-manager-group-title {
+			font-size: 15px;
+			font-weight: 700;
+			color: #212529;
+			margin: 0;
+		}
+
+		.admin-role-manager-group-count {
+			font-size: 12px;
+			font-weight: 700;
+			color: #6c757d;
+			background: #fff;
+			border: 1px solid #dee2e6;
+			border-radius: 999px;
+			padding: 6px 10px;
+		}
+
+		.admin-role-manager-table-wrap {
+			width: 100%;
+			overflow-x: auto;
+		}
+
+		.admin-role-manager-table {
+			width: 100%;
+			min-width: 1280px;
+			margin-bottom: 0;
+			table-layout: fixed;
+			vertical-align: middle;
+		}
+
+		.admin-role-manager-table th,
+		.admin-role-manager-table td {
+			text-align: center;
+			vertical-align: middle;
+			padding: 16px 14px;
+			border-color: #e9ebec;
+		}
+
+		.admin-role-manager-table th {
+			background: #fff;
+			font-size: 13px;
+			font-weight: 700;
+			color: #495057;
+			white-space: nowrap;
+		}
+
+		.admin-role-manager-page-cell {
+			text-align: left !important;
+			min-width: 320px;
+			max-width: 320px;
+		}
+
+		.admin-role-manager-page-name {
+			font-size: 14px;
+			font-weight: 700;
+			color: #212529;
+			line-height: 1.4;
+			margin-bottom: 4px;
+			word-break: keep-all;
+		}
+
+		.admin-role-manager-page-url {
+			font-size: 12px;
+			color: #6c757d;
+			line-height: 1.4;
+			word-break: break-all;
+		}
+
+		.admin-role-manager-role-cell {
+			min-width: 300px;
+		}
+
+		.admin-role-manager-role-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(120px, 1fr));
+			gap: 10px 12px;
+			align-items: center;
+			justify-items: stretch;
+		}
+
+		.admin-role-manager-switch-item {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			height: 48px;
+			padding: 0 14px;
+			border: 1px solid #e9ebec;
+			border-radius: 10px;
+			background: #fff;
+		}
+
+		.admin-role-manager-switch-label {
+			font-size: 13px;
+			font-weight: 600;
+			color: #495057;
+			margin: 0;
+			white-space: nowrap;
+		}
+
+		.admin-role-manager-switch-item .form-check {
+			min-height: auto;
+			margin: 0;
+			display: flex;
+			align-items: center;
+		}
+
+		.admin-role-manager-switch-item .form-check-input {
+			width: 42px;
+			height: 22px;
+			cursor: pointer;
+			margin-top: 0;
+		}
+
+		.admin-role-manager-switch-item .form-check-input:focus {
+			box-shadow: none;
+		}
+
+		@media (max-width: 991.98px) {
+
+			.admin-role-manager-summary-box,
+			.admin-role-manager-action-box,
+			.admin-role-manager-bulk-card {
+				min-height: auto;
+			}
+
+			.admin-role-manager-action-box {
+				justify-content: stretch;
+			}
+
+			.admin-role-manager-btn {
+				width: 100%;
+			}
+		}
+	</style>
+</body>
+
+</html>

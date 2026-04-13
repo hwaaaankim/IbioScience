@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,14 +27,18 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/root/api/clientDetail/{memberId}/reviewList")
 public class AdminClientReviewApiController {
 
+    private static final String PAGE_CODE = "CRM_REVIEW_LIST";
+
     private final AdminClientReviewService adminClientReviewService;
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping
     public AdminClientReviewPageResponse getReviewPage(@PathVariable Long memberId,
                                                        @ModelAttribute AdminClientReviewSearchCondition condition) {
         return adminClientReviewService.getReviewPage(memberId, condition);
     }
 
+    @PreAuthorize("@adminMenuFacade.canDeleteByPageCode('" + PAGE_CODE + "')")
     @DeleteMapping
     public AdminClientReviewDeleteResponse deleteReviews(@PathVariable Long memberId,
                                                          @RequestBody AdminClientReviewDeleteRequest request) {

@@ -183,7 +183,8 @@
 											</div>
 											<div class="col-md-6 col-lg-6">
 												<label class="form-label mb-1">쿠폰 상태</label>
-												<div class="client-detail-benefitManager-status-wrap" style="height:37.5px;">
+												<div class="client-detail-benefitManager-status-wrap"
+													style="height:37.5px;">
 													<label class="form-check-label"
 														th:each="status : ${couponStatuses}">
 														<input
@@ -321,6 +322,59 @@
 	</script>
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		window.ADMIN_PAGE_PERMISSION = {
+			canView: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canViewByPageCode(#authentication.principal.member, 'CRM_BENEFIT')}]]*/ false,
+			canCreate: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canCreateByPageCode(#authentication.principal.member, 'CRM_BENEFIT')}]]*/ false,
+			canUpdate: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canUpdateByPageCode(#authentication.principal.member, 'CRM_BENEFIT')}]]*/ false,
+			canDelete: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canDeleteByPageCode(#authentication.principal.member, 'CRM_BENEFIT')}]]*/ false
+		};
+
+		(function () {
+			function hideElements(selectors) {
+				selectors.forEach(function (selector) {
+					document.querySelectorAll(selector).forEach(function (el) {
+						el.classList.add('d-none');
+						if ('disabled' in el) {
+							el.disabled = true;
+						}
+					});
+				});
+			}
+
+			function applyPermissionUi() {
+				var permission = window.ADMIN_PAGE_PERMISSION || {};
+
+				if (!permission.canCreate) {
+					hideElements([
+						'#client-detail-benefitManager-point-grant-btn',
+						'#client-detail-benefitManager-grant-coupon-btn'
+					]);
+				}
+
+				if (!permission.canUpdate) {
+					hideElements([
+						'#client-detail-benefitManager-point-deduct-btn'
+					]);
+				}
+			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				applyPermissionUi();
+
+				var observer = new MutationObserver(function () {
+					applyPermissionUi();
+				});
+
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true
+				});
+			});
+		})();
+/*]]>*/
+	</script>
 	<script src="/administration/assets/js/page/clientManager/detail/clientDetailBenefit.js"></script>
 </body>
 

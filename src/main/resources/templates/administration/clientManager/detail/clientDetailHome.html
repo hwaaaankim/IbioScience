@@ -869,6 +869,77 @@
 /*]]>*/
 	</script>
 
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		window.ADMIN_PAGE_PERMISSION = {
+			canView: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canViewByPageCode(#authentication.principal.member, 'CRM_HOME')}]]*/ false,
+			canCreate: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canCreateByPageCode(#authentication.principal.member, 'CRM_HOME')}]]*/ false,
+			canUpdate: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canUpdateByPageCode(#authentication.principal.member, 'CRM_HOME')}]]*/ false,
+			canDelete: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canDeleteByPageCode(#authentication.principal.member, 'CRM_HOME')}]]*/ false
+		};
+
+		(function () {
+			function hideElements(selectors) {
+				selectors.forEach(function (selector) {
+					document.querySelectorAll(selector).forEach(function (el) {
+						el.classList.add('d-none');
+						if ('disabled' in el) {
+							el.disabled = true;
+						}
+					});
+				});
+			}
+
+			function applyPermissionUi() {
+				var permission = window.ADMIN_PAGE_PERMISSION || {};
+
+				if (!permission.canCreate) {
+					hideElements([
+						'#client-detail-home-btn-add-memo',
+						'#client-detail-home-btn-add-permission'
+					]);
+				}
+
+				if (!permission.canUpdate) {
+					hideElements([
+						'#client-detail-home-btn-reset-password',
+						'#client-detail-home-btn-save-member',
+						'#client-detail-home-btn-edit-member-address',
+						'#client-detail-home-btn-save-memos',
+						'#client-detail-home-btn-save-company',
+						'#client-detail-home-btn-edit-company-address',
+						'#client-detail-home-btn-save-buyer',
+						'#client-detail-home-btn-keep-seller-logo',
+						'#client-detail-home-btn-daum-post',
+						'#client-detail-home-btn-apply-address'
+					]);
+				}
+
+				if (!permission.canDelete) {
+					hideElements([
+						'.client-detail-home-btn-delete-memo',
+						'#client-detail-home-btn-delete-seller-logo',
+						'.client-detail-home-btn-delete-seller-contact',
+						'.client-detail-home-btn-delete-permission'
+					]);
+				}
+			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				applyPermissionUi();
+
+				var observer = new MutationObserver(function () {
+					applyPermissionUi();
+				});
+
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true
+				});
+			});
+		})();
+/*]]>*/
+	</script>
 	<script th:src="@{/administration/assets/js/page/clientManager/detail/clientDetailHome.js}"></script>
 </body>
 

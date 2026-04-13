@@ -12,7 +12,14 @@
 
 		<div class="main-content">
 			<div class="page-content">
-				<div class="container-fluid">
+				<div class="container-fluid"
+					th:with="
+						canView=${@adminMenuFacade.canViewByPageCode('SITE_EVENT_MANAGER')},
+						canCreate=${@adminMenuFacade.canCreateByPageCode('SITE_EVENT_MANAGER')},
+						canUpdate=${@adminMenuFacade.canUpdateByPageCode('SITE_EVENT_MANAGER')},
+						canDelete=${@adminMenuFacade.canDeleteByPageCode('SITE_EVENT_MANAGER')}
+					">
+
 					<div class="row">
 						<div class="col-12">
 							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
@@ -27,7 +34,6 @@
 						</div>
 					</div>
 
-					<!-- 메시지 -->
 					<div class="row" th:if="${msg != null}">
 						<div class="col-12">
 							<div class="alert alert-success" th:text="${msg}"></div>
@@ -37,7 +43,6 @@
 					<div class="card">
 						<div class="card-body">
 
-							<!-- ===== 필터 ===== -->
 							<form class="event-manager-filter" method="get" th:action="@{/admin/manager/eventManager}">
 								<div class="row g-2 align-items-end">
 									<div class="col-md-4">
@@ -91,7 +96,7 @@
 											</a>
 										</div>
 
-										<a class="btn btn-success event-manager-insert-btn"
+										<a th:if="${canCreate}" class="btn btn-success event-manager-insert-btn"
 											th:href="@{/admin/manager/eventInsertForm}">
 											이벤트 등록
 										</a>
@@ -101,7 +106,6 @@
 
 							<hr class="my-4" />
 
-							<!-- ===== 테이블 ===== -->
 							<div class="table-responsive">
 								<table class="table table-hover align-middle event-manager-table">
 									<thead class="table-light">
@@ -114,7 +118,7 @@
 											<th style="width:120px;">조회수</th>
 											<th style="width:180px;">작성일</th>
 											<th style="width:180px;">수정일</th>
-											<th style="width:120px;">관리</th>
+											<th style="width:160px;">관리</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -128,11 +132,12 @@
 											<td th:text="${e.id}">1</td>
 
 											<td>
-												<a th:href="@{/admin/manager/eventDetail/{id}(id=${e.id})}"
+												<a th:if="${canView}"
+													th:href="@{/admin/manager/eventDetail/{id}(id=${e.id})}"
 													th:text="${e.title}" class="event-manager-title-link"></a>
+												<span th:unless="${canView}" th:text="${e.title}"></span>
 											</td>
 
-											<!-- 진행여부(서버 계산): start<=today<=end -->
 											<td>
 												<span class="badge bg-success"
 													th:if="${#temporals.createNow().toLocalDate() >= e.startDate && #temporals.createNow().toLocalDate() <= e.endDate}">
@@ -157,11 +162,12 @@
 
 											<td>
 												<div class="d-flex gap-2">
-													<a class="btn btn-sm btn-outline-primary"
+													<a th:if="${canView}" class="btn btn-sm btn-outline-primary"
 														th:href="@{/admin/manager/eventDetail/{id}(id=${e.id})}">
 														상세
 													</a>
-													<button type="button"
+
+													<button th:if="${canDelete}" type="button"
 														class="btn btn-sm btn-outline-danger event-manager-delete-btn"
 														th:attr="data-id=${e.id}">
 														삭제
@@ -173,7 +179,6 @@
 								</table>
 							</div>
 
-							<!-- ===== 페이지네이션 ===== -->
 							<nav th:if="${page.totalPages > 1}" class="event-manager-pagination mt-3">
 								<ul class="pagination justify-content-center">
 

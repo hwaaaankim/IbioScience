@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,12 +34,14 @@ public class ClientDetailCrmApiController {
 
     private final ClientDetailHomeService clientDetailHomeService;
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).CRM_HOME)")
     @PostMapping("/resetPassword")
     public CommonAPIResponse<Void> resetPassword(@PathVariable Long memberId) {
         clientDetailHomeService.resetPasswordAndSendSms(memberId);
         return CommonAPIResponse.ok("비밀번호 초기화 및 SMS 발송 완료", null);
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).CRM_HOME)")
     @PostMapping("/memos/save")
     public CommonAPIResponse<Void> saveMemos(
         @PathVariable Long memberId,
@@ -52,6 +55,7 @@ public class ClientDetailCrmApiController {
         return CommonAPIResponse.ok("메모 변경사항 저장 완료", null);
     }
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).CRM_HOME)")
     @GetMapping("/memos")
     public CommonAPIResponse<MemoPageResponseDto> memoPage(
         @PathVariable Long memberId,
@@ -64,6 +68,7 @@ public class ClientDetailCrmApiController {
         return CommonAPIResponse.ok(dto);
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).CRM_HOME)")
     @PostMapping("/buyer/grade")
     public CommonAPIResponse<Void> updateBuyerGrade(
         @PathVariable Long memberId,
@@ -73,6 +78,7 @@ public class ClientDetailCrmApiController {
         return CommonAPIResponse.ok("딜러 등급 변경 완료", null);
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).CRM_HOME)")
     @PostMapping("/member/address")
     public CommonAPIResponse<Void> updateMemberAddress(
         @PathVariable Long memberId,
@@ -82,6 +88,7 @@ public class ClientDetailCrmApiController {
         return CommonAPIResponse.ok("회원 주소 변경 완료", null);
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).CRM_HOME)")
     @PostMapping("/company/address")
     public CommonAPIResponse<Void> updateCompanyAddress(
         @PathVariable Long memberId,
@@ -91,6 +98,7 @@ public class ClientDetailCrmApiController {
         return CommonAPIResponse.ok("회사 주소 변경 완료", null);
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).CRM_HOME)")
     @PostMapping(value = "/seller/saveAll", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public CommonAPIResponse<Void> saveSellerAll(
         @PathVariable Long memberId,

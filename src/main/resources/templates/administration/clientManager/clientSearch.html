@@ -385,6 +385,61 @@
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		window.ADMIN_PAGE_PERMISSION = {
+			canView: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canViewByPageCode(#authentication.principal.member, 'MEM_CLIENT_SEARCH')}]]*/ false,
+			canCreate: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canCreateByPageCode(#authentication.principal.member, 'MEM_CLIENT_SEARCH')}]]*/ false,
+			canUpdate: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canUpdateByPageCode(#authentication.principal.member, 'MEM_CLIENT_SEARCH')}]]*/ false,
+			canDelete: /*[[${#authorization.expression('isAuthenticated()') and @adminRoleManagerService.canDeleteByPageCode(#authentication.principal.member, 'MEM_CLIENT_SEARCH')}]]*/ false
+		};
+
+		(function () {
+			function hideElements(selectors) {
+				selectors.forEach(function (selector) {
+					document.querySelectorAll(selector).forEach(function (el) {
+						el.classList.add('d-none');
+						if ('disabled' in el) {
+							el.disabled = true;
+						}
+					});
+				});
+			}
+
+			function applyPermissionUi() {
+				var permission = window.ADMIN_PAGE_PERMISSION || {};
+
+				if (!permission.canView) {
+					hideElements([
+						'#client-search-form button[type="submit"]',
+						'#client-search-form a.btn.btn-light',
+						'a[href^="/admin/root/clientDetail/"]'
+					]);
+
+					var tbody = document.querySelector('table tbody');
+					if (tbody) {
+						tbody.innerHTML =
+							'<tr><td colspan="13" class="text-center text-muted py-4">조회 권한이 없습니다.</td></tr>';
+					}
+				}
+			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				applyPermissionUi();
+
+				var observer = new MutationObserver(function () {
+					applyPermissionUi();
+				});
+
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true
+				});
+			});
+		})();
+/*]]>*/
+	</script>
+
 	<link rel="stylesheet" href="/administration/assets/css/page/clientManager/clientDashBoard.css">
 	<script src="/administration/assets/js/page/clientManager/clientSearch.js"></script>
 </body>

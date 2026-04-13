@@ -35,9 +35,11 @@ public class WebSecurityConfig {
     private final CustomAuthSuccessHandler customAuthSuccessHandler;
     private final MixedAccessDeniedHandler mixedAccessDeniedHandler;
     private final MixedAuthenticationEntryPoint mixedAuthenticationEntryPoint;
+    private final AdminDynamicAuthorizationManager adminDynamicAuthorizationManager;
 
     private static final String[] STATIC_CUSTOM_IGNORES = {
-            "/front/**", "/administration/**"
+            "/front/**",
+            "/administration/assets/**"
     };
 
     private static final String[] AUTH_WHITELIST = {
@@ -53,13 +55,21 @@ public class WebSecurityConfig {
     private static final String[] SELLER_PAGE_URLS  = { "/seller/page/**" };
     private static final String[] SELLER_API_URLS   = { "/seller/api/**" };
 
-    private static final String[] ADMIN_COMMON_URLS   = { "/admin/common/**" };
-    private static final String[] ADMIN_OPERATOR_URLS = { "/admin/operator/**" };
-    private static final String[] ADMIN_MANAGER_URLS  = { "/admin/manager/**", "/api/manager/**" };
-    private static final String[] ADMIN_MASTER_URLS   = { "/admin/master/**" };
-    private static final String[] ADMIN_ROOT_URLS     = { "/admin/root/**" };
-    private static final String[] ADMIN_ENTRY_URLS    = { "/admin", "/admin/", "/admin/main" };
-    private static final String[] ADMIN_ALL_URLS      = { "/admin/**" };
+    private static final String[] ADMIN_ENTRY_URLS = { "/admin", "/admin/", "/admin/main" };
+
+    private static final String[] ROLE_MANAGER_ROOT_ONLY_URLS = {
+            "/admin/root/roleManager",
+            "/admin/root/api/role-manager/**"
+    };
+
+    private static final String[] ADMIN_STANDALONE_MANAGED_PAGE_URLS = {
+            "/brandManager",
+            "/categoryManager",
+            "/displayManager",
+            "/couponManager",
+            "/productPromotionManager",
+            "/internalCategoryManager"
+    };
 
     private static final String[] INTERNAL_API_URLS = { };
 
@@ -102,40 +112,31 @@ public class WebSecurityConfig {
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
 
-                // 딜러상품 상세 페이지 조회는 판매딜러 + 우리쪽 관리자/마스터/루트 허용
                 .requestMatchers(new RegexRequestMatcher("^/seller/page/product/\\d+$", HttpMethod.GET.name()))
-                    .hasAnyRole("SELLER_PORTAL", "ADMIN", "MASTER", "ROOT")
+                    .hasAnyRole("SELLER_PORTAL", "EMPLOY", "MASTER", "ROOT")
 
-                // 딜러상품 상세 조회 API는 판매딜러 + 우리쪽 관리자/마스터/루트 허용
                 .requestMatchers(new RegexRequestMatcher("^/seller/api/products/\\d+$", HttpMethod.GET.name()))
-                    .hasAnyRole("SELLER_PORTAL", "ADMIN", "MASTER", "ROOT")
+                    .hasAnyRole("SELLER_PORTAL", "EMPLOY", "MASTER", "ROOT")
 
-                // 판매딜러 포털 나머지는 기존처럼 SELLER_PORTAL 전용
                 .requestMatchers(SELLER_ENTRY_URLS).hasRole("SELLER_PORTAL")
                 .requestMatchers(SELLER_PAGE_URLS).hasRole("SELLER_PORTAL")
                 .requestMatchers(SELLER_API_URLS).hasRole("SELLER_PORTAL")
 
-                .requestMatchers(ADMIN_ENTRY_URLS)
-                    .hasAnyRole("ADMIN", "OPERATOR", "MASTER", "ROOT")
+                .requestMatchers(ROLE_MANAGER_ROOT_ONLY_URLS).hasRole("ROOT")
 
-                .requestMatchers(ADMIN_COMMON_URLS)
-                    .hasAnyRole("ADMIN", "OPERATOR", "MASTER", "ROOT")
-                .requestMatchers(ADMIN_OPERATOR_URLS)
-                    .hasAnyRole("OPERATOR", "MASTER", "ROOT")
-                .requestMatchers(ADMIN_MANAGER_URLS)
-                    .hasAnyRole("ADMIN", "OPERATOR", "MASTER", "ROOT")
-                .requestMatchers(ADMIN_MASTER_URLS)
-                    .hasAnyRole("MASTER", "ROOT")
-                .requestMatchers(ADMIN_ROOT_URLS)
-                    .hasRole("ROOT")
+                .requestMatchers(ADMIN_ENTRY_URLS).access(adminDynamicAuthorizationManager)
+                .requestMatchers(ADMIN_STANDALONE_MANAGED_PAGE_URLS).access(adminDynamicAuthorizationManager)
 
-                .requestMatchers(ADMIN_ALL_URLS)
-                    .hasAnyRole("ADMIN", "OPERATOR", "MASTER", "ROOT")
+                .requestMatchers("/administration/api/**").access(adminDynamicAuthorizationManager)
+
+                .requestMatchers("/admin/**", "/api/manager/**", "/api/admin/**")
+                    .access(adminDynamicAuthorizationManager)
 
                 .requestMatchers(CUSTOMER_URLS)
-                    .hasAnyRole("USER", "BUYER_DEALER", "SELLER_DEALER", "ADMIN", "OPERATOR", "MASTER", "ROOT")
+                    .hasAnyRole("USER", "BUYER_DEALER", "SELLER_DEALER", "EMPLOY", "OPERATOR", "MASTER", "ROOT")
+
                 .requestMatchers(INTERNAL_API_URLS)
-                    .hasAnyRole("SELLER_DEALER", "ADMIN", "OPERATOR", "MASTER", "ROOT")
+                    .hasAnyRole("SELLER_DEALER", "EMPLOY", "OPERATOR", "MASTER", "ROOT")
 
                 .requestMatchers(AUTH_WHITELIST).permitAll()
 

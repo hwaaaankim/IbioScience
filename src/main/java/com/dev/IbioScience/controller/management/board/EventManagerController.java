@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,8 +24,11 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/manager")
 public class EventManagerController {
 
+    private static final String PAGE_CODE = "SITE_EVENT_MANAGER";
+
     private final EventService eventService;
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/eventManager")
     public String eventManager(
             @ModelAttribute("cond") EventSearchCond cond,
@@ -33,10 +37,11 @@ public class EventManagerController {
             Model model
     ) {
         int pageSize = (cond.getSize() != null ? cond.getSize() : size);
-        // 허용 사이즈 제한
+
         if (!(pageSize == 10 || pageSize == 30 || pageSize == 50 || pageSize == 70 || pageSize == 100)) {
             pageSize = 10;
         }
+
         cond.setSize(pageSize);
 
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "id"));
@@ -46,11 +51,13 @@ public class EventManagerController {
         return "administration/board/event/eventManager";
     }
 
+    @PreAuthorize("@adminMenuFacade.canCreateByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/eventInsertForm")
     public String eventInsertForm() {
         return "administration/board/event/eventInsertForm";
     }
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/eventDetail/{id}")
     public String eventDetail(@PathVariable Long id, Model model) {
         Event event = eventService.getOrThrow(id);

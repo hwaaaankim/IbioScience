@@ -4,7 +4,10 @@
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('상품 상세/수정')}"></head>
 
-<body>
+<body
+	th:with="
+        canUpdate=${@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_LIST)},
+        canDelete=${@adminMenuFacade.canDeleteByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_LIST)}">
 	<div id="layout-wrapper">
 		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
 		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
@@ -13,7 +16,9 @@
 		<div class="main-content">
 			<div class="page-content">
 				<div class="container-fluid">
-
+					<div id="product-detail-permission" th:attr="
+        data-can-update=${canUpdate},
+        data-can-delete=${canDelete}" style="display:none;"></div>
 					<div class="row">
 						<div class="col-12">
 							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
@@ -290,7 +295,7 @@
 							<div class="product-manager-section">
 								<div class="product-manager-section-title">할인혜택</div>
 								<button type="button" class="btn btn-outline-danger btn-sm mb-2"
-									id="open-discount-modal-btn">+ 추가할인혜택 등록</button>
+									id="open-discount-modal-btn" th:if="${canUpdate}">+ 추가할인혜택 등록</button>
 								<div id="selected-discount-list" class="d-flex flex-wrap gap-2"></div>
 							</div>
 
@@ -299,7 +304,7 @@
 								<div class="product-manager-section-title">추가 입력필드</div>
 								<div class="row" id="product-manager-extra-field-list"></div>
 								<button type="button" class="btn btn-outline-primary btn-sm mt-2"
-									id="product-manager-add-extra-field">+ 추가입력필드</button>
+									id="product-manager-add-extra-field" th:if="${canUpdate}">+ 추가입력필드</button>
 							</div>
 
 							<!-- 키워드 -->
@@ -309,8 +314,8 @@
 								<div class="input-group">
 									<input type="text" class="form-control form-control-sm" id="product-keyword-input"
 										placeholder="키워드를 입력하고 Enter 또는 등록" required>
-									<button type="button" class="btn btn-outline-secondary btn-sm"
-										id="add-keyword-btn">등록</button>
+									<button type="button" class="btn btn-outline-secondary btn-sm" id="add-keyword-btn"
+										th:if="${canUpdate}">등록</button>
 								</div>
 								<div id="product-keyword-list" class="d-flex flex-wrap gap-2"></div>
 							</div>
@@ -320,7 +325,7 @@
 								<div class="product-manager-section-title">옵션/재고 등록</div>
 								<div class="row" id="product-manager-option-group-list"></div>
 								<button type="button" class="btn btn-outline-success btn-sm mt-2"
-									id="product-manager-add-option-group">+ 옵션그룹 추가</button>
+									id="product-manager-add-option-group" th:if="${canUpdate}">+ 옵션그룹 추가</button>
 								<div class="form-text mt-1" style="color:#dc3545;">※ 옵션 등록 및 재고는 추가 옵션까지 세분화해 주세요.</div>
 							</div>
 
@@ -401,7 +406,7 @@
 										<label class="form-check-label" for="relatedOff">사용안함</label>
 									</div>
 									<button type="button" class="btn btn-outline-primary btn-sm ms-2"
-										id="open-related-modal-btn">등록</button>
+										id="open-related-modal-btn" th:if="${canUpdate}">등록</button>
 								</div>
 								<div id="related-products-list" class="d-flex flex-wrap gap-2"></div>
 							</div>
@@ -421,14 +426,15 @@
 										<label class="form-check-label" for="bundleOff">사용안함</label>
 									</div>
 									<button type="button" class="btn btn-outline-primary btn-sm ms-2"
-										id="open-bundle-modal-btn">등록</button>
+										id="open-bundle-modal-btn" th:if="${canUpdate}">등록</button>
 								</div>
 								<div id="bundle-products-list" class="d-flex flex-wrap gap-2"></div>
 							</div>
 
 							<!-- 등록/저장 버튼 (id 유지) -->
 							<div class="mt-4 text-end">
-								<button type="submit" class="btn btn-primary px-4" id="submitProductBtn">확인</button>
+								<button type="submit" class="btn btn-primary px-4" id="submitProductBtn"
+									th:if="${canUpdate}">확인</button>
 							</div>
 						</div>
 					</div>

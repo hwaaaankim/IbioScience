@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,8 +25,11 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/manager")
 public class NoticeManagerController {
 
+    private static final String PAGE_CODE = "SITE_NOTICE_MANAGER";
+
     private final NoticeService noticeService;
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/noticeManager")
     public String noticeManager(
             @RequestParam(required = false) String title,
@@ -35,7 +39,6 @@ public class NoticeManagerController {
             @RequestParam(defaultValue = "10") int size,
             Model model
     ) {
-        // size 허용값 보정
         int fixedSize = switch (size) {
             case 10, 30, 50, 70, 100 -> size;
             default -> 10;
@@ -57,11 +60,13 @@ public class NoticeManagerController {
         return "administration/board/notice/noticeManager";
     }
 
+    @PreAuthorize("@adminMenuFacade.canCreateByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/noticeInsertForm")
     public String noticeInsertForm() {
         return "administration/board/notice/noticeInsertForm";
     }
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/noticeDetail/{id}")
     public String noticeDetail(@PathVariable("id") Long id, Model model) {
         Object notice = noticeService.getNoticeDetail(id);

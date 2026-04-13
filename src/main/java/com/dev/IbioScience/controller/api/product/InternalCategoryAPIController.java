@@ -1,11 +1,12 @@
 package com.dev.IbioScience.controller.api.product;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,22 +36,20 @@ public class InternalCategoryAPIController {
 
     private final InternalCategoryService internalCategoryService;
     private final InternalCategoryQueryService service;
-    
-    // 대분류 전체 조회
+
     @GetMapping("/large")
     public List<Map<String, Object>> getLargeList() {
         List<InternalCategoryLarge> largeList = internalCategoryService.getAllLarge();
-        List<Map<String, Object>> result = largeList.stream().map(large -> {
+        return largeList.stream().map(large -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", large.getId());
             map.put("name", large.getName());
             map.put("mediumCount", large.getMediums() != null ? large.getMediums().size() : 0);
             return map;
         }).collect(Collectors.toList());
-        return result;
     }
 
-    // 2. 대분류 등록
+    @PreAuthorize("@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)")
     @PostMapping("/large")
     public ResponseEntity<?> addLarge(@RequestBody Map<String, String> body) {
         String name = body.get("name");
@@ -59,7 +58,7 @@ public class InternalCategoryAPIController {
         return ResponseEntity.ok().build();
     }
 
-    // 3. 대분류 수정
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)")
     @PutMapping("/large/{id}")
     public ResponseEntity<?> updateLarge(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String name = body.get("name");
@@ -68,28 +67,26 @@ public class InternalCategoryAPIController {
         return ResponseEntity.ok().build();
     }
 
-    // 4. 대분류 삭제
+    @PreAuthorize("@adminMenuFacade.canDeleteByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)")
     @DeleteMapping("/large/{id}")
     public ResponseEntity<?> deleteLarge(@PathVariable Long id) {
         internalCategoryService.deleteLarge(id);
         return ResponseEntity.ok().build();
     }
 
-    // 5. 중분류(대분류별) 리스트
     @GetMapping("/medium")
     public List<Map<String, Object>> getMediumList(@RequestParam Long largeId) {
         List<InternalCategoryMedium> mediumList = internalCategoryService.getMediumsByLargeId(largeId);
-        List<Map<String, Object>> result = mediumList.stream().map(medium -> {
+        return mediumList.stream().map(medium -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", medium.getId());
             map.put("name", medium.getName());
             map.put("smallCount", medium.getSmalls() != null ? medium.getSmalls().size() : 0);
             return map;
         }).collect(Collectors.toList());
-        return result;
     }
 
-    // 6. 중분류 등록
+    @PreAuthorize("@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)")
     @PostMapping("/medium")
     public ResponseEntity<?> addMedium(@RequestBody Map<String, Object> body) {
         String name = (String) body.get("name");
@@ -106,7 +103,7 @@ public class InternalCategoryAPIController {
         return ResponseEntity.ok().build();
     }
 
-    // 7. 중분류 수정
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)")
     @PutMapping("/medium/{id}")
     public ResponseEntity<?> updateMedium(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String name = body.get("name");
@@ -115,27 +112,25 @@ public class InternalCategoryAPIController {
         return ResponseEntity.ok().build();
     }
 
-    // 8. 중분류 삭제
+    @PreAuthorize("@adminMenuFacade.canDeleteByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)")
     @DeleteMapping("/medium/{id}")
     public ResponseEntity<?> deleteMedium(@PathVariable Long id) {
         internalCategoryService.deleteMedium(id);
         return ResponseEntity.ok().build();
     }
 
-    // 9. 소분류(중분류별) 리스트
     @GetMapping("/small")
     public List<Map<String, Object>> getSmallList(@RequestParam Long mediumId) {
         List<InternalCategorySmall> smallList = internalCategoryService.getSmallsByMediumId(mediumId);
-        List<Map<String, Object>> result = smallList.stream().map(small -> {
+        return smallList.stream().map(small -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", small.getId());
             map.put("name", small.getName());
             return map;
         }).collect(Collectors.toList());
-        return result;
     }
 
-    // 10. 소분류 등록
+    @PreAuthorize("@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)")
     @PostMapping("/small")
     public ResponseEntity<?> addSmall(@RequestBody Map<String, Object> body) {
         String name = (String) body.get("name");
@@ -152,7 +147,7 @@ public class InternalCategoryAPIController {
         return ResponseEntity.ok().build();
     }
 
-    // 11. 소분류 수정
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)")
     @PutMapping("/small/{id}")
     public ResponseEntity<?> updateSmall(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String name = body.get("name");
@@ -161,13 +156,12 @@ public class InternalCategoryAPIController {
         return ResponseEntity.ok().build();
     }
 
-    // 12. 소분류 삭제
+    @PreAuthorize("@adminMenuFacade.canDeleteByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_INTERNAL_CATEGORY_MANAGER)")
     @DeleteMapping("/small/{id}")
     public ResponseEntity<?> deleteSmall(@PathVariable Long id) {
         internalCategoryService.deleteSmall(id);
         return ResponseEntity.ok().build();
     }
-
 
     @GetMapping("/list-large")
     public ResponseEntity<List<InternalLargeListDTO>> listLarge() {

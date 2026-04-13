@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,8 +23,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminOrderManagerApiController {
 
+    private static final String PAGE_CODE = "ORDER_MANAGER";
+
     private final AdminOrderManagerService adminOrderManagerService;
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode('" + PAGE_CODE + "')")
     @PostMapping("/status/bulk")
     public ResponseEntity<Map<String, Object>> updateBulkStatus(
             @RequestBody AdminOrderBulkStatusUpdateRequest request
@@ -37,6 +41,7 @@ public class AdminOrderManagerApiController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode('" + PAGE_CODE + "')")
     @PostMapping("/{orderId}/status-detail")
     public ResponseEntity<Map<String, Object>> updateDetailStatus(
             @PathVariable Long orderId,

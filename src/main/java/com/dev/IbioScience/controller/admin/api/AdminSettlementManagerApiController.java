@@ -2,6 +2,7 @@ package com.dev.IbioScience.controller.admin.api;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,18 +25,23 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/root/api/settlement-manager")
 public class AdminSettlementManagerApiController {
 
+    private static final String PAGE_CODE = "SHOP_SETTLEMENT_MANAGER";
+
     private final SettlementManagerService settlementManagerService;
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/search")
     public CommonAPIResponse<SettlementManagerPageResponse> search(SettlementManagerSearchRequest request) {
         return CommonAPIResponse.ok(settlementManagerService.search(request));
     }
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/{settlementId}/orders")
     public CommonAPIResponse<List<SettlementOrderModalDto>> getOrders(@PathVariable Long settlementId) {
         return CommonAPIResponse.ok(settlementManagerService.getSettlementOrders(settlementId));
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode('" + PAGE_CODE + "')")
     @PatchMapping("/{settlementId}/orders")
     public CommonAPIResponse<Void> updateOrders(
         @PathVariable Long settlementId,
@@ -45,6 +51,7 @@ public class AdminSettlementManagerApiController {
         return CommonAPIResponse.ok("주문 반영 및 정산 재계산 완료", null);
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode('" + PAGE_CODE + "')")
     @PatchMapping("/status")
     public CommonAPIResponse<Void> updateStatus(@RequestBody SettlementStatusUpdateRequest request) {
         settlementManagerService.updateStatuses(request);

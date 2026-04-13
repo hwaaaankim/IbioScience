@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,6 +46,7 @@ public class ProductAPIController {
 	private final ProductDetailQueryService productDetailQueryService;
 	private final ProductUpdateService productUpdateService;
 
+	@PreAuthorize("@adminMenuFacade.canViewByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_LIST)")
 	@GetMapping("/{id}/detail")
 	public ResponseEntity<ProductDetailReadResponseDTO> getDetail(@PathVariable Long id) {
 		return ResponseEntity.ok(productDetailQueryService.getDetail(id));
@@ -68,6 +70,8 @@ public class ProductAPIController {
 		return productListService.search(filter);
 	}
 
+	@PreAuthorize("@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_INSERT) or "
+			+ "@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_LIST)")
 	@PostMapping(value = "/editor-images", consumes = "multipart/form-data")
 	public ResponseEntity<?> uploadEditorImages(@RequestParam("files") List<MultipartFile> files,
 			@RequestParam(value = "type", required = false) String type,
@@ -80,6 +84,8 @@ public class ProductAPIController {
 		return ResponseEntity.ok(result);
 	}
 
+	@PreAuthorize("@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_INSERT) or "
+			+ "@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_LIST)")
 	@PostMapping("/{productId}/move-editor-images")
 	public ResponseEntity<?> moveEditorImages(@PathVariable Long productId,
 			@RequestBody ProductRegisterMoveEditorImageRequestDTO request) {
@@ -89,6 +95,7 @@ public class ProductAPIController {
 		return ResponseEntity.ok(Map.of("success", true, "newHtml", newHtml));
 	}
 
+	@PreAuthorize("@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_INSERT)")
 	@PostMapping(value = "/insert", consumes = { "multipart/form-data" })
 	public ResponseEntity<?> registerProduct(@RequestParam MultiValueMap<String, String> params,
 			@RequestParam(required = false) MultiValueMap<String, MultipartFile> files) throws IOException {
@@ -109,25 +116,25 @@ public class ProductAPIController {
 		dto.setDetailHtml(nvl(params.getFirst("detailHtml")));
 
 		for (int i = 0;; i++) {
-            String mediumIdStr = params.getFirst("categoryPaths[" + i + "].mediumId");
-            String smallIdStr  = params.getFirst("categoryPaths[" + i + "].smallId");
+			String mediumIdStr = params.getFirst("categoryPaths[" + i + "].mediumId");
+			String smallIdStr = params.getFirst("categoryPaths[" + i + "].smallId");
 
-            // 둘 다 없으면 종료
-            if (mediumIdStr == null && smallIdStr == null) {
-                break;
-            }
+			// 둘 다 없으면 종료
+			if (mediumIdStr == null && smallIdStr == null) {
+				break;
+			}
 
-            // 값 누락/공백이면 스킵
-            if (!notEmpty(mediumIdStr) || !notEmpty(smallIdStr)) {
-                continue;
-            }
+			// 값 누락/공백이면 스킵
+			if (!notEmpty(mediumIdStr) || !notEmpty(smallIdStr)) {
+				continue;
+			}
 
-            ProductRegisterRequestDTO.CategoryPathDTO cp = new ProductRegisterRequestDTO.CategoryPathDTO();
-            cp.setMediumId(Long.valueOf(mediumIdStr));
-            cp.setSmallId(Long.valueOf(smallIdStr));
+			ProductRegisterRequestDTO.CategoryPathDTO cp = new ProductRegisterRequestDTO.CategoryPathDTO();
+			cp.setMediumId(Long.valueOf(mediumIdStr));
+			cp.setSmallId(Long.valueOf(smallIdStr));
 
-            dto.getCategoryPaths().add(cp);
-        }
+			dto.getCategoryPaths().add(cp);
+		}
 
 		if (files != null) {
 			MultipartFile main = getFirstFile(files, "mainImage");
@@ -363,6 +370,7 @@ public class ProductAPIController {
 		return list.get(0);
 	}
 
+	@PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PRODUCT_LIST)")
 	@PostMapping(value = "/{productId}/update", consumes = { "multipart/form-data" })
 	public ResponseEntity<?> updateProduct(@PathVariable Long productId,
 			@RequestParam MultiValueMap<String, String> params,
@@ -387,17 +395,18 @@ public class ProductAPIController {
 
 		// ===== 외부 카테고리(중+소 쌍) =====
 		for (int i = 0;; i++) {
-		    String mid = params.getFirst("externalCategories[" + i + "].mediumId");
-		    String sid = params.getFirst("externalCategories[" + i + "].smallId");
+			String mid = params.getFirst("externalCategories[" + i + "].mediumId");
+			String sid = params.getFirst("externalCategories[" + i + "].smallId");
 
-		    if (mid == null && sid == null) break;
+			if (mid == null && sid == null)
+				break;
 
-		    if (notEmpty(mid) && notEmpty(sid)) {
-		        ProductUpdateRequestDTO.ExternalCategoryDTO ec = new ProductUpdateRequestDTO.ExternalCategoryDTO();
-		        ec.setMediumId(Long.valueOf(mid));
-		        ec.setSmallId(Long.valueOf(sid));
-		        dto.getExternalCategories().add(ec);
-		    }
+			if (notEmpty(mid) && notEmpty(sid)) {
+				ProductUpdateRequestDTO.ExternalCategoryDTO ec = new ProductUpdateRequestDTO.ExternalCategoryDTO();
+				ec.setMediumId(Long.valueOf(mid));
+				ec.setSmallId(Long.valueOf(sid));
+				dto.getExternalCategories().add(ec);
+			}
 		}
 
 		// 이미지 액션/파일

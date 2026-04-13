@@ -108,6 +108,7 @@
 											<label class="admin-order-list-detail-label">주문상태</label>
 											<select class="form-select admin-order-list-detail-change-field"
 												id="admin-order-list-detail-status"
+												th:disabled="${!@adminMenuFacade.canUpdateByPageCode('ORDER_MANAGER')}"
 												th:attr="data-original-value=${order.status.name()}">
 												<option th:each="status : ${orderStatusValues}"
 													th:value="${status.name()}" th:selected="${status == order.status}"
@@ -120,6 +121,7 @@
 											<label class="admin-order-list-detail-label">결제수단</label>
 											<select class="form-select admin-order-list-detail-change-field"
 												id="admin-order-list-detail-payment-method"
+												th:disabled="${!@adminMenuFacade.canUpdateByPageCode('ORDER_MANAGER')}"
 												th:attr="data-original-value=${order.paymentMethod.name()}">
 												<option th:each="pm : ${paymentMethodValues}" th:value="${pm.name()}"
 													th:selected="${pm == order.paymentMethod}"
@@ -132,6 +134,7 @@
 											<label class="admin-order-list-detail-label">배송방법</label>
 											<select class="form-select admin-order-list-detail-change-field"
 												id="admin-order-list-detail-shipping-method"
+												th:disabled="${!@adminMenuFacade.canUpdateByPageCode('ORDER_MANAGER')}"
 												th:attr="data-original-value=${order.shippingMethod.name()}">
 												<option th:each="sm : ${shippingMethodValues}" th:value="${sm.name()}"
 													th:selected="${sm == order.shippingMethod}"
@@ -144,6 +147,7 @@
 											<label class="admin-order-list-detail-label">배송비 구분</label>
 											<select class="form-select admin-order-list-detail-change-field"
 												id="admin-order-list-detail-shipping-pay-type"
+												th:disabled="${!@adminMenuFacade.canUpdateByPageCode('ORDER_MANAGER')}"
 												th:attr="data-original-value=${order.shippingPayType.name()}">
 												<option th:each="spt : ${shippingPayTypeValues}"
 													th:value="${spt.name()}"
@@ -155,9 +159,15 @@
 
 										<div class="col-12 d-flex justify-content-center pt-2">
 											<button type="button" id="admin-order-list-detail-save-btn"
-												class="btn btn-success px-4" disabled>
+												class="btn btn-success px-4" disabled
+												th:if="${@adminMenuFacade.canUpdateByPageCode('ORDER_MANAGER')}">
 												상태변경
 											</button>
+
+											<span class="text-muted small"
+												th:if="${!@adminMenuFacade.canUpdateByPageCode('ORDER_MANAGER')}">
+												조회 권한만 있습니다.
+											</span>
 										</div>
 
 										<div class="col-12">
@@ -403,59 +413,70 @@
 												</tr>
 											</thead>
 											<tbody>
-											    <tr th:each="item : ${order.items}"
-											        th:with="
+												<tr th:each="item : ${order.items}"
+													th:with="
 											            isDealer=${(item.itemProductType != null and item.itemProductType.name() == 'DEALER') or (item.itemProductType == null and item.dealerProduct != null)},
 											            productId=${((item.itemProductType != null and item.itemProductType.name() == 'DEALER') or (item.itemProductType == null and item.dealerProduct != null)) ? (item.dealerProduct != null ? item.dealerProduct.id : null) : (item.product != null ? item.product.id : null)}">
-											
-											        <td th:text="${productId != null ? productId : '-'}">1</td>
-											
-											        <td>
-											            <div class="d-flex flex-column align-items-center gap-1">
-											                <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-											                    <span th:text="${item.productName}">상품명</span>
-											
-											                    <span th:if="${isDealer}"
-											                          class="badge bg-warning-subtle text-dark border border-warning-subtle">
-											                        딜러상품
-											                    </span>
-											
-											                    <span th:unless="${isDealer}"
-											                          class="badge bg-primary-subtle text-primary border border-primary-subtle">
-											                        우리회사상품
-											                    </span>
-											                </div>
-											            </div>
-											        </td>
-											
-											        <td th:text="${item.optionGroupName != null ? item.optionGroupName : '-'}">옵션그룹</td>
-											        <td th:text="${item.optionName != null ? item.optionName : '-'}">옵션명</td>
-											
-											        <td th:text="${#numbers.formatInteger(item.unitPrice, 3, 'COMMA')} + '원'">0원</td>
-											        <td th:text="${item.quantity}">1</td>
-											        <td th:text="${#numbers.formatInteger(item.linePrice, 3, 'COMMA')} + '원'">0원</td>
-											        <td th:text="${#numbers.formatInteger(item.itemEarnPoint, 3, 'COMMA')} + 'P'">0P</td>
-											
-											        <td>
-											            <a th:if="${!isDealer and productId != null}"
-											               th:href="@{/admin/productDetail/{id}(id=${productId})}"
-											               class="btn btn-sm btn-soft-primary">
-											                상세보기
-											            </a>
-											
-											            <a th:if="${isDealer and productId != null}"
-											               th:href="@{/seller/page/product/{dealerProductId}(dealerProductId=${productId})}"
-											               class="btn btn-sm btn-soft-warning">
-											                상세보기
-											            </a>
-											
-											            <span th:if="${productId == null}">-</span>
-											        </td>
-											    </tr>
-											
-											    <tr th:if="${#lists.isEmpty(order.items)}">
-											        <td colspan="9" class="text-center text-muted py-4">상품 정보가 없습니다.</td>
-											    </tr>
+
+													<td th:text="${productId != null ? productId : '-'}">1</td>
+
+													<td>
+														<div class="d-flex flex-column align-items-center gap-1">
+															<div
+																class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
+																<span th:text="${item.productName}">상품명</span>
+
+																<span th:if="${isDealer}"
+																	class="badge bg-warning-subtle text-dark border border-warning-subtle">
+																	딜러상품
+																</span>
+
+																<span th:unless="${isDealer}"
+																	class="badge bg-primary-subtle text-primary border border-primary-subtle">
+																	우리회사상품
+																</span>
+															</div>
+														</div>
+													</td>
+
+													<td
+														th:text="${item.optionGroupName != null ? item.optionGroupName : '-'}">
+														옵션그룹</td>
+													<td th:text="${item.optionName != null ? item.optionName : '-'}">옵션명
+													</td>
+
+													<td
+														th:text="${#numbers.formatInteger(item.unitPrice, 3, 'COMMA')} + '원'">
+														0원</td>
+													<td th:text="${item.quantity}">1</td>
+													<td
+														th:text="${#numbers.formatInteger(item.linePrice, 3, 'COMMA')} + '원'">
+														0원</td>
+													<td
+														th:text="${#numbers.formatInteger(item.itemEarnPoint, 3, 'COMMA')} + 'P'">
+														0P</td>
+
+													<td>
+														<a th:if="${!isDealer and productId != null}"
+															th:href="@{/admin/productDetail/{id}(id=${productId})}"
+															class="btn btn-sm btn-soft-primary">
+															상세보기
+														</a>
+
+														<a th:if="${isDealer and productId != null}"
+															th:href="@{/seller/page/product/{dealerProductId}(dealerProductId=${productId})}"
+															class="btn btn-sm btn-soft-warning">
+															상세보기
+														</a>
+
+														<span th:if="${productId == null}">-</span>
+													</td>
+												</tr>
+
+												<tr th:if="${#lists.isEmpty(order.items)}">
+													<td colspan="9" class="text-center text-muted py-4">상품 정보가 없습니다.
+													</td>
+												</tr>
 											</tbody>
 										</table>
 									</div>
@@ -639,7 +660,7 @@
 									</div>
 								</div>
 								<div class="modal-footer">
-									<a th:if="${order.member != null}"
+									<a th:if="${order.member != null and @adminMenuFacade.canViewByPageCode('CRM_HOME')}"
 										th:href="@{/admin/root/clientDetail/{memberId}/home(memberId=${order.member.id})}"
 										class="btn btn-primary">
 										상세이동
@@ -676,71 +697,79 @@
 												</tr>
 											</thead>
 											<tbody>
-											    <tr th:each="item : ${order.items}"
-											        th:with="
+												<tr th:each="item : ${order.items}"
+													th:with="
 											            isDealer=${(item.itemProductType != null and item.itemProductType.name() == 'DEALER') or (item.itemProductType == null and item.dealerProduct != null)},
 											            productId=${((item.itemProductType != null and item.itemProductType.name() == 'DEALER') or (item.itemProductType == null and item.dealerProduct != null)) ? (item.dealerProduct != null ? item.dealerProduct.id : null) : (item.product != null ? item.product.id : null)}">
-											
-											        <td th:text="${productId != null ? productId : '-'}">1</td>
-											
-											        <td>
-											            <div class="d-flex flex-column align-items-center gap-1">
-											                <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-											                    <a th:if="${!isDealer and productId != null}"
-											                       th:href="@{/admin/productDetail/{id}(id=${productId})}"
-											                       th:text="${item.productName}"
-											                       class="fw-semibold">
-											                        상품명
-											                    </a>
-											
-											                    <a th:if="${isDealer and productId != null}"
-											                       th:href="@{/seller/page/product/{dealerProductId}(dealerProductId=${productId})}"
-											                       th:text="${item.productName}"
-											                       class="fw-semibold">
-											                        상품명
-											                    </a>
-											
-											                    <span th:if="${productId == null}" th:text="${item.productName}">상품명</span>
-											
-											                    <span th:if="${isDealer}"
-											                          class="badge bg-warning-subtle text-dark border border-warning-subtle">
-											                        딜러상품
-											                    </span>
-											
-											                    <span th:unless="${isDealer}"
-											                          class="badge bg-primary-subtle text-primary border border-primary-subtle">
-											                        우리회사상품
-											                    </span>
-											                </div>
-											            </div>
-											        </td>
-											
-											        <td th:text="${item.optionGroupName != null ? item.optionGroupName : '-'}">옵션그룹</td>
-											        <td th:text="${item.optionName != null ? item.optionName : '-'}">옵션명</td>
-											        <td th:text="${item.quantity}">1</td>
-											        <td th:text="${#numbers.formatInteger(item.unitPrice, 3, 'COMMA')} + '원'">0원</td>
-											        <td th:text="${#numbers.formatInteger(item.linePrice, 3, 'COMMA')} + '원'">0원</td>
-											
-											        <td>
-											            <a th:if="${!isDealer and productId != null}"
-											               th:href="@{/admin/productDetail/{id}(id=${productId})}"
-											               class="btn btn-sm btn-soft-primary">
-											                자세히 보기
-											            </a>
-											
-											            <a th:if="${isDealer and productId != null}"
-											               th:href="@{/seller/page/product/{dealerProductId}(dealerProductId=${productId})}"
-											               class="btn btn-sm btn-soft-warning">
-											                자세히 보기
-											            </a>
-											
-											            <span th:if="${productId == null}">-</span>
-											        </td>
-											    </tr>
-											
-											    <tr th:if="${#lists.isEmpty(order.items)}">
-											        <td colspan="8" class="text-center text-muted py-4">상품 정보가 없습니다.</td>
-											    </tr>
+
+													<td th:text="${productId != null ? productId : '-'}">1</td>
+
+													<td>
+														<div class="d-flex flex-column align-items-center gap-1">
+															<div
+																class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
+																<a th:if="${!isDealer and productId != null}"
+																	th:href="@{/admin/productDetail/{id}(id=${productId})}"
+																	th:text="${item.productName}" class="fw-semibold">
+																	상품명
+																</a>
+
+																<a th:if="${isDealer and productId != null}"
+																	th:href="@{/seller/page/product/{dealerProductId}(dealerProductId=${productId})}"
+																	th:text="${item.productName}" class="fw-semibold">
+																	상품명
+																</a>
+
+																<span th:if="${productId == null}"
+																	th:text="${item.productName}">상품명</span>
+
+																<span th:if="${isDealer}"
+																	class="badge bg-warning-subtle text-dark border border-warning-subtle">
+																	딜러상품
+																</span>
+
+																<span th:unless="${isDealer}"
+																	class="badge bg-primary-subtle text-primary border border-primary-subtle">
+																	우리회사상품
+																</span>
+															</div>
+														</div>
+													</td>
+
+													<td
+														th:text="${item.optionGroupName != null ? item.optionGroupName : '-'}">
+														옵션그룹</td>
+													<td th:text="${item.optionName != null ? item.optionName : '-'}">옵션명
+													</td>
+													<td th:text="${item.quantity}">1</td>
+													<td
+														th:text="${#numbers.formatInteger(item.unitPrice, 3, 'COMMA')} + '원'">
+														0원</td>
+													<td
+														th:text="${#numbers.formatInteger(item.linePrice, 3, 'COMMA')} + '원'">
+														0원</td>
+
+													<td>
+														<a th:if="${!isDealer and productId != null}"
+															th:href="@{/admin/productDetail/{id}(id=${productId})}"
+															class="btn btn-sm btn-soft-primary">
+															자세히 보기
+														</a>
+
+														<a th:if="${isDealer and productId != null}"
+															th:href="@{/seller/page/product/{dealerProductId}(dealerProductId=${productId})}"
+															class="btn btn-sm btn-soft-warning">
+															자세히 보기
+														</a>
+
+														<span th:if="${productId == null}">-</span>
+													</td>
+												</tr>
+
+												<tr th:if="${#lists.isEmpty(order.items)}">
+													<td colspan="8" class="text-center text-muted py-4">상품 정보가 없습니다.
+													</td>
+												</tr>
 											</tbody>
 										</table>
 									</div>
@@ -765,7 +794,8 @@
 	<script th:inline="javascript">
 		/*<![CDATA[*/
 		window.ADMIN_ORDER_LIST_DETAIL_ORDER_ID = /*[[${order.id}]]*/ 0;
-	/*]]>*/
+		window.ADMIN_ORDER_LIST_DETAIL_CAN_UPDATE = /*[[${@adminMenuFacade.canUpdateByPageCode('ORDER_MANAGER')}]]*/ false;
+    /*]]>*/
 	</script>
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

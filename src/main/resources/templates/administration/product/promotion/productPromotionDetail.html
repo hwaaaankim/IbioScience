@@ -4,7 +4,9 @@
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
 
-<body>
+<body
+	th:with="
+        canUpdate=${@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PROMOTION_MANAGER)}">
 	<div id="layout-wrapper">
 		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
 		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
@@ -223,7 +225,7 @@
 
 								<div class="text-end mt-4">
 									<button type="submit" class="product-promotion-btn btn px-4"
-										id="productPromotionSubmitBtn">수정</button>
+										id="productPromotionSubmitBtn" th:if="${canUpdate}">수정</button>
 								</div>
 							</form>
 

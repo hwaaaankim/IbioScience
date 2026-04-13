@@ -1,85 +1,94 @@
 <!doctype html>
 <html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
-    data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
 
-<body>
-    <div id="layout-wrapper">
-        <header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
-        <div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
-        <div class="vertical-overlay"></div>
+<body
+	th:with="
+        canCreate=${@adminMenuFacade.canCreateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_BRAND_MANAGER)},
+        canUpdate=${@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_BRAND_MANAGER)},
+        canDelete=${@adminMenuFacade.canDeleteByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_BRAND_MANAGER)}">
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
 
-        <div class="main-content">
-            <div class="page-content">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                                <h4 class="mb-sm-0">브랜드관리</h4>
-                                <div class="page-title-right">
-                                    <ol class="breadcrumb m-0">
-                                        <li class="breadcrumb-item"><a href="javascript: void(0);">관리</a></li>
-                                        <li class="breadcrumb-item active">브랜드관리</li>
-                                    </ol>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- 카드 내부 시작 -->
-                    <div class="card">
-                        <div class="card-body">
-                            <h2 class="mb-4 text-center">브랜드 등록</h2>
-                            <form id="brand-manager-register-form" enctype="multipart/form-data"
-                                th:action="@{/api/brand}" method="post">
-                                <div class="row g-3 align-items-center">
-                                    <div class="col-md-3">
-                                        <label for="brand-manager-name" class="form-label">브랜드명</label>
-                                        <input type="text" name="name" id="brand-manager-name" class="form-control"
-                                            required>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="brand-manager-image" class="form-label">브랜드 이미지</label>
-                                        <input type="file" name="image" id="brand-manager-image" class="form-control"
-                                            accept="image/*" required>
-                                        
-                                    </div>
-                                    <div class="col-md-1">
-                                        <label class="form-label invisible">등록</label>
-                                        <button type="submit" class="btn btn-primary w-100">브랜드 등록</button>
-                                    </div>
-                                </div>
-                                <img id="brand-manager-image-preview" width="200px;">
-                            </form>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-body">
-                            <h2 class="mb-4 text-center">브랜드 관리</h2>
-                            <div class="mb-3 row">
-                                <div class="col-md-3">
-                                    <input type="text" id="brand-manager-search" class="form-control"
-                                        placeholder="브랜드명을 입력하세요...">
-                                </div>
-                                <div class="col-md-1">
-                                    <button class="btn btn-outline-secondary w-100"
-                                        onclick="brandManagerSearch()">검색</button>
-                                </div>
-                            </div>
-                            <div id="brand-manager-list" class="row g-4"></div>
-                            <nav class="mt-4">
-                                <ul class="pagination justify-content-center" id="brand-manager-pagination"></ul>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
-        </div>
-    </div>
-    <th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
-    <th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/administration/assets/product/brandManager.js"></script>
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+					<div id="brand-manager-permission" th:attr="
+        data-can-create=${canCreate},
+        data-can-update=${canUpdate},
+        data-can-delete=${canDelete}" style="display:none;"></div>
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">브랜드관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript: void(0);">관리</a></li>
+										<li class="breadcrumb-item active">브랜드관리</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 카드 내부 시작 -->
+					<div class="card" th:if="${canCreate}">
+						<div class="card-body">
+							<h2 class="mb-4 text-center">브랜드 등록</h2>
+							<form id="brand-manager-register-form" enctype="multipart/form-data"
+								th:action="@{/api/brand}" method="post">
+								<div class="row g-3 align-items-center">
+									<div class="col-md-3">
+										<label for="brand-manager-name" class="form-label">브랜드명</label>
+										<input type="text" name="name" id="brand-manager-name" class="form-control"
+											required>
+									</div>
+									<div class="col-md-3">
+										<label for="brand-manager-image" class="form-label">브랜드 이미지</label>
+										<input type="file" name="image" id="brand-manager-image" class="form-control"
+											accept="image/*" required>
+
+									</div>
+									<div class="col-md-1">
+										<label class="form-label invisible">등록</label>
+										<button type="submit" class="btn btn-primary w-100">브랜드 등록</button>
+									</div>
+								</div>
+								<img id="brand-manager-image-preview" width="200px;">
+							</form>
+						</div>
+					</div>
+					<div class="card">
+						<div class="card-body">
+							<h2 class="mb-4 text-center">브랜드 관리</h2>
+							<div class="mb-3 row">
+								<div class="col-md-3">
+									<input type="text" id="brand-manager-search" class="form-control"
+										placeholder="브랜드명을 입력하세요...">
+								</div>
+								<div class="col-md-1">
+									<button class="btn btn-outline-secondary w-100"
+										onclick="brandManagerSearch()">검색</button>
+								</div>
+							</div>
+							<div id="brand-manager-list" class="row g-4"></div>
+							<nav class="mt-4">
+								<ul class="pagination justify-content-center" id="brand-manager-pagination"></ul>
+							</nav>
+						</div>
+					</div>
+				</div>
+			</div>
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/administration/assets/product/brandManager.js"></script>
 </body>
+
 </html>

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,8 +27,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminClientWishListApiController {
 
+    private static final String PAGE_CODE = "CRM_WISH_LIST";
+
     private final AdminClientWishListService adminClientWishListService;
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/{memberId}/wishList")
     public AdminClientWishListPageResponse getWishList(
             @PathVariable Long memberId,
@@ -58,6 +62,7 @@ public class AdminClientWishListApiController {
         }
     }
 
+    @PreAuthorize("@adminMenuFacade.canDeleteByPageCode('" + PAGE_CODE + "')")
     @DeleteMapping("/{memberId}/wishList")
     public AdminClientWishListDeleteResponse deleteWishList(
             @PathVariable Long memberId,

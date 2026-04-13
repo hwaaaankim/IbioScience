@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +28,7 @@ public class PromotionManagerController {
 
     private final ProductPromotionService productPromotionService;
 
-    /** 기존 등록 폼 */
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PROMOTION_MANAGER)")
     @GetMapping("/productPromotionInsertForm")
     public String productDiscountManager(Model model) {
         model.addAttribute("promotionTypes", PromotionType.values());
@@ -35,7 +36,7 @@ public class PromotionManagerController {
         return "administration/product/promotion/productPromotionInsertForm";
     }
 
-    /** 1) 매니저 목록 */
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PROMOTION_MANAGER)")
     @GetMapping("/productPromotionManager")
     public String promotionManager(@RequestParam(required = false) String name,
                                    @RequestParam(required = false) Boolean active,
@@ -64,7 +65,7 @@ public class PromotionManagerController {
         return "administration/product/promotion/productPromotionManager";
     }
 
-    /** 2) 상세 페이지 */
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PROMOTION_MANAGER)")
     @GetMapping("/productPromotionDetail/{id}")
     public String promotionDetail(@PathVariable Long id, Model model) {
         Promotion p = productPromotionService.getOne(id);
@@ -74,7 +75,7 @@ public class PromotionManagerController {
         return "administration/product/promotion/productPromotionDetail";
     }
 
-    /** 3) 업데이트 */
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PROMOTION_MANAGER)")
     @PostMapping("/productPromotionUpdate")
     public String promotionUpdate(@RequestParam Long id,
                                   @ModelAttribute PromotionRegisterRequest req,
@@ -84,11 +85,11 @@ public class PromotionManagerController {
         return "redirect:/productPromotionDetail/" + id;
     }
 
-    /** 삭제 */
+    @PreAuthorize("@adminMenuFacade.canDeleteByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_PROMOTION_MANAGER)")
     @PostMapping("/productPromotionDelete/{id}")
     public String promotionDelete(@PathVariable Long id, RedirectAttributes ra) {
         try {
-        	productPromotionService.delete(id);
+            productPromotionService.delete(id);
             ra.addFlashAttribute("message", "삭제되었습니다.");
         } catch (IllegalStateException e) {
             ra.addFlashAttribute("error", e.getMessage());

@@ -12,7 +12,12 @@
 
 		<div class="main-content">
 			<div class="page-content">
-				<div class="container-fluid">
+				<div class="container-fluid" th:with="
+						canView=${@adminMenuFacade.canViewByPageCode('SITE_EVENT_MANAGER')},
+						canUpdate=${@adminMenuFacade.canUpdateByPageCode('SITE_EVENT_MANAGER')},
+						canDelete=${@adminMenuFacade.canDeleteByPageCode('SITE_EVENT_MANAGER')}
+					">
+
 					<div class="row">
 						<div class="col-12">
 							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
@@ -30,6 +35,14 @@
 					<div class="row" th:if="${msg != null}">
 						<div class="col-12">
 							<div class="alert alert-success" th:text="${msg}"></div>
+						</div>
+					</div>
+
+					<div class="row" th:if="${!canUpdate}">
+						<div class="col-12">
+							<div class="alert alert-secondary mb-3">
+								현재 계정은 이벤트 수정 권한이 없어 읽기 전용으로 표시됩니다.
+							</div>
 						</div>
 					</div>
 
@@ -53,10 +66,11 @@
 								</div>
 
 								<div class="d-flex gap-2">
-									<a class="btn btn-light" th:href="@{/admin/manager/eventManager}">목록</a>
+									<a th:if="${canView}" class="btn btn-light"
+										th:href="@{/admin/manager/eventManager}">목록</a>
 
-									<!-- ✅ 원본 유지: event-detail-delete-btn -->
-									<button type="button" class="btn btn-outline-danger event-detail-delete-btn"
+									<button th:if="${canDelete}" type="button"
+										class="btn btn-outline-danger event-detail-delete-btn"
 										th:attr="data-id=${event.id}">
 										삭제
 									</button>
@@ -71,40 +85,37 @@
 									<div class="col-md-8">
 										<label class="form-label">제목 <span class="text-danger">*</span></label>
 										<input type="text" class="form-control event-detail-title" name="title" required
-											maxlength="200" th:value="${event.title}">
+											maxlength="200" th:value="${event.title}" th:readonly="${!canUpdate}">
 									</div>
 
 									<div class="col-md-2">
 										<label class="form-label">시작일 <span class="text-danger">*</span></label>
 										<input type="date" class="form-control event-detail-start" name="startDate"
-											required th:value="${event.startDate}">
+											required th:value="${event.startDate}" th:disabled="${!canUpdate}">
 									</div>
 
 									<div class="col-md-2">
 										<label class="form-label">종료일 <span class="text-danger">*</span></label>
 										<input type="date" class="form-control event-detail-end" name="endDate" required
-											th:value="${event.endDate}">
+											th:value="${event.endDate}" th:disabled="${!canUpdate}">
 									</div>
 
-									<!-- ✅ 대표이미지: col-md-12 + 프리뷰(450x300) + 초기화 -->
 									<div class="col-md-12">
 										<label class="form-label">대표이미지</label>
 										<input type="file" class="form-control event-detail-rep" name="repImage"
-											accept="image/*">
+											accept="image/*" th:disabled="${!canUpdate}">
 										<small class="text-muted d-block mt-1">선택 시 대표이미지가 교체됩니다.</small>
 
-										<!-- 원본 이미지 URL을 JS로 전달 -->
 										<div class="event-rep-preview-wrap mt-2"
 											th:attr="data-original-url=${event.repImageUrl}"
 											style="width:450px; height:300px; position:relative; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; background:#f8f9fa;">
 
-											<button type="button"
+											<button th:if="${canUpdate}" type="button"
 												class="btn btn-sm btn-secondary event-rep-preview-reset"
 												style="position:absolute; top:8px; right:8px; z-index:2;">
 												초기화
 											</button>
 
-											<!-- JS가 원본/새이미지로 교체 표시 -->
 											<img class="event-rep-preview-img" alt="대표이미지 미리보기"
 												style="width:100%; height:100%; object-fit:cover; display:none;">
 
@@ -118,13 +129,14 @@
 									<div class="col-12">
 										<label class="form-label">상세 내용</label>
 
-										<!-- ✅ 원본 유지 -->
 										<textarea id="event-detail-editor" class="form-control event-detail-editor"
-											name="contentHtml" rows="10" th:utext="${event.contentHtml}"></textarea>
+											name="contentHtml" rows="10" th:utext="${event.contentHtml}"
+											th:attr="data-can-update=${canUpdate}, readonly=${!canUpdate}"></textarea>
 									</div>
 
 									<div class="col-12 d-flex justify-content-end mt-2">
-										<button type="submit" class="btn btn-primary event-detail-save-btn">
+										<button th:if="${canUpdate}" type="submit"
+											class="btn btn-primary event-detail-save-btn">
 											수정 저장
 										</button>
 									</div>
@@ -145,6 +157,13 @@
 	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+
+	<script th:inline="javascript">
+		window.eventDetailPermissions = {
+			canUpdate: /*[[${canUpdate}]]*/ false,
+			canDelete: /*[[${canDelete}]]*/ false
+		};
+	</script>
 
 	<script th:src="@{/administration/assets/js/page/shopManager/board/event/eventDetail.js}"></script>
 </body>

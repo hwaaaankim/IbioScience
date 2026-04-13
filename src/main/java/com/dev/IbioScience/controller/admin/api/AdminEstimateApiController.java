@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,8 +29,11 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/root/api/client/{memberId}/estimates")
 public class AdminEstimateApiController {
 
+    private static final String PAGE_CODE = "CRM_ESTIMATE_LIST";
+
     private final AdminEstimateListService adminEstimateListService;
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping
     public ResponseEntity<AdminPageResponse<AdminEstimateListRowDto>> getEstimateList(
             @PathVariable Long memberId,
@@ -38,6 +42,7 @@ public class AdminEstimateApiController {
         return ResponseEntity.ok(adminEstimateListService.getEstimateList(memberId, request));
     }
 
+    @PreAuthorize("@adminMenuFacade.canViewByPageCode('" + PAGE_CODE + "')")
     @GetMapping("/{estimateId}")
     public ResponseEntity<?> getEstimateDetail(
             @PathVariable Long memberId,
@@ -50,6 +55,7 @@ public class AdminEstimateApiController {
         }
     }
 
+    @PreAuthorize("@adminMenuFacade.canUpdateByPageCode('" + PAGE_CODE + "')")
     @PostMapping(
             value = "/{estimateId}/send-email",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE

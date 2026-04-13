@@ -1,136 +1,138 @@
 <!doctype html>
 <html lang="ko" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg"
-      data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
+	data-sidebar-image="none" data-preloader="disable" xmlns:th="http://www.thymeleaf.org">
 
 <head th:replace="~{fragments/administration/common :: ibioAdminHead('할인혜택관리')}"></head>
 
-<body>
-<div id="layout-wrapper">
-    <header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
-    <div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
-    <div class="vertical-overlay"></div>
+<body
+	th:with="
+        canUpdate=${@adminMenuFacade.canUpdateByPageCode(T(com.dev.IbioScience.enums.auth.role.AdminPageCodes).PROD_COUPON_MANAGER)}">
+	<div id="layout-wrapper">
+		<header id="page-topbar" th:replace="~{fragments/administration/common :: ibioAdminHeaderMenu}"></header>
+		<div class="app-menu navbar-menu" th:replace="~{fragments/administration/common :: ibioAdminSideMenu}"></div>
+		<div class="vertical-overlay"></div>
 
-    <div class="main-content">
-        <div class="page-content">
-            <div class="container-fluid">
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
 
-                <div class="row">
-                    <div class="col-12">
-                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                            <h4 class="mb-sm-0">쿠폰관리</h4>
-                            <div class="page-title-right">
-                                <ol class="breadcrumb m-0">
-                                    <li class="breadcrumb-item"><a href="javascript: void(0);">관리</a></li>
-                                    <li class="breadcrumb-item active">쿠폰상세</li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+					<div class="row">
+						<div class="col-12">
+							<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+								<h4 class="mb-sm-0">쿠폰관리</h4>
+								<div class="page-title-right">
+									<ol class="breadcrumb m-0">
+										<li class="breadcrumb-item"><a href="javascript: void(0);">관리</a></li>
+										<li class="breadcrumb-item active">쿠폰상세</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+					</div>
 
-                <!-- 카드 내부 시작 -->
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="mb-4 text-center">쿠폰 상세/수정</h2>
+					<!-- 카드 내부 시작 -->
+					<div class="card">
+						<div class="card-body">
+							<h2 class="mb-4 text-center">쿠폰 상세/수정</h2>
 
-                        <form id="coupon-manager-update-form" autocomplete="off" th:action="@{/couponUpdate}" method="post">
-                            <!-- PK -->
-                            <input type="hidden" name="id" th:value="${coupon.id}"/>
+							<form id="coupon-manager-update-form" autocomplete="off" th:action="@{/couponUpdate}"
+								method="post">
+								<!-- PK -->
+								<input type="hidden" name="id" th:value="${coupon.id}" />
 
-                            <div class="mb-3">
-                                <label class="coupon-manager-form-label form-label">쿠폰 코드</label>
-                                <input type="text" class="coupon-manager-form-control form-control"
-                                       th:value="${coupon.couponCode}" readonly>
-                            </div>
+								<div class="mb-3">
+									<label class="coupon-manager-form-label form-label">쿠폰 코드</label>
+									<input type="text" class="coupon-manager-form-control form-control"
+										th:value="${coupon.couponCode}" readonly>
+								</div>
 
-                            <div class="mb-3">
-                                <label for="couponName" class="coupon-manager-form-label form-label">
-                                    쿠폰명 <span class="coupon-manager-required">*</span>
-                                </label>
-                                <input type="text" class="coupon-manager-form-control form-control"
-                                       id="couponName" name="couponName" maxlength="32"
-                                       th:value="${coupon.couponName}" required>
-                            </div>
+								<div class="mb-3">
+									<label for="couponName" class="coupon-manager-form-label form-label">
+										쿠폰명 <span class="coupon-manager-required">*</span>
+									</label>
+									<input type="text" class="coupon-manager-form-control form-control" id="couponName"
+										name="couponName" maxlength="32" th:value="${coupon.couponName}" required>
+								</div>
 
-                            <div class="mb-3">
-                                <label for="minPurchaseAmount" class="coupon-manager-form-label form-label">
-                                    최소 결제금액(원) <span class="coupon-manager-required">*</span>
-                                </label>
-                                <input type="number" class="coupon-manager-form-control form-control"
-                                       id="minPurchaseAmount" name="minPurchaseAmount"
-                                       th:value="${coupon.minPurchaseAmount}" required>
-                            </div>
+								<div class="mb-3">
+									<label for="minPurchaseAmount" class="coupon-manager-form-label form-label">
+										최소 결제금액(원) <span class="coupon-manager-required">*</span>
+									</label>
+									<input type="number" class="coupon-manager-form-control form-control"
+										id="minPurchaseAmount" name="minPurchaseAmount"
+										th:value="${coupon.minPurchaseAmount}" required>
+								</div>
 
-                            <div class="mb-3">
-                                <label for="couponAmount" class="coupon-manager-form-label form-label">
-                                    쿠폰 할인금액(원) <span class="coupon-manager-required">*</span>
-                                </label>
-                                <input type="number" class="coupon-manager-form-control form-control"
-                                       id="couponAmount" name="couponAmount"
-                                       th:value="${coupon.couponAmount}" required>
-                            </div>
+								<div class="mb-3">
+									<label for="couponAmount" class="coupon-manager-form-label form-label">
+										쿠폰 할인금액(원) <span class="coupon-manager-required">*</span>
+									</label>
+									<input type="number" class="coupon-manager-form-control form-control"
+										id="couponAmount" name="couponAmount" th:value="${coupon.couponAmount}"
+										required>
+								</div>
 
-                            <div class="row">
-                                <div class="mb-3 col-md-6">
-                                    <label for="startDate" class="coupon-manager-form-label form-label">
-                                        시작일 <span class="coupon-manager-required">*</span>
-                                    </label>
-                                    <input type="date" class="coupon-manager-form-control form-control"
-                                           id="startDate" name="startDate"
-                                           th:value="${#temporals.format(coupon.startDate, 'yyyy-MM-dd')}" required>
-                                </div>
-                                <div class="mb-3 col-md-6">
-                                    <label for="endDate" class="coupon-manager-form-label form-label">
-                                        종료일 <span class="coupon-manager-required">*</span>
-                                    </label>
-                                    <input type="date" class="coupon-manager-form-control form-control"
-                                           id="endDate" name="endDate"
-                                           th:value="${#temporals.format(coupon.endDate, 'yyyy-MM-dd')}" required>
-                                </div>
-                            </div>
+								<div class="row">
+									<div class="mb-3 col-md-6">
+										<label for="startDate" class="coupon-manager-form-label form-label">
+											시작일 <span class="coupon-manager-required">*</span>
+										</label>
+										<input type="date" class="coupon-manager-form-control form-control"
+											id="startDate" name="startDate"
+											th:value="${#temporals.format(coupon.startDate, 'yyyy-MM-dd')}" required>
+									</div>
+									<div class="mb-3 col-md-6">
+										<label for="endDate" class="coupon-manager-form-label form-label">
+											종료일 <span class="coupon-manager-required">*</span>
+										</label>
+										<input type="date" class="coupon-manager-form-control form-control" id="endDate"
+											name="endDate" th:value="${#temporals.format(coupon.endDate, 'yyyy-MM-dd')}"
+											required>
+									</div>
+								</div>
 
-                            <div class="mb-3">
-                                <label for="couponPolicy" class="coupon-manager-form-label form-label">
-                                    쿠폰 정책 <span class="coupon-manager-required">*</span>
-                                </label>
-                                <select class="coupon-manager-form-select form-select" id="couponPolicy"
-                                        name="couponPolicy" required>
-                                    <option value="" disabled>정책 선택</option>
-                                    <option th:each="p : ${policyValues}"
-                                            th:value="${p}" th:text="${p}"
-                                            th:selected="${coupon.couponPolicy == p}"></option>
-                                </select>
-                            </div>
+								<div class="mb-3">
+									<label for="couponPolicy" class="coupon-manager-form-label form-label">
+										쿠폰 정책 <span class="coupon-manager-required">*</span>
+									</label>
+									<select class="coupon-manager-form-select form-select" id="couponPolicy"
+										name="couponPolicy" required>
+										<option value="" disabled>정책 선택</option>
+										<option th:each="p : ${policyValues}" th:value="${p}" th:text="${p}"
+											th:selected="${coupon.couponPolicy == p}"></option>
+									</select>
+								</div>
 
-                            <div class="mb-3">
-                                <label for="status" class="coupon-manager-form-label form-label">
-                                    쿠폰 상태 <span class="coupon-manager-required">*</span>
-                                </label>
-                                <select class="coupon-manager-form-select form-select" id="status"
-                                        name="status" required>
-                                    <option th:each="s : ${statusValues}"
-                                            th:value="${s}" th:text="${s}"
-                                            th:selected="${coupon.status == s}"></option>
-                                </select>
-                            </div>
+								<div class="mb-3">
+									<label for="status" class="coupon-manager-form-label form-label">
+										쿠폰 상태 <span class="coupon-manager-required">*</span>
+									</label>
+									<select class="coupon-manager-form-select form-select" id="status" name="status"
+										required>
+										<option th:each="s : ${statusValues}" th:value="${s}" th:text="${s}"
+											th:selected="${coupon.status == s}"></option>
+									</select>
+								</div>
 
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="coupon-manager-btn-custom btn btn-primary flex-fill">
-                                    수정
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+								<div class="d-flex gap-2">
+									<button type="submit" class="coupon-manager-btn-custom btn btn-primary flex-fill"
+										th:if="${canUpdate}">
+										수정
+									</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
 
-        <footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
-    </div>
-</div>
+			<footer class="footer" th:replace="~{fragments/administration/common :: ibioAdminFooter}"></footer>
+		</div>
+	</div>
 
-<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
-<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminButton}"></th:block>
+	<th:block th:replace="~{fragments/administration/common :: ibioAdminScript}"></th:block>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
